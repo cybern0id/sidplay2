@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2003/01/23 17:33:22  s_a_white
+ *  Redundent code removal.
+ *
  *  Revision 1.29  2002/10/15 18:14:02  s_a_white
  *  Removed upper limit frequency limit check to allow for oversampling.
  *
@@ -158,37 +161,41 @@ int Player::config (const sid2_config_t &cfg)
     // Only do these if we have a loaded tune
     if (m_tune)
     {
-        float64_t cpuFreq;
-        // Reset tune info
-        m_tune->getInfo(m_tuneInfo);
+        if (m_playerState != sid2_paused)
+        {
+            float64_t cpuFreq;
+            // Reset tune info
+            m_tune->getInfo(m_tuneInfo);
 
-        // External Setups
+            // Must be this order:
+            // Determine clock speed
+            cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
+                                  cfg.clockForced);
+            // Fixed point conversion 16.16
+            m_samplePeriod = (event_clock_t) (cpuFreq /
+                             (float64_t) cfg.frequency *
+                             (1 << 16) * m_fastForwardFactor);
+            // Setup fake cia
+            sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
+            if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
+                m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
+            {
+                sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_NTSC + 0.5));
+            }
+            // Configure, setup and install C64 environment/events
+            if (environment (cfg.environment) < 0)
+                goto Player_configure_restore;
+            // Start the real time clock event
+            rtc.clock  (cpuFreq);
+        }
+
+        // SID emulation setup
         if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
         {
             m_errorString      = cfg.sidEmulation->error ();
             m_cfg.sidEmulation = NULL;
             goto Player_configure_restore;
         }
-        // Must be this order:
-        // Determine clock speed
-        cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
-                              cfg.clockForced);
-        // Fixed point conversion 16.16
-        m_samplePeriod = (event_clock_t) (cpuFreq /
-                         (float64_t) cfg.frequency *
-                         (1 << 16) * m_fastForwardFactor);
-        // Setup fake cia
-        sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
-        if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
-            m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
-        {
-            sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_NTSC + 0.5));
-        }
-        // Configure, setup and install C64 environment/events
-        if (environment (cfg.environment) < 0)
-            goto Player_configure_restore;
-        // Start the real time clock event
-        rtc.clock (cpuFreq);
     }
     sidSamples (cfg.sidSamples);
 
