@@ -30,12 +30,12 @@ MOS656X::MOS656X (EventContext *context)
 :event_context(*context),
  event_raster(this)
 {
+    chip  (MOS6569);
     reset ();
 }
 
 void MOS656X::reset ()
 {
-    chip (MOS6569);
     icr          = idr = 0;
     raster_cycle = raster_cycles - 1;
     raster_irq   = 0;
