@@ -70,14 +70,14 @@ EXEEXT = @EXEEXT@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LIBSIDPLAY2_INCLUDES = @LIBSIDPLAY2_INCLUDES@
-LIBSIDPLAY2_LDADD = @LIBSIDPLAY2_LDADD@
+LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 STRIP = @STRIP@
 VERSION = @VERSION@
@@ -87,14 +87,14 @@ install_sh = @install_sh@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include src 
+SUBDIRS = include src unix
 
-EXTRA_DIST = unix win acconfig.h libsidutils.spec
+EXTRA_DIST = win acconfig.h
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
-CONFIG_CLEAN_FILES = libsidutils.spec
+CONFIG_CLEAN_FILES =
 DIST_SOURCES =
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
@@ -103,9 +103,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 configure \
-	configure.in libsidutils.spec.in unix/config.guess \
-	unix/config.sub unix/depcomp unix/install-sh unix/ltmain.sh \
-	unix/missing unix/mkinstalldirs
+	configure.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: all-recursive
 
@@ -134,8 +132,6 @@ $(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENC
 
 $(ACLOCAL_M4):  configure.in acinclude.m4
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
-libsidutils.spec: $(top_builddir)/config.status libsidutils.spec.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 uninstall-info-am:
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -241,7 +237,7 @@ GZIP_ENV = --best
 distdir: $(DISTFILES)
 	-chmod -R a+w $(distdir) >/dev/null 2>&1; rm -rf $(distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/. $(distdir)/unix
+	$(mkinstalldirs) $(distdir)/unix
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \

@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(include/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=1
+LIBREV=2
 LIBAGE=0
 AM_INIT_AUTOMAKE(libsidutils,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -14,44 +14,71 @@ AC_SUBST(LIBVERSION)
 
 AC_CANONICAL_HOST
 
-dnl Use C++ for tests.
-AC_LANG_CPLUSPLUS
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_RANLIB
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
-dnl Setup prefix, why is this not done already?
-sid_prefix=$prefix
-if test "$sid_prefix" = NONE; then
-    sid_prefix="$ac_default_prefix"
+dnl Find pkg-config
+AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+if test "$PKG_CONFIG" = no; then
+  AC_MSG_ERROR([*** pkg-config not found. See http://pkgconfig.sourceforge.net])
 fi
 
-dnl Checks for libraries.
-SID_PATH_LIBSIDPLAY2
+if ! pkg-config --atleast-pkgconfig-version 0.5 ; then
+  AC_MSG_ERROR([*** pkg-config too old; version 0.5 or better required.])
+fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
 
+dnl Use C++ for tests.
+AC_LANG_CPLUSPLUS
+
 dnl Check for nothrow allocator.
 CHECK_EXCEPTIONS
 
+dnl Check for libsidplay2
+LIBSIDPLAY2_REQUIRED_VERSION=2.1.0
+
+AC_MSG_CHECKING(for libsidplay2)
+if $PKG_CONFIG --atleast-version $LIBSIDPLAY2_REQUIRED_VERSION libsidplay2; then
+    LIBSIDPLAY2_LIBDIR=`$PKG_CONFIG --variable=libdir libsidplay2`
+    LIBSIDPLAY2_INCLUDEDIR=`$PKG_CONFIG --variable=includedir libsidplay2`
+    AC_MSG_RESULT([$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR])
+    LIBSIDPLAY2_CXXFLAGS=`$PKG_CONFIG --cflags libsidplay2`
+    LIBSIDPLAY2_LDFLAGS=`$PKG_CONFIG --libs libsidplay2`
+    LIBSIDPLAY2_TRY_COMPILE
+    if test "$LIBSIDPLAY2_WORKS" = no; then
+        AC_MSG_ERROR([
+libsidplay2 build test failed with found library and header files.
+Please check your installation!
+        ])
+    fi
+    AC_SUBST(LIBSIDPLAY2_LDFLAGS)
+else
+    AC_MSG_ERROR([
+libsidplay $LIBSIDPLAY2_REQUIRED_VERSION library not found.
+Please check your installation!
+    ]);
+fi
+
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay/utils \
-\$(LIBSIDPLAY2_INCLUDES) -Wall"
+\$(LIBSIDPLAY2_CXXFLAGS) -Wall"
 
 AC_OUTPUT(
 Makefile \
-libsidutils.spec \
 include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/utils/Makefile \
 src/Makefile \
 src/ini/Makefile \
-src/MD5/Makefile
+src/MD5/Makefile \
+unix/Makefile \
+unix/libsidutils.spec \
+unix/libsidutils.pc \
 )
