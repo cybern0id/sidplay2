@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/05/28 15:45:12  s_a_white
+ *  Correct credit email address
+ *
  *  Revision 1.11  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -63,11 +66,11 @@ const char * const SID6526::credit =
 };
 
 SID6526::SID6526 (c64env *env)
-:m_env(*env),
+:Event("CIA Timer A"),
+ m_env(*env),
  m_eventContext(m_env.context ()),
  m_phase(EVENT_CLOCK_PHI1),
- rnd(0),
- m_taEvent(*this)
+ rnd(0)
 {
     clock (0xffff);
     reset (false);
@@ -85,7 +88,7 @@ void SID6526::reset (bool seed)
         rnd += time(NULL) & 0xff;
     m_accessClk = 0;
     // Remove outstanding events
-    m_eventContext.cancel (&m_taEvent);
+    cancel ();
 }
 
 uint8_t SID6526::read (uint_least8_t addr)
@@ -141,8 +144,7 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             cra &= (~0x10);
             ta   = ta_latch;
         }
-        m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
-                                 m_phase);
+        schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
     break;
     default:
     break;
@@ -153,7 +155,6 @@ void SID6526::event (void)
 {   // Timer Modes
     m_accessClk = m_eventContext.getTime (m_phase);
     ta = ta_latch;
-    m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
-                             m_phase);
+    schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
     m_env.interruptIRQ (true);
 }

@@ -74,7 +74,7 @@ void MOS656X::reset ()
     sprite_expand_y = 0xff;
     memset (regs, 0, sizeof (regs));
     memset (sprite_mc_base, 0, sizeof (sprite_mc_base));
-    event_context.schedule (this, 0, m_phase);
+    schedule (event_context, 0, m_phase);
 }
 
 void MOS656X::chip (mos656x_model_t model)
@@ -434,7 +434,7 @@ void MOS656X::event (void)
             delay = xrasters - cycle;
     }
 
-    event_context.schedule (this, delay - event_context.phase(), m_phase);
+    schedule (event_context, delay - event_context.phase(), m_phase);
 }
 
 // Handle light pen trigger

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2004/05/03 22:36:49  s_a_white
+ *  Fix sleep handling to take into about the new instruction pipelining.
+ *
  *  Revision 1.37  2004/04/23 01:00:32  s_a_white
  *  jmp_instr now modifies instrStartPC so will always match if tested after call.
  *
@@ -394,7 +397,7 @@ void SID6510::sid_delay (void)
     cycleCount--;
     // Woken from sleep just to handle the stealing release
     if (m_sleeping)
-        eventContext.cancel (this);
+        cancel ();
     else
     {
         event_clock_t cycle = delayed % 3;
@@ -403,7 +406,7 @@ void SID6510::sid_delay (void)
             if (interruptPending ())
                 return;
         }
-        eventContext.schedule (this, 3 - cycle, m_phase);
+        schedule (eventContext, 3 - cycle, m_phase);
     }
 }
 
@@ -417,7 +420,7 @@ void SID6510::triggerRST (void)
     if (m_sleeping)
     {
         m_sleeping = false;
-        eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
+        schedule (eventContext, eventContext.phase() == m_phase, m_phase);
     }
 }
 
@@ -429,7 +432,7 @@ void SID6510::triggerNMI (void)
         if (m_sleeping)
         {
             m_sleeping = false;
-            eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
+            schedule (eventContext, eventContext.phase() == m_phase, m_phase);
         }
     }
 }
@@ -454,7 +457,7 @@ void SID6510::triggerIRQ (void)
         {   // Simulate busy loop
             m_sleeping = !(interrupts.irqRequest || interrupts.pending);
             if (!m_sleeping)
-                eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
+                schedule (eventContext, eventContext.phase() == m_phase, m_phase);
         }
     }
 }

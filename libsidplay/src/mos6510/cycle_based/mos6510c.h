@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2004/04/23 01:01:37  s_a_white
+ *  Added debug clock to record cycle instructions starts on.
+ *
  *  Revision 1.24  2004/03/07 22:38:57  s_a_white
  *  Rename write to nosteal since it needs setting for non memory access cycles to
  *
@@ -350,12 +353,12 @@ inline void MOS6510::clock (void)
         m_stealingClk = eventContext.getTime (m_phase);
     }
     cycleCount--;
-    eventContext.cancel (this);
+    cancel ();
 }
 
 inline void MOS6510::event (void)
 {
-    eventContext.schedule (this, 1, m_phase);
+    schedule (eventContext, 1, m_phase);
     clock ();
 }
 

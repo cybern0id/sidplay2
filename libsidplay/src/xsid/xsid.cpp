@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2004/05/28 15:45:13  s_a_white
+ *  Correct credit email address
+ *
  *  Revision 1.23  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -109,8 +112,8 @@ channel::channel (const char * const name, EventContext *context, XSID *xsid)
  m_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  m_xsid(*xsid),
- sampleEvent(this),
- galwayEvent(this)
+ m_sampleEvent("xSID Sample", *this, &channel::sampleClock),
+ m_galwayEvent("xSID Galway", *this, &channel::galwayClock)
 {
     memset (reg, 0, sizeof (reg));
     active = true;
@@ -123,9 +126,9 @@ void channel::reset ()
     mode       = FM_NONE;
     free ();
     // Remove outstanding events
-    m_context.cancel (&m_xsid);
-    m_context.cancel (&sampleEvent);
-    m_context.cancel (&galwayEvent);
+    m_xsid.cancel ();
+    m_sampleEvent.cancel ();
+    m_galwayEvent.cancel ();
 }
 
 void channel::free ()
@@ -237,8 +240,9 @@ void channel::sampleInit ()
 #endif // XSID_DEBUG
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0, m_phase);
-    m_context.schedule (&sampleEvent, cycleCount, m_phase);
+    if (!m_xsid.pending ())
+        m_xsid.schedule (m_context, 0, m_phase);
+    m_sampleEvent.schedule (m_context, cycleCount, m_phase);
 }
 
 void channel::sampleClock ()
@@ -278,8 +282,9 @@ void channel::sampleClock ()
     sample  = sampleCalculate ();
     cycles += cycleCount;
     // Schedule a sample update
-    m_context.schedule (&sampleEvent, cycleCount, m_phase);
-    m_context.schedule (&m_xsid, 0, m_phase);
+    if (!m_xsid.pending ())
+        m_xsid.schedule (m_context, 0, m_phase);
+    m_sampleEvent.schedule (m_context, cycleCount, m_phase);
 }
 
 int8_t channel::sampleCalculate ()
@@ -354,8 +359,9 @@ void channel::galwayInit()
 #endif
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0, m_phase);
-    m_context.schedule (&galwayEvent, cycleCount, m_phase);
+    if (!m_xsid.pending ())
+        m_xsid.schedule (m_context, 0, m_phase);
+    m_galwayEvent.schedule (m_context, cycleCount, m_phase);
 }
 
 void channel::galwayClock ()
@@ -386,8 +392,9 @@ void channel::galwayClock ()
     galVolume &= 0x0f;
     sample     = (int8_t) galVolume - 8;
     cycles    += cycleCount;
-    m_context.schedule (&galwayEvent, cycleCount, m_phase);
-    m_context.schedule (&m_xsid, 0, m_phase);
+    if (!m_xsid.pending ())
+        m_xsid.schedule (m_context, 0, m_phase);
+    m_galwayEvent.schedule (m_context, cycleCount, m_phase);
 }
 
 void channel::galwayTonePeriod ()
@@ -410,9 +417,9 @@ void channel::galwayTonePeriod ()
 void channel::silence ()
 {
     sample = 0;
-    m_context.cancel   (&sampleEvent);
-    m_context.cancel   (&galwayEvent);
-    m_context.schedule (&m_xsid, 0, m_phase);
+    m_sampleEvent.cancel ();
+    m_galwayEvent.cancel ();
+    m_xsid.schedule (m_context, 0, m_phase);
 }
 
 

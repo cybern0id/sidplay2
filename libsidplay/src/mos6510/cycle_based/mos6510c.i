@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.48  2004/05/03 22:37:17  s_a_white
+ *  Remove debug code.
+ *
  *  Revision 1.47  2004/04/23 01:34:59  s_a_white
  *  CPU timing corrected.
  *
@@ -254,7 +257,7 @@ void MOS6510::aecSignal (bool state)
             m_blocked = false;
         }
 
-        eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
+        schedule (eventContext, eventContext.phase() == m_phase, m_phase);
     }
 }
 
@@ -2462,7 +2465,7 @@ void MOS6510::Initialise (void)
     aec = true;
 
     m_blocked = false;
-    eventContext.schedule (this, 0, m_phase);
+    schedule (eventContext, 0, m_phase);
 }
 
 //-------------------------------------------------------------------------//
