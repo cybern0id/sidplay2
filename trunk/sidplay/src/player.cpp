@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.6  2001/12/07 18:22:33  s_a_white
  *  Player quit fixes.
  *
@@ -148,6 +151,9 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
         m_driver.device = new WavFile;
 #endif
     break;
+
+    default:
+        break;
     }
 
     // Audio driver failed
