@@ -58,6 +58,21 @@ private:
     Event  *m_pendingEvents;
     uint    m_pendingEventClk;
 
+    class EventTimeWarp: public Event
+    {
+    private:
+        EventContext &m_eventContext;
+
+        void event (void)
+        {   m_eventContext.timeWarp (); }
+
+    public:
+        EventTimeWarp (EventContext *context)
+        :Event("Time Warp"),
+         m_eventContext(*context)
+        {;}
+    } m_timeWarp;
+
 private:
     void dispatch (void)
     {
@@ -72,116 +87,32 @@ public:
         : m_name(name),
           m_eventClk(0),
           m_schedClk(0),
-          m_pendingEvents(NULL) {}
+          m_pendingEvents(NULL),
+          m_timeWarp(this) { timeWarp (0); }
 
+    void cancel   (Event *event);
     void reset    (void);
+    void schedule (Event *event, event_clock_t cycles);
+    void timeWarp (void)
+    {   timeWarp ( -((int) m_pendingEventClk) ); }
     void timeWarp (int cycles);
-
-    void schedule (Event *event, event_clock_t cycles)
-    {
-        uint clk = m_eventClk + cycles;
-        if (event->m_pending)
-            cancel (event);
-        event->m_pending = true;
-        event->m_clk     = clk;
-
-        // Now put in the correct place so we don't need to keep
-        // searching the list later.
-        for (;;)
-        {
-            Event *e = m_pendingEvents;
-
-            if (e == NULL)
-            {   // New pending list
-                event->m_prev = NULL;
-                event->m_next = NULL;
-                m_pendingEventClk = clk;
-                m_pendingEvents   = event;
-            } else {
-                while (e->m_next != NULL)
-                {
-                    if (e->m_clk > clk)
-                        break;
-                    e = e->m_next;
-                }
-
-                if (!e->m_next)
-                {
-                    if (e->m_clk <= clk)
-                    {   // Insert at end
-                        e->m_next     = event;
-                        event->m_prev = e;
-                        event->m_next = NULL;
-                        break;
-                    }
-                }
-
-                // Inserting in middle or front
-                // of existing list
-                event->m_prev = e->m_prev;
-                event->m_next = e;
-                if (e->m_prev)
-                    e->m_prev->m_next = event;
-                else
-                {   // At front
-                    m_pendingEventClk = clk;
-                    m_pendingEvents   = event;
-                }
-                e->m_prev = event;
-            }
-            break;
-        }
-    }
-
-    void cancel (Event *event)
-    {
-        if (!event->m_pending)
-            return;
-        event->m_pending = false;
-
-        // Remove event from pending list
-        if (event->m_prev)
-            event->m_prev->m_next = event->m_next;
-        if (event->m_next)
-            event->m_next->m_prev = event->m_prev;
-
-        if (event == m_pendingEvents)
-        {
-            m_pendingEvents = event->m_next;
-            if (m_pendingEvents != NULL)
-                m_pendingEventClk = m_pendingEvents->m_clk;
-        }
-    }
 
     void clock (event_clock_t delta = 1)
     {
         m_schedClk  += delta;
         m_eventClk  += delta;
-        if (m_pendingEvents != NULL)
-        {
-            // Dispatch events which have fired
-            while (m_eventClk >= m_pendingEventClk)
-            {
-                dispatch ();
-                if (m_pendingEvents == NULL)
-                    break;
-            }
+        while (m_pendingEvents != NULL)
+        {   // Dispatch events which have fired
+            if (m_eventClk < m_pendingEventClk)
+                break;
+            dispatch ();
         }
-
-        while (m_eventClk > 0xfffff)
-            timeWarp (-0xfffff);
     }
 
     event_clock_t getTime (void)
     {   return m_schedClk; }
-
     event_clock_t getTime (event_clock_t clock)
-    {
-        event_clock_t clk = m_schedClk - clock;
-        if (clock <= m_schedClk)
-            return clk;
-        return ~clk + 1;
-    } 
+    {   return m_schedClk - clock; }
 };
 
 #endif // _event_h_
