@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2002/11/01 17:36:01  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.34  2002/10/02 19:45:23  s_a_white
  *  RSID support.
  *
@@ -172,7 +175,6 @@ private:
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
     static const char  *ERR_PSIDDRV_RELOC;
-    static const char  *ERR_PSIDDRV_BAD_PAGES;
 
     EventScheduler m_scheduler;
 
