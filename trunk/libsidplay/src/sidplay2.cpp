@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2003/02/20 19:12:54  s_a_white
+ *  Fix included header files.
+ *
  *  Revision 1.15  2002/03/04 19:05:49  s_a_white
  *  Fix C++ use of nothrow.
  *
@@ -72,6 +75,7 @@
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 
+#include <stdio.h>
 #include "config.h"
 #include "player.h"
 #include "sidplay2.h"
@@ -125,8 +129,8 @@ const char *sidplay2::error (void) const
 int  sidplay2::fastForward  (uint percent)
 {   return sidplayer.fastForward (percent); }
 
-void sidplay2::debug (bool enable)
-{   sidplayer.debug (enable); }
+void sidplay2::debug (bool enable, FILE *out)
+{   sidplayer.debug (enable, out); }
 
 sid2_player_t sidplay2::state (void) const
 {   return sidplayer.state (); }

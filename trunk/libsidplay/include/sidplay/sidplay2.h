@@ -49,7 +49,7 @@ public:
     uint_least32_t play         (void *buffer, uint_least32_t length);
     sid2_player_t  state        (void) const;
     void           stop         (void);
-    void           debug        (bool enable);
+    void           debug        (bool enable, FILE *out);
 
     // Timer functions with respect to 10ths of a second
     uint_least32_t time    (void) const;
