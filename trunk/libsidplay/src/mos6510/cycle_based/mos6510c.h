@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/24 18:09:17  s_a_white
+ *  On entry to interrupt routine the first instruction in the handler is now always
+ *  executed before pending interrupts are re-checked.
+ *
  *  Revision 1.5  2001/03/19 23:48:21  s_a_white
  *  Interrupts made virtual to allow for redefintion for Sidplay1 compatible
  *  interrupts.
@@ -122,6 +126,7 @@ protected:
     inline void FetchHighPointer     (void);
     inline void FetchEffAddrDataByte (void);
     inline void PutEffAddrDataByte   (void);
+    inline void FetchPutEffAddrDataByte (void);
     inline void PushLowPC            (void);
     inline void PushHighPC           (void);
     inline void PushSR               (void);
