@@ -44,18 +44,7 @@ static const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
 SidTune::LoadStatus SidTune::MUS_fileSupport(Buffer_sidtt<const uint_least8_t>& musBuf,
                                              Buffer_sidtt<const uint_least8_t>& strBuf)
 {
-    // Clear info strings.
-    for (int i = 0; i < SIDTUNE_MAX_CREDIT_STRINGS; i++)
-        infoString[i][0] = 0;
-
-    info.songs = (info.startSong = 1);
-    info.musPlayer = true;
-    
-    songSpeed[0]  = SIDTUNE_SPEED_CIA_1A;
-#ifdef SIDTUNE_PSID2NG
-    clockSpeed[0] = SIDTUNE_CLOCK_ANY;
-#endif
-    return MUS_load (musBuf, strBuf);
+    return MUS_load (musBuf, strBuf, true);
 }
 
 bool SidTune::MUS_detect(const void* buffer, const uint_least32_t bufLen,
@@ -578,19 +567,31 @@ void SidTune::MUS_installPlayer(uint_least8_t *c64buf)
     }
 }
 
-SidTune::LoadStatus SidTune::MUS_load (Buffer_sidtt<const uint_least8_t>& musBuf)
+SidTune::LoadStatus SidTune::MUS_load (Buffer_sidtt<const uint_least8_t>& musBuf, bool init)
 {
     Buffer_sidtt<const uint_least8_t> empty;
-    return MUS_load (musBuf, empty);
+    return MUS_load (musBuf, empty, init);
 }
 
 SidTune::LoadStatus SidTune::MUS_load (Buffer_sidtt<const uint_least8_t>& musBuf,
-                                       Buffer_sidtt<const uint_least8_t>& strBuf)
+                                       Buffer_sidtt<const uint_least8_t>& strBuf,
+                                       bool init)
 {
     uint_least32_t voice3Index;
     SmartPtr_sidtt<const uint8_t> spPet(musBuf.get()+fileOffset,musBuf.len()-fileOffset);
     if ( !MUS_detect(&spPet[0],spPet.tellLength(),voice3Index) )
         return LOAD_NOT_MINE;
+
+    if (init)
+    {
+        info.songs = (info.startSong = 1);
+        info.musPlayer = true;
+    
+        songSpeed[0]  = SIDTUNE_SPEED_CIA_1A;
+#ifdef SIDTUNE_PSID2NG
+        clockSpeed[0] = SIDTUNE_CLOCK_ANY;
+#endif
+    }
 
     // Check setting compatibility for MUS playback
     if ((info.compatibility != SIDTUNE_COMPATIBILITY_C64) ||
