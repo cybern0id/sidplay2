@@ -1,25 +1,12 @@
 AC_INIT(Makefile.am)
 
 #Variables
-resid=resid-0.13
 pwd=`pwd`
 builders='${libdir}'/sidplay/builders
 ac_configure_args="$ac_configure_args --disable-library-checks"
 
-# Setup paths
-test ! -r "resid" && ln -sf "$resid" "resid"
-test ! -r "unix" && ln -sf libsidplay/unix unix
-
 AC_CONFIG_AUX_DIR(unix)
-AM_INIT_AUTOMAKE(sidplay-libs,2.1.0)
-
-if ! test -r "builders/Makefile.am"; then
-echo "Generating builder Makefile.am..."
-cat >>builders/Makefile.am <<EOF
-SUBDIRS = resid-builder
-EOF
-automake -a
-fi
+AM_INIT_AUTOMAKE(sidplay-libs,2.1.1)
 
 cd $pwd/libsidplay
 if ! eval ./configure $ac_configure_args \
@@ -44,6 +31,15 @@ if ! eval ./configure $ac_configure_args \
 --libdir=$builders;
 then
 exit
+fi
+
+cd $pwd/builders/hardsid-builder
+if ! eval ./configure $ac_configure_args \
+	--with-sidplay2-includes=$pwd/libsidplay/include \
+	--with-sidplay2-library=$pwd/libsidplay/src \
+	--libdir=$builders;
+then
+	exit
 fi
 
 cd $pwd/libsidutils
