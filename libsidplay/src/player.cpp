@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.60  2003/02/20 19:11:48  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.59  2003/01/23 17:32:37  s_a_white
  *  Redundent code removal.
  *
@@ -864,18 +867,25 @@ void Player::envReset (bool safe)
 {
     if (safe)
     {   // Emulation crashed so run in safe mode
-        uint8_t prg[] = {LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn};
-        sid2_info_t info;
-        SidTuneInfo tuneInfo;
-        // Install driver
-        tuneInfo.relocStartPage = 0x09;
-        tuneInfo.relocPages     = 0x20;
-        tuneInfo.initAddr       = 0x0800;
-        tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
-        info.environment        = m_info.environment;
-        psidDrvInstall (tuneInfo, info);
-        // Install prg
-        memcpy (&m_ram[0x0800], prg, sizeof (prg));
+        if (m_info.environment == sid2_envR)
+        {
+            uint8_t prg[] = {LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn};
+            sid2_info_t info;
+            SidTuneInfo tuneInfo;
+            // Install driver
+            tuneInfo.relocStartPage = 0x09;
+            tuneInfo.relocPages     = 0x20;
+            tuneInfo.initAddr       = 0x0800;
+            tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
+            info.environment        = m_info.environment;
+            psidDrvInstall (tuneInfo, info);
+            // Install prg
+            memcpy (&m_ram[0x0800], prg, sizeof (prg));
+        }
+        else
+        {   // If theres no irqs, song wont continue
+            sid6526.reset ();
+        }
 
         // Make sids silent
         for (int i = 0; i < SID2_MAX_SIDS; i++)
@@ -883,7 +893,6 @@ void Player::envReset (bool safe)
     }
 
     m_ram[0] = 0x2F;
-    evalBankSelect (0x37);
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     if (m_info.environment != sid2_envR)
     {
@@ -899,7 +908,10 @@ void Player::envReset (bool safe)
             sid6510.reset (m_tuneInfo.initAddr, song, song, song);
     }
     else
+    {
+        evalBankSelect (0x37);
         cpu->reset ();
+    }
 
     mixerReset ();
     xsid.suppress (true);
