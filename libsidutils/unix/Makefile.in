@@ -70,6 +70,7 @@ EXEEXT = @EXEEXT@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBSIDPLAY2_CXXFLAGS = @LIBSIDPLAY2_CXXFLAGS@
 LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
@@ -91,15 +92,16 @@ pkgconfig_DATA = libsidutils.pc
 EXTRA_DIST = libsidutils.spec
 subdir = unix
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = libsidutils.spec libsidutils.pc
 DIST_SOURCES =
 DATA = $(pkgconfig_DATA)
 
-DIST_COMMON = Makefile.am Makefile.in config.guess config.sub depcomp \
-	install-sh libsidutils.pc.in libsidutils.spec.in ltmain.sh \
-	missing mkinstalldirs
-all: all-am
+DIST_COMMON = ./stamp-h.in Makefile.am Makefile.in config.guess \
+	config.h.in config.sub depcomp install-sh libsidutils.pc.in \
+	libsidutils.spec.in ltmain.sh missing mkinstalldirs
+all: config.h
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 
@@ -118,6 +120,31 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+config.h: stamp-h
+	@if test ! -f $@; then \
+		rm -f stamp-h; \
+		$(MAKE) stamp-h; \
+	else :; fi
+stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
+	@rm -f stamp-h stamp-hT
+	@echo timestamp > stamp-hT 2> /dev/null
+	cd $(top_builddir) \
+	  && CONFIG_FILES= CONFIG_HEADERS=unix/config.h \
+	     $(SHELL) ./config.status
+	@mv stamp-hT stamp-h
+$(srcdir)/config.h.in:  $(srcdir)/./stamp-h.in
+	@if test ! -f $@; then \
+		rm -f $(srcdir)/./stamp-h.in; \
+		$(MAKE) $(srcdir)/./stamp-h.in; \
+	else :; fi
+$(srcdir)/./stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) $(top_srcdir)/acconfig.h
+	@rm -f $(srcdir)/./stamp-h.in $(srcdir)/./stamp-h.inT
+	@echo timestamp > $(srcdir)/./stamp-h.inT 2> /dev/null
+	cd $(top_srcdir) && $(AUTOHEADER)
+	@mv $(srcdir)/./stamp-h.inT $(srcdir)/./stamp-h.in
+
+distclean-hdr:
+	-rm -f config.h
 libsidutils.spec: $(top_builddir)/config.status libsidutils.spec.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 libsidutils.pc: $(top_builddir)/config.status libsidutils.pc.in
@@ -167,7 +194,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(DATA)
+all-am: Makefile $(DATA) config.h
 
 installdirs:
 	$(mkinstalldirs) $(DESTDIR)$(pkgconfigdir)
@@ -201,7 +228,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 
-distclean-am: clean-am distclean-generic distclean-libtool
+distclean-am: clean-am distclean-generic distclean-hdr distclean-libtool
 
 dvi: dvi-am
 
@@ -232,8 +259,8 @@ mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 uninstall-am: uninstall-info-am uninstall-pkgconfigDATA
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
-	distclean distclean-generic distclean-libtool distdir dvi \
-	dvi-am info info-am install install-am install-data \
+	distclean distclean-generic distclean-hdr distclean-libtool \
+	distdir dvi dvi-am info info-am install install-am install-data \
 	install-data-am install-exec install-exec-am install-info \
 	install-info-am install-man install-pkgconfigDATA install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \

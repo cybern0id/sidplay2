@@ -70,14 +70,15 @@ EXEEXT = @EXEEXT@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LIBSIDPLAY2_INCLUDES = @LIBSIDPLAY2_INCLUDES@
-LIBSIDPLAY2_LDADD = @LIBSIDPLAY2_LDADD@
+LIBSIDPLAY2_CXXFLAGS = @LIBSIDPLAY2_CXXFLAGS@
+LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
+PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 STRIP = @STRIP@
 VERSION = @VERSION@
@@ -94,14 +95,17 @@ lib_LTLIBRARIES = libsidutils.la
 libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp
 
 libsidutils_la_LIBADD = ./MD5/libMD5.la ./ini/libini.la \
-$(LIBSIDPLAY2_LDADD) -lsidplay2
+$(LIBSIDPLAY2_LDFLAGS)
 
 
 # We substitute the libtool-specific library version in configure.in.
 libsidutils_la_LDFLAGS = -version-info $(LIBVERSION)
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
@@ -110,7 +114,6 @@ am_libsidutils_la_OBJECTS = SidDatabase.lo SidFilter.lo SidTuneMod.lo
 libsidutils_la_OBJECTS = $(am_libsidutils_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
