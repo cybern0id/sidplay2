@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/21 22:26:24  s_a_white
+ *  Fake interrupts now been moved into here from player.cpp.  At anytime it's
+ *  now possible to ditch this compatibility class and use the real thing.
+ *
  *  Revision 1.5  2001/03/09 22:28:03  s_a_white
  *  Speed optimisation update.
  *
@@ -156,29 +160,29 @@ void SID6510::sid_rts (void)
 void SID6510::triggerRST (void)
 {
     MOS6510::triggerRST ();
-	if (sleeping)
-	{
+    if (sleeping)
+    {
         FetchOpcode ();
         sleeping = false;
-	}
+    }
 }
 
 void SID6510::triggerNMI (void)
 {
     MOS6510::triggerNMI ();
-	if (sleeping)
+    if (sleeping)
     {
         FetchOpcode ();
         sleeping = false;
-	}
+    }
 }
 
 void SID6510::triggerIRQ (void)
 {
     MOS6510::triggerIRQ ();
-	if (sleeping)
-	{
+    if (sleeping)
+    {
         FetchOpcode ();
         sleeping = false;
-	}
+    }
 }
