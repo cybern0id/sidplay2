@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/07/27 12:12:23  s_a_white
+ *  Initial release.
+ *
  ***************************************************************************/
 
 // --------------------------------------------------------
@@ -98,7 +101,6 @@ void Player::psidRelocAddr ()
     int endp   = (m_tuneInfo.loadAddr + (m_tuneInfo.c64dataLen - 1)) >> 8;
 
     // Used memory ranges.
-    int  i, page;
     bool pages[256];
     int  used[] = {0x00,   0x03,
                    0xa0,   0xbf,
@@ -107,16 +109,16 @@ void Player::psidRelocAddr ()
 
     // Mark used pages in table.
     memset(pages, false, sizeof(pages));
-    for (i = 0; i < sizeof(used)/sizeof(*used); i += 2)
+    for (size_t i = 0; i < sizeof(used)/sizeof(*used); i += 2)
     {
-        for (page = used[i]; page <= used[i + 1]; page++)
+        for (int page = used[i]; page <= used[i + 1]; page++)
             pages[page] = true;
     }
 
     {   // Find largest free range.
         int relocPages, lastPage = 0;
         m_tuneInfo.relocPages = 0;
-        for (page = 0; page < sizeof(pages)/sizeof(*pages); page++)
+        for (size_t page = 0; page < sizeof(pages)/sizeof(*pages); page++)
         {
             if (pages[page] == false)
                 continue;
