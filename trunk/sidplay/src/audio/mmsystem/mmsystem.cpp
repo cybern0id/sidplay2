@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:54:23  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -137,6 +140,10 @@ void *Audio_MMSystem::open (AudioConfig &cfg, const char *)
         }
     }
 
+    // Setup the required sample format encoding.
+    cfg.encoding = AUDIO_SIGNED_PCM;
+    if (cfg.precision == 8)
+        cfg.encoding = AUDIO_UNSIGNED_PCM;
     blockNum = 0;
     _sampleBuffer = blocks[blockNum];
 return _sampleBuffer;
