@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2003/06/27 21:07:40  s_a_white
+ *  Fixed problem whereby the audio buffer size was ever only calculated once.
+ *
  *  Revision 1.24  2003/02/23 08:59:20  s_a_white
  *  Displayed keyboard checks at high quiet levels.   At these quiet levels we
  *  are most likely being run from within another program.
@@ -565,7 +568,7 @@ bool ConsolePlayer::play ()
         {
             const SidTuneInfo *tuneInfo = (m_engine.info ()).tuneInfo;
             cout << setw(8) << setfill('0') << hex
-                 << (m_engine.info ()).sid2crc << " : "
+                 << (m_engine.info ()).sid2crc << " : " << dec
                  << m_filename << " - song " << tuneInfo->currentSong
                  << "/" << tuneInfo->songs << endl;
         }
