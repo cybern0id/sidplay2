@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/02/21 13:20:10  s_a_white
+ *  Zero debug cycle count so is from start of instruction rather than after
+ *  the last addressing mode cycle.
+ *
  *  Revision 1.11  2004/01/13 22:36:07  s_a_white
  *  Converted some missed printfs to fprintfs
  *
@@ -79,7 +83,7 @@ void MOS6510::DumpState (void)
     uint_least16_t operand, address;
 
     fprintf(m_fdbg, " PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n",
-            eventContext.getTime (m_phase) - (cycleCount - 1));
+            m_dbgClk);
     fprintf(m_fdbg, "%04x ",   instrStartPC);
     fprintf(m_fdbg, "%u ",     interrupts.irqs);
     fprintf(m_fdbg, "%02x ",   Register_Accumulator);
