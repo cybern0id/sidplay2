@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.43  2002/08/20 23:21:41  s_a_white
+ *  Setup default sample format.
+ *
  *  Revision 1.42  2002/04/14 21:46:50  s_a_white
  *  PlaySID reads fixed to come from RAM only.
  *
@@ -183,6 +186,7 @@ const char  *Player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported s
 const char  *Player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
 const char  *Player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 const char  *Player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
+const char  *Player::ERR_PSID_SPECIFIC_FLAG    = "SIDPLAYER ERROR: Real C64 tune has PSID specific flag set.";
 
 const char  *Player::credit[];
 
@@ -291,8 +295,11 @@ int Player::initialise ()
     m_mileage += time ();
 
     reset ();
-    if (psidDrvInstall (m_tuneInfo) < 0)
+    if (psidDrvInstall (m_tuneInfo, m_info.driverAddr,
+                        m_info.driverLength) < 0)
+    {
         return -1;
+    }
 
     // The Basic ROM sets these values on loading a file.
     {   // Program start address
@@ -762,13 +769,14 @@ void Player::envReset (bool safe)
     if (safe)
     {   // Emulation crashed so run in safe mode
         uint8_t prg[] = {LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn};
+        uint_least16_t addr, length;
         SidTuneInfo tuneInfo;
         // Install driver
         tuneInfo.relocStartPage = 0x09;
         tuneInfo.relocPages     = 0x20;
         tuneInfo.initAddr       = 0x0800;
         tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
-        psidDrvInstall (tuneInfo);
+        psidDrvInstall (tuneInfo, addr, length);
         // Install prg
         memcpy (&m_ram[0x0800], prg, sizeof (prg));
 
