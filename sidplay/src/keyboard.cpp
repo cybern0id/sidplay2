@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/10/17 21:23:39  s_a_white
+ *  Added string.h as some platforms have bzero using memset without having
+ *  a valid prototype available.
+ *
  *  Revision 1.6  2001/12/07 18:22:57  s_a_white
  *  Added up/down arrow keys for windows.
  *
@@ -46,6 +50,8 @@
 #   include <termios.h>
 #   include <sys/time.h>
 #   include <sys/types.h>
+#   include <sys/stat.h>
+#   include <fcntl.h>
 #   include <unistd.h>
 char _getch (void);
 #endif
@@ -226,28 +232,32 @@ int keyboard_decode ()
 
 // Simulate Standard Microsoft Extensions under Unix
 #ifdef HAVE_UNIX
-int _kbhit (void)
-{   // Set no delay
-    static struct timeval tv = {0, 0};
-    fd_set rdfs;
 
-    // See if key has been pressed
-    FD_ZERO (&rdfs);
-    FD_SET  (STDERR_FILENO, &rdfs);
-    if (select  (STDERR_FILENO + 1, &rdfs, NULL, NULL, &tv) <= 0)
-        return 0;
-    if (FD_ISSET (STDERR_FILENO, &rdfs))
-        return 1;
+static int infd = -1;
+
+int _kbhit (void)
+{
+    if (infd >= 0)
+    {   // Set no delay
+        static struct timeval tv = {0, 0};
+        fd_set rdfs;
+
+        // See if key has been pressed
+        FD_ZERO (&rdfs);
+        FD_SET  (infd, &rdfs);
+        if (select  (infd + 1, &rdfs, NULL, NULL, &tv) <= 0)
+            return 0;
+        if (FD_ISSET (infd, &rdfs))
+            return 1;
+    }
     return 0;
 }
 
 char _getch (void)
 {
-    char ch = 0;
-    int  ret;
-    ret = read (STDERR_FILENO, &ch, 1);
-    if (ret <= 0)
-        return -1;
+    char ch = -1;
+    if (infd >= 0)
+        read (infd, &ch, 1);
     return ch;
 }
 
@@ -257,21 +267,49 @@ void keyboard_enable_raw ()
 {
     // set to non canonical mode, echo off, ignore signals
     struct termios current;
+
+    // Already open
+    if (infd >= 0)
+        return;
+
+    // Determine if stdin/stderr has been redirected
+    if (isatty (STDIN_FILENO))
+        infd = STDIN_FILENO;
+    else if (isatty (STDERR_FILENO))
+        infd = STDERR_FILENO;
+    else
+    {   // Try opening a terminal directly
+        infd = open("/dev/tty", O_RDONLY);
+        if (infd < 0)
+            return;
+    }
+
     // save current terminal settings
-    tcgetattr (STDERR_FILENO, &current);
+    tcgetattr (infd, &current);
 
     // set to non canonical mode, echo off, ignore signals
     term = current;
     current.c_lflag &= ~(ECHO | ICANON | IEXTEN);
     current.c_cc[VMIN] = 1;
     current.c_cc[VTIME] = 0;
-    tcsetattr (STDERR_FILENO, TCSAFLUSH, &current);
+    tcsetattr (infd, TCSAFLUSH, &current);
 }
 
 void keyboard_disable_raw ()
 {
-    // Restore old terminal settings
-    tcsetattr (STDERR_FILENO, TCSAFLUSH, &term);
+    if (infd >= 0)
+    {   // Restore old terminal settings
+        tcsetattr (infd, TCSAFLUSH, &term);
+        switch (infd)
+        {
+        case STDIN_FILENO:
+        case STDERR_FILENO:
+            break;
+        default:
+            close (infd);
+        }
+        infd = -1;
+    }
 }
 
 #endif // HAVE_LINUX
