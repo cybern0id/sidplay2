@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2004/06/26 15:46:47  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.31  2004/02/26 18:19:22  s_a_white
  *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
  *
@@ -187,13 +190,6 @@ ConsolePlayer::ConsolePlayer (const char * const name)
         m_engCfg.sidSamples   = emulation.sidSamples;
         m_filter.enabled      = emulation.filter;
     }
-
-    // Copy default setting to audio configuration
-    m_driver.cfg.channels = 1; // Mono
-    if (m_engCfg.playback == sid2_stereo)
-        m_driver.cfg.channels = 2;
-    m_driver.cfg.frequency = m_engCfg.frequency;
-    m_driver.cfg.precision = m_engCfg.precision;
 
     createOutput (OUT_NULL, NULL);
     createSidEmu (EMU_NONE);
