@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2002/11/25 21:09:42  s_a_white
+ *  Reset address for old sidplay1 modes now directly passed to the CPU.  This
+ *  prevents tune corruption and banking issues for the different modes.
+ *
  *  Revision 1.22  2002/11/19 22:53:23  s_a_white
  *  Sidplay1 modes modified to make them nolonger require the psid driver.
  *
@@ -104,16 +108,17 @@ const char *Player::ERR_PSIDDRV_RELOC     = "ERROR: Failed whilst relocating psi
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
-int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
-                            uint_least16_t &drvLength)
+int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
 {
     uint_least16_t relocAddr;
     int startlp = tuneInfo.loadAddr >> 8;
     int endlp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
-    if (m_info.environment != sid2_envR)
+    if (info.environment != sid2_envR)
     {   // Sidplay1 modes require no psid driver
-        m_info.rnddelay = 0;
+        info.driverAddr   = 0;
+        info.driverLength = 0;
+        info.rnddelay     = 0;
         return 0;
     }
 
@@ -167,14 +172,14 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
 
         // Adjust size to not included initialisation data.
         reloc_size -= 13;
-        drvAddr   = relocAddr;
-        drvLength = (uint_least16_t) reloc_size;
+        info.driverAddr   = relocAddr;
+        info.driverLength = (uint_least16_t) reloc_size;
         // Round length to end of page
-        drvLength += 0xff;
-        drvLength &= 0xff00;
+        info.driverLength += 0xff;
+        info.driverLength &= 0xff00;
 
         m_ram[0x310] = JMPw;
-        memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
+        memcpy (&m_ram[0x0311], &reloc_driver[4], 9);
         memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
 
         {   // Experimental exit to basic support
@@ -206,7 +211,7 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         // Below we limit the delay to something sensible.  The high
         // byte is incremented by one because the C64 code always
         // decrements before checking
-        m_info.rnddelay = ((uint_least16_t) (m_rand >> 3) & 0x0FFF) + 0x0100;
+        info.rnddelay = ((uint_least16_t) (m_rand >> 3) & 0x0FFF) + 0x0100;
         endian_little16 (&m_ram[addr], m_info.rnddelay);
         addr += 2;
         m_rand        = m_rand * 13 + 1;
