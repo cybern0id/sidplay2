@@ -47,8 +47,9 @@ char* SidTuneTools::fileNameWithoutPath(char* s)
 	int last_slash_pos = -1;
 	for ( uint_least32_t pos = 0; pos < strlen(s); pos++ )
 	{
-#if defined(SID_FS_IS_COLON_AND_BACKSLASH)
-		if ( s[pos] == ':' || s[pos] == '\\' )
+#if defined(SID_FS_IS_COLON_AND_BACKSLASH_AND_SLASH)
+		if ( s[pos] == ':' || s[pos] == '\\' ||
+			 s[pos] == '/' )
 #elif defined(SID_FS_IS_COLON_AND_SLASH)
 		if ( s[pos] == ':' || s[pos] == '/' )
 #elif defined(SID_FS_IS_SLASH)
