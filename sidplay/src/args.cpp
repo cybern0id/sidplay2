@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/12/01 20:16:23  s_a_white
+ *  Player changed to ConsolePlayer.
+ *
  *  Revision 1.1  2001/11/27 19:13:24  s_a_white
  *  Initial Release.
  *
@@ -361,6 +364,15 @@ bool ConsolePlayer::args (int argc, char *argv[])
 
     if (!m_filter.definition)
         m_filter.definition = m_iniCfg.filter (m_engCfg.sidModel);
+
+#ifdef HAVE_TSID
+    // Set TSIDs base directory
+    if (!m_tsid.setBaseDir(true))
+    {
+        cerr << m_name << "\n" << m_tsid.getError (); << endl;
+        return false;
+    }
+#endif
     return true;
 }
 

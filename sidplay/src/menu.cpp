@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/01/15 19:12:24  s_a_white
+ *  PSID2NG update.
+ *
  *  Revision 1.2  2001/12/01 20:16:23  s_a_white
  *  Player changed to ConsolePlayer.
  *
@@ -115,6 +118,17 @@ void ConsolePlayer::menu ()
         cerr << " Condition    : ";
         consoleColour (white, true);
         cerr << tuneInfo.statusString << endl;
+
+#ifdef HAVE_TSID
+        if (!m_tsid)
+        {
+            consoleTable  (tableMiddle);
+            consoleColour (green, true);
+            cerr << " TSID Error   : ";
+            consoleColour (white, true);
+            cerr << m_tsid.getError () << endl;
+        }
+#endif // HAVE_TSID
     }
 
     consoleTable  (tableMiddle);

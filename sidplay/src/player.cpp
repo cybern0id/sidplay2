@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/01/16 19:54:56  s_a_white
+ *  Fixed -b command arg with UNKNOWN songlengh.
+ *
  *  Revision 1.9  2002/01/16 19:28:55  s_a_white
  *  Now now wraps at 100th minute.
  *
@@ -496,6 +499,13 @@ bool ConsolePlayer::play ()
             decodeKeys ();
         return true;
     default:
+#ifdef HAVE_TSID
+        if (m_tsid)
+        {
+            m_tsid.addTime((int) (m_engine.time() / 10),
+                           m_track.selected, m_filename);
+        }
+#endif
         break;
     }
     return false;
