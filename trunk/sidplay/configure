@@ -13537,9 +13537,60 @@ EOF
 
     fi
 
+    echo "$as_me:13540: checking whether standard member ios::openmode is available" >&5
+echo $ECHO_N "checking whether standard member ios::openmode is available... $ECHO_C" >&6
+    if test "${test_cv_have_ios_openmode+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+        cat >conftest.$ac_ext <<_ACEOF
+#line 13547 "configure"
+#include "confdefs.h"
+#include <fstream.h>
+             #include <iomanip.h>
+int
+main ()
+{
+ios::openmode myTest = ios::in;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:13560: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>&5
+  ac_status=$?
+  echo "$as_me:13563: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:13566: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:13569: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  test_cv_have_ios_openmode=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+test_cv_have_ios_openmode=no
+
+fi
+rm -f conftest.$ac_objext conftest.$ac_ext
+
+fi
+
+    echo "$as_me:13582: result: $test_cv_have_ios_openmode" >&5
+echo "${ECHO_T}$test_cv_have_ios_openmode" >&6
+    if test "$test_cv_have_ios_openmode" = yes; then
+        cat >>confdefs.h <<\EOF
+#define HAVE_IOS_OPENMODE 1
+EOF
+
+    fi
+
 LIBSIDPLAY2_REQUIRED_VERSION=2.1.0
 
-    echo "$as_me:13542: checking for working SIDPlay2 library and headers" >&5
+    echo "$as_me:13593: checking for working SIDPlay2 library and headers" >&5
 echo $ECHO_N "checking for working SIDPlay2 library and headers... $ECHO_C" >&6
 
         LIBSIDPLAY2_LIBDIR=NO
@@ -13571,7 +13622,7 @@ fi;
         if $PKG_CONFIG --atleast-version $LIBSIDPLAY2_REQUIRED_VERSION libsidplay2; then
             :
         else
-            { { echo "$as_me:13574: error:
+            { { echo "$as_me:13625: error:
 libsidplay $LIBSIDPLAY2_REQUIRED_VERSION library and/or headers not found.
 Please check your installation!
             " >&5
@@ -13628,7 +13679,7 @@ Please check your installation!
         LIBSIDPLAY2_BUILDERS="$LIBSIDPLAY2_LIBDIR/sidplay/builders"
     fi
 
-    echo "$as_me:13631: result: $LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR" >&5
+    echo "$as_me:13682: result: $LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR" >&5
 echo "${ECHO_T}$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR" >&6
 
     sid_cxxflags_save=$CXXFLAGS
@@ -13640,7 +13691,7 @@ echo "${ECHO_T}$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR" >&6
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13643 "configure"
+#line 13694 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int
@@ -13652,16 +13703,16 @@ sidplay2 *myEngine;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13655: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13706: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13658: \$? = $ac_status" >&5
+  echo "$as_me:13709: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13661: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13712: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13664: \$? = $ac_status" >&5
+  echo "$as_me:13715: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   LIBSIDPLAY2_WORKS=YES
 else
@@ -13677,7 +13728,7 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     CXX="$sid_cxx_save"
 
     if test "$LIBSIDPLAY2_WORKS" = NO; then
-        { { echo "$as_me:13680: error:
+        { { echo "$as_me:13731: error:
 libsidplay2 build test failed with found library and header files.
 Please check your installation!
         " >&5
@@ -13690,7 +13741,7 @@ Please check your installation!
 
 LIBSIDUTILS_REQUIRED_VERSION=1.0.2
 
-    echo "$as_me:13693: checking for working SIDUtils library and headers" >&5
+    echo "$as_me:13744: checking for working SIDUtils library and headers" >&5
 echo $ECHO_N "checking for working SIDUtils library and headers... $ECHO_C" >&6
 
         LIBSIDUTILS_LIBDIR=NO
@@ -13722,7 +13773,7 @@ fi;
         if $PKG_CONFIG --atleast-version $LIBSIDUTILS_REQUIRED_VERSION libsidutils; then
             :
         else
-            { { echo "$as_me:13725: error:
+            { { echo "$as_me:13776: error:
 libsidplay $LIBSIDUTILS_REQUIRED_VERSION library and/or headers not found.
 Please check your installation!
             " >&5
@@ -13777,7 +13828,7 @@ Please check your installation!
         LIBSIDUTILS_LDFLAGS="-L$LIBSIDUTILS_LIBDIR -lsidutils"
     fi
 
-    echo "$as_me:13780: result: $LIBSIDUTILS_LIBDIR, $LIBSIDUTILS_INCLUDEDIR" >&5
+    echo "$as_me:13831: result: $LIBSIDUTILS_LIBDIR, $LIBSIDUTILS_INCLUDEDIR" >&5
 echo "${ECHO_T}$LIBSIDUTILS_LIBDIR, $LIBSIDUTILS_INCLUDEDIR" >&6
 
     sid_cxxflags_save=$CXXFLAGS
@@ -13789,7 +13840,7 @@ echo "${ECHO_T}$LIBSIDUTILS_LIBDIR, $LIBSIDUTILS_INCLUDEDIR" >&6
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13792 "configure"
+#line 13843 "configure"
 #include "confdefs.h"
 #include <sidplay/utils/SidDatabase.h>
 int
@@ -13801,16 +13852,16 @@ SidDatabase *d;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13804: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13855: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13807: \$? = $ac_status" >&5
+  echo "$as_me:13858: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13810: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13861: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13813: \$? = $ac_status" >&5
+  echo "$as_me:13864: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   LIBSIDUTILS_WORKS=YES
 else
@@ -13826,7 +13877,7 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     CXX="$sid_cxx_save"
 
     if test "$LIBSIDUTILS_WORKS" = NO; then
-        { { echo "$as_me:13829: error:
+        { { echo "$as_me:13880: error:
 libsidutils build test failed with found library and header files.
 Please check your installation!
         " >&5
@@ -13837,7 +13888,7 @@ Please check your installation!
    { (exit 1); exit 1; }; }
     fi
 
-    echo "$as_me:13840: checking for sidbuilders install directory" >&5
+    echo "$as_me:13891: checking for sidbuilders install directory" >&5
 echo $ECHO_N "checking for sidbuilders install directory... $ECHO_C" >&6
 
         BUILDERS_LIBDIR=NO
@@ -13876,12 +13927,12 @@ fi;
     BUILDERS_CXXFLAGS="-I$BUILDERS_INCLUDEDIR"
     BUILDERS_LDFLAGS="-L$BUILDERS_LIBDIR"
 
-    echo "$as_me:13879: result: $BUILDERS_LIBDIR, $BUILDERS_INCLUDEDIR" >&5
+    echo "$as_me:13930: result: $BUILDERS_LIBDIR, $BUILDERS_INCLUDEDIR" >&5
 echo "${ECHO_T}$BUILDERS_LIBDIR, $BUILDERS_INCLUDEDIR" >&6
 
 BUILDERS_AVAILABLE=NO
 
-    echo "$as_me:13884: checking for resid builder module" >&5
+    echo "$as_me:13935: checking for resid builder module" >&5
 echo $ECHO_N "checking for resid builder module... $ECHO_C" >&6
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
@@ -13891,7 +13942,7 @@ echo $ECHO_N "checking for resid builder module... $ECHO_C" >&6
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13894 "configure"
+#line 13945 "configure"
 #include "confdefs.h"
 #include <sidplay/builders/resid.h>
 int
@@ -13903,16 +13954,16 @@ ReSID *sid;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13906: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13957: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13909: \$? = $ac_status" >&5
+  echo "$as_me:13960: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13912: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13963: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13915: \$? = $ac_status" >&5
+  echo "$as_me:13966: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   BUILDERS_WORK=YES
 else
@@ -13936,10 +13987,10 @@ EOF
         RESID_LDFLAGS="-lresid-builder"
 
     fi
-    echo "$as_me:13939: result: $BUILDERS_WORK" >&5
+    echo "$as_me:13990: result: $BUILDERS_WORK" >&5
 echo "${ECHO_T}$BUILDERS_WORK" >&6
 
-    echo "$as_me:13942: checking for hardsid builder module" >&5
+    echo "$as_me:13993: checking for hardsid builder module" >&5
 echo $ECHO_N "checking for hardsid builder module... $ECHO_C" >&6
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
@@ -13950,7 +14001,7 @@ echo $ECHO_N "checking for hardsid builder module... $ECHO_C" >&6
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13953 "configure"
+#line 14004 "configure"
 #include "confdefs.h"
 #include <sidplay/builders/hardsid.h>
 int
@@ -13962,16 +14013,16 @@ HardSID *sid;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13965: \"$ac_link\"") >&5
+if { (eval echo "$as_me:14016: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13968: \$? = $ac_status" >&5
+  echo "$as_me:14019: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13971: \"$ac_try\"") >&5
+  { (eval echo "$as_me:14022: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13974: \$? = $ac_status" >&5
+  echo "$as_me:14025: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   BUILDERS_WORK=YES
 else
@@ -13995,11 +14046,11 @@ EOF
         HARDSID_LDFLAGS="-lhardsid-builder"
 
     fi
-    echo "$as_me:13998: result: $BUILDERS_WORK" >&5
+    echo "$as_me:14049: result: $BUILDERS_WORK" >&5
 echo "${ECHO_T}$BUILDERS_WORK" >&6
 
 if test "$BUILDERS_AVAILABLE" = NO; then
-    { { echo "$as_me:14002: error:
+    { { echo "$as_me:14053: error:
 No builder modules were found in the sidbuilders
 install dir.  Please check your installation!
     " >&5
@@ -14094,7 +14145,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:14097: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:14148: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -14270,7 +14321,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:14273: error: ambiguous option: $1
+    { { echo "$as_me:14324: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -14289,7 +14340,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:14292: error: unrecognized option: $1
+  -*) { { echo "$as_me:14343: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -14351,7 +14402,7 @@ do
   "unix/sidplay2.spec" ) CONFIG_FILES="$CONFIG_FILES unix/sidplay2.spec" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "unix/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS unix/config.h" ;;
-  *) { { echo "$as_me:14354: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:14405: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -14615,7 +14666,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:14618: creating $ac_file" >&5
+    { echo "$as_me:14669: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -14633,7 +14684,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:14636: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:14687: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -14646,7 +14697,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:14649: error: cannot find input file: $f" >&5
+           { { echo "$as_me:14700: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -14707,7 +14758,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:14710: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:14761: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -14718,7 +14769,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:14721: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:14772: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -14731,7 +14782,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:14734: error: cannot find input file: $f" >&5
+           { { echo "$as_me:14785: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -14848,7 +14899,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:14851: $ac_file is unchanged" >&5
+      { echo "$as_me:14902: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \

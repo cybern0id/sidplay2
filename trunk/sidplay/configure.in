@@ -98,6 +98,7 @@ CHECK_EXCEPTIONS
 
 dnl Check ANSI C++ ios features
 CHECK_IOS_BIN
+CHECK_IOS_OPENMODE
 
 dnl Check for libsidplay2 libraries
 LIBSIDPLAY2_REQUIRED_VERSION=2.1.0

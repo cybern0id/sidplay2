@@ -102,6 +102,30 @@ AC_DEFUN(CHECK_IOS_BIN,
 ])
 
 dnl -------------------------------------------------------------------------
+dnl Check whether C++ library has member ios::bin instead of ios::binary.
+dnl Will substitute @HAVE_IOS_OPENMODE@ with either a def or undef line.
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(CHECK_IOS_OPENMODE,
+[
+    AC_MSG_CHECKING(whether standard member ios::openmode is available)
+    AC_CACHE_VAL(test_cv_have_ios_openmode,
+    [
+        AC_TRY_COMPILE(
+            [#include <fstream.h>
+             #include <iomanip.h>],
+            [ios::openmode myTest = ios::in;],
+            [test_cv_have_ios_openmode=yes],
+            [test_cv_have_ios_openmode=no]
+        )
+    ])
+    AC_MSG_RESULT($test_cv_have_ios_openmode)
+    if test "$test_cv_have_ios_openmode" = yes; then
+        AC_DEFINE(HAVE_IOS_OPENMODE)
+    fi
+])
+
+dnl -------------------------------------------------------------------------
 dnl Check whether C++ environment provides the "nothrow allocator".
 dnl Will substitute @HAVE_EXCEPTIONS@ if test code compiles.
 dnl -------------------------------------------------------------------------
