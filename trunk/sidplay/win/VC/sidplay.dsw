@@ -15,6 +15,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "libsidutils"=..\..\..\libsidutils\win\VC\libsidutils.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libsidplay
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "sidplay"=.\sidplay.dsp - Package Owner=<4>
 
 Package=<5>
@@ -25,6 +40,9 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name libsidplay
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libsidutils
     End Project Dependency
 }}}
 
