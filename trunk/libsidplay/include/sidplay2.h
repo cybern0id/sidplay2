@@ -68,10 +68,8 @@ public:
     void           stop         (void);
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
-    int            loadSong     (const char * const title, const uint_least16_t songNumber);
-    int            loadSong     (const uint_least16_t songNumber);
-    int            loadSong     (SidTune *requiredTune);
-    void           environment  (sid2_env_t env);
+    int            loadSong     (SidTune *tune);
+    int            environment  (sid2_env_t env);
     int            fastForward  (uint_least8_t percent);
     void           getInfo      (sid2_playerInfo_t *info);
     void           optimisation (uint_least8_t level);
