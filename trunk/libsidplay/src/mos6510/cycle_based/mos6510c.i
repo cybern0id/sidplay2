@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2001/12/11 19:24:15  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.21  2001/11/16 19:21:03  s_a_white
  *  Sign fixes.
  *
@@ -1354,7 +1357,7 @@ void MOS6510::tya_instr (void)
 
 void MOS6510::illegal_instr (void)
 {
-    printf ("ILLEGAL INSTRUCTION, resetting emulation. **************\n");
+    printf ("\n\nILLEGAL INSTRUCTION, resetting emulation. **************\n");
     DumpState ();
     printf ("********************************************************\n");
     // Perform Environment Reset
