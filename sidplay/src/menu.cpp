@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/09/14 13:47:41  s_a_white
+ *  Show whether the environment was forcefully changed from the default
+ *  or user requested.
+ *
  *  Revision 1.9  2003/07/16 06:53:12  s_a_white
  *  Only display tune description strings if they have been provided.
  *
@@ -280,6 +284,15 @@ void ConsolePlayer::menu ()
         if (m_engCfg.environment != info.environment)
             cerr << " (forced)";
         cerr << endl;
+
+        consoleTable  (tableMiddle);
+        if (m_verboseLevel > 1)
+        {
+            consoleColour (yellow, true);
+            cerr << " Delay        : ";
+            consoleColour (white, false);
+            cerr << info.powerOnDelay << " (cycles at poweron)" << endl;
+        }
     }
     consoleTable (tableEnd);
 
