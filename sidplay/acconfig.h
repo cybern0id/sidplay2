@@ -13,6 +13,9 @@
 
 /* Define if standard member ``ios::binary'' is called ``ios::bin''. */
 #undef HAVE_IOS_BIN
+
+/* Define if ``ios::openmode'' is supported. */
+#undef HAVE_IOS_OPENMODE
 @TOP@
 /* Define if the C++ compiler supports BOOL */
 #undef HAVE_BOOL
