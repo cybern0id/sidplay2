@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /I "../../include" /I "../../include/sidplay/builders" /I "../../../../libsidplay/include" /I "../../../../resid" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "HAVE_MSWINDOWS" /YX /FD /c
+# ADD CPP /nologo /MDd /W3 /GX /ZI /Od /TP /I "../../include" /I "../../include/sidplay/builders" /I "../../../../libsidplay/include" /I "../../../../resid" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "HAVE_MSWINDOWS" /YX /FD /c
 # ADD BASE RSC /l 0x407
 # ADD RSC /l 0x407
 BSC32=bscmake.exe
@@ -80,12 +80,12 @@ LIB32=link.exe -lib
 
 # Name "resid_builder - Win32 Release"
 # Name "resid_builder - Win32 Debug"
-# Begin Group "ReSID 0.13"
+# Begin Group "ReSID Files"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\envelope.cpp
+SOURCE=..\..\..\..\resid\envelope.cc
 # End Source File
 # Begin Source File
 
@@ -93,7 +93,7 @@ SOURCE=..\..\..\..\resid\envelope.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\extfilt.cpp
+SOURCE=..\..\..\..\resid\extfilt.cc
 # End Source File
 # Begin Source File
 
@@ -101,7 +101,7 @@ SOURCE=..\..\..\..\resid\extfilt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\filter.cpp
+SOURCE=..\..\..\..\resid\filter.cc
 # End Source File
 # Begin Source File
 
@@ -109,7 +109,7 @@ SOURCE=..\..\..\..\resid\filter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\pot.cpp
+SOURCE=..\..\..\..\resid\pot.cc
 # End Source File
 # Begin Source File
 
@@ -117,7 +117,7 @@ SOURCE=..\..\..\..\resid\pot.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\sid.cpp
+SOURCE=..\..\..\..\resid\sid.cc
 # End Source File
 # Begin Source File
 
@@ -133,11 +133,11 @@ SOURCE=..\..\..\..\resid\spline.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\version.cpp
+SOURCE=..\..\..\..\resid\version.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\voice.cpp
+SOURCE=..\..\..\..\resid\voice.cc
 # End Source File
 # Begin Source File
 
@@ -145,7 +145,7 @@ SOURCE=..\..\..\..\resid\voice.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave.cpp
+SOURCE=..\..\..\..\resid\wave.cc
 # End Source File
 # Begin Source File
 
@@ -153,35 +153,35 @@ SOURCE=..\..\..\..\resid\wave.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave6581__ST.cpp
+SOURCE=..\..\..\..\resid\wave6581__ST.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave6581_P_T.cpp
+SOURCE=..\..\..\..\resid\wave6581_P_T.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave6581_PS_.cpp
+SOURCE=..\..\..\..\resid\wave6581_PS_.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave6581_PST.cpp
+SOURCE=..\..\..\..\resid\wave6581_PST.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave8580__ST.cpp
+SOURCE=..\..\..\..\resid\wave8580__ST.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave8580_P_T.cpp
+SOURCE=..\..\..\..\resid\wave8580_P_T.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave8580_PS_.cpp
+SOURCE=..\..\..\..\resid\wave8580_PS_.cc
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\resid\wave8580_PST.cpp
+SOURCE=..\..\..\..\resid\wave8580_PST.cc
 # End Source File
 # End Group
 # Begin Source File
