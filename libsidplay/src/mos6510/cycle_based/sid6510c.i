@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2002/09/23 22:50:55  s_a_white
+ *  Reverted update 1.20 as was incorrect.  Only need to
+ *  change MOS6510 to SID6510 for compliancy.
+ *
  *  Revision 1.20  2002/09/23 19:42:14  s_a_white
  *  Newer compilers don't allow pointers to be taken directly
  *  from base class member functions.
@@ -180,6 +184,7 @@ void SID6510::reset ()
 //**************************************************************************************
 void SID6510::sid_brk (void)
 {
+    uint_least16_t pc = Register_ProgramCounter;
     if ( (m_mode == sid2_envR) &&
          ((Register_StackPointer & 0xFF) != 0xFF) )
     {
@@ -208,22 +213,13 @@ void SID6510::sid_brk (void)
     envSleep ();
     Initialise ();
 
-    // When we return from interrupt we will do a break
-    // which will sleep the CPU.
-    {
-        uint8_t prg[] = {BRKn, TXSn, 0xFF, LDXb};
-        for (size_t i = 0; i < sizeof (prg); i++)
-        {
-            Register_Accumulator = prg[i];
-            pha_instr ();
-        }
-    }
-    Register_ProgramCounter = Register_StackPointer;
-    if (m_mode == sid2_envR)
-    {   // in sidplay1 RTI behaves like RTS which mean
-        // the return address is already +1. A real
-        // RTI dosen't do this.
-        Register_ProgramCounter++;
+    // Remember where the BRK optimisation
+	// exists in memory and rely on it next time
+    Register_ProgramCounter = pc - 2;
+    if (m_mode != sid2_envR)
+    {   // In sidplay1 modes RTI acts like RTS.  RTS adds 1 to
+        // return address, so compensate here
+        Register_ProgramCounter--;
     }
 
     // Check for outstanding interrupts
