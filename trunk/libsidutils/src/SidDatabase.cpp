@@ -20,11 +20,6 @@
 #include <string.h>
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define SID_EXPORT __declspec(dllexport)
-#endif
-
 #include "SidDatabase.h"
 #include "MD5/MD5.h"
 
@@ -52,13 +47,13 @@ int_least32_t SidDatabase::parseTimeStamp(const char* arg)
     while ( passes-- )
     {
         if ( isdigit(*arg) )
-	{
-	    int t = atoi(arg);
-	    seconds += t;
-	    gotDigits = true;
-	}
+    {
+        int t = atoi(arg);
+        seconds += t;
+        gotDigits = true;
+    }
         while ( *arg && isdigit(*arg) )
-	{
+    {
             ++arg;
         }
         if ( *arg && *arg==':' )

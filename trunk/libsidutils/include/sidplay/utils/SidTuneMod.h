@@ -21,7 +21,7 @@
 
 class MD5;
 
-class SID_EXPORT SidTuneMod : public SidTune
+class SID_EXTERN SidTuneMod : public SidTune
 {
  public:  // --------------------------------------------------------- public
 

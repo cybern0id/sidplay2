@@ -1,7 +1,7 @@
 #include "SidTuneMod.h"
 #include "libini.h"
 
-class SID_EXPORT SidDatabase
+class SID_EXTERN SidDatabase
 {
 private:
     static const char *ERR_DATABASE_CORRUPT;
