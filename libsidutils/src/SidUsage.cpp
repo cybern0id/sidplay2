@@ -45,7 +45,7 @@ SidUsage::SidUsage ()
         switch (i & (SID_EXECUTE | SID_STACK | SID_SAMPLE))
         {
         case 0:
-            switch (i)
+            switch (i & (SID_READ | SID_WRITE))
             {
             case 0: // Not used
                 m_decodeMAP[i][0] = '.';
@@ -74,27 +74,27 @@ SidUsage::SidUsage ()
             break;
         case SID_STACK:
             m_decodeMAP[i][0] = 's';
-            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'S';
             break;
         case SID_STACK | SID_EXECUTE:
-            m_decodeMAP[i][0] = 'S';
-            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            m_decodeMAP[i][0] = '$';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = '&';
             break;
         case SID_SAMPLE:
             m_decodeMAP[i][0] = 'd';
             m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'D';
             break;
         case SID_SAMPLE | SID_EXECUTE:
+            m_decodeMAP[i][0] = 'e';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            break;
+        case SID_SAMPLE | SID_STACK:
             m_decodeMAP[i][0] = 'z';
             m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'Z';
             break;
-        case SID_SAMPLE | SID_STACK:
-            m_decodeMAP[i][0] = '$';
-            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
-            break;
         case SID_SAMPLE | SID_STACK | SID_EXECUTE:
-            m_decodeMAP[i][0] = '*';
-            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            m_decodeMAP[i][0] = '+';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = '*';
             break;
         }
 
@@ -369,14 +369,19 @@ bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header
         return false;
     }
 
-    // Extract usage information
-    {for (int i = 0; i < 0x100; i++)
-    {
-        int addr = smm.body.usage[i].page << 8;
-        if ((addr == 0) && (i != 0))
-            break;
-        memcpy (&usage.memory[addr], smm.body.usage[i].flags, sizeof (uint8_t) * 0x100);
-    }}
+    {   // Extract usage information
+        int last = 0;
+        for (int i = 0; i < 0x100; i++)
+        {
+            int addr = smm.body.usage[i].page << 8;
+            if (addr < last)
+                break;
+            // @FIXME@ Handled extended information (upto another 3 optional bytes)
+            for (int j = 0; j < 0x100; j++)
+                 usage.memory[addr++] = smm.body.usage[i].flags[j] & ~SID_EXTENSION;
+            last = addr;
+        }
+    }
 
     {   // File in the load range
         int length;
@@ -440,15 +445,15 @@ void SidUsage::writeSMM0 (FILE *file, const sid_usage_t &usage)
         smm0.body.length = 0;
         {for (int page = 0; page < 0x100; page++)
         {
-            char used = 0;
             for (int j = 0; j < 0x100; j++)
-                used |= (usage.memory[(page << 8) | j] & ~SID_LOAD_IMAGE);
-           
-            if (used)
             {
+                if (!(usage.memory[(page << 8) | j] & ~SID_LOAD_IMAGE))
+                    continue;
+           
+                int addr = page << 8;
+                for (j = 0; j < 0x100; j++)
+                     smm0.body.usage[i].flags[j] = usage.memory[addr++] & ~SID_LOAD_IMAGE;
                 smm0.body.length += 0x101;
-                memcpy (smm0.body.usage[i].flags, &usage.memory[page << 8],
-                       0x100);
                 smm0.body.usage[i].page = (uint8_t) page;
                 i++;
             }
@@ -506,8 +511,8 @@ void SidUsage::writeMAP (FILE *file, const sid_usage_t &usage)
 
     for (; laddr > faddr; laddr--)
     {
-//        if (usage.memory[laddr-1] & (SID_BAD_READ | SID_BAD_EXECUTE))
-        if (usage.memory[laddr-1] & ~SID_LOAD_IMAGE)
+//        if (usage.memory[laddr] & (SID_BAD_READ | SID_BAD_EXECUTE))
+        if (usage.memory[laddr] & ~SID_LOAD_IMAGE)
             break;
     }
 
