@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2002/01/28 22:35:20  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
 #ifndef _hardsid_emu_h_
@@ -62,11 +65,13 @@ struct HsidDLL2
 #endif // HAVE_MSWINDOWS
 
 #define HARDSID_VOICES 3
+// Approx 60ms
+#define HARDSID_DELAY_CYCLES 60000
 
 /***************************************************************************
  * HardSID SID Specialisation
  ***************************************************************************/
-class HardSID: public sidemu
+class HardSID: public sidemu, private Event
 {
 private:
     friend class HardSIDBuilder;
@@ -74,12 +79,13 @@ private:
     // HardSID specific data
 #ifdef HAVE_UNIX
     static         bool m_sidFree[16];
-    static const   uint voices;
-    static         uint sid;
     int            m_handle;
 #endif
 
+    static const   uint voices;
+    static         uint sid;
     static char    credit[100];
+
 
     // Generic variables
     EventContext  *m_eventContext;
@@ -118,6 +124,12 @@ public:
     // Must lock the SID before using the standard functions.
     void lock (c64env *env);
     bool lock (void) const { return m_locked; }
+
+private:
+    // Fixed interval timer delay to prevent sidplay2
+    // shoot to 100% CPU usage when song nolonger
+    // writes to SID.
+    void event (void);
 };
 
 inline int_least32_t HardSID::output (const uint_least8_t bits)
