@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2004/03/19 00:16:40  s_a_white
+ *  Removed redundant register clears.  Locations are already 0 on exiting the
+ *  delay loop.
+ *
  *  Revision 1.28  2004/03/01 00:46:12  s_a_white
  *  Change video/RSID test order as can fail depending on bankswitch value.
  *
@@ -181,20 +185,6 @@ timer       stx $dc04
             ldy #$00
 vicinit     stx $d011
             sty $d012
-            lda $d019
-            sta $d019
-
-            ; 0 indicates VIC timing, else it's from CIA
-            ldx #$81
-            lda speed
-            bne ciainit
-
-            ; enable VICII raster interrupt
-            stx $d01a
-            beq doinit
-
-            ; enable CIA 1 timer A interrupt
-ciainit     stx $dc0d
 
             ; setup TOD clock divider
 doinit      lda video
@@ -233,6 +223,23 @@ wait        dex
             bne wait
             dey
             bne wait
+
+            ; 0 indicates VIC timing, else it's from CIA
+            cpx speed
+            lda #$81
+            bcc ciainit
+
+            ; enable VICII raster interrupt (only PSIDs)
+            ; and clear any pending irqs
+            sta $d01a
+            lda $d019
+            sta $d019
+            bne setregs
+
+            ; enable CIA 1 timer A interrupt and clear
+            ; any pending irqs
+ciainit     cmp $dc0d
+            sta $dc0d
 
 setregs     lda flags
             pha
