@@ -64,6 +64,8 @@ struct key_tag *__ini_addKey (ini_t *ini, char *key)
     _key   = __ini_faddKey (ini, ini->ftmp, pos, length);
     fseek (ini->ftmp, 0, SEEK_END);
     fputc ('=', ini->ftmp);
+    if (_key)
+        ini->flags |= INI_MODIFIED;
     return _key;
 }
 
@@ -82,7 +84,7 @@ size_t __ini_averageLengthKey (struct section_tag *current_h)
     size_t equal_pos, equal_max, keylength;
     size_t average = 0, count = 0;
     struct key_tag *current_k;
-   
+
     // Rev 1.1 Added - Line up equals characters for keys
     // Calculate Average
     current_k = current_h->first;
@@ -221,7 +223,6 @@ struct key_tag *__ini_createKey (ini_t *ini, char *key)
     }
 
     section->selected = pNew;
-    ini->flags       |= INI_MODIFIED;
     return pNew;
 }
 
@@ -273,7 +274,6 @@ void __ini_deleteKey (ini_t *ini)
         // Delete Key
         free (current_k->key);
         free (current_k);
-        ini->flags |= INI_MODIFIED;
     }
 }
 
@@ -347,13 +347,23 @@ struct key_tag *__ini_locateKey (ini_t *ini, const char *key)
 int INI_LINKAGE ini_deleteKey (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
-    if (!ini->selected)
+    struct section_tag *section;
+    struct key_tag     *key;
+
+    if (!ini)
         return -1;
+    section = ini->selected;
+    if (!section)
+        return -1;
+    key = section->selected;
     // Can't delete a temporary key
-    if (ini->selected->selected == &(ini->tmpKey))
+    if (!key || (key == &(ini->tmpKey)))
         return -1;
-    
+    // Is file read only?
+    if (ini->mode == INI_READ)
+        return -1;   
     __ini_deleteKey (ini);
+    ini->flags |= INI_MODIFIED;
     return 0;
 }
 
@@ -364,14 +374,14 @@ int INI_LINKAGE ini_deleteKey (ini_fd_t fd)
  * Returns           : -1 for Error and 0 on success
  * Globals Used      :
  * Globals Modified  :
- * Description       : 
+ * Description       :
  ********************************************************************************************************************/
 int INI_LINKAGE ini_locateKey (ini_fd_t fd, const char *key)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key = NULL;
 
-    if (!key)
+    if (!ini || !key)
         return -1;
     if (!ini->selected)
         return -1;
@@ -406,4 +416,31 @@ int INI_LINKAGE ini_locateKey (ini_fd_t fd, const char *key)
         ini->selected->selected = _key;
     }
     return -1;
+}
+
+
+/********************************************************************************************************************
+ * Function          : (public) ini_currentKey
+ * Parameters        : fd - pointer to ini file descriptor
+ * Returns           : NULL for Error and on success pointer to key
+ * Globals Used      :
+ * Globals Modified  :
+ * Description       :
+ ********************************************************************************************************************/
+const char * INI_LINKAGE ini_currentKey (ini_fd_t fd)
+{
+    ini_t *ini = (ini_t *) fd;
+    struct section_tag *section;
+    struct key_tag     *key;
+
+    if (!ini)
+        return NULL;
+    section = ini->selected;
+    if (!section)
+        return NULL;
+    key = section->selected;
+    // Don't return temporary key
+    if (!key || (key == &(ini->tmpKey)))
+        return NULL;
+    return key->key;
 }

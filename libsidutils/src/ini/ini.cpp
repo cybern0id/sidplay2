@@ -18,6 +18,12 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.35  2004/11/26 23:18:22  s_a_white
+ * Add Karel Vanroye patch (whitespace).
+ *
+ * Revision 1.34  2004/11/17 23:07:10  s_a_white
+ * Prevent modification of read only files
+ *
  * Revision 1.33  2004/11/05 17:52:03  s_a_white
  * malloc is in stdlib.h (malloc.h does not exist on ansi c compilers).
  *
@@ -270,7 +276,7 @@ unsigned long __ini_createCrc32 (const char *str, bool strcase)
  ********************************************************************************************************************/
 void __ini_strtrim (char *str)
 {
-    long first, last;
+    long first, last, len;
     first = 0;
     last  = strlen (str);
 
@@ -280,12 +286,13 @@ void __ini_strtrim (char *str)
     // Clip end first
     while (isspace (str[last]) && last > 0)
         last--;
-    str[last + 1] = '\0';
 
     // Clip beginning
     while (isspace (str[first]) && (first < last))
         first++;
-    memmove (str, str + first, last - first + 1);
+    len = last + 1 - first;
+    memmove (str, str + first, len);
+    str[len] = '\0';
 }
 
 
@@ -330,7 +337,7 @@ ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int f
     ini->flags = flags;
     file = fopen (ini->filename, "rb");
     if (!file)
-    {   // File doesn't exist so check if allowed 
+    {   // File doesn't exist so check if allowed
         // to create new one 
         if (mode != INI_NEW)
             goto ini_openError;
@@ -507,7 +514,8 @@ void __ini_delete (ini_t *ini)
     }
 #endif // INI_ADD_LIST_SUPPORT
 
-    ini->flags |= INI_MODIFIED;
+    if (ini->mode != INI_READ)
+        ini->flags |= INI_MODIFIED;
 }
 
 
@@ -534,7 +542,7 @@ bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
             if (parser.first >= 0)
             {
                 if (!ini->selected) // Handle keys which are not in a section
-                {                                   
+                {
                     if (!__ini_faddHeading (ini, file, 0, 0))
                         return false;
                 }
@@ -644,7 +652,8 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
 
     // Clear out an existing ini structure
     __ini_delete (ini);
-    parser.pos        = pos = 0;
+    pos               = 0;
+    parser.pos        = pos;
     parser.first      = -1;
     parser.last       = -1;
     parser.state      = INI_NEW_LINE | INI_ALLOW_COMMENT;
@@ -802,7 +811,7 @@ int __ini_store (ini_t *ini, FILE *file)
         return -1;
     if (!file)
         return -1;
-    
+
     // Backup selected heading and key
     selected_h = ini->selected;
     // Be carefull if nothing was previously selected
@@ -818,7 +827,7 @@ int __ini_store (ini_t *ini, FILE *file)
             if (fprintf (file, "[%s]\n", current_h->heading) < 0)
                 goto __ini_storeError;
         }
-        
+
         // Output the sections keys
         equal_pos = __ini_averageLengthKey (current_h);
         current_k = current_h->first;
@@ -1020,6 +1029,9 @@ extern "C" int INI_LINKAGE ini_delete (ini_fd_t fd)
     ini_t *ini = (ini_t *) fd;
     if (!ini)
         return -1;
+    // Is file read only?
+    if (ini->mode == INI_READ)
+        return -1;
     __ini_delete (ini);
     return 0;
 }
@@ -1056,6 +1068,10 @@ extern "C" int INI_LINKAGE ini_append (ini_fd_t fddst, ini_fd_t fdsrc)
     ini_t *src = (ini_t *) fdsrc;
     ini_t *dst = (ini_t *) fddst;
     if (!(src && dst))
+        return -1;
+
+    // Is file read only?
+    if (dst->mode == INI_READ)
         return -1;
 
     // Backup selected heading and key
