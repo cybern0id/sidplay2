@@ -81,6 +81,7 @@ struct sid2_info_t
     // and remove all pending events! 10th sec resolution.
     EventContext      *eventContext;
     uint               maxsids;
+    sid2_env_t         environment;
 };
 
 #endif // _sid2types_h_
