@@ -38,4 +38,17 @@
 #   endif
 #endif
 
+/* Namespace support */
+#define SIDPLAY2_NAMESPACE __sidplay2__
+#ifdef  SIDPLAY2_NAMESPACE
+#   define SIDPLAY2_NAMESPACE_START \
+    namespace SIDPLAY2_NAMESPACE    \
+    {
+#   define SIDPLAY2_NAMESPACE_STOP  \
+    }
+#else
+#   define SIDPLAY2_NAMESPACE_START
+#   define SIDPLAY2_NAMESPACE_STOP
+#endif
+
 #endif /* _sidconfig_h_ */
