@@ -29,7 +29,7 @@ typedef enum
 } mos656x_model_t;
 
 
-class MOS656X: public component
+class MOS656X: public component, public Event
 {
 private:
     static const char *credit;
@@ -45,23 +45,9 @@ protected:
     event_clock_t m_accessClk;
     EventContext &event_context;
 
-    class EventRaster: public Event
-    {
-    private:
-        MOS656X &m_vic;
-        void event (void) {m_vic.rasterEvent ();}
-
-    public:
-        EventRaster (MOS656X *vic)
-            :Event("VIC Raster"),
-             m_vic(*vic) {}
-    } event_raster;
-
-    friend class EventRaster;
-
 protected:
     MOS656X (EventContext *context);
-    void    rasterEvent (void);
+    void    event       (void);
     void    trigger     (int irq);
 
     // Environment Interface
