@@ -22,18 +22,18 @@
 #ifndef PP_DECOMPRESSOR_DEFS_H
 #define PP_DECOMPRESSOR_DEFS_H
 
-#include "SidTuneTypes.h"
+#include "sidtypes.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
   #define PP20_HAVE_EXCEPTIONS
 #else
   #undef PP20_HAVE_EXCEPTIONS
 #endif
 
 // Wanted: 8-bit unsigned.
-typedef ubyte_sidt ubyte_ppt;
+typedef uint_least8_t ubyte_ppt;
 
 // Wanted: 32-bit unsigned.
-typedef udword_sidt udword_ppt;
+typedef uint_least32_t udword_ppt;
 
 #endif  /* PP_DECOMPRESSOR_DEFS_H */

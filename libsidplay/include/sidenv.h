@@ -1,7 +1,7 @@
 /***************************************************************************
-                          sidenv.h  -  This is the environment file which
-                                       defines all the standard functions to
-                                       be inherited by the ICs.
+                          environment.h - This is the environment file which
+                                          defines all the standard functions
+                                          to be inherited by the ICs.
                              -------------------
     begin                : Thu May 11 2000
     copyright            : (C) 2000 by Simon White
@@ -16,8 +16,12 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-#ifndef _c64env_h_
-#define _c64env_h_
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
+#ifndef _environment_h_
+#define _environment_h_
 
 #include "sidtypes.h"
 
@@ -26,20 +30,20 @@
 // TO ALLOW THE COMPONENTS TO SPEAK TO EACH OTHER.  ENVP
 // CAN BE USED TO CREATE VERSIONS OF THESE FUNTIONS
 // WHICH ACCESS MEMBER FUNTIONS OF OTHER C++ OBJECTS!
-void       reset        (void);
-ubyte_sidt readMemByte  (uword_sidt addr);
-void       writeMemByte (uword_sidt addr, ubyte_sidt data);
+extern void    reset        (void);
+extern uint8_t readMemByte  (uint_least16_t addr);
+extern void    writeMemByte (uint_least16_t addr, uint8_t data);
 
 // Interrupts - You must raise the interrupt(s)
 // every cycle if you have not yet been serviced
-void  triggerIRQ (void);
-void  triggerNMI (void);
-void  triggerRST (void);
-void  clearIRQ   (void);
+extern void  triggerIRQ (void);
+extern void  triggerNMI (void);
+extern void  triggerRST (void);
+extern void  clearIRQ   (void);
 
 // Sidplay compatibily funtions
-bool       checkBankJump  (uword addr);
-ubyte_sidt readEnvMemByte (uword addr);
+extern bool    checkBankJump  (uint_least16_t addr);
+extern uint8_t readEnvMemByte (uint_least16_t addr);
 */
 
 class C64Environment
@@ -47,11 +51,11 @@ class C64Environment
 /*
 protected:
     // Eniviroment functions
-    virtual inline void  envReset             (void)
+    virtual inline void    envReset        (void)
     { ::reset (); }
-    virtual inline ubyte_sidt envReadMemByte  (uword_sidt addr)
+    virtual inline uint8_t envReadMemByte  (uint_least16_t addr)
     { ::readMemByte  (addr); }
-    virtual inline void       envWriteMemByte (uword_sidt addr, ubyte_sidt data)
+    virtual inline void    envWriteMemByte (uint_least16_t addr, uint8_t data)
     { ::writeMemByte (addr, data); }
 
     // Interrupts
@@ -65,9 +69,9 @@ protected:
     { ::clearIRQ   (); }
 
     // Sidplay compatibily funtions
-    virtual inline bool       envCheckBankJump   (uword_sidt addr)
+    virtual inline bool    envCheckBankJump   (uint_least16_t addr)
     { ::checkBankJump   (); }
-    virtual inline ubyte_sidt envReadMemDataByte (uword_sidt addr)
+    virtual inline uint8_t envReadMemDataByte (uint_least16_t addr)
     { ::readMemDataByte (); }
     */
 
@@ -84,11 +88,11 @@ public:
 
 protected:
     // Eniviroment functions
-    virtual inline void  envReset             (void)
+    virtual inline void  envReset   (void)
     { m_envp->envReset (); }
-    virtual inline ubyte_sidt envReadMemByte  (uword_sidt addr, bool useCache = false)
-    { return m_envp->envReadMemByte  (addr, useCache); }
-    virtual inline void       envWriteMemByte (uword_sidt addr, ubyte_sidt data, bool useCache = true)
+    virtual inline uint8_t envReadMemByte  (uint_least16_t addr, bool useCache = false)
+    { return m_envp->envReadMemByte (addr, useCache); }
+    virtual inline void    envWriteMemByte (uint_least16_t addr, uint8_t data, bool useCache = true)
     { m_envp->envWriteMemByte (addr, data, useCache); }
 
     // Interrupts
@@ -102,10 +106,10 @@ protected:
     { m_envp->envClearIRQ ();   }
 
     // Sidplay compatibily funtions
-    virtual inline bool       envCheckBankJump   (uword_sidt addr)
+    virtual inline bool    envCheckBankJump   (uint_least16_t addr)
     { return m_envp->envCheckBankJump   (addr); }
-    virtual inline ubyte_sidt envReadMemDataByte (uword_sidt addr, bool useCache = false)
+    virtual inline uint8_t envReadMemDataByte (uint_least16_t addr, bool useCache = false)
     { return m_envp->envReadMemDataByte (addr, useCache); }
 };
 
-#endif // _c64env_h_
+#endif // _environment_h_

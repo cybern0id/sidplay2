@@ -1,5 +1,5 @@
 /***************************************************************************
-                          main.i  -  description
+                          mos6510.i  -  Cycle Accurate 6510 emulation
                              -------------------
     begin                : Thu May 11 06:22:40 BST 2000
     copyright            : (C) 2000 by Simon White
@@ -14,6 +14,11 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
+#include "sidendian.h"
 
 // Microsoft Visual C++ Version Number to work around compiler bug
 // Currently both Visual C++ Versions 5, 6 are broken.
@@ -27,17 +32,17 @@
 // Use macros to access flags.  Allows compatiblity with other versions
 // of this emulation
 // Set N and Z flags according to byte
-#define setFlagsNZ(x) (Register_z_Flag = (Register_n_Flag = (sbyte_sidt) (x)))
-#define setFlagN(x)   (Register_n_Flag = (sbyte_sidt) (x))
-#define setFlagV(x)   (Register_v_Flag = (sbyte_sidt) (x))
+#define setFlagsNZ(x) (Register_z_Flag = (Register_n_Flag = (int_least8_t) (x)))
+#define setFlagN(x)   (Register_n_Flag = (int_least8_t) (x))
+#define setFlagV(x)   (Register_v_Flag = (int_least8_t) (x))
 #define setFlagB(x)   (Register_Status = (Register_Status & ~(1 << SR_BREAK)) \
                                        | (((x) != 0) << SR_BREAK))
 #define setFlagD(x)   (Register_Status = (Register_Status & ~(1 << SR_DECIMAL)) \
                                        | (((x) != 0) << SR_DECIMAL))
 #define setFlagI(x)   (Register_Status = (Register_Status & ~(1 << SR_INTERRUPT)) \
                                        | (((x) != 0) << SR_INTERRUPT))
-#define setFlagZ(x)   (Register_z_Flag = (sbyte_sidt) (x))
-#define setFlagC(x)   (Register_c_Flag = (sbyte_sidt) (x))
+#define setFlagZ(x)   (Register_z_Flag = (int_least8_t) (x))
+#define setFlagC(x)   (Register_c_Flag = (int_least8_t) (x))
 
 
 #define getFlagN()    ((Register_n_Flag &  (1 << SR_NEGATIVE))  != 0)
@@ -50,8 +55,8 @@
 // Push P on stack, decrement S
 void MOS6510::PushSR (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
-    addr |= sidlobyte (Register_StackPointer);
+    uint_least16_t addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
     /* Rev 1.04 - Corrected flag mask */
     Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_DECIMAL) | (1 << SR_BREAK));
     if (getFlagN ()) Register_Status |= (1 << SR_NEGATIVE);
@@ -65,11 +70,12 @@ void MOS6510::PushSR (void)
 // increment S, Pop P off stack
 void MOS6510::PopSR (void)
 {
-    ubyte_sidt data;
-    uword_sidt addr = (SP_PAGE << 8);
+    uint8_t data;
+    uint_least16_t addr;
     Register_StackPointer++;
-    addr |= sidlobyte (Register_StackPointer);
-    data  = envReadMemByte (addr);
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
+    data = envReadMemByte (addr);
     Register_Status = data;
     setFlagB (false);
     setFlagN (data);
@@ -137,14 +143,14 @@ void MOS6510::clearIRQ (void)
 
 void MOS6510::interruptPending (void)
 {
-    sbyte_sidt       offset;
-    const sbyte_sidt offTable[] = {oNONE, oRST, oNMI, oRST,
-                                   oIRQ,  oRST, oNMI, oRST};
+    int_least8_t       offset;
+    const int_least8_t offTable[] = {oNONE, oRST, oNMI, oRST,
+                                     oIRQ,  oRST, oNMI, oRST};
 
     // Service the highest priority interrupt
     offset = offTable[interrupts.pending];
     if (offset == oNONE) return;
-    instr  = &interruptTable[offset];
+    instr = &interruptTable[offset];
 
     // Service Edge Triggered Interrupts
     if (offset != oIRQ)
@@ -160,13 +166,13 @@ void MOS6510::RSTRequest (void)
 
 void MOS6510::NMIRequest (void)
 {
-    sidlobyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFA));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFA));
 }
 
 void MOS6510::NMI1Request (void)
 {
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFB));
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFB));
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
 void MOS6510::IRQRequest (void)
@@ -180,13 +186,13 @@ void MOS6510::IRQRequest (void)
 
 void MOS6510::IRQ1Request (void)
 {
-    sidlobyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
 }
 
 void MOS6510::IRQ2Request (void)
 {
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
 
@@ -202,7 +208,7 @@ void MOS6510::IRQ2Request (void)
 // Addressing Modes:    All
 void MOS6510::FetchOpcode (void)
 {
-    instrOpcode = envReadMemByte (sidloword (Register_ProgramCounter));
+    instrOpcode = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
     Register_ProgramCounter++;
     // Convert opcode to pointer in instruction table
     instr       = &instrTable[instrOpcode];
@@ -215,11 +221,11 @@ void MOS6510::FetchOpcode (void)
 */
 void MOS6510::FetchDataByte (void)
 {   // Get data byte from memory
-    Cycle_Data = envReadMemByte (sidloword (Register_ProgramCounter));
+    Cycle_Data = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    instr_Operand = (uword_sidt) Cycle_Data;
+    instr_Operand = (uint_least16_t) Cycle_Data;
 }
 
 // Fetch low address byte, increment PC
@@ -232,7 +238,7 @@ void MOS6510::FetchDataByte (void)
 */                      
 void MOS6510::FetchLowAddr (void)
 {
-    Cycle_EffectiveAddress = envReadMemByte (sidloword (Register_ProgramCounter));
+    Cycle_EffectiveAddress = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
     Register_ProgramCounter++;
 
     // Nextline used for Debug
@@ -243,15 +249,15 @@ void MOS6510::FetchLowAddr (void)
 // Addressing Modes:    Zero Page Indexed
 void MOS6510::FetchLowAddrX (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     FetchLowAddr ();
     // Page boundary crossing is not handled
-    page = sidhibyte (Cycle_EffectiveAddress);
-    sidlobyte (Cycle_EffectiveAddress, (ubyte_sidt) Cycle_EffectiveAddress + Register_X);
+    page = endian_16hi8 (Cycle_EffectiveAddress);
+    endian_16lo8 (Cycle_EffectiveAddress, (uint8_t) Cycle_EffectiveAddress + Register_X);
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // If page boundary crossing were handled
-//    if (sidlobyte (Cycle_EffectiveAddress) == page)
+//    if (endian_16lo8 (Cycle_EffectiveAddress) == page)
         cycleCount++;
 #endif
 }
@@ -260,15 +266,15 @@ void MOS6510::FetchLowAddrX (void)
 // Addressing Modes:    Zero Page Indexed
 void MOS6510::FetchLowAddrY (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     FetchLowAddr ();
     // Page boundary crossing is not handled
-    page = sidhibyte (Cycle_EffectiveAddress);
-    sidlobyte (Cycle_EffectiveAddress, (ubyte_sidt) Cycle_EffectiveAddress + Register_Y);
+    page = endian_16hi8 (Cycle_EffectiveAddress);
+    endian_16lo8 (Cycle_EffectiveAddress, (uint8_t) Cycle_EffectiveAddress + Register_Y);
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // If page boundary crossing were handled
-//    if (sidlobyte (Cycle_EffectiveAddress) == page)
+//    if (endian_16lo8 (Cycle_EffectiveAddress) == page)
         cycleCount++;
 #endif
 }
@@ -278,11 +284,11 @@ void MOS6510::FetchLowAddrY (void)
 // Addressing Modes:    Absolute
 void MOS6510::FetchHighAddr (void)
 {   // Get the high byte of an address from memory
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (sidloword (Register_ProgramCounter)));
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    sidhibyte (instr_Operand, sidhibyte (Cycle_EffectiveAddress));
+    endian_16hi8 (instr_Operand, endian_16hi8 (Cycle_EffectiveAddress));
 }
 
 // Fetch high byte of address, add index register X to low address byte,
@@ -290,15 +296,15 @@ void MOS6510::FetchHighAddr (void)
 // Addressing Modes:    Absolute Indexed
 void MOS6510::FetchHighAddrX (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     // Rev 1.05 (saw) - Call base Function
     FetchHighAddr ();
-    page = sidhibyte (Cycle_EffectiveAddress);
+    page = endian_16hi8 (Cycle_EffectiveAddress);
     Cycle_EffectiveAddress += Register_X;
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // Handle page boundary crossing
-    if (sidhibyte (Cycle_EffectiveAddress) == page)
+    if (endian_16hi8 (Cycle_EffectiveAddress) == page)
         cycleCount++;
 #endif
 }
@@ -308,15 +314,15 @@ void MOS6510::FetchHighAddrX (void)
 // Addressing Modes:    Absolute Indexed
 void MOS6510::FetchHighAddrY (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     // Rev 1.05 (saw) - Call base Function
     FetchHighAddr ();
-    page = sidhibyte (Cycle_EffectiveAddress);
+    page = endian_16hi8 (Cycle_EffectiveAddress);
     Cycle_EffectiveAddress += Register_Y;
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // Handle page boundary crossing
-    if (sidhibyte (Cycle_EffectiveAddress) == page)
+    if (endian_16hi8 (Cycle_EffectiveAddress) == page)
         cycleCount++;
 #endif
 }
@@ -327,9 +333,8 @@ void MOS6510::FetchHighAddrY (void)
 */
 void MOS6510::FetchLowPointer (void)
 {
-    Cycle_Pointer = envReadMemByte (sidloword (Register_ProgramCounter));
+    Cycle_Pointer = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
     Register_ProgramCounter++;
-
     // Nextline used for Debug
     instr_Operand = Cycle_Pointer;
 }
@@ -338,12 +343,12 @@ void MOS6510::FetchLowPointer (void)
 // Addressing Modes:    Indexed Indirect (pre X)
 void MOS6510::FetchLowPointerX (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     // Rev 1.05 (saw) - Call base Function
     FetchLowPointer ();
     // Page boundary crossing is not handled
-    page = sidhibyte (Cycle_Pointer);
-    sidlobyte (Cycle_Pointer, (ubyte_sidt) Cycle_Pointer + Register_X);
+    page = endian_16hi8 (Cycle_Pointer);
+    endian_16lo8 (Cycle_Pointer, (uint8_t) Cycle_Pointer + Register_X);
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // If page boundary crossing were handled
@@ -356,11 +361,11 @@ void MOS6510::FetchLowPointerX (void)
 // Addressing Modes:    Absolute Indirect
 void MOS6510::FetchHighPointer (void)
 {
-    sidhibyte (Cycle_Pointer, envReadMemByte (sidloword (Register_ProgramCounter)));
+    endian_16hi8 (Cycle_Pointer, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    sidhibyte (instr_Operand, sidhibyte (Cycle_Pointer));
+    endian_16hi8 (instr_Operand, endian_16hi8 (Cycle_Pointer));
 }
 
 // Fetch effective address low
@@ -379,23 +384,23 @@ void MOS6510::FetchLowEffAddr (void)
 */
 void MOS6510::FetchHighEffAddr (void)
 {   // Rev 1.03 (Mike) - Extra +1 removed
-    sidlobyte (Cycle_Pointer, (ubyte_sidt) ++Cycle_Pointer);
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (Cycle_Pointer));
+    endian_16lo8 (Cycle_Pointer, (uint8_t) ++Cycle_Pointer);
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (Cycle_Pointer));
 }
 
 // Fetch effective address high, add Y to low byte of effective address
 // Addressing Modes:    Indirect indexed (post Y)
 void MOS6510::FetchHighEffAddrY (void)
 {
-    ubyte_sidt page;
+    uint8_t page;
     // Rev 1.05 (saw) - Call base Function
     FetchHighEffAddr ();
-    page = sidhibyte (Cycle_EffectiveAddress);
+    page = endian_16hi8 (Cycle_EffectiveAddress);
     Cycle_EffectiveAddress += Register_Y;
 
 #ifdef MOS6510_ACCURATE_CYCLES
     // Handle page boundary crossing
-    if (sidhibyte (Cycle_EffectiveAddress) == page)
+    if (endian_16hi8 (Cycle_EffectiveAddress) == page)
         cycleCount++;
 #endif
 }
@@ -422,37 +427,41 @@ void MOS6510::PutEffAddrDataByte (void)
 // Push Program Counter Low Byte on stack, decrement S
 void MOS6510::PushLowPC (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
-    addr |= sidlobyte (Register_StackPointer);
-    envWriteMemByte (addr, sidlobyte (Register_ProgramCounter));
+    uint_least16_t addr;
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
+    envWriteMemByte (addr, endian_32lo8 (Register_ProgramCounter));
     Register_StackPointer--;
 }
 
 // Push Program Counter High Byte on stack, decrement S
 void MOS6510::PushHighPC (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
-    addr |= sidlobyte (Register_StackPointer);
-    envWriteMemByte (addr, sidhibyte (Register_ProgramCounter));
+    uint_least16_t addr;
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
+    envWriteMemByte (addr, endian_32hi8 (Register_ProgramCounter));
     Register_StackPointer--;
 }
 
 // Increment stack and pull program counter low byte from stack,
 void MOS6510::PopLowPC (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
+    uint_least16_t addr;
     Register_StackPointer++;
-    addr |= sidlobyte (Register_StackPointer);
-    sidlobyte (Cycle_EffectiveAddress, envReadMemByte (addr));
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (addr));
 }
 
 // Increment stack and pull program counter high byte from stack,
 void MOS6510::PopHighPC (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
+    uint_least16_t addr;
     Register_StackPointer++;
-    addr |= sidlobyte (Register_StackPointer);
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (addr));
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (addr));
 }
 
 void MOS6510::WasteCycle (void)
@@ -481,13 +490,13 @@ void MOS6510::brk1_instr (void)
 
 void MOS6510::brk2_instr (void)
 {
-    sidlobyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
 }
 
 void MOS6510::brk3_instr (void)
 {
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
 void MOS6510::cld_instr (void)
@@ -504,7 +513,7 @@ void MOS6510::cli_instr (void)
 
 void MOS6510::jmp_instr (void)
 {
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
 void MOS6510::jsr_instr (void)
@@ -516,8 +525,9 @@ void MOS6510::jsr_instr (void)
 
 void MOS6510::pha_instr (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
-    addr |= sidlobyte (Register_StackPointer);
+    uint_least16_t addr;
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
     envWriteMemByte (addr, Register_Accumulator);
     Register_StackPointer--;
 }
@@ -535,7 +545,7 @@ void MOS6510::plp_instr (void)
 
 void MOS6510::rti_instr (void)
 {
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
     // Check to see if interrupts got re-enabled
     if (!getFlagI ())
     {   // Yep, ok check if they need servicing
@@ -546,7 +556,7 @@ void MOS6510::rti_instr (void)
 
 void MOS6510::rts_instr (void)
 {
-    sidloword (Register_ProgramCounter, Cycle_EffectiveAddress);
+    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
     Register_ProgramCounter++;
 }
 
@@ -588,7 +598,7 @@ void MOS6510::sty_instr (void)
 // byte of the target address of the operand +1 in memory.
 void MOS6510::axa_instr (void)
 {
-    Cycle_Data = Register_X & Register_Accumulator & (sidhibyte (Cycle_EffectiveAddress) + 1);
+    Cycle_Data = Register_X & Register_Accumulator & (endian_16hi8 (Cycle_EffectiveAddress) + 1);
 }
 
 // Undocumented - AXS ANDs the contents of the A and X registers (without changing the
@@ -629,7 +639,7 @@ void MOS6510::php_instr (void)
 // result in memory.
 void MOS6510::say_instr (void)
 {
-    Cycle_Data = Register_Y & (sidhibyte (Cycle_EffectiveAddress) + 1);
+    Cycle_Data = Register_Y & (endian_16hi8 (Cycle_EffectiveAddress) + 1);
 }
 
 /* Not required - Operation performed By another method
@@ -652,7 +662,7 @@ void MOS6510::skw_instr (void)
 // result in memory.
 void MOS6510::xas_instr (void)
 {
-    Cycle_Data = Register_X & (sidhibyte (Cycle_EffectiveAddress) + 1);
+    Cycle_Data = Register_X & (endian_16hi8 (Cycle_EffectiveAddress) + 1);
 }
 
 
@@ -669,10 +679,10 @@ void MOS6510::xas_instr (void)
 
 void MOS6510::Perform_ADC (void)
 {
-    uword_sidt regAC2;
-    ubyte_sidt flagCF;
+    uint_least16_t regAC2;
+    uint8_t        flagCF;
     flagCF = getFlagC ();
-    regAC2 = (uword_sidt)(ubyte_sidt) Register_Accumulator + (ubyte_sidt) Cycle_Data + flagCF;
+    regAC2 = (uint_least16_t)(uint8_t) Register_Accumulator + (uint8_t) Cycle_Data + flagCF;
 
     if (getFlagD ())
     {   // Decimal mode
@@ -682,8 +692,8 @@ void MOS6510::Perform_ADC (void)
         if ((regAC2 & 0x0f) > 0x09) regAC2 += 0x06;
 
         // Set flags
-        setFlagV (((((ubyte_sidt) Register_Accumulator ^ (ubyte_sidt) Cycle_Data ^
-                     (ubyte_sidt) regAC2) & 0x80) != 0) ^ flagCF);
+        setFlagV (((((uint8_t) Register_Accumulator ^ (uint8_t) Cycle_Data ^
+                     (uint8_t) regAC2) & 0x80) != 0) ^ flagCF);
         setFlagN (regAC2);
 
         // BCD fixup for upper nybble
@@ -691,15 +701,15 @@ void MOS6510::Perform_ADC (void)
 
         setFlagC (regAC2 > 0xff);
         // Compose result
-        Register_Accumulator = (sbyte_sidt) regAC2;
+        Register_Accumulator = (int8_t) regAC2;
     }
     else
     {   // Binary mode
         setFlagC   (regAC2 > 0xff);
         flagCF =   getFlagC ();
-        setFlagV   (((((ubyte_sidt) Register_Accumulator ^ (ubyte_sidt) Cycle_Data ^
-                       (ubyte_sidt) regAC2) & 0x80) != 0) ^ flagCF);
-        setFlagsNZ (Register_Accumulator = (sbyte_sidt) regAC2);
+        setFlagV   (((((uint8_t) Register_Accumulator ^ (uint8_t) Cycle_Data ^
+                       (uint8_t) regAC2) & 0x80) != 0) ^ flagCF);
+        setFlagsNZ (Register_Accumulator = (int8_t) regAC2);
     }
 }
 
@@ -758,12 +768,12 @@ void MOS6510::bcc_instr (void)
     if (!getFlagC ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -780,12 +790,12 @@ void MOS6510::bcs_instr (void)
     if (getFlagC ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -802,12 +812,12 @@ void MOS6510::beq_instr (void)
     if (getFlagZ ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -831,12 +841,12 @@ void MOS6510::bmi_instr (void)
     if (getFlagN ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -853,12 +863,12 @@ void MOS6510::bne_instr (void)
     if (!getFlagZ ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -875,12 +885,12 @@ void MOS6510::bpl_instr(void)
     if (!getFlagN ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -897,12 +907,12 @@ void MOS6510::bvc_instr (void)
     if (!getFlagV ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -919,12 +929,12 @@ void MOS6510::bvs_instr (void)
     if (getFlagV ())
 #ifdef MOS6510_ACCURATE_CYCLES
     {
-        ubyte_sidt page;
-        page = sidhibyte (Cycle_EffectiveAddress);
+        uint8_t page;
+        page = endian_16hi8 (Cycle_EffectiveAddress);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
-        if (sidhibyte (Register_ProgramCounter) == page)
+        if (endian_32hi8 (Register_ProgramCounter) == page)
            cycleCount++;
     }
     else
@@ -948,21 +958,21 @@ void MOS6510::clv_instr (void)
 
 void MOS6510::cmp_instr (void)
 {
-    uword_sidt tmp = (uword_sidt)(ubyte_sidt) Register_Accumulator - (ubyte_sidt) Cycle_Data;
+    uint_least16_t tmp = (uint_least16_t)(uint8_t) Register_Accumulator - (uint8_t) Cycle_Data;
     setFlagsNZ (tmp);
     setFlagC   (tmp < 0x100);
 }
 
 void MOS6510::cpx_instr (void)
 {
-    uword_sidt tmp = (uword_sidt)(ubyte_sidt) Register_X - (ubyte_sidt) Cycle_Data;
+    uint_least16_t tmp = (uint_least16_t)(uint8_t) Register_X - (uint8_t) Cycle_Data;
     setFlagsNZ (tmp);
     setFlagC   (tmp < 0x100);
 }
 
 void MOS6510::cpy_instr (void)
 {
-    uword_sidt tmp = (uword_sidt)(ubyte_sidt) Register_Y - (ubyte_sidt) Cycle_Data;
+    uint_least16_t tmp = (uint_least16_t)(uint8_t) Register_Y - (uint8_t) Cycle_Data;
     setFlagsNZ (tmp);
     setFlagC   (tmp < 0x100);
 }
@@ -1020,13 +1030,13 @@ void MOS6510::ldy_instr (void)
 void MOS6510::lsr_instr (void)
 {
     setFlagC   (Cycle_Data & 0x01);
-    setFlagsNZ (Cycle_Data = (sbyte_sidt) ((ubyte_sidt) Cycle_Data >> 1));
+    setFlagsNZ (Cycle_Data = (int8_t) ((uint8_t) Cycle_Data >> 1));
 }
 
 void MOS6510::lsra_instr (void)
 {
     setFlagC   (Register_Accumulator & 0x01);
-    setFlagsNZ (Register_Accumulator = (sbyte_sidt) ((ubyte_sidt) Register_Accumulator >> 1));
+    setFlagsNZ (Register_Accumulator = (int8_t) ((uint8_t) Register_Accumulator >> 1));
 }
 
 void MOS6510::ora_instr (void)
@@ -1036,15 +1046,16 @@ void MOS6510::ora_instr (void)
 
 void MOS6510::pla_instr (void)
 {
-    uword_sidt addr = (SP_PAGE << 8);
+    uint_least16_t addr;
     Register_StackPointer++;
-    addr |= sidlobyte (Register_StackPointer);
+    addr = Register_StackPointer;
+	endian_16hi8 (addr, SP_PAGE);
     setFlagsNZ (Register_Accumulator = envReadMemByte (addr));
 }
 
 void MOS6510::rol_instr (void)
 {
-    ubyte_sidt tmp = Cycle_Data & 0x80;
+    uint8_t tmp = Cycle_Data & 0x80;
     Cycle_Data   <<= 1;
     if (getFlagC ()) Cycle_Data |= 0x01;
     setFlagsNZ (Cycle_Data);
@@ -1053,7 +1064,7 @@ void MOS6510::rol_instr (void)
 
 void MOS6510::rola_instr (void)
 {
-    ubyte_sidt tmp = Register_Accumulator & 0x80;
+    uint8_t tmp = Register_Accumulator & 0x80;
     Register_Accumulator <<= 1;
     if (getFlagC ()) Register_Accumulator |= 0x01;
     setFlagsNZ (Register_Accumulator);
@@ -1062,8 +1073,8 @@ void MOS6510::rola_instr (void)
 
 void MOS6510::ror_instr (void)
 {
-    ubyte_sidt tmp = Cycle_Data & 0x01;
-    Cycle_Data     = (sbyte_sidt) ((ubyte_sidt) Cycle_Data >> 1);
+    uint8_t tmp = Cycle_Data & 0x01;
+    Cycle_Data  = (int8_t) ((uint8_t) Cycle_Data >> 1);
     if (getFlagC ()) Cycle_Data |= 0x80;
     setFlagsNZ (Cycle_Data);
     setFlagC   (tmp);
@@ -1071,8 +1082,8 @@ void MOS6510::ror_instr (void)
 
 void MOS6510::rora_instr (void)
 {
-    ubyte_sidt tmp = Register_Accumulator & 0x01;
-    Register_Accumulator = (sbyte_sidt) ((ubyte_sidt) Register_Accumulator >> 1);
+    uint8_t tmp = Register_Accumulator & 0x01;
+    Register_Accumulator = (int8_t) ((uint8_t) Register_Accumulator >> 1);
     if (getFlagC ()) Register_Accumulator |= 0x80;
     setFlagsNZ (Register_Accumulator);
     setFlagC   (tmp);
@@ -1080,9 +1091,9 @@ void MOS6510::rora_instr (void)
 
 void MOS6510::sbx_instr (void)
 {
-    uword_sidt tmp = (Register_Accumulator & Register_X) - Cycle_Data;
+    uint_least16_t tmp = (Register_Accumulator & Register_X) - Cycle_Data;
     setFlagsNZ (tmp);
-    Register_X = Cycle_Data = (sbyte_sidt) (tmp & 0x00ff);
+    Register_X   = Cycle_Data = (int8_t) (tmp & 0x00ff);
     setFlagC   (tmp >> 8);
 }
 
@@ -1098,9 +1109,9 @@ void MOS6510::sec_instr (void)
 
 void MOS6510::shs_instr (void)
 {
-    sidlobyte (Register_StackPointer, (Register_Accumulator & Register_X));
-    uword_sidt tmp = (Cycle_EffectiveAddress + 1) & Register_StackPointer;
-    setFlagsNZ (sidlobyte (tmp));
+    endian_16lo8 (Register_StackPointer, (Register_Accumulator & Register_X));
+    uint_least16_t tmp = (Cycle_EffectiveAddress + 1) & Register_StackPointer;
+    setFlagsNZ (endian_16lo8 (tmp));
 }
 
 void MOS6510::tax_instr (void)
@@ -1115,7 +1126,7 @@ void MOS6510::tay_instr (void)
 
 void MOS6510::tsx_instr (void)
 {   // Rev 1.03 (saw) - Got these tsx and txs reversed
-    setFlagsNZ (Register_X = sidlobyte (Register_StackPointer));
+    setFlagsNZ (Register_X = endian_16lo8 (Register_StackPointer));
 }
 
 void MOS6510::txa_instr (void)
@@ -1125,8 +1136,8 @@ void MOS6510::txa_instr (void)
 
 void MOS6510::txs_instr (void)
 {   // Rev 1.03 (saw) - Got these tsx and txs reversed
-    sidlobyte  (Register_StackPointer, Register_X);
-    setFlagsNZ (Register_X);
+    endian_16lo8 (Register_StackPointer, Register_X);
+    setFlagsNZ   (Register_X);
 }
 
 void MOS6510::tya_instr (void)
@@ -1157,7 +1168,7 @@ void MOS6510::alr_instr (void)
 {
     Register_Accumulator &= Cycle_Data;
     setFlagC   (Register_Accumulator & 0x01);
-    setFlagsNZ (Register_Accumulator = (sbyte_sidt) ((ubyte_sidt) Register_Accumulator >> 1));
+    setFlagsNZ (Register_Accumulator = (int8_t) ((uint8_t) Register_Accumulator >> 1));
 }
 
 // Undcouemented - ANC ANDs the contents of the A register with an immediate value and then
@@ -1174,9 +1185,9 @@ void MOS6510::anc_instr (void)
 // then RORs the result (Implementation based on that of Frodo C64 Emulator)
 void MOS6510::arr_instr (void)
 {
-    ubyte_sidt data = (ubyte_sidt) (Cycle_Data & Register_Accumulator);
+    uint8_t data = (uint8_t) (Cycle_Data & Register_Accumulator);
     data >>= 1;
-    Register_Accumulator = (sbyte_sidt) data;
+    Register_Accumulator = (int8_t) data;
     if (getFlagC ()) Register_Accumulator |= 0x80;
 
     if (!getFlagD ())
@@ -1213,9 +1224,9 @@ void MOS6510::aso_instr (void)
 // with the A register.
 void MOS6510::dcm_instr (void)
 {
-    uword_sidt tmp;
+    uint_least16_t tmp;
     Cycle_Data--;
-    tmp = (uword_sidt)(ubyte_sidt) Register_Accumulator - (ubyte_sidt) Cycle_Data;
+    tmp = (uint_least16_t)(uint8_t) Register_Accumulator - (uint8_t) Cycle_Data;
     setFlagsNZ (tmp);
     setFlagC   (tmp < 0x100);
 }
@@ -1233,7 +1244,7 @@ void MOS6510::ins_instr (void)
 // register, and the stack pointer.  Affected flags: N Z.
 void MOS6510::las_instr (void)
 {
-    setFlagsNZ (Cycle_Data &= sidlobyte (Register_StackPointer));
+    setFlagsNZ (Cycle_Data &= endian_16lo8 (Register_StackPointer));
     Register_Accumulator  = Cycle_Data;
     Register_X            = Cycle_Data;
     Register_StackPointer = Cycle_Data;
@@ -1250,9 +1261,9 @@ void MOS6510::lax_instr (void)
 // the accumulator.
 void MOS6510::lse_instr (void)
 {
-    setFlagC   (Cycle_Data & 0x01);
-    Cycle_Data = (sbyte_sidt) ((ubyte_sidt) Cycle_Data >> 1);
-    setFlagsNZ (Register_Accumulator ^= Cycle_Data);
+    setFlagC     (Cycle_Data & 0x01);
+    Cycle_Data = (int8_t) ((uint8_t) Cycle_Data >> 1);
+    setFlagsNZ   (Register_Accumulator ^= Cycle_Data);
 }
 
 // Undocumented - This opcode ORs the A register with #xx, ANDs the result with an immediate
@@ -1267,8 +1278,8 @@ void MOS6510::oal_instr (void)
 // the accumulator.
 void MOS6510::rla_instr (void)
 {
-    ubyte_sidt tmp = Cycle_Data & 0x80;
-    Cycle_Data     = Cycle_Data << 1;
+    uint8_t tmp = Cycle_Data & 0x80;
+    Cycle_Data  = Cycle_Data << 1;
     if (getFlagC ()) Cycle_Data |= 0x01;
     setFlagC   (tmp);
     setFlagsNZ (Register_Accumulator &= Cycle_Data);
@@ -1278,8 +1289,8 @@ void MOS6510::rla_instr (void)
 // the accumulator.
 void MOS6510::rra_instr (void)
 {
-    ubyte_sidt tmp = Cycle_Data & 0x01;
-    Cycle_Data     = (sbyte_sidt) ((ubyte_sidt) Cycle_Data >> 1);
+    uint8_t tmp = Cycle_Data & 0x01;
+    Cycle_Data  = (int8_t) ((uint8_t) Cycle_Data >> 1);
     if (getFlagC ()) Cycle_Data |= 0x80;
     setFlagC (tmp);
     Perform_ADC ();
@@ -1292,9 +1303,9 @@ void MOS6510::rra_instr (void)
 // memory.
 void MOS6510::tas_instr (void)
 {
-    sidlobyte (Register_StackPointer, Register_Accumulator & Register_X);
-    uword_sidt tmp = Register_StackPointer & (Cycle_EffectiveAddress + 1);
-    Cycle_Data  = (signed) sidlobyte (tmp);
+    endian_16lo8  (Register_StackPointer, Register_Accumulator & Register_X);
+    uint_least16_t tmp = Register_StackPointer & (Cycle_EffectiveAddress + 1);
+    Cycle_Data         = (signed) endian_16lo8 (tmp);
 }
 
 #endif // X86
@@ -1306,17 +1317,17 @@ void MOS6510::tas_instr (void)
 //MOS6510::MOS6510 (model_t _model, const char *id)
 MOS6510::MOS6510 ()
 {
-    ubyte_sidt legalMode  = true;
-    ubyte_sidt legalInstr = true;
-    int        i, pass;
+    uint8_t legalMode  = true;
+    uint8_t legalInstr = true;
+    uint    i, pass;
 
     //----------------------------------------------------------------------
     // Build up the processor instruction table
     for (i = 0; i < 0x100; i++)
     {
-#ifdef MOS6510_FULL_DEBUG
-        printf ("Building Command %d[%02x]..", i, (ubyte_sidt) i);
-#endif // MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
+        printf ("Building Command %d[%02x]..", i, (uint8_t) i);
+#endif
 
         // Pass 1 allocates the memory, Pass 2 builds the instruction
         instr                = &instrTable[i];
@@ -2023,25 +2034,25 @@ MOS6510::MOS6510 ()
             else
                 instr->opcode = i;
 
-#ifdef MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
             printf (".");
-#endif // MOS6510_FULL_DEBUG
+#endif
         }
 
         instr->lastAddrCycle++;
         instr->lastCycle = cycleCount - 1;
-#ifdef MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
         printf ("Done [%d Cycles]\n", cycleCount);
-#endif // MOS6510_FULL_DEBUG
+#endif
     }
 
     //----------------------------------------------------------------------
     // Build interrupts
     for (i = 0; i < 3; i++)
     {
-#ifdef MOS6510_FULL_DEBUG
-        printf ("Building Interrupt %d[%02x]..", i, (ubyte_sidt) i);
-#endif // MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
+        printf ("Building Interrupt %d[%02x]..", i, (uint8_t) i);
+#endif
 
         // Pass 1 allocates the memory, Pass 2 builds the interrupt
         instr                = &interruptTable[i];
@@ -2110,33 +2121,16 @@ MOS6510::MOS6510 ()
                 }
             }
 
-#ifdef MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
             printf (".");
-#endif // MOS6510_FULL_DEBUG
+#endif
         }
 
         instr->lastCycle = cycleCount - 1;
-#ifdef MOS6510_FULL_DEBUG
+#if MOS6510_DEBUG > 1
         printf ("Done [%d Cycles]\n", cycleCount);
-#endif // MOS6510_FULL_DEBUG
+#endif
     }
-
-    //**********************************************************************
-    // CRC checks added...Used for length detection
-    for (i = 0; i < 256; i++)
-    {
-       crc = (unsigned long) i;
-       for (pass = 0; pass < 8; pass++)
-       {
-           if (crc & 1)
-               crc = 0xedb88320L ^ (crc >> 1);
-           else
-               crc = crc >> 1;
-       }
-
-       crcTable[i] = crc;
-    }
-    //**********************************************************************
 
     // Intialise Processor Registers
     Register_Accumulator   = 0;
@@ -2156,7 +2150,7 @@ exit (-1);
 
 MOS6510::~MOS6510 ()
 {
-    int i;
+    uint i;
 
     // Remove Opcodes
     for (i = 0; i < 0x100; i++)
@@ -2179,7 +2173,7 @@ MOS6510::~MOS6510 ()
 void MOS6510::Initialise (void)
 {
     // Reset stack
-    Register_StackPointer = ((uword_sidt) SP_PAGE << 8) | 0xFF;
+    Register_StackPointer = endian_16 (SP_PAGE, 0xFF);
 
     // Reset Interrupts
     interrupts.pending = false;
@@ -2199,9 +2193,6 @@ void MOS6510::Initialise (void)
 
     // Set PC to some value
     Register_ProgramCounter = 0;
-
-    // Restart CRC
-    crc = 0;
 }
 
 //-------------------------------------------------------------------------//
@@ -2213,8 +2204,8 @@ void MOS6510::reset (void)
 
     // Requires External Bits
     // Read from reset vector for program entry point
-    sidlobyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFC));
-    sidhibyte (Cycle_EffectiveAddress, envReadMemByte (0xFFFD));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFC));
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFD));
     Register_ProgramCounter = Cycle_EffectiveAddress;
 }
 
@@ -2225,7 +2216,7 @@ void MOS6510::clock (void)
 {
     if (cycleCount < 0)
     {
-        instrStartPC  = sidloword (Register_ProgramCounter);
+        instrStartPC  = endian_32lo16 (Register_ProgramCounter);
         interruptPending ();
         if (cycleCount)
             FetchOpcode ();
@@ -2244,9 +2235,6 @@ void MOS6510::clock (void)
 
     if (lastCycle < cycleCount)
     {
-//        crc += instrOpcode;
-//        crc = crcTable[(crc ^ instr_Operand.w) & 0xff] ^ (crc >> 8);
-        
         cycleCount = -1;
         // 6510 contains a simple pipe line
         // which is handled here

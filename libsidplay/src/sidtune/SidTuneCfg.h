@@ -3,13 +3,12 @@
 #ifndef SIDTUNECFG_H
 #define SIDTUNECFG_H
 
-#include "sidconfig.h"
+#include "config.h"
 
 /* --------------------------------------------------------------------------
  * Don't touch these!
  * --------------------------------------------------------------------------
  */
-#undef SIDTUNE_OWN_TYPES
 #undef SIDTUNE_NO_STDIN_LOADER
 #undef SIDTUNE_REJECT_UNKNOWN_FIELDS
 

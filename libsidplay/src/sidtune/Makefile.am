@@ -1,7 +1,7 @@
 
 sidplayincludedir = $(includedir)/sidplay2
 
-sidplayinclude_HEADERS = SidTune.h SidTuneCfg.h SidTuneTypes.h SidTuneEndian.h \
+sidplayinclude_HEADERS = SidTune.h SidTuneCfg.h \
 Buffer.h SmartPtr.h
 
 noinst_LTLIBRARIES = libsidtune.la
@@ -17,9 +17,6 @@ PSID.cpp \
 SidTune.cpp \
 SidTune.h \
 SidTuneCfg.h \
-SidTuneEndian.h \
 SidTuneTools.cpp \
 SidTuneTools.h \
-SidTuneTypes.h \
 SmartPtr.h
-

@@ -14,6 +14,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #ifndef _conf6510_h_
 #define _conf6510_h_
 
@@ -23,13 +27,11 @@
 #define MOS6510_ACCURATE_CYCLES
 #define MOS6510_SIDPLAY
 //#define MOS6510_STATE_6510
-//#define MOS6510_DEBUG
-//#define MOS6510_FULL_DEBUG
+//#define MOS6510_DEBUG 1
 
-#ifdef MOS6510_FULL_DEBUG
-    #ifndef MOS6510_DEBUG
-        #define MOS6510_DEBUG
-    #endif // MOS6510_DEBUG
-#endif // MOS6510_FULL_DEBUG
+// Support global debug option
+#ifdef DEBUG
+    #define MOS6510_DEBUG DEBUG
+#endif
 
 #endif // _conf6510_h_

@@ -21,23 +21,26 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 
-#include "SidTuneTypes.h"
+#include "SidTuneCfg.h"
+#include "sidtypes.h"
 
 #include <string.h>
-#if defined(SID_HAVE_STRSTREA_H)
+#if defined(HAVE_STRSTREA_H)
   #include <strstrea.h>
 #else
   #include <strstream.h>
 #endif
 
-#if defined(SID_HAVE_STRCASECMP)
-  #undef stricmp
-  #define stricmp strcasecmp
+#define MYSTRICMP stricmp
+#if defined(HAVE_STRCASECMP)
+  #undef  MYSTRICMP
+  #define MYSTRICMP strcasecmp
 #endif
 
-#if defined(SID_HAVE_STRNCASECMP)
-  #undef strnicmp
-  #define strnicmp strncasecmp
+#define MYSTRNICMP strnicmp
+#if defined(HAVE_STRNCASECMP)
+  #undef  MYSTRNICMP
+  #define MYSTRNICMP strncasecmp
 #endif
 
 class SidTuneTools
@@ -47,7 +50,7 @@ class SidTuneTools
 	// Wrapper for ``strnicmp'' without third argument.
 	static int myStrNcaseCmp(const char* s1, const char* s2)
 	{
-	    return strnicmp(s1,s2,strlen(s2));
+	    return MYSTRNICMP(s1,s2,strlen(s2));
 	}
 
 	// Own version of strdup, which uses new instead of malloc.
@@ -66,11 +69,11 @@ class SidTuneTools
 
 	// Parse input string stream. Read and convert a hexa-decimal number up 
 	// to a ``,'' or ``:'' or ``\0'' or end of stream.
-	static udword_sidt readHex(istrstream& parseStream);
+	static uint_least32_t readHex(istrstream& parseStream);
 
 	// Parse input string stream. Read and convert a decimal number up 
 	// to a ``,'' or ``:'' or ``\0'' or end of stream.
-	static udword_sidt readDec(istrstream& parseStream);
+	static uint_least32_t readDec(istrstream& parseStream);
 
 	// Search terminated string for next newline sequence.
 	// Skip it and return pointer to start of next line.

@@ -15,14 +15,17 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
 #include "sidconfig.h"
 
 // Rev 1.2 (saw) - Changed to allow resid to be in more than one location
-#ifdef SID_HAVE_LOCAL_RESID
+#ifdef HAVE_LOCAL_RESID
 #   include "resid/sid.h"
 #else
-#   ifdef SID_HAVE_USER_RESID
+#   ifdef HAVE_USER_RESID
 #       include "sid.h"
 #   else
 #       include <resid/sid.h>

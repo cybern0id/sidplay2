@@ -1,11 +1,31 @@
+/***************************************************************************
+                          sid6510c.h  -  Sidplay Specific 6510 emulation
+                             -------------------
+    begin                : Thu May 11 2000
+    copyright            : (C) 2000 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #include "sid6510c.h"
 
 
 SID6510::SID6510 ()
 {
-    uword_sidt i;
-    sbyte_sidt n;
-    sbyte_sidt maxCycle = -1;
+    uint i;
+    int8_t n;
+    int8_t maxCycle = -1;
 
     // Added V1.04 (saw) - Support of sidplays break functionality
     // Prevent break from working correctly and locking the player
@@ -54,7 +74,7 @@ SID6510::SID6510 ()
     }
 }
     
-void SID6510::reset (ubyte_sidt a, ubyte_sidt x, ubyte_sidt y)
+void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
 {
     // Registers not touched by a reset
     Register_Accumulator = a;
@@ -79,8 +99,8 @@ void SID6510::clock (void)
     // Sidplay requires that we check to see if
     // the stack has overflowed.  This then returns
     // control back to sidplay so music can be played
-    if (sidhibyte (Register_StackPointer)   != SP_PAGE) SPWrapped = true;
-    if (sidhiword (Register_ProgramCounter) != 0)       PCWrapped = true;
+    if (endian_16hi8  (Register_StackPointer)   != SP_PAGE) SPWrapped = true;
+    if (endian_32hi16 (Register_ProgramCounter) != 0)       PCWrapped = true;
 }
 
 //**************************************************************************************

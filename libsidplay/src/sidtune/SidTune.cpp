@@ -20,9 +20,10 @@
 
 #include "SidTune.h"
 #include "SidTuneTools.h"
+#include "sidendian.h"
 #include "PP20.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
 #include <fstream.h>
@@ -110,7 +111,7 @@ SidTune::SidTune(const char* fileName, const char **fileNameExt,
 	}
 }
 
-SidTune::SidTune(const ubyte_sidt* data, const udword_sidt dataLen)
+SidTune::SidTune(const uint_least8_t* data, const uint_least32_t dataLen)
 {
 	init();
 	getFromBuffer(data,dataLen);
@@ -130,7 +131,7 @@ bool SidTune::load(const char* fileName, const bool separatorIsSlash)
 	return status;
 }
 
-bool SidTune::read(const ubyte_sidt* data, udword_sidt dataLen)
+bool SidTune::read(const uint_least8_t* data, uint_least32_t dataLen)
 {
 	cleanup();
 	init();
@@ -138,7 +139,7 @@ bool SidTune::read(const ubyte_sidt* data, udword_sidt dataLen)
 	return status;
 }
 
-const SidTuneInfo& SidTune::operator[](const uword_sidt songNum)
+const SidTuneInfo& SidTune::operator[](const uint_least16_t songNum)
 {
 	selectSong(songNum);
 	return info;
@@ -156,14 +157,14 @@ const SidTuneInfo& SidTune::getInfo()
 
 // First check, whether a song is valid. Then copy any song-specific
 // variable information such a speed/clock setting to the info structure.
-uword_sidt SidTune::selectSong(const uword_sidt selectedSong)
+uint_least16_t SidTune::selectSong(const uint_least16_t selectedSong)
 {
 	if ( !status )
 		return 0;
 	else
 		info.statusString = SidTune::txt_noErrors;
 		
-	uword_sidt song = selectedSong;
+	uint_least16_t song = selectedSong;
 	// Determine and set starting song number.
 	if (selectedSong == 0)
 		song = info.startSong;
@@ -195,7 +196,7 @@ uword_sidt SidTune::selectSong(const uword_sidt selectedSong)
 	return info.currentSong;
 }
 
-void SidTune::fixLoadAddress(bool force, uword_sidt init, uword_sidt play)
+void SidTune::fixLoadAddress(bool force, uint_least16_t init, uint_least16_t play)
 {
 	if (info.fixLoad || force)
 	{
@@ -213,11 +214,11 @@ void SidTune::fixLoadAddress(bool force, uword_sidt init, uword_sidt play)
 
 // ------------------------------------------------- private member functions
 
-bool SidTune::placeSidTuneInC64mem(ubyte_sidt* c64buf)
+bool SidTune::placeSidTuneInC64mem(uint_least8_t* c64buf)
 {
 	if ( status && c64buf!=0 )
 	{
-		udword_sidt endPos = info.loadAddr + info.c64dataLen;
+		uint_least32_t endPos = info.loadAddr + info.c64dataLen;
 		if (endPos <= SIDTUNE_MAX_MEMORY)
 		{
 			// Copy data from cache to the correct destination.
@@ -245,20 +246,20 @@ bool SidTune::placeSidTuneInC64mem(ubyte_sidt* c64buf)
 	return ( status && c64buf!=0 );
 }
 
-bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const ubyte_sidt>& bufferRef)
+bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& bufferRef)
 {
-	Buffer_sidtt<ubyte_sidt> fileBuf;
-	udword_sidt fileLen = 0;
+	Buffer_sidtt<uint_least8_t> fileBuf;
+	uint_least32_t fileLen = 0;
 	
 	// Open binary input file stream at end of file.
-#if defined(SID_HAVE_IOS_BIN)
+#if defined(HAVE_IOS_BIN)
 	ifstream myIn(fileName,ios::in|ios::bin|ios::ate|ios::nocreate);
 #else
 	ifstream myIn(fileName,ios::in|ios::binary|ios::ate|ios::nocreate);
 #endif
 	// As a replacement for !is_open(), bad() and the NOT-operator don't seem
 	// to work on all systems.
-#if defined(SID_DONT_HAVE_IS_OPEN)
+#if defined(DONT_HAVE_IS_OPEN)
 	if ( !myIn )
 #else
 	if ( !myIn.is_open() )
@@ -269,23 +270,23 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const ubyte_sidt>& buf
 	}
 	else
 	{
-#if defined(SID_HAVE_SEEKG_OFFSET)
+#if defined(HAVE_SEEKG_OFFSET)
 		fileLen = (myIn.seekg(0,ios::end)).offset();
 #else
 		myIn.seekg(0,ios::end);
-		fileLen = (udword_sidt)myIn.tellg();
+		fileLen = (uint_least32_t)myIn.tellg();
 #endif
-#ifdef SID_HAVE_EXCEPTIONS
-		if ( !fileBuf.assign(new(nothrow) ubyte_sidt[fileLen],fileLen) )
+#ifdef HAVE_EXCEPTIONS
+		if ( !fileBuf.assign(new(nothrow) uint_least8_t[fileLen],fileLen) )
 #else
-		if ( !fileBuf.assign(new ubyte_sidt[fileLen],fileLen) )
+		if ( !fileBuf.assign(new uint_least8_t[fileLen],fileLen) )
 #endif
 		{
 			info.statusString = SidTune::txt_notEnoughMemory;
 			return false;
 		}
 		myIn.seekg(0,ios::beg);
-		udword_sidt restFileLen = fileLen;
+		uint_least32_t restFileLen = fileLen;
 		// 16-bit compatible loading. Is this really necessary?
 		while ( restFileLen > INT_MAX )
 		{
@@ -317,7 +318,7 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const ubyte_sidt>& buf
 	PP20 myPP;
 	if ( myPP.isCompressed(fileBuf.get(),fileBuf.len()) )
 	{
-		ubyte_sidt* destBufRef = 0;
+		uint_least8_t* destBufRef = 0;
 		if ( 0 == (fileLen = myPP.decompress(fileBuf.get(),fileBuf.len(),
 											 &destBufRef)) )
 		{
@@ -371,7 +372,7 @@ void SidTune::init()
 	info.clockSpeed = SIDTUNE_CLOCK_PAL;
 	info.songLength = 0;
 	
-	for ( uword_sidt si = 0; si < SIDTUNE_MAX_SONGS; si++ )
+	for ( uint_least16_t si = 0; si < SIDTUNE_MAX_SONGS; si++ )
 	{
 		songSpeed[si] = SIDTUNE_SPEED_VBI;
 		clockSpeed[si] = SIDTUNE_CLOCK_PAL;
@@ -381,9 +382,9 @@ void SidTune::init()
 	fileOffset = 0;
 	musDataLen = 0;
 	
-	for ( uword_sidt sNum = 0; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
+	for ( uint_least16_t sNum = 0; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
 	{
-		for ( uword_sidt sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
+		for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
 		{
 			infoString[sNum][sPos] = 0;
 		}
@@ -392,7 +393,7 @@ void SidTune::init()
 
 	// Not used!!!
 	info.numberOfCommentStrings = 1;
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 	info.commentString = new(nothrow) char* [info.numberOfCommentStrings];
 #else
 	info.commentString = new char* [info.numberOfCommentStrings];
@@ -406,7 +407,7 @@ void SidTune::init()
 void SidTune::cleanup()
 {
 	// Remove copy of comment field.
-	udword_sidt strNum = 0;
+	uint_least32_t strNum = 0;
 	// Check and remove every available line.
 	while (info.numberOfCommentStrings-- > 0)
 	{
@@ -432,19 +433,19 @@ void SidTune::getFromStdIn()
 	status = false;
 	// Assume the memory allocation to fail.
 	info.statusString = SidTune::txt_notEnoughMemory;
-	ubyte_sidt* fileBuf;
-#ifdef SID_HAVE_EXCEPTIONS
-	if ( 0 == (fileBuf = new(nothrow) ubyte_sidt[SIDTUNE_MAX_FILELEN]) )
+	uint_least8_t* fileBuf;
+#ifdef HAVE_EXCEPTIONS
+	if ( 0 == (fileBuf = new(nothrow) uint_least8_t[SIDTUNE_MAX_FILELEN]) )
 #else
-	if ( 0 == (fileBuf = new ubyte_sidt[SIDTUNE_MAX_FILELEN]) )
+	if ( 0 == (fileBuf = new uint_least8_t[SIDTUNE_MAX_FILELEN]) )
 #endif
 	{
 		return;
 	}
 	// We only read as much as fits in the buffer.
 	// This way we avoid choking on huge data.
-	udword_sidt i = 0;
-	ubyte_sidt datb;
+	uint_least32_t i = 0;
+	uint_least8_t datb;
 	while (cin.get(datb) && i<SIDTUNE_MAX_FILELEN)
 		fileBuf[i++] = datb;
 	info.dataFileLen = i;
@@ -454,7 +455,7 @@ void SidTune::getFromStdIn()
 
 #endif
 
-void SidTune::getFromBuffer(const ubyte_sidt* const buffer, const udword_sidt bufferLen)
+void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least32_t bufferLen)
 {
 	// Assume a failure, so we can simply return.
 	status = false;
@@ -470,11 +471,11 @@ void SidTune::getFromBuffer(const ubyte_sidt* const buffer, const udword_sidt bu
 		return;
 	}
 
-	ubyte_sidt* tmpBuf;
-#ifdef SID_HAVE_EXCEPTIONS
-	if ( 0 == (tmpBuf = new(nothrow) ubyte_sidt[bufferLen]) )
+	uint_least8_t* tmpBuf;
+#ifdef HAVE_EXCEPTIONS
+	if ( 0 == (tmpBuf = new(nothrow) uint_least8_t[bufferLen]) )
 #else
-	if ( 0 == (tmpBuf = new ubyte_sidt[bufferLen]) )
+	if ( 0 == (tmpBuf = new uint_least8_t[bufferLen]) )
 #endif
 	{
 		info.statusString = SidTune::txt_notEnoughMemory;
@@ -482,8 +483,8 @@ void SidTune::getFromBuffer(const ubyte_sidt* const buffer, const udword_sidt bu
 	}
 	memcpy(tmpBuf,buffer,bufferLen);
 
-	Buffer_sidtt<const ubyte_sidt> buf1(tmpBuf,bufferLen);
-	Buffer_sidtt<const ubyte_sidt> buf2;  // empty
+	Buffer_sidtt<const uint_least8_t> buf1(tmpBuf,bufferLen);
+	Buffer_sidtt<const uint_least8_t> buf2;  // empty
 
 	bool foundFormat = false;
 	// Here test for the possible single file formats. --------------
@@ -508,7 +509,7 @@ void SidTune::getFromBuffer(const ubyte_sidt* const buffer, const udword_sidt bu
 }
 
 bool SidTune::acceptSidTune(const char* dataFileName, const char* infoFileName,
-							Buffer_sidtt<const ubyte_sidt>& buf)
+							Buffer_sidtt<const uint_least8_t>& buf)
 {
 	deleteFileNameCopies();
 	// Make a copy of the data file name and path, if available.
@@ -578,7 +579,7 @@ bool SidTune::acceptSidTune(const char* dataFileName, const char* infoFileName,
 		// We only detect an offset of two. Some position independent
 		// sidtunes contain a load address of 0xE000, but are loaded
 		// to 0x0FFE and call player at 0x1000.
-		info.fixLoad = (readLEword(buf.get()+fileOffset)==(info.loadAddr+2));
+		info.fixLoad = (endian_little16(buf.get()+fileOffset)==(info.loadAddr+2));
 	}
 	
 	// Check the size of the data.
@@ -604,9 +605,9 @@ bool SidTune::createNewFileName(Buffer_sidtt<char>& destString,
 								const char* sourceExt)
 {
 	Buffer_sidtt<char> newBuf;
-	udword_sidt newLen = strlen(sourceName)+strlen(sourceExt)+1;
+	uint_least32_t newLen = strlen(sourceName)+strlen(sourceExt)+1;
 	// Get enough memory, so we can appended the extension.
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 	newBuf.assign(new(nothrow) char[newLen],newLen);
 #else
 	newBuf.assign(new char[newLen],newLen);
@@ -629,7 +630,7 @@ void SidTune::getFromFiles(const char* fileName)
 	// Assume a failure, so we can simply return.
 	status = false;
 
-	Buffer_sidtt<const ubyte_sidt> fileBuf1, fileBuf2;
+	Buffer_sidtt<const uint_least8_t> fileBuf1, fileBuf2;
 	Buffer_sidtt<char> fileName2;
 
 	// Try to load the single specified file.
@@ -652,7 +653,7 @@ void SidTune::getFromFiles(const char* fileName)
 				// 1st data file was loaded into ``fileBuf1'',
 				// so we load the 2nd one into ``fileBuf2''.
 				// Do not load the first file again if names are equal.
-				if ( stricmp(fileName,fileName2.get())!=0 &&
+				if ( MYSTRICMP(fileName,fileName2.get())!=0 &&
 					 loadFile(fileName2.get(),fileBuf2) )
 				{
 					if ( MUS_fileSupport(fileBuf1,fileBuf2) )
@@ -705,7 +706,7 @@ void SidTune::getFromFiles(const char* fileName)
 					// 1st data file was loaded into ``fileBuf1'',
 					// so we load the 2nd one into ``fileBuf2''.
 					// Do not load the first file again if names are equal.
-					if ( stricmp(fileName,fileName2.get())!=0 &&
+					if ( MYSTRICMP(fileName,fileName2.get())!=0 &&
 						 loadFile(fileName2.get(),fileBuf2) )
 					{
 						if ( SID_fileSupport(fileBuf1.get(),fileBuf1.len(),
@@ -752,7 +753,7 @@ void SidTune::getFromFiles(const char* fileName)
 					// 1st info file was loaded into ``fileBuf'',
 					// so we load the 2nd one into ``fileBuf2''.
 					// Do not load the first file again if names are equal.
-					if ( stricmp(fileName,fileName2.get())!=0 &&
+					if ( MYSTRICMP(fileName,fileName2.get())!=0 &&
 
 						loadFile(fileName2.get(),fileBuf2) )
 					{
@@ -801,7 +802,7 @@ void SidTune::getFromFiles(const char* fileName)
 	}
 } 
 
-void SidTune::convertOldStyleSpeedToTables(udword_sidt oldStyleSpeed)
+void SidTune::convertOldStyleSpeedToTables(uint_least32_t oldStyleSpeed)
 {
 	// Create the speed/clock setting tables.
 	//
@@ -831,10 +832,10 @@ void SidTune::convertOldStyleSpeedToTables(udword_sidt oldStyleSpeed)
 // File format conversion ---------------------------------------------------
 //
 				
-bool SidTune::saveToOpenFile(ofstream& toFile, const ubyte_sidt* buffer,
-							 udword_sidt bufLen )
+bool SidTune::saveToOpenFile(ofstream& toFile, const uint_least8_t* buffer,
+							 uint_least32_t bufLen )
 {
-	udword_sidt lenToWrite = bufLen;
+	uint_least32_t lenToWrite = bufLen;
 	while ( lenToWrite > INT_MAX )
 	{
 		toFile.write((char*)buffer+(bufLen-lenToWrite),INT_MAX);
@@ -862,7 +863,7 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
 	{
 		// Open binary output file stream.
 		long int createAttr;
-#if defined(SID_HAVE_IOS_BIN)
+#if defined(HAVE_IOS_BIN)
 		createAttr = ios::out | ios::bin;
 #else
 		createAttr = ios::out | ios::binary;
@@ -879,7 +880,7 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
 		else
 		{  
 			// Save c64 lo/hi load address.
-			ubyte_sidt saveAddr[2];
+			uint_least8_t saveAddr[2];
 			saveAddr[0] = info.loadAddr & 255;
 			saveAddr[1] = info.loadAddr >> 8;
 			fMyOut.write((char*)saveAddr,2);
@@ -943,7 +944,7 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
 	{
 		// Open binary output file stream.
 		long int createAttr;
-#if defined(SID_HAVE_IOS_BIN)
+#if defined(HAVE_IOS_BIN)
 		createAttr = ios::out | ios::bin;
 #else
 		createAttr = ios::out | ios::binary;
