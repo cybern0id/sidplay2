@@ -19,6 +19,7 @@
 #define _SidTune_cpp_
 
 #include "config.h"
+#include "SidTuneCfg.h"
 #include "SidTune.h"
 #include "SidTuneTools.h"
 #include "sidendian.h"
@@ -38,8 +39,6 @@
 #else
     typedef int openmode;
 #endif
-
-template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
 
 const char* SidTune::txt_songNumberExceed = "SIDTUNE WARNING: Selected song number was too high";
 const char* SidTune::txt_empty = "SIDTUNE ERROR: No data to load";

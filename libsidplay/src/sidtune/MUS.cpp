@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "SidTuneCfg.h"
 #include "SidTune.h"
 #include "sidendian.h"
 

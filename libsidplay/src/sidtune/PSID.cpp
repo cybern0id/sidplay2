@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "SidTuneCfg.h"
 #include "SidTune.h"
 #include "sidendian.h"
 
@@ -51,7 +52,7 @@ struct psidHeader           // all values big-endian
 enum
 {
     PSID_MUS       = 1 << 0,
-    PSID_SAMPLES   = 1 << 1,
+    PSID_SPECIFIC  = 1 << 1,
     PSID_CLOCK     = 3 << 2,
     PSID_SIDMODEL  = 3 << 4
 };
@@ -126,7 +127,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 
     info.musPlayer      = false;
     info.sidModel       = SIDTUNE_SIDMODEL_UNKNOWN;
-    info.samples        = false;
+    info.psidSpecific   = false;
     info.relocPages     = 0;
     info.relocStartPage = 0;
     if ( endian_big16(pHeader->version) >= 2 )
@@ -139,8 +140,8 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         }
 
 #ifdef SIDTUNE_PSID2NG
-        if (flags & PSID_SAMPLES)
-            info.samples = true;
+        if (flags & PSID_SPECIFIC)
+            info.psidSpecific = true;
 
         if (flags & PSID_CLOCK_PAL)
             clock |= SIDTUNE_CLOCK_PAL;
@@ -214,8 +215,8 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
     if ( info.musPlayer )
         tmpFlags |= PSID_MUS;
 
-    if ( info.samples )
-        tmpFlags |= PSID_SAMPLES;
+    if ( info.psidSpecific )
+        tmpFlags |= PSID_SPECIFIC;
 
     if (info.clockSpeed & SIDTUNE_CLOCK_PAL)
         tmpFlags |= PSID_CLOCK_PAL;
