@@ -31,10 +31,17 @@ This is an illegal address like 0 and behaves similiar, but it tells the
 player to turn off extended sample support, ignore the CIA/VIC speed flag
 and enable NMI support.
 
-NOTE: Developers will require libtool 1.3b or greater to be able to link
-against the static version of these library.  Versions of libtool prior
-to this (including 1.3.5) DO NOT import library dependency information
-from the installed *.la files.
+NOTE FOR DEVELOPERS:
+
+You will require libtool 1.3b or greater to be able to link against
+the libsidplay2 libraries.  Versions of libtool prior to this
+(including 1.3.5) DO NOT import library dependency information from the
+installed *.la files.
+
+Libsidplay2 uses a modified version of ReSID.  ReSID patches can be located
+at:
+
+ftp://sidplay2.sourceforge.net/pub/sidplay2/resid
 
 
 Changes:
