@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2004/01/31 17:07:45  s_a_white
+ *  Support of specifing max sids writes forming sid2crc and experimental
+ *  TSID2 library support.
+ *
  *  Revision 1.28  2003/12/15 23:34:49  s_a_white
  *  Timebase for timers now obtainable from engine.
  *
@@ -135,7 +139,8 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_context(NULL),
  m_quietLevel(0),
  m_verboseLevel(0),
- m_crc(0)
+ m_crc(0),
+ m_cpudebug(false)
 {   // Other defaults
     m_filename       = "";
     m_filter.enabled = true;
@@ -639,7 +644,8 @@ void ConsolePlayer::event (void)
             memset (m_driver.selected->buffer (), 0, m_driver.cfg.bufSize);
             m_speed.current = 1;
             m_engine.fastForward (100);
-            m_engine.debug (true, NULL);
+            if (m_cpudebug)
+                m_engine.debug (true, NULL);
         }
         else if (m_timer.stop && (seconds == m_timer.stop))
         {
