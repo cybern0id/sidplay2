@@ -29,7 +29,7 @@ without the need for special modifications.
 
 %prep
 rm -rf $RPM_BUILD_ROOT 
-%setup -q
+%setup -n %{oname}-%{version} -q
 
 %build
 %configure
