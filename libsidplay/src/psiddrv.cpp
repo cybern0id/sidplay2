@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/02/17 12:41:18  s_a_white
+ *  Fixed to not so easily break when C64 code is modified.
+ *
  *  Revision 1.10  2002/02/04 23:50:48  s_a_white
  *  Improved compatibilty with older sidplay1 modes.
  *
@@ -84,7 +87,6 @@ int Player::psidDrvInstall ()
     }
 
     relocAddr = m_tuneInfo.relocStartPage << 8;
-    m_info.driverAddr = relocAddr;
 
     {   // Place psid driver into ram
         uint8_t psid_driver[] = {
@@ -99,9 +101,17 @@ int Player::psidDrvInstall ()
             return -1;
         }
 
+        // Adjust size to not included initialisation data.
+        reloc_size -= 17;
+        m_info.driverAddr   = relocAddr;
+        m_info.driverLength = (uint_least16_t) reloc_size;
+        // Round length to end of page
+        m_info.driverLength += 0xff;
+        m_info.driverLength &= 0xff00;
+
         m_ram[0x310] = JMPw;
         memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[17], reloc_size - 17);
+        memcpy (&m_ram[relocAddr], &reloc_driver[17], reloc_size);
 
         // Setup hardware vectors
         switch (m_info.environment)
