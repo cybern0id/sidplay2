@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/03/01 23:45:58  s_a_white
+ *  Combined both through sid and non-through sid modes.  Can be selected
+ *  at runtime now.
+ *
  *  Revision 1.8  2001/02/21 21:46:34  s_a_white
  *  0x1d = 0 now fixed.  Limit checking on sid volume.  This helps us determine
  *  even better what the sample offset should be (fixes Skate and Die).
@@ -140,6 +144,7 @@ private:
 public:
     channel (XSID *p);
     void    reset    (void);
+    void    clock    ();
     void    clock    (uint_least16_t delta_t);
     uint8_t read     (uint_least8_t  addr)
     { return reg[convertAddr (addr)]; }
@@ -167,6 +172,18 @@ public:
     operator bool()  const { return (active); }
 };
 
+inline void channel::clock ()
+{   // Emulate a CIA timer
+    if (!cycleCount)
+        return;
+
+    // Optimisation to prevent _clock being
+    // called un-necessarily.
+    cycles++;
+    if (--cycleCount)
+        return;
+    (this->*_clock) ();
+}
 
 class XSID: public C64Environment
 {
@@ -183,6 +200,7 @@ private:
     bool                _sidSamples;
     int8_t              sampleOffset;
     static const int8_t sampleConvertTable[16];
+    bool                wasRunning;
 
 private:
     void   checkForInit     (channel *ch);
@@ -213,5 +231,41 @@ public:
     // Return whether we care it was changed.
     bool updateSidData0x18 (uint8_t data);
 };
+
+inline void XSID::clock (uint_least16_t delta_t)
+{
+    if (ch4 || ch5)
+    {
+        if (delta_t == 1)
+	{
+	    ch4.clock ();
+	    ch5.clock ();
+        }
+        else
+	{
+            ch4.clock (delta_t);
+            ch5.clock (delta_t);
+        }
+
+        if (!_sidSamples)
+            return;
+
+        if (ch4.hasChanged () || ch5.hasChanged ())
+            setSidData0x18 ();
+        wasRunning = true;
+    }
+    else if (wasRunning)
+    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
+        // Normally after samples volume should be restored to half volume,
+        // however, Galway Tunes sound horrible and seem to require setting back to
+        // the original volume.  Setting back to the original volume for normal
+        // samples can have nasty pulsing effects
+        if (ch4.isGalway ())
+            envWriteMemByte (sidAddr0x18, sidData0x18);
+        else
+            setSidData0x18 ();
+        wasRunning = false;
+    }
+}
 
 #endif // _xsid_h_

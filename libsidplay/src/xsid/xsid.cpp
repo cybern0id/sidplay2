@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/03/01 23:45:58  s_a_white
+ *  Combined both through sid and non-through sid modes.  Can be selected
+ *  at runtime now.
+ *
  *  Revision 1.9  2001/02/21 21:46:34  s_a_white
  *  0x1d = 0 now fixed.  Limit checking on sid volume.  This helps us determine
  *  even better what the sample offset should be (fixes Skate and Die).
@@ -77,17 +81,16 @@ void channel::free ()
     silence ();
 }
 
-inline void channel::clock (uint_least16_t delta_t)
+inline int8_t channel::output ()
+{
+    outputs++;
+    return sample;
+}
+
+void channel::clock (uint_least16_t delta_t)
 {   // Emulate a CIA timer
-    if (!cycleCount) return;
-    if (delta_t == 1)
-    {   // Rev 1.4 (saw) - Optimisation to prevent _clock being
-        // called un-necessarily.
-        cycles++;
-        if (!--cycleCount)
-            (this->*_clock) ();
+    if (!cycleCount)
         return;
-    }
 
     // Slightly optimised clocking routine
     // for clock periods > than 1
@@ -97,18 +100,13 @@ inline void channel::clock (uint_least16_t delta_t)
         delta_t -= cycleCount;
         (this->*_clock) ();
         // Check to see if the sequence finished
-        if (!cycleCount) return;
+        if (!cycleCount)
+            return;
     }
     
     // Reduce the cycleCount by whats left
     cycles     += delta_t;
     cycleCount -= delta_t;
-}
-
-inline int8_t channel::output ()
-{
-    outputs++;
-    return sample;
 }
 
 void channel::checkForInit ()
@@ -476,6 +474,7 @@ void XSID::reset ()
     ch4.reset ();
     ch5.reset ();
     suppressed = false;
+    wasRunning = false;
 }
 
 void XSID::setSidData0x18 (bool cached)
@@ -495,38 +494,6 @@ void XSID::setSidData0x18 (bool cached)
 #endif // XSID_DEBUG
 
     envWriteMemByte (sidAddr0x18, data, false);
-}
-
-void XSID::clock (uint_least16_t delta_t)
-{
-    bool wasRunning = ch4 || ch5;
-
-    // Call optimised clock routine
-    // Well it's better then just doing:
-    // while (delta_t--)
-    //     clock ();
-    ch4.clock (delta_t);
-    ch5.clock (delta_t);
-
-    if (!_sidSamples)
-        return;
-
-    if (ch4 || ch5)
-    {
-        if (ch4.hasChanged () || ch5.hasChanged ())
-            setSidData0x18 ();
-    }
-    else if (wasRunning)
-    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
-        // Normally after samples volume should be restored to half volume,
-        // however, Galway Tunes sound horrible and seem to require setting back to
-        // the original volume.  Setting back to the original volume for normal
-        // samples can have nasty pulsing effects
-        if (ch4.isGalway ())
-            envWriteMemByte (sidAddr0x18, sidData0x18);
-        else
-            setSidData0x18 ();
-    }
 }
 
 void  XSID::setEnvironment (C64Environment *envp)
