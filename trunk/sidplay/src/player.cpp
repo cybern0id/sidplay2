@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/12/01 20:16:23  s_a_white
+ *  Player changed to ConsolePlayer.
+ *
  *  Revision 1.1  2001/11/27 19:10:44  s_a_white
  *  Initial Release.
  *
@@ -318,6 +321,12 @@ bool ConsolePlayer::open (void)
 {
     const SidTuneInfo *tuneInfo;
 
+    if (m_state == playerRestart)
+    {
+        cerr << endl << endl;
+        m_state == playerStopped;
+    }
+    
     // Select the required song
     m_track.selected = m_tune.selectSong (m_track.selected);
     if (m_engine.load (&m_tune) < 0)
@@ -417,11 +426,11 @@ void ConsolePlayer::emuflush ()
 {
     switch (m_driver.sid)
     {
-#ifdef HAVE_HARDSID_BUIDLER
+#ifdef HAVE_HARDSID_BUILDER
     case EMU_HARDSID:
         ((HardSIDBuilder *)m_engCfg.sidEmulation)->flush ();
         break;
-#endif // HAVE_HARDSID_BUIDLER
+#endif // HAVE_HARDSID_BUILDER
     default:
         break;
     }
