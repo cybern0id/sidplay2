@@ -53,6 +53,7 @@ public:
 
     // Standard component functions
     const char   *credits (void) {return m_credit;}
+    void          reset   () { sidemu::reset (); }
     void          reset   (uint8_t volume);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
