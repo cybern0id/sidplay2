@@ -2,7 +2,7 @@ dnl -------------------------------------------------------------------------
 dnl Try to find resid includes and library.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(SID2_FIND_LIBRESID,
+AC_DEFUN([SID2_FIND_LIBRESID],
 [
     if test "$SID2_LIB_CHECK" != "0"; then
         MY_FIND_LIB(resid,,,resid/sid.h sid.h,SID *mySID,sid2_header)
