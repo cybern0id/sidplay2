@@ -70,7 +70,7 @@ protected:
 public:
     // Determine current state of object (true = okay, false = error).
     sidbuilder(const char * const name)
-        : m_status (true), m_name(name) {;}
+        : m_name(name), m_status (true) {;}
     const char * const name (void) { return m_name; }
     operator bool()  { return m_status; }
     virtual ~sidbuilder() { remove (); }
