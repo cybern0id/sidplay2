@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2004/05/05 23:48:01  s_a_white
+ *  Detect available sid devices on Unix system.
+ *
  *  Revision 1.8  2003/10/18 13:31:58  s_a_white
  *  Improved hardsid.dll load failure error messages.
  *
@@ -347,6 +350,10 @@ int HardSIDBuilder::init ()
     DIR    *dir;
     dirent *entry;
 
+    m_count = HardSID::devices ();
+    if (m_count > 0)
+        return 0;
+
     m_count = 0;
     dir = opendir("/dev");
     if (!dir)
@@ -373,6 +380,7 @@ int HardSIDBuilder::init ()
             m_count = index;
     }
     closedir (dir);
+    return 0;
 }
 
 #endif // HAVE_MSWINDOWS

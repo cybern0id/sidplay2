@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2004/11/04 12:34:42  s_a_white
+ *  Newer versions of the hardsid driver allow /dev/sid to be opened multiple
+ *  times rather than providing seperate /dev/sid<n> entries.
+ *
  *  Revision 1.15  2004/06/26 15:35:25  s_a_white
  *  Switched code to use new scheduler interface.
  *
@@ -75,15 +79,19 @@
 
 // Move these to common header file
 #define HSID_IOCTL_RESET     _IOW('S', 0, int)
-#define HSID_IOCTL_FIFOSIZE  _IOR('S', 1, int)
-#define HSID_IOCTL_FIFOFREE  _IOR('S', 2, int)
+#define HSID_IOCTL_RELEASE   _IO ('S', 2)
 #define HSID_IOCTL_SIDTYPE   _IOR('S', 3, int)
 #define HSID_IOCTL_CARDTYPE  _IOR('S', 4, int)
 #define HSID_IOCTL_MUTE      _IOW('S', 5, int)
 #define HSID_IOCTL_NOFILTER  _IOW('S', 6, int)
-#define HSID_IOCTL_FLUSH     _IO ('S', 7)
+#define HSID_IOCTL_FIFOFREE  _IOR('S', 7, int)
 #define HSID_IOCTL_DELAY     _IOW('S', 8, int)
 #define HSID_IOCTL_READ      _IOWR('S', 9, int*)
+
+#define HSID_IOCTL_DEVICES   _IOR('S', 100, int)
+#define HSID_IOCTL_FIFOSIZE  _IOR('S', 101, int)
+#define HSID_IOCTL_FLUSH     _IO ('S', 103)
+#define HSID_IOCTL_ALLOCATED _IOR('S', 104, int)
 
 bool       HardSID::m_sidFree[16] = {0};
 const uint HardSID::voices = HARDSID_VOICES;
@@ -93,7 +101,7 @@ char       HardSID::credit[];
 HardSID::HardSID (sidbuilder *builder)
 :sidemu(builder),
  Event("HardSID Delay"),
- m_handle(0),
+ m_handle(-1),
  m_eventContext(NULL),
  m_phase(EVENT_CLOCK_PHI1),
  m_instance(sid++),
@@ -130,9 +138,16 @@ HardSID::HardSID (sidbuilder *builder)
                 sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
                 return;
             }
+            // Check to see if a sid is allocated to the stream
+            if (ioctl (m_handle, HSID_IOCTL_ALLOCATED, 0) < 0)
+            {
+                close (m_handle);
+                m_handle = -1;
+                sprintf (m_errorBuffer, "HARDSID ERROR: No sid available");
+                return;
+            }
         }
     }
-
     m_status = true;
     reset ();
 }
@@ -157,7 +172,7 @@ void HardSID::reset (uint8_t volume)
 
 uint8_t HardSID::read (uint_least8_t addr)
 {
-    if (!m_handle)
+    if (m_handle < 0)
         return 0;
 
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
@@ -179,7 +194,7 @@ uint8_t HardSID::read (uint_least8_t addr)
 
 void HardSID::write (uint_least8_t addr, uint8_t data)
 {
-    if (!m_handle)
+    if (m_handle < 0)
         return;
 
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
@@ -259,4 +274,20 @@ bool HardSID::lock(c64env* env)
         schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
     return true;
+}
+
+uint HardSID::devices ()
+{
+    // Try opening the /dev/sid as newer versions
+    // have a different interface and provide available
+    // sid count
+    int fd = open ("/dev/sid", O_RDWR);
+    if (fd >= 0)
+    {
+        int count = ioctl (fd, HSID_IOCTL_DEVICES, 0);
+        close (fd);
+        if (count > 0)
+            return (uint) count;
+    }
+    return 0;
 }

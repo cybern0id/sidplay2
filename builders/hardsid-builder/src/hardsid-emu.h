@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2004/06/26 11:18:32  s_a_white
+ *  Merged sidplay2/w volume/mute changes.
+ *
  *  Revision 1.8  2004/03/18 20:50:21  s_a_white
  *  Indicate the 2.07 extensions.
  *
@@ -169,6 +172,11 @@ private:
     // shoot to 100% CPU usage when song nolonger
     // writes to SID.
     void event (void);
+
+#ifdef HAVE_UNIX
+    // Support to obtain number of devices
+    static uint devices ();
+#endif
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)
