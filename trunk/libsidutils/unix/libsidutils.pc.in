@@ -6,5 +6,5 @@ includedir=@includedir@
 Name: @PACKAGE@
 Description: Utils for supporting the libsidplay2 library.
 Version: @VERSION@
-Libs: -L${libdir}
+Libs: -L${libdir} -lsidutils
 Cflags: -I${includedir}
