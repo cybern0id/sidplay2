@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/03/09 22:28:51  s_a_white
+ *  Speed optimisation update and fix for interrupt flag in PushSR call.
+ *
  *  Revision 1.7  2001/02/22 08:28:57  s_a_white
  *  Interrupt masking fixed.
  *
@@ -71,7 +74,7 @@ void MOS6510::PushSR (void)
     endian_16hi8 (addr, SP_PAGE);
     /* Rev 1.04 - Corrected flag mask */
     Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_INTERRUPT)
-	                 |  (1 << SR_DECIMAL) | (1 << SR_BREAK));
+                     |  (1 << SR_DECIMAL) | (1 << SR_BREAK));
     Register_Status |= (getFlagN () << SR_NEGATIVE);
     Register_Status |= (getFlagV () << SR_OVERFLOW);
     Register_Status |= (getFlagZ () << SR_ZERO);
@@ -177,6 +180,23 @@ void MOS6510::interruptPending (void)
         interrupts.pending &= (~iNMI);
     break;
     }
+
+#ifdef MOS6510_DEBUG
+    printf ("****************************************************\n");
+    switch (offset)
+    {
+    case oIRQ:
+        printf (" IRQ Routine\n");
+    break;
+    case oNMI:
+        printf (" NMI Routine\n");
+    break;
+    case oRST:
+        printf (" RST Routine\n");
+    break;
+    }
+    printf ("****************************************************\n");
+#endif
 
     // Start the interrupt
     instrCurrent = &interruptTable[offset];
@@ -578,6 +598,10 @@ void MOS6510::plp_instr (void)
 
 void MOS6510::rti_instr (void)
 {
+#ifdef MOS6510_DEBUG
+    printf ("****************************************************\n\n");
+#endif
+
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
     // Check to see if interrupts got re-enabled
     if (!getFlagI ())
@@ -1557,7 +1581,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::asl_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case ASRb: // Also known as ALR
@@ -1624,7 +1648,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk1_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk3_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case BVCr:
@@ -1687,7 +1711,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::dcm_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case DECz: case DECzx: case DECa: case DECax:
@@ -1695,7 +1719,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::dec_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case DEXn:
@@ -1714,13 +1738,13 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::eor_instr;
             break;
 
-/* HLT
+/* HLT // Also known as JAM
             case 0x02: case 0x12: case 0x22: case 0x32: case 0x42: case 0x52:
             case 0x62: case 0x72: case 0x92: case 0xb2: case 0xd2: case 0xf2:
             case 0x02: case 0x12: case 0x22: case 0x32: case 0x42: case 0x52:
             case 0x62: case 0x72: case 0x92: case 0xb2: case 0xd2: case 0xf2:
                 cycleCount++; if (pass) procCycle[cycleCount] = hlt_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 */
 
@@ -1729,7 +1753,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::inc_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case INXn:
@@ -1746,7 +1770,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::ins_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case JMPw: case JMPi:
@@ -1757,7 +1781,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::jsr_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushLowPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::jmp_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case LASay:
@@ -1803,7 +1827,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::lsr_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case NOPn_: case NOPb_:
@@ -1837,12 +1861,12 @@ MOS6510::MOS6510 ()
 
             case PHAn:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::pha_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case PHPn:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushSR;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case PLAn:
@@ -1850,7 +1874,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::pla_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case PLPn:
@@ -1858,7 +1882,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::plp_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case RLAz: case RLAzx: case RLAix: case RLAa: case RLAax: case RLAay:
@@ -1867,7 +1891,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rla_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case ROLn:
@@ -1879,7 +1903,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rol_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case RORn:
@@ -1891,7 +1915,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::ror_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case RRAa: case RRAax: case RRAay: case RRAz: case RRAzx: case RRAix:
@@ -1900,7 +1924,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rra_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case RTIn:
@@ -1908,6 +1932,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PopLowPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PopHighPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rti_instr;
+                instr->overlap = false;
             break;
 
             case RTSn:
@@ -1917,7 +1942,7 @@ MOS6510::MOS6510 ()
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PopLowPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PopHighPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rts_instr;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case SAXz: case SAXzy: case SAXa: case SAXix: // Also known as AXS
@@ -1952,7 +1977,7 @@ MOS6510::MOS6510 ()
             case SHAay: case SHAiy: // Also known as AXA
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::axa_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case SHSay: // Also known as TAS
@@ -1977,7 +2002,7 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::aso_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case SREz: case SREzx: case SREa: case SREax: case SREay: case SREix:
@@ -1986,23 +2011,26 @@ MOS6510::MOS6510 ()
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::lse_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
-                instr->overlap       = false;
+                instr->overlap = false;
             break;
 
             case STAz: case STAzx: case STAa: case STAax: case STAay: case STAix:
             case STAiy:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::sta_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
+                instr->overlap = false;
             break;
 
             case STXz: case STXzy: case STXa:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::stx_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
+                instr->overlap = false;
             break;
 
             case STYz: case STYzx: case STYa:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::sty_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
+                instr->overlap = false;
             break;
 
             case TAXn:
@@ -2040,7 +2068,7 @@ MOS6510::MOS6510 ()
                 // -1 is debug off, however we must set to -2 to count the
                 // +1 at end of loop!
                 instr->lastAddrCycle = -2;
-                instr->overlap       = false;
+                instr->overlap = false;
             }
             else if (!legalMode || !legalInstr)
             {
@@ -2120,7 +2148,7 @@ MOS6510::MOS6510 ()
 #endif
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushHighPC;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushLowPC;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::IRQRequest;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushSR;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::NMIRequest;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::NMI1Request;
             break;
@@ -2210,13 +2238,6 @@ MOS6510::~MOS6510 ()
 // Initialise CPU Emulation (Registers)                                    //
 void MOS6510::Initialise (void)
 {
-    // Reset stack
-    Register_StackPointer = endian_16 (SP_PAGE, 0xFF);
-
-    // Reset Interrupts
-    interrupts.pending = false;
-    interrupts.irqs    = 0;
-
     // Reset Cycle Count
     cycleCount = 0;
     procCycle  = fetchCycle;
@@ -2240,6 +2261,13 @@ void MOS6510::reset (void)
 {
     // Internal Stuff
     Initialise ();
+
+    // Reset stack
+    Register_StackPointer = endian_16 (SP_PAGE, 0xFF);
+
+    // Reset Interrupts
+    interrupts.pending = false;
+    interrupts.irqs    = 0;
 
     // Requires External Bits
     // Read from reset vector for program entry point
