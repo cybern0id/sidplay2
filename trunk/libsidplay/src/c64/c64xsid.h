@@ -45,7 +45,7 @@ public:
     
     // Standard component interface
     const char *error (void) {return "";}
-    void reset (uint32_t volume)
+    void reset (uint8_t volume)
     {
         XSID::reset  (0);
         m_sid->reset (volume);
