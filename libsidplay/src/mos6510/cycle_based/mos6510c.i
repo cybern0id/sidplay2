@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2003/01/23 17:42:33  s_a_white
+ *  Fix use of new when exceptions are not supported.
+ *
  *  Revision 1.34  2003/01/21 19:26:16  s_a_white
  *  Pending interrupt check is one cycle to late.  Adjust the interrupt delay tests
  *  to compensate.
@@ -200,8 +203,8 @@ void MOS6510::aecSignal (bool state)
         if (interrupts.irqClk > clock)
             interrupts.irqClk = clock - 1;
         m_blocked = false;
-        eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
     }
+    eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
 }
 
 // Push P on stack, decrement S
