@@ -109,7 +109,7 @@ struct SidTuneInfo
 };
 
 
-class SID_EXPORT SidTune
+class SID_EXTERN SidTune
 {
     
  public:  // ----------------------------------------------------------------
