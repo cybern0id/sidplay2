@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/03/28 21:17:34  s_a_white
+ *  Added support for proper RMW instructions.
+ *
  *  Revision 1.6  2001/03/24 18:09:17  s_a_white
  *  On entry to interrupt routine the first instruction in the handler is now always
  *  executed before pending interrupts are re-checked.
@@ -45,6 +48,9 @@
 class MOS6510: public C64Environment
 {
 protected:
+    bool dodump;
+    EventContext &eventContext;
+
     // Declare processor operations
     struct ProcessorOperations
     {
@@ -63,24 +69,24 @@ protected:
     uint_least16_t instrStartPC;
     uint_least8_t  instrOpcode;
     void (MOS6510::**procCycle) (void);
-    int_least8_t   lastAddrCycle;
-    int_least8_t   lastCycle;
-    int_least8_t   cycleCount;
+    uint_least8_t   lastAddrCycle;
+    uint_least8_t   lastCycle;
+    uint_least8_t   cycleCount;
 
     // Pointers to the current instruction cycle
     uint_least16_t Cycle_EffectiveAddress;
-    int8_t         Cycle_Data;
+    uint8_t        Cycle_Data;
     uint_least16_t Cycle_Pointer;
 
-    int8_t         Register_Accumulator;
+    uint8_t        Register_Accumulator;
     uint8_t        Register_X;
     uint8_t        Register_Y;
     uint_least32_t Register_ProgramCounter;
     uint8_t        Register_Status;
-    int_least8_t   Register_c_Flag;
-    int_least8_t   Register_n_Flag;
-    int_least8_t   Register_v_Flag;
-    int_least8_t   Register_z_Flag;
+    uint_least8_t  Register_c_Flag;
+    uint_least8_t  Register_n_Flag;
+    uint_least8_t  Register_v_Flag;
+    uint_least8_t  Register_z_Flag;
     uint_least16_t Register_StackPointer;
     uint_least16_t Instr_Operand;
 
@@ -89,6 +95,9 @@ protected:
     {
         uint_least16_t pending;
         uint_least8_t  irqs;
+        event_clock_t  nmiClock;
+        event_clock_t  irqClock;
+        event_clock_t  delay;
     } interrupts;
 
     uint8_t        Debug_Data;
@@ -117,10 +126,13 @@ protected:
     inline void FetchLowAddrY        (void);
     inline void FetchHighAddr        (void);
     inline void FetchHighAddrX       (void);
+    inline void FetchHighAddrX2      (void);
     inline void FetchHighAddrY       (void);
+    inline void FetchHighAddrY2      (void);
     inline void FetchLowEffAddr      (void);
     inline void FetchHighEffAddr     (void);
     inline void FetchHighEffAddrY    (void);
+    inline void FetchHighEffAddrY2   (void);
     inline void FetchLowPointer      (void);
     inline void FetchLowPointerX     (void);
     inline void FetchHighPointer     (void);
@@ -129,6 +141,7 @@ protected:
     inline void FetchPutEffAddrDataByte (void);
     inline void PushLowPC            (void);
     inline void PushHighPC           (void);
+    inline void PushSR               (bool b_flag);
     inline void PushSR               (void);
     inline void PopLowPC             (void);
     inline void PopHighPC            (void);
@@ -221,12 +234,13 @@ protected:
     inline void Perform_SBC   (void);
 
 public:
-    MOS6510 ();
+    MOS6510 (EventContext *context);
     virtual ~MOS6510 ();
     virtual void reset     (void);
     virtual void clock     (void);
     virtual void credits   (char *str);
     virtual void DumpState (void);
+    void         debug     (bool enable) {dodump = enable;}
 
     // Non-standard functions
     virtual void triggerRST (void);
@@ -247,7 +261,8 @@ MOS6510_clock:
     }
 
 #ifdef MOS6510_DEBUG
-    DumpState ();
+    if (dodump)
+        DumpState ();
 #endif // MOS6510_DEBUG
 
     if (cycleCount <= lastCycle)
