@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2003/10/28 00:15:16  s_a_white
+ *  Get time with respect to correct clock phase.
+ *
  *  Revision 1.6  2003/06/27 07:08:17  s_a_white
  *  Use new hardsid.dll muting interface.
  *
@@ -59,7 +62,6 @@ typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
 typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
 typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
-typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
 typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
 typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
 typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
@@ -71,6 +73,9 @@ typedef WORD (CALLBACK* HsidDLL2_Version_t) (void);
 typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
+
+// Version 2.07 Extensions
+typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
 
 struct HsidDLL2
 {
