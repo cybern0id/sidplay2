@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2002/11/19 22:57:33  s_a_white
+ *  Initial support for external DMA to steal cycles away from the CPU.
+ *
  *  Revision 1.25  2002/11/01 19:22:36  s_a_white
  *  Removed debug printf.
  *
@@ -1608,7 +1611,8 @@ void MOS6510::tas_instr (void)
 
 //MOS6510::MOS6510 (model_t _model, const char *id)
 MOS6510::MOS6510 (EventContext *context)
-:eventContext(*context)
+:eventContext(*context),
+ Event("CPU")
 {
     struct ProcessorOperations *instr;
     uint8_t legalMode  = true;
@@ -2495,6 +2499,8 @@ void MOS6510::Initialise (void)
     interrupts.irqRequest = false;
     if (interrupts.irqs)
         interrupts.irqRequest = true;
+
+    eventContext.schedule (this, 1);
 
     // Signals
     aec = true;

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2002/11/19 22:57:33  s_a_white
+ *  Initial support for external DMA to steal cycles away from the CPU.
+ *
  *  Revision 1.11  2002/11/01 17:35:27  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -59,7 +62,7 @@
 #include "sidendian.h"
 
 
-class MOS6510: public C64Environment
+class MOS6510: public C64Environment, public Event
 {
 protected:
     bool dodump;
@@ -124,6 +127,8 @@ protected:
     uint_least16_t Debug_ProgramCounter;
 
 protected:
+    void        clock            (void);
+    void        event            (void);
     void        Initialise       (void);
     // Declare Interrupt Routines
     inline void RSTRequest       (void);
@@ -256,7 +261,6 @@ public:
     MOS6510 (EventContext *context);
     virtual ~MOS6510 ();
     virtual void reset     (void);
-    virtual void clock     (void);
     virtual void credits   (char *str);
     virtual void DumpState (void);
     void         debug     (bool enable) {dodump = enable;}
@@ -277,6 +281,12 @@ inline void MOS6510::clock (void)
 {
     int_least8_t i = cycleCount++;
     (this->*procCycle[i]) ();
+}
+
+inline void MOS6510::event (void)
+{
+    eventContext.schedule (this, 1);
+    clock ();
 }
 
 #endif // _mos6510c_h_

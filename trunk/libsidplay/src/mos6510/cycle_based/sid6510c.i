@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2002/11/19 22:56:25  s_a_white
+ *  Sidplay1 modes modified to make them nolonger require the psid driver.
+ *
  *  Revision 1.23  2002/11/01 17:35:27  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -192,9 +195,10 @@ void SID6510::reset ()
 void SID6510::sleep ()
 {   // Simulate a delay for JMPw
     m_delayClk = eventContext.getTime ();
-	m_sleeping = true;
+    m_sleeping = true;
     procCycle  = delayCycle;
     cycleCount = 0;
+    eventContext.cancel (this);
 
     // Check for outstanding interrupts
     if (interrupts.irqs)
@@ -203,7 +207,10 @@ void SID6510::sleep ()
         triggerIRQ ();
     }
     else if (interrupts.pending)
+    {
         m_sleeping = false;
+        eventContext.schedule (this, 1);
+    }
 }
 
 void SID6510::FetchOpcode (void)
@@ -230,6 +237,7 @@ void SID6510::FetchOpcode (void)
 
         // The CPU is about to sleep.  Since these are old sidplay1
         // modes it can only be woken with a reset
+        eventContext.cancel (this);
         envSleep ();
         m_framelock = false;
     }
@@ -258,13 +266,13 @@ void SID6510::sid_jmp (void)
     if (m_mode == sid2_envR)
     {   // If a busy loop then just sleep
         if (Cycle_EffectiveAddress != instrStartPC)
-			jmp_instr ();
-		else
-		{
+            jmp_instr ();
+        else
+        {
             Register_ProgramCounter = Cycle_EffectiveAddress;
-		    sleep ();
-		}
-		return;
+            sleep ();
+        }
+        return;
     }
 
     if (envCheckBankJump (Cycle_EffectiveAddress))
@@ -341,7 +349,10 @@ void SID6510::triggerRST (void)
 {   // All modes
     MOS6510::triggerRST ();
     if (m_sleeping)
+    {
         m_sleeping = false;
+        eventContext.schedule (this, 1);
+    }
 }
 
 void SID6510::triggerNMI (void)
@@ -353,6 +364,7 @@ void SID6510::triggerNMI (void)
         {
             m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
+            eventContext.schedule (this, 1);
         }
     }
 }
@@ -378,6 +390,7 @@ void SID6510::triggerIRQ (void)
         {   // Simulate busy loop
             m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
+            eventContext.schedule (this, 1);
         }
     }
 }
