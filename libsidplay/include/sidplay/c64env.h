@@ -28,7 +28,7 @@
 
 class c64env
 {
-protected:
+private:
     EventContext &m_context;
 
 public:
