@@ -4,7 +4,7 @@ AC_CONFIG_AUX_DIR(unix)
 AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
-AM_INIT_AUTOMAKE(sidplay,2.0.8)
+AM_INIT_AUTOMAKE(sidplay,2.0.9)
 
 AC_CANONICAL_HOST
 
@@ -14,7 +14,7 @@ AC_PROG_CXX
 
 dnl Initialise Libtool.
 AC_LIBTOOL_WIN32_DLL
-MY_CONFIG_LIBTOOL
+AC_PROG_LIBTOOL
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
