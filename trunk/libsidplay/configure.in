@@ -106,7 +106,4 @@ esac
 AUDIODRV_LDADD="$sid_audiodrv_libadd"
 AC_SUBST(AUDIODRV_LDADD)
 
-dnl Defines the path to the c64 environment file
-AC_DEFINE(SID_ENVIRONMENT_H,"src/c64env.h")
-
 AC_OUTPUT(sidconfig.h Makefile src/Makefile src/docs/Makefile src/docs/en/Makefile src/mos6510/Makefile src/mos6510/cycle_based/Makefile src/xsid/Makefile src/sidtune/Makefile src/audio/Makefile src/audio/oss/Makefile src/audio/wav/Makefile src/mos6581/Makefile src/audio/directx/Makefile win/Makefile src/audio/sunos/Makefile )
