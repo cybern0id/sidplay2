@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/11 19:04:32  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _mos6510c_h_
@@ -32,10 +35,10 @@ public:
     virtual        void DumpState (void);
 
 public: // Non-standard functions
-    inline void triggerRST (void);
-    inline void triggerNMI (void);
-    inline void triggerIRQ (void);
-    inline void clearIRQ   (void);
+    void triggerRST (void);
+    void triggerNMI (void);
+    void triggerIRQ (void);
+    void clearIRQ   (void);
 
 protected:
     void        Initialise       (void);
