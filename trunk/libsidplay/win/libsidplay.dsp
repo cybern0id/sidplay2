@@ -101,10 +101,6 @@ SOURCE=..\src\sidtune\Buffer.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\c64env.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\src\mos6510\conf6510.h
 # End Source File
 # Begin Source File
@@ -241,6 +237,14 @@ SOURCE=..\src\mos6581\resid\siddefs.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\sidendian.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\sidenv.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\sidmixer.cpp
 # End Source File
 # Begin Source File
@@ -285,7 +289,7 @@ SOURCE=..\src\sidtune\SidTuneTypes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\sidtypes.h
+SOURCE=..\include\sidtypes.h
 # End Source File
 # Begin Source File
 
