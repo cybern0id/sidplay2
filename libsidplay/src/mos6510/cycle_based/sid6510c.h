@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2003/01/17 08:44:22  s_a_white
+ *  Better handling the operation of IRQs during stolen cycles.
+ *
  *  Revision 1.16  2002/11/25 21:07:32  s_a_white
  *  Allow setting of program counter on reset.
  *
@@ -103,7 +106,7 @@ protected:
     void FetchOpcode (void);
 
 private:
-    void  (MOS6510::*delayCycle[1]) (void);
+    struct ProcessorCycle delayCycle;
 
     inline void sid_illegal (void);
     inline void sid_delay   (void);

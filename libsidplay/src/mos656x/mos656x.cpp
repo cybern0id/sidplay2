@@ -121,23 +121,17 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         if (raster_x < 11)
             break;
 
-		// In line $30, the DEN bit controls if Bad Lines can occur
-		if ((raster_y == first_dma_line) && (data & 0x10))
-			bad_lines_enabled = true;
+        // In line $30, the DEN bit controls if Bad Lines can occur
+        if ((raster_y == first_dma_line) && (data & 0x10))
+            bad_lines_enabled = true;
  
 		// Bad Line condition?
         bad_line = (raster_y >= first_dma_line) &&
                    (raster_y <= last_dma_line)  &&
                    ((raster_y & 7) == y_scroll) &&
                    bad_lines_enabled;
-        
-        // Start DMA
-        if (bad_line && (raster_x < 54))
-        {
-            busaccess(false);
-            if (raster_x < 52)
-                event_context.schedule (this, 3, EVENT_CLOCK_PHI1);
-        }
+
+        event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
         break;
 
     case 0x12: // Raster counter
@@ -206,7 +200,7 @@ void MOS656X::event (void)
     case 11: // Start bad line
     {   // In line $30, the DEN bit controls if Bad Lines can occur
         if (raster_y == first_dma_line)
-	        bad_lines_enabled = (ctrl1 & 0x10) != 0;
+            bad_lines_enabled = (ctrl1 & 0x10) != 0;
 
         // Test for bad line condition
         bad_line = (raster_y >= first_dma_line) &&
@@ -216,19 +210,14 @@ void MOS656X::event (void)
 
         delay = xrasters - 11;
         if (bad_line)
-        {
-            delay = 3;
-            busaccess (false);
+        {   // DMA starts on cycle 14
+            addrctrl (false);
+            delay = 54 - 11;
         }
         break;
     }
 
-    case 14: // Start DMA
-        addrctrl (false);
-        delay = 40;
-        break;
     case 54: // End DMA
-        busaccess (true);
         addrctrl  (true);
         delay = xrasters - 54;
         break;
@@ -238,15 +227,18 @@ void MOS656X::event (void)
         break;
 
     default:
-        if (bad_line && (raster_x < 54))
-        {
-            addrctrl (false);
-            delay = 54 - raster_x;
-        }
-        else
-        {   // Skip to the end of raster
-            busaccess (true);
-            delay = xrasters - raster_x;
+        if (raster_x > 11)
+	{
+            if (bad_line && (raster_x < 54))
+            {
+                addrctrl (false);
+                delay = 54 - raster_x;
+            }
+            else
+            {   // Skip to the end of raster
+                addrctrl (true);
+                delay = xrasters - raster_x;
+            }
         }
     }
 

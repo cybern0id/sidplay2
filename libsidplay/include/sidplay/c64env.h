@@ -38,7 +38,6 @@ public:
     virtual void interruptIRQ (bool state) = 0;
     virtual void interruptNMI (void) = 0;
     virtual void interruptRST (void) = 0;
-    virtual void signalBA     (bool state) = 0;
     virtual void signalAEC    (bool state) = 0;
     virtual uint8_t readMemRamByte (uint_least16_t addr) = 0;
 };

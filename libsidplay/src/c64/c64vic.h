@@ -34,11 +34,6 @@ protected:
         m_env.interruptIRQ (state);
     }
 
-    void busaccess (bool state)
-    {
-        m_env.signalBA (state);
-    }
-
     void addrctrl (bool state)
     {
         m_env.signalAEC (state);

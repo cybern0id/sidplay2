@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2003/01/17 08:44:00  s_a_white
+ *  Event scheduler phase support.  Better handling the operation of IRQs
+ *  during stolen cycles.  Added inifinitie loop detection support for sidplay1
+ *  modes.
+ *
  *  Revision 1.28  2002/12/03 23:24:52  s_a_white
  *  Let environment know when cpu sleeps in real c64 mode.
  *
@@ -126,19 +131,19 @@ SID6510::SID6510 (EventContext *context)
 
         for (uint n = 0; n < instrTable[i].cycles; n++)
         {
-            if (procCycle[n] == &SID6510::illegal_instr)
+            if (procCycle[n].func == &SID6510::illegal_instr)
             {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_illegal);
             }
-            else if (procCycle[n] == &SID6510::jmp_instr)
+            else if (procCycle[n].func == &SID6510::jmp_instr)
             {   // Stop jumps into rom code
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_jmp);
             }
-            else if (procCycle[n] == &SID6510::cli_instr)
+            else if (procCycle[n].func == &SID6510::cli_instr)
             {   // No overlapping IRQs allowed
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_cli);
             }
         }
@@ -150,9 +155,9 @@ SID6510::SID6510 (EventContext *context)
         procCycle = instrTable[RTIn].cycle;
         for (n = 0; n < instrTable[RTIn].cycles; n++)
         {
-            if (procCycle[n] == &SID6510::PopSR)
+            if (procCycle[n].func == &SID6510::PopSR)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_rti);
                 break;
             }
@@ -161,9 +166,9 @@ SID6510::SID6510 (EventContext *context)
         procCycle = interruptTable[oIRQ].cycle;
         for (n = 0; n < interruptTable[oIRQ].cycles; n++)
         {
-            if (procCycle[n] == &SID6510::IRQRequest)
+            if (procCycle[n].func == &SID6510::IRQRequest)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_irq);
                 break;
             }
@@ -174,9 +179,9 @@ SID6510::SID6510 (EventContext *context)
         procCycle = instrTable[BRKn].cycle;
         for (uint n = 0; n < instrTable[BRKn].cycles; n++)
         {
-            if (procCycle[n] == &SID6510::PushHighPC)
+            if (procCycle[n].func == &SID6510::PushHighPC)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n].func = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_brk);
                 break;
             }
@@ -184,8 +189,8 @@ SID6510::SID6510 (EventContext *context)
     }
 
     // Used to insert busy delays into the CPU emulation
-    delayCycle[0] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_delay);
+    delayCycle.func = reinterpret_cast <void (MOS6510::*)()>
+                      (&SID6510::sid_delay);
 }
     
 void SID6510::reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y)
@@ -211,7 +216,7 @@ void SID6510::reset ()
 void SID6510::sleep ()
 {   // Simulate a delay for JMPw
     m_delayClk = m_stealingClk = eventContext.getTime ();
-    procCycle  = delayCycle;
+    procCycle  = &delayCycle;
     cycleCount = 0;
     m_sleeping = !(interrupts.irqRequest || interrupts.pending);
     envSleep ();
@@ -337,53 +342,34 @@ void SID6510::sid_illegal (void)
 
 void SID6510::sid_delay (void)
 {
-    for (;;)
-    {   // Woken up during steal from IRQ/NMI
-        if (m_blocked)
-            break;
+    event_clock_t stolen  = eventContext.getTime (m_stealingClk);
+    event_clock_t delayed = eventContext.getTime (m_delayClk);
 
-        // Wakeup from stealing
-        bool steal = !(rdy && aec);
-        event_clock_t stolen  = eventContext.getTime (m_stealingClk);
-        event_clock_t delayed = eventContext.getTime (m_delayClk);
-
-        // Check for stealing.  The relative clock cycle
-        // differences are compared here rather than the
-        // clocks directly.  This means we don't have to
-        // worry about the clocks wrapping
-        if (delayed > stolen)
-        {   // If we are still stealing exit
-            if (steal)
-                break;
-
-            // No longer stealing so adjust clock
-            delayed      -= stolen;
-            m_delayClk   += stolen;
-            m_stealingClk = m_delayClk;
-        }
-
-        event_clock_t cycle = (delayed - 1) % 3;
-        // See if we have reached a stealable cycle
-        if (steal)
-            stealCycle (cycle < 2);
-        // Nothing interesting has happend so can we sleep
-        else if (m_sleeping)
-            break;
-        // Nolonger sleeping, waiting for IRQ to take effect
-        else
-        {
-            if (cycle == 0)
-            {
-                if (interruptPending ())
-                    return;
-            }
-            eventContext.schedule (this, 3 - cycle, EVENT_CLOCK_PHI2);
-        }
-        cycleCount--;
-        return;
+    // Check for stealing.  The relative clock cycle
+    // differences are compared here rather than the
+    // clocks directly.  This means we don't have to
+    // worry about the clocks wrapping
+    if (delayed > stolen)
+    {   // No longer stealing so adjust clock
+        delayed      -= stolen;
+        m_delayClk   += stolen;
+        m_stealingClk = m_delayClk;
     }
+
     cycleCount--;
-    eventContext.cancel (this);
+    // Woken from sleep just to handle the stealing release
+    if (m_sleeping)
+        eventContext.cancel (this);
+    else
+    {
+        event_clock_t cycle = (delayed - 1) % 3;
+        if (cycle == 0)
+        {
+            if (interruptPending ())
+                return;
+        }
+        eventContext.schedule (this, 3 - cycle, EVENT_CLOCK_PHI2);
+    }
 }
 
 
