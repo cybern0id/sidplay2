@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2003/02/20 19:00:20  s_a_white
+ *  Code tidy
+ *
  *  Revision 1.35  2003/01/23 17:42:33  s_a_white
  *  Fix use of new when exceptions are not supported.
  *
@@ -736,7 +739,7 @@ void MOS6510::brk_instr (void)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
-            procCycle    = &instrCurrent->cycle[cycleCount];
+            procCycle    = instrCurrent->cycle;
         }
     }
 }
