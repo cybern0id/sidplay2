@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2004/05/03 22:40:28  s_a_white
+ *  For BASIC tunes use a different address for the init so as subtune does
+ *  not get immediatly set.  This forces the tune to call a7ae itself to get the
+ *  subtune if it so wishes.
+ *
  *  Revision 1.36  2004/03/06 21:10:02  s_a_white
  *  Power on delay should be read from the local info structure, not the global one.
  *
@@ -323,7 +328,8 @@ void Player::psidRelocAddr (SidTuneInfo &tuneInfo, int startp, int endp)
     int  used[] = {0x00,   0x03,
                    0xa0,   0xbf,
                    0xd0,   0xff,
-                   startp, endp};
+                   startp, (startp <= endp) &&
+                   (endp <= 0xff) ? endp : 0xff};
 
     // Mark used pages in table.
     memset(pages, false, sizeof(pages));
