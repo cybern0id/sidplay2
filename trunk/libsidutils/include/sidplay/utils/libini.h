@@ -40,11 +40,11 @@ extern "C" {
 #define INI_STATIC
 #endif /* SWIG */
 
-#ifdef _WINDOWS
-#   define INI_LINKAGE __stdcall
-#else
+//#ifdef _WINDOWS
+//#   define INI_LINKAGE __stdcall
+//#else
 #   define INI_LINKAGE 
-#endif
+//#endif
 
 /* DLL building support on win32 hosts */
 #ifndef INI_EXTERN
