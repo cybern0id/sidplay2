@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Makefile.am)
-AC_CONFIG_AUX_DIR(unix/scripts)
-AM_CONFIG_HEADER(unix/config.h)
+AC_CONFIG_AUX_DIR(unix)
+AM_CONFIG_HEADER(include/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
-AM_INIT_AUTOMAKE(sidplay,2.0.0)
+AM_INIT_AUTOMAKE(sidplay,2.0.1)
 
 AC_CANONICAL_HOST
 
@@ -15,7 +15,13 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+
+dnl Initialise Libtool.
+CONFIG_LIBTOOL
+
 dnl Checks for libraries.
+SID_PATH_LIBSIDPLAY2
+SID_PATH_LIBSIDUTILS
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -47,8 +53,8 @@ case "$host" in
     *cygwin*) AC_DEFINE(HAVE_MMSYSTEM)
         audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
         AC_MSG_RESULT(mmsystem)
-        AUDIO_LIB=-lwinmm
-        AC_SUBST(AUDIO_LIB)
+        AUDIO_LDADD=-lwinmm
+        AC_SUBST(AUDIO_LDADD)
         ;;
     *freebsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
@@ -61,7 +67,7 @@ case "$host" in
     *irix*) AC_DEFINE(HAVE_IRIX)
         audiodrv_libadd="./audio/irix/libirix.a"
         AC_MSG_RESULT(irix)
-        AC_CHECK_LIB(audio, main, [AUDIO_LIB=-laudio AC_SUBST(AUDIO_LIB)])
+        AC_CHECK_LIB(audio, main, [AUDIO_LDADD=-laudio AC_SUBST(AUDIO_LDADD)])
         ;;
     *linux*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
@@ -70,12 +76,12 @@ case "$host" in
     *netbsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
         AC_MSG_RESULT(oss)
-        AC_CHECK_LIB(ossaudio, main, [AUDIO_LIB=-lossaudio AC_SUBST(AUDIO_LIB)]) 
+        AC_CHECK_LIB(ossaudio, main, [AUDIO_LDADD=-lossaudio AC_SUBST(AUDIO_LDADD)]) 
         ;;
     *qnx*) AC_DEFINE(HAVE_ALSA)
         audiodrv_libadd="./audio/alsa/libalsa.a"
         AC_MSG_RESULT(alsa)
-        AC_CHECK_LIB(asound, main, [AUDIO_LIB=-lasound AC_SUBST(AUDIO_LIB)])
+        AC_CHECK_LIB(asound, main, [AUDIO_LDADD=-lasound AC_SUBST(AUDIO_LDADD)])
         ;;
     *sgi*) AC_DEFINE(HAVE_SGI)
         AC_MSG_RESULT(sgi)
@@ -96,14 +102,11 @@ esac
 AUDIO_DRV="$audiodrv_libadd"
 AC_SUBST(AUDIO_DRV)
 
-
-dnl Initialize libtool.
-CONFIG_LIBTOOL
-
+dnl Add absolute directory for header files
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -Wall"
 
 AC_OUTPUT(
 Makefile \
-unix/Makefile \
 src/Makefile \
 src/audio/Makefile \
 src/audio/alsa/Makefile \
