@@ -12,5 +12,3 @@ $(LIBSIDPLAY2_LDADD) -lsidplay2
 
 # We substitute the libtool-specific library version in configure.in.
 libsidutils_la_LDFLAGS = -version-info $(LIBVERSION)
-
-INCLUDES = $(LIBSIDPLAY2_INCLUDES)

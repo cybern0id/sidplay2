@@ -7,7 +7,7 @@ dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
 LIBREV=0
 LIBAGE=0
-AM_INIT_AUTOMAKE(libsidplay,0.$LIBCUR.$LIBREV)
+AM_INIT_AUTOMAKE(libsidutils,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
 LIBVERSION=$LIBCUR:$LIBREV:$LIBAGE
 AC_SUBST(LIBVERSION)
@@ -21,7 +21,13 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+
+dnl Initialize libtool.
+AC_LIBTOOL_WIN32_DLL
+CONFIG_LIBTOOL
+
 dnl Checks for libraries.
+SID_PATH_LIBSIDPLAY2
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -29,19 +35,13 @@ AC_C_BIGENDIAN
 dnl Check for nothrow allocator.
 CHECK_EXCEPTIONS
 
-dnl Checks for library functions.
-AC_HEADER_STDC
-SID_PATH_LIBSIDPLAY2
-
-dnl Initialize libtool.
-AC_LIBTOOL_WIN32_DLL
-CONFIG_LIBTOOL
-
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/include/sidplay/utils -Wall"
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay/utils \
+\$(LIBSIDPLAY2_INCLUDES) -Wall"
 
 AC_OUTPUT(
 Makefile \
+libsidutils.spec \
 include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/utils/Makefile \

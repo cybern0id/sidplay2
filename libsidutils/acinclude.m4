@@ -131,7 +131,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     if test "$sid_libsidplay2_library" != NO; then
         # Help to try and better locate library just from --with-libsidplay2 option
         libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/.libs"
-        SID_FIND_FILE(libsidplay2.a libsidplay2.so,$libsidplay2_libdirs,libsidplay2_foundlibdir)
+        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
     fi
 
@@ -142,7 +142,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     # Use include path given by user (if any).
     if test "$sid_libsidplay2_includes" != NO; then
         libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
-        SID_FIND_FILE(sidplay2.h sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
+        SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
     fi
 
@@ -163,7 +163,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
 
         # Search common locations where library might be stored.
         libsidplay2_libdirs="/usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
-        SID_FIND_FILE(libsidplay2.a libsidplay2.so,$libsidplay2_libdirs,libsidplay2_foundlibdir)
+        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
 
         if test "$sid_libsidplay2_includes" = NO || test "$sid_libsidplay2_library" = NO; then
@@ -220,10 +220,12 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
+    sid_cxx_save=$CXX
 
     CXXFLAGS="$CXXFLAGS $sid_libsidplay2_incadd"
     LDFLAGS="$LDFLAGS $sid_libsidplay2_libadd"
     LIBS="-lsidplay2"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <sidplay/sidplay2.h>],
@@ -235,6 +237,7 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+    CXX="$sid_cxx_save"
 ])
 
 
