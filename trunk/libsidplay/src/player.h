@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 21:26:28  s_a_white
+ *  Only way to load a tune now is by passing in a sidtune object.  This is
+ *  required for songlength database support.
+ *
  *  Revision 1.2  2001/01/07 15:58:37  s_a_white
  *  SID2_LIB_API now becomes a core define (SID_API).
  *
@@ -28,13 +32,6 @@
 #define _player_h_
 
 #include "config.h"
-
-#ifdef HAVE_MSWINDOWS
-// This is the only place this should be defined!
-#   undef  SID_API
-#   define SID_API __declspec(dllexport)
-#endif
-
 #include "sidplay2.h"
 #include "sidenv.h"
 #include "mos6510/mos6510.h"

@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/01/23 21:26:28  s_a_white
+ *  Only way to load a tune now is by passing in a sidtune object.  This is
+ *  required for songlength database support.
+ *
  *  Revision 1.7  2001/01/07 15:13:39  s_a_white
  *  Hardsid update to mute sids when program exits.
  *
@@ -550,13 +554,12 @@ void player::nextSequence ()
     cpu.reset ();
 
     // Paged CPU mode moved to interrupt
+    xsid.suppress (true);
     if (_optimiseLevel > 1)
     {
-        bool muted = xsid.isMuted ();
-        xsid.mute (true);
         while (!cpu.SPWrapped)
             cpu.clock ();
-        xsid.mute (muted);
+        xsid.suppress (false);
     }
 }
 
@@ -587,7 +590,11 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
         // when the play routine exists.  The cpu will stay
         // idle until an interrupt occurs
         if (!cpu.SPWrapped)
+        {
             cpu.clock ();
+            if (cpu.SPWrapped)
+                xsid.suppress (false);
+        }
 
         if (!_optimiseLevel)
         {   // Sids currently have largest cpu overhead, so have been moved
