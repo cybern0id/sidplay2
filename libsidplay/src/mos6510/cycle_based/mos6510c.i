@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2001/09/03 22:21:52  s_a_white
+ *  When initialising the status register and therefore unmasking the irqs,
+ *  check the irq line to see if any are pending.
+ *
  *  Revision 1.18  2001/08/10 20:05:50  s_a_white
  *  Fixed RMW instructions which broke due to the optimisation.
  *
@@ -67,7 +71,7 @@
  *  PushSR optimisation and PopSR code cleanup.
  *
  ***************************************************************************/
-
+/*
 const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 {
    0x0, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd, 0x1, 0x1,
@@ -89,7 +93,7 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
   0x20,0x7c,0x23,0x2d,0x2d,0x7c,0x23,0x7c,0x23,0x2f,0x7c,0x7c,0x2f,0x5c,0x5c,0x2d,
   0x2f,0x2d,0x2d,0x7c,0x7c,0x7c,0x7c,0x2d,0x2d,0x2d,0x2f,0x5c,0x5c,0x2f,0x2f,0x23
 };
-
+*/
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
@@ -99,8 +103,8 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 // Microsoft Visual C++ Version Number to work around compiler bug
 // Currently both Visual C++ Versions 5, 6 are broken.
 #define _MSC_VER_BAD_NEW 1200 /* Defines VC6 and below */
-char filetmp[0x100];
-int  filepos = 0;
+//char filetmp[0x100];
+//int  filepos = 0;
 
 //-------------------------------------------------------------------------//
 //-------------------------------------------------------------------------//
@@ -706,7 +710,7 @@ void MOS6510::rti_instr (void)
 
 void MOS6510::rts_instr (void)
 {
-
+/*
     // Hack - Output character to screen
     if (Register_ProgramCounter == 0xffd3)
     {
@@ -735,7 +739,7 @@ void MOS6510::rts_instr (void)
         filetmp[filepos] = '\0';
         envLoadFile (filetmp);
     }
-
+*/
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
     Register_ProgramCounter++;
 }
@@ -2416,7 +2420,7 @@ void MOS6510::reset (void)
     endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFD));
     Register_ProgramCounter = Cycle_EffectiveAddress;
     interrupts.delay        = MOS6510_INTERRUPT_DELAY;
-    filepos = 0;
+//    filepos = 0;
 }
 
 //-------------------------------------------------------------------------//
