@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/06/27 18:35:19  s_a_white
+ *  Remove unnecessary muting and add some initial support for the async dll.
+ *
  *  Revision 1.9  2003/06/27 07:05:42  s_a_white
  *  Use new hardsid.dll muting interface.
  *
@@ -87,7 +90,7 @@ HardSID::~HardSID()
 
 uint8_t HardSID::read (uint_least8_t addr)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     while (cycles > 0xFFFF)
@@ -102,7 +105,7 @@ uint8_t HardSID::read (uint_least8_t addr)
 
 void HardSID::write (uint_least8_t addr, uint8_t data)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     while (cycles > 0xFFFF)
@@ -172,7 +175,7 @@ bool HardSID::lock (c64env *env)
 
 void HardSID::event (void)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
     if (cycles)
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
