@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2003/07/10 07:32:01  s_a_white
+ *  Added missed brace.
+ *
  *  Revision 1.34  2003/07/10 07:20:00  s_a_white
  *  Moved sid creation to fix muting and volume problems when switching
  *  sid emulation types.
@@ -444,6 +447,7 @@ int Player::environment (sid2_env_t env)
     switch (m_tuneInfo.compatibility)
     {
     case SIDTUNE_COMPATIBILITY_R64:
+    case SIDTUNE_COMPATIBILITY_BASIC:
         env = sid2_envR;
         break;
     case SIDTUNE_COMPATIBILITY_PSID:
