@@ -97,6 +97,9 @@ install_sh = @install_sh@
 noinst_LIBRARIES = libwav.a
 
 libwav_a_SOURCES = WavFile.cpp WavFile.h WavFileDefs.h 
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src/audio/wav
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/unix/config.h
@@ -109,7 +112,6 @@ am_libwav_a_OBJECTS = WavFile.$(OBJEXT)
 libwav_a_OBJECTS = $(am_libwav_a_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/unix
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

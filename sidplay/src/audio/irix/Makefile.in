@@ -97,6 +97,9 @@ install_sh = @install_sh@
 noinst_LIBRARIES = libirix.a
 
 libirix_a_SOURCES = audiodrv.cpp audiodrv.h
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src/audio/irix
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/unix/config.h
@@ -109,7 +112,6 @@ am_libirix_a_OBJECTS = audiodrv.$(OBJEXT)
 libirix_a_OBJECTS = $(am_libirix_a_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/unix
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

@@ -119,8 +119,9 @@ install dir.  Please check your installation!
 fi
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -Wall \$(LIBSIDPLAY2_CXXFLAGS) \
-\$(LIBSIDUTILS_CXXFLAGS) \$(BUILDERS_CXXFLAGS)"
+CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -Wall -I\$(top_srcdir)/include \
+\$(LIBSIDPLAY2_CXXFLAGS) \$(LIBSIDUTILS_CXXFLAGS) \
+\$(BUILDERS_CXXFLAGS)"
 
 AC_OUTPUT(
 Makefile \
