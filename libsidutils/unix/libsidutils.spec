@@ -1,19 +1,23 @@
-%define name    libsidutils
-%define version 1.0.1
-%define release 1
-%define major   1
+%define major    1
+%define oname    libsidutils
+#define name     %{oname}%{major}
+%define version  1.0.1
+%define frelease 1
+%define release  %{frelease}
+%define libsidplay2 2.1.0
 
 Summary:        General utility library for use in sidplayers.
-Name:           %{name}
+Name:           %{oname}
 Version:        %{version}
 Release:        %{release}
-Source:         %{name}-%{version}.tar.bz2
+Source:         %{oname}-%{version}-%{frelease}.tar.bz2
 Copyright:      GPL
 Group:          System/Libraries
 URL:            http://sidplay2.sourceforge.net/
-BuildRoot:      %{_tmppath}/%{name}%{major}-buildroot
+BuildRoot:      %{_tmppath}/%{name}-buildroot
 Prefix:         %{_prefix}
-Requires:       libsidplay >= 2.0.7
+Requires:       libsidplay >= %{libsidplay2}
+BuildRequires:  libsidplay2-devel >= %{libsidplay2}
 
 %description
 This library provides general utilities that are not considered core
@@ -22,12 +26,14 @@ lengths from the songlength database, INI file format parser and SID
 filter files (types 1 and 2).
 
 %package devel
-Summary:        Development headers and libraries for %{name}%{major}
+Summary:        Development headers and libraries for %{name}
 Group:          Development/C++
+Requires:       %{oname} = %{version}
+Provides:       %{oname}-devel = %{version}
 
 %description devel
 This package includes the header and library files necessary
-for developing applications to use %{name}%{major}.
+for developing applications to use %{name}.
 
 
 %prep
@@ -35,20 +41,18 @@ rm -rf $RPM_BUILD_ROOT
 %setup -q
 
 %build
-CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix}
-make
+%configure
+%make
 
 %install
-make DESTDIR=$RPM_BUILD_ROOT install
+%makeinstall
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%postun
-/sbin/ldconfig
+%postun -p /sbin/ldconfig
 
-%post
-/sbin/ldconfig
+%post -p /sbin/ldconfig
 
 %files
 %defattr(-,root,root)
@@ -57,6 +61,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(-,root,root)
+%doc COPYING
 %{_includedir}/sidplay/utils/*
 %{_libdir}/*.la
 %{_libdir}/*.a
