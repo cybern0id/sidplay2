@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/03/21 22:31:22  s_a_white
+ *  Filter redefinition support.
+ *
  *  Revision 1.6  2001/03/01 23:46:37  s_a_white
  *  Support for sample mode to be selected at runtime.
  *
@@ -46,11 +49,6 @@
 //---------------------------------------------------------------------------------------------
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define SID_EXPORT __declspec(dllexport)
-#endif
-
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
@@ -59,9 +57,9 @@
 
 sidplay2::sidplay2 ()
 #ifdef HAVE_EXCEPTIONS
-: sidplayer (*(new(nothrow) player))
+: sidplayer (*(new(nothrow) Player))
 #else
-: sidplayer (*(new player))
+: sidplayer (*(new Player))
 #endif
 {
 }
@@ -102,9 +100,6 @@ uint_least32_t sidplay2::mileage (void)
 void sidplay2::filter (bool enabled)
 {   sidplayer.filter (enabled); }
 
-void sidplay2::extFilter (bool enabled)
-{   sidplayer.extFilter (enabled); }
-
 void sidplay2::sidModel (sid2_model_t model)
 {   sidplayer.sidModel (model); }
 
@@ -122,3 +117,9 @@ void sidplay2::sidSamples (bool enable)
 
 int sidplay2::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
 {   return sidplayer.loadFilter (cutoffs, points); }
+
+const char **sidplay2::credits (void)
+{   return sidplayer.credits (); }
+
+void sidplay2::debug (bool enable)
+{   sidplayer.debug (enable); }
