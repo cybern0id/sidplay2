@@ -567,8 +567,8 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
 
 
-LIBCUR=0
-LIBREV=7
+LIBCUR=1
+LIBREV=0
 LIBAGE=0
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -3152,6 +3152,7 @@ include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/sidconfig.h \
 src/Makefile \
+src/c64/Makefile \
 src/mos6510/Makefile \
 src/mos6526/Makefile \
 src/mos656x/Makefile \
@@ -3280,6 +3281,7 @@ include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/sidconfig.h \
 src/Makefile \
+src/c64/Makefile \
 src/mos6510/Makefile \
 src/mos6526/Makefile \
 src/mos656x/Makefile \
