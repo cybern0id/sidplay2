@@ -39,6 +39,11 @@ Confirmed by Michael Schwendt using the tune Game Over:
 A sample sequence cannot interrupt Galway Noise.  However the last of
 these new requested sequences will be played after the current sequence
 ends.
+
+Lastly playing samples through the SIDs volume is not as clean as playing
+them on their own channel.  Playing through the SID will effect the volume
+of the other channels and this will be most noticable at low frequencies.
+These effects are however be present in the oringial SID music.
 */
 
 #ifndef _xsid_h_
@@ -90,6 +95,12 @@ private:
     uword_sidt  samRepeatAddr;
     uword_sidt  samPeriod;
 
+#ifdef XSID_USE_SID_VOLUME
+    // Rev 2.0.5 (saw) - Added to locate sample origin
+    ubyte_sidt  samMin;
+    ubyte_sidt  samMax;
+#endif
+
     // Galway Section
     ubyte_sidt  galTones;
     ubyte_sidt  galInitLength;
@@ -112,12 +123,14 @@ private:
 
 public:
     channel (void);
-    void       reset  (void);
-    void       clock  (udword_sidt delta_t);
-    ubyte_sidt read   (ubyte_sidt addr)
+    void       reset    (void);
+    void       clock    (udword_sidt delta_t);
+    ubyte_sidt read     (ubyte_sidt addr)
     { return reg[convertAddr (addr)]; }
-    void       write  (ubyte_sidt addr, ubyte_sidt data)
+    void       write    (ubyte_sidt addr, ubyte_sidt data)
     { reg[convertAddr (addr)] = data; }
+    bool       isGalway (void)
+    { return mode == FM_GALWAY; }
 
     inline void       checkForInit     (void);
     inline sbyte_sidt sampleCalculate  (void);
@@ -184,8 +197,8 @@ public:
     }
 
 private:
+    void setSidVolume (bool cached = false);
     ubyte_sidt output ();
-    void setSidVolume (void);
 #else
 public:
     // This provides standard 16 bit outputs
