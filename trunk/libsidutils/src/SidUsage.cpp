@@ -31,6 +31,13 @@ static const char *txt_reading   = "SID Usage: Error reading file";
 static const char *txt_writing   = "SID Usage: Error writing file";
 
 
+// Copy common parts of basic usage to extended usage.
+sid2_usage_t &sid2_usage_t::operator= (const sid_usage_t &usage)
+{
+    *((sid_usage_t *) this) = usage;
+    return *this;
+}
+
 SidUsage::SidUsage ()
 :m_status(false)
 {
@@ -190,7 +197,11 @@ void SidUsage::write (const char *filename, const sid2_usage_t &usage)
         }
     }
 
-    if (!strcmp (ext, "mm"))
+    // Make sure we have a valid extension to check for the
+    // required output format
+    if (!ext)
+        m_errorString = txt_invalid;
+    else if (!strcmp (ext, "mm"))
         writeSMM0 (file, usage);
     else if (!strcmp (ext, "map"))
         writeMAP (file, usage);
@@ -203,7 +214,7 @@ void SidUsage::write (const char *filename, const sid2_usage_t &usage)
 bool SidUsage::readMM (FILE *file, sid2_usage_t &usage, const char *ext)
 {
     // Need to check extension
-    if (strcmp (ext, "mm"))
+    if (!ext || strcmp (ext, "mm"))
         return false;
 
     {   // Read header
