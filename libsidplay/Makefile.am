@@ -1,13 +1,11 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include 
+SUBDIRS = include unix src 
 
-EXTRA_DIST = scripts win libsidplay.lsm Makefile.dist sidconfig.h.in
+EXTRA_DIST = win Makefile.dist
 
-sidplayincludedir = $(includedir)/sidplay2
-
-sidplayinclude_HEADERS = sidconfig.h
+sidplayincludedir = $(includedir)/sidplay
 
 
 # Remove CVS directories from any subdirs that get
@@ -15,4 +13,3 @@ sidplayinclude_HEADERS = sidconfig.h
 
 dist-hook:
 		rm -rf `find $(distdir) -path \*/CVS`
-

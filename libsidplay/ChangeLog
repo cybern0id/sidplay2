@@ -1,4 +1,5 @@
-Changes since 2.0.6:
+Changes since 2.0.6 (Note this version is intended mainly
+for developers):
 
 (ms) Fixed fake6526.cpp to unlock timer upon reset. When playing
 sub-tunes and switching from CIA to VBI speed and vice versa, the
@@ -13,6 +14,74 @@ don't need to install a shared library and/or set the
 LD_LIBRARY_PATH, respectively.
 
 
+Changes:
+
+Resid now linked against library and not against application.  This
+means that a application linking to the library does not need to know it's
+using resid.
+
+External interface changed to hopefully allow better compatibilty.
+
+
+Problems:
+
+For OSS left and right channels are reversed.  According to OSS docs,
+left channel in writing before right which is the order it's currently
+being done.  Both Windows drivers are correct.
+	
+
+Bug Fixes:
+
+Fixed bug when reading tunes from stdin.
+
+Added new loadSong function to allow selecting another subsong without
+reloading the file.  This is important when reading files from stdin.
+
+External interface changed to hopefully allow better compatibilty.
+
+Fixed IO bug whereby a write to the IO registers could not be read back.
+
+Keyboard input is now read from stderr.  This allows the keyboard to be
+read whilst a file is passed using stdin.
+
+Stderr redefined as console output instead of stdout.  This allows you to
+redirect or pipe the output whilist allowing keyboard events to be processed
+correctly
+
+Changin any of the sid settings effects both sids.
+
+The library can now be configured at run time by putting the library into paused
+mode.  If you are using a multiplte threads to drive the library, be carefull
+as it's not thread safe.  Use mutually exclusive semaphores to protect the library.
+
+Use of extended keys quiting the program.
+
+	
+Added:
+
+Null sound driver to allow faster songlength detection (Code for songlength
+detection not provided in this library) and eventual hardsid support.
+
+Cursor keys now work on Linux and Windows.  But there is a bug in Windows 98
+first Edition which prevents them from working properly.  This information
+has been admitted by Microsoft the the only proposed solution is to upgrade to
+Win 98 Second Edition.  (For the time being you can use the cursor keys on
+the numpad).
+
+Added a mileage count to help determine the sid usuage since the begining of time.
+
+Added ability to use unforced PAL or NTSC.
+
+For -s, mono songs now get converted to stereo by spliting the
+channels between multiple sids.
+
+
+Removed:
+
+Timer changed test.  This can easily be worked out another way.
+
+
+	
 Release Notes 2.0.6:
 
 This version mainly sees bug fixes and finally gets both the Linux and
