@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:54:05  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -53,20 +56,29 @@ WavFile::WavFile()
 void* WavFile::open(AudioConfig &cfg, const char* name,
                     const bool overWrite)
 {
-    if (isOpen && !file.fail())
-        close();
-
     unsigned long  int freq;
     unsigned short int channels, bits;
     unsigned short int blockAlign;
 
-    byteCount    = 0;
-    channels     = cfg.channels;
-    freq         = cfg.frequency;
-    bits         = cfg.precision;
-    blockAlign   = (bits>>3)*channels;
-    // Rev 1.3 (saw) - Buffersize changed to 1 second
-    bufSize      = cfg.frequency * blockAlign;
+    bits        = cfg.precision;
+    channels    = cfg.channels;
+    freq        = cfg.frequency;
+    blockAlign  = (bits>>3)*channels;
+    bufSize     = freq * blockAlign;
+    cfg.bufSize = bufSize;
+
+    // Setup Encoding
+    cfg.encoding = AUDIO_SIGNED_PCM;
+    if (bits == 8)
+        cfg.encoding = AUDIO_UNSIGNED_PCM;
+
+    if (name == NULL)
+        return NULL;
+
+    if (isOpen && !file.fail())
+        close();
+   
+    byteCount = 0;
 
     // We need to make a buffer for the user
 #if defined(WAV_HAVE_EXCEPTIONS)
@@ -86,7 +98,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     endian_little16(wavHdr.bitsPerSample,bits);
     endian_little32(wavHdr.dataChunkLen,0);
 
-       if (overWrite)
+    if (overWrite)
     {
 #if defined(WAV_HAVE_IOS_BIN)
         file.open( name, ios::out|ios::bin|ios::trunc );
@@ -104,7 +116,6 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     }
     
     isOpen = !file.fail();  // good->true, bad->false
-    cfg.bufSize = bufSize;
     _settings = cfg;
     return _sampleBuffer;
 }

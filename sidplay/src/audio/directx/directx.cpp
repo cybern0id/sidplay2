@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:54:35  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -195,7 +198,10 @@ void *Audio_DirectX::open (AudioConfig &cfg, const char *, HWND hwnd)
 
     // Update the users settings
     cfg.bufSize   = bufSize;
-    cfg.encoding  = AUDIO_UNSIGNED_PCM; // IS this write?
+    // Setup the required sample format encoding.
+    cfg.encoding  = AUDIO_SIGNED_PCM;
+    if (cfg.precision == 8)
+        cfg.encoding = AUDIO_UNSIGNED_PCM;
     _settings     = cfg;
     isPlaying     = false;
     _sampleBuffer = lpvData;
