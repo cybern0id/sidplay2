@@ -46,7 +46,7 @@ public:
     virtual void          voice   (const uint_least8_t num,
                                    const uint_least8_t vol,
                                    const bool mute) = 0;
-    virtual void          gain    (const uint_least8_t precent) = 0;
+    virtual void          gain    (const int_least8_t precent) = 0;
     sidbuilder           *builder (void) const { return m_builder; }
 };
 
