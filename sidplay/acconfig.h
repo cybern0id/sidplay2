@@ -25,6 +25,7 @@
 #undef _GNU_SOURCE
 
 /* Defines Supported Unix Audio Drivers */
+#undef HAVE_HARDSID
 #undef HAVE_ALSA
 #undef HAVE_IRIX
 #undef HAVE_HPUX

@@ -38,7 +38,7 @@ dnl -------------------------------------------------------------------------
 
 AC_DEFUN(CHECK_IOS_BIN,
 [
-    AC_MSG_CHECKING(whether standard member ios::binary is available)
+    AC_MSG_CHECKING([whether standard member ios::binary is available])
     AC_CACHE_VAL(test_cv_have_ios_binary,
     [
         AC_TRY_COMPILE(
@@ -94,9 +94,9 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     sid_libsidplay2_library=NO
     sid_libsidplay2_includes=NO
 
-    AC_ARG_WITH(resid,
+    AC_ARG_WITH(sidplay2,
         [  --with-libsidplay2=DIR
-            where the libsidplay2 is located],
+            where the sidplay2 library is located],
         [sid_libsidplay2_includes="$withval"
          sid_libsidplay2_library="$withval"
         ]
@@ -226,6 +226,33 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+])
+
+
+dnl -------------------------------------------------------------------------
+dnl Try to find Hardsid.  If so add support for it.
+dnl $sid_have_hardsid will be "yes" or "no"
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(CHECK_HARDSID,
+[
+    AC_MSG_CHECKING([for hardsid soundcard])
+    AC_TRY_RUN(
+        [#include <sys/types.h>
+         #include <sys/stat.h>
+         #include <fcntl.h>
+         #include <unistd.h>
+         int main () {
+             int fd = open ("/dev/sid0", O_RDWR);
+             if (fd < 0) return -1;
+             close (fd);
+             return 0;
+         }
+        ],
+        [sid_have_hardsid=yes],
+        [sid_have_hardsid=no]
+    )
+    AC_MSG_RESULT($sid_have_hardsid)
 ])
 
 
