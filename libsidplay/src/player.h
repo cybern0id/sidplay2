@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2002/01/29 21:50:33  s_a_white
+ *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  config.  Initial code added to support more than two sids.
+ *
  *  Revision 1.24  2002/01/28 19:32:01  s_a_white
  *  PSID sample improvements.
  *
@@ -245,14 +249,16 @@ private:
     // ------------------------
 
 private:
-    float64_t clockSpeed     (sid2_clock_t clock, bool forced);
+    float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
+                              bool forced);
     int       environment    (sid2_env_t env);
     int       initialise     (void);
     void      nextSequence   (void);
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidCreate      (sidbuilder *builder, sid2_model_t model);
+    int       sidCreate      (sidbuilder *builder, sid2_model_t model,
+                              sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
 
     uint8_t readMemByte_player    (uint_least16_t addr);

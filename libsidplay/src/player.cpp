@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2002/02/17 16:33:02  s_a_white
+ *  New reset interface for sidbuilders.
+ *
  *  Revision 1.37  2002/02/17 12:42:45  s_a_white
  *  envReset now sets playerStopped indicators.  This means the player
  *  nolonger locks up when a HLT instruction is encountered.
@@ -211,6 +214,7 @@ Player::Player (void)
     m_info.credits         = credit;
     m_info.channels        = 1;
     m_info.driverAddr      = 0;
+    m_info.driverLength    = 0;
     m_info.name            = PACKAGE;
     m_info.tuneInfo        = NULL;
     m_info.version         = VERSION;
@@ -220,6 +224,7 @@ Player::Player (void)
     m_info.environment     = sid2_envR;
 
     // Configure default settings
+    m_cfg.clockDefault    = SID2_CLOCK_CORRECT;
     m_cfg.clockForced     = false;
     m_cfg.clockSpeed      = SID2_CLOCK_CORRECT;
     m_cfg.environment     = m_info.environment;
@@ -228,6 +233,7 @@ Player::Player (void)
     m_cfg.optimisation    = SID2_DEFAULT_OPTIMISATION;
     m_cfg.playback        = sid2_mono;
     m_cfg.precision       = SID2_DEFAULT_PRECISION;
+    m_cfg.sidDefault      = SID2_MODEL_CORRECT;
     m_cfg.sidEmulation    = NULL;
     m_cfg.sidModel        = SID2_MODEL_CORRECT;
     m_cfg.sidSamples      = true;

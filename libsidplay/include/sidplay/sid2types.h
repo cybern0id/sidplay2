@@ -27,24 +27,8 @@ struct  SidTuneInfo;
 typedef enum {sid2_playing = 0, sid2_paused, sid2_stopped}         sid2_player_t;
 typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback_t;
 typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
-typedef enum {SID2_MOS6581_DEFAULT, SID2_MOS8580_DEFAULT,
-              SID2_MOS6581, SID2_MOS8580}                          sid2_model_t;
-typedef enum {// Use PAL system and switch NTSC if indicated by tune
-              SID2_CLOCK_PAL_DEFAULT,
-              // Use NTSC system and switch PAL if indicated by tune
-              SID2_CLOCK_NTSC_DEFAULT,
-              // Always use PAL and speed fix NTSC indicated tunes
-              SID2_CLOCK_PAL,
-              // Always use NTSC and speed fix PAL indicated tunes
-              SID2_CLOCK_NTSC,
-              // Always use PAL and speed fix any non PAL tunes
-              SID2_CLOCK_PAL_FIXED,
-              // Always use NTSC and speed fix any non NTSC tunes
-              SID2_CLOCK_NTSC_FIXED}                               sid2_clock_t;
-
-// For backwards compatibility
-#define SID2_MODEL_CORRECT SID2_MOS6581_DEFAULT
-#define SID2_CLOCK_CORRECT SID2_CLOCK_PAL_DEFAULT
+typedef enum {SID2_MODEL_CORRECT, SID2_MOS6581, SID2_MOS8580}      sid2_model_t;
+typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
 
 typedef enum
 {   // Soundcard sample format
@@ -63,16 +47,18 @@ sid2_envR  = Sidplay2 - Real C64 Environment
 
 struct sid2_config_t
 {
+    sid2_clock_t        clockDefault;  // Intended tune speed when unknown
     bool                clockForced;
-    sid2_clock_t        clockSpeed;
+    sid2_clock_t        clockSpeed;    // User requested emulation speed
     sid2_env_t          environment;
     bool                forceDualSids;
     uint_least32_t      frequency;
     uint_least8_t       optimisation;
     sid2_playback_t     playback;
     int                 precision;
+    sid2_model_t        sidDefault;    // Intended sid model when unknown
     sidbuilder         *sidEmulation;
-    sid2_model_t        sidModel;
+    sid2_model_t        sidModel;      // User requested sid model
     bool                sidSamples;
     uint_least32_t      leftVolume;
     uint_least32_t      rightVolume;
@@ -84,6 +70,7 @@ struct sid2_info_t
     const char       **credits;
     uint               channels;
     uint_least16_t     driverAddr;
+    uint_least16_t     driverLength;
     const char        *name;
     const SidTuneInfo *tuneInfo; // May not need this
     const char        *version;
