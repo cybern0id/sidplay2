@@ -21,8 +21,14 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
-dnl Checks for libraries.
 
+dnl Check for hardsid card.
+CHECK_HARDSID
+if test "$sid_have_hardsid" = yes; then
+    AC_DEFINE(HAVE_HARDSID)
+fi
+
+dnl Checks for libraries.
 SID_PATH_LIBRESID
 
 dnl Checks for header files.

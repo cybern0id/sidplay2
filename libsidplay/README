@@ -1,1 +1,8 @@
+Known Problems:
 
+If you are having unresolved symbol problems when linking against the
+libsidplay2 libraries then you need to update Libtool.  Libtool versions
+1.3b and greater are the only ones that use the installed .la files.  These
+files contain all the library dependencies required by libsidplay2.  Also
+make sure you apply the necessary patch to automake that is described in the
+Libtool README file.

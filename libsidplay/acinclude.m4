@@ -117,6 +117,16 @@ dnl -------------------------------------------------------------------------
 
 AC_DEFUN(SID_PATH_LIBRESID,
 [
+    AC_ARG_ENABLE(resid,
+        [  --disable-resid
+            prevents usage of resid sid emulation [default=no]]
+    )
+
+    if test "$enable_resid" = no; then
+        AC_DEFINE(DISABLE_RESID)
+    else
+
+
     AC_MSG_CHECKING([for working reSID library and headers])
     
     dnl Be pessimistic.
@@ -252,6 +262,9 @@ Please check your installation!
             AC_DEFINE(HAVE_USER_RESID)
         fi
     fi
+
+
+    fi # enable_resid
 ])
 
 dnl Function used by SID_PATH_LIBRESID.
@@ -303,6 +316,34 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
 ])
+
+
+dnl -------------------------------------------------------------------------
+dnl Try to find Hardsid.  If so add support for it.
+dnl $sid_have_hardsid will be "yes" or "no"
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(CHECK_HARDSID,
+[
+    AC_MSG_CHECKING([for hardsid soundcard])
+    AC_TRY_RUN(
+        [#include <sys/types.h>
+         #include <sys/stat.h>
+         #include <fcntl.h>
+         #include <unistd.h>
+         int main () {
+             int fd = open ("/dev/sid0", O_RDWR);
+             if (fd < 0) return -1;
+             close (fd);
+             return 0;
+         }
+        ],
+        [sid_have_hardsid=yes],
+        [sid_have_hardsid=no]
+    )
+    AC_MSG_RESULT($sid_have_hardsid)
+])
+
 
 dnl -------------------------------------------------------------------------
 dnl Pass C++ compiler options to libtool which supports C only.
