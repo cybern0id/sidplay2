@@ -1,6 +1,6 @@
 /*
    in_sid2 - a .sid file winamp input plugin based on libsidplay2
-   Copyright (c) 2003 Michael Fink
+   Copyright (c) 2003,2004 Michael Fink
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-   $Id: configdlg.cpp,v 1.1 2004-02-27 16:30:29 vividos Exp $
+   $Id: configdlg.cpp,v 1.2 2004-03-31 21:34:28 vividos Exp $
 
 */
 /* \file configdlg.cpp
@@ -32,6 +32,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include "resource.h"
+#include <cstdio> // for _snprintf
 
 #include "wa2player.h"
 
@@ -39,7 +40,6 @@
 // extern references
 
 extern wa2_player* player;
-extern "C" int _snprintf( char *buffer, size_t count, const char *format, ... );
 
 
 // global variables
