@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/03/24 18:09:17  s_a_white
+ *  On entry to interrupt routine the first instruction in the handler is now always
+ *  executed before pending interrupts are re-checked.
+ *
  *  Revision 1.11  2001/03/22 22:40:43  s_a_white
  *  Added new header for definition of nothrow.
  *
@@ -487,6 +491,13 @@ void MOS6510::FetchEffAddrDataByte (void)
 void MOS6510::PutEffAddrDataByte (void)
 {
     envWriteMemByte (Cycle_EffectiveAddress, Cycle_Data);
+}
+
+// Used for Read Modify Write (RMW) instructions
+void MOS6510::FetchPutEffAddrDataByte (void)
+{
+    FetchEffAddrDataByte ();
+	PutEffAddrDataByte ();
 }
 
 // Push Program Counter Low Byte on stack, decrement S
@@ -1572,7 +1583,7 @@ MOS6510::MOS6510 ()
             break;
 
             case ASLz: case ASLzx: case ASLa: case ASLax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::asl_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1702,7 +1713,7 @@ MOS6510::MOS6510 ()
 
             case DCPz: case DCPzx: case DCPa: case DCPax: case DCPay: case DCPix:
             case DCPiy: // Also known as DCM
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::dcm_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1710,7 +1721,7 @@ MOS6510::MOS6510 ()
             break;
 
             case DECz: case DECzx: case DECa: case DECax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::dec_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1744,7 +1755,7 @@ MOS6510::MOS6510 ()
 */
 
             case INCz: case INCzx: case INCa: case INCax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::inc_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1761,7 +1772,7 @@ MOS6510::MOS6510 ()
 
             case ISBz: case ISBzx: case ISBa: case ISBax: case ISBay: case ISBix:
             case ISBiy: // Also known as INS
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::ins_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1818,7 +1829,7 @@ MOS6510::MOS6510 ()
             break;
 
             case LSRz: case LSRzx: case LSRa: case LSRax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::lsr_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1882,7 +1893,7 @@ MOS6510::MOS6510 ()
 
             case RLAz: case RLAzx: case RLAix: case RLAa: case RLAax: case RLAay:
             case RLAiy:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rla_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1894,7 +1905,7 @@ MOS6510::MOS6510 ()
             break;
 
             case ROLz: case ROLzx: case ROLa: case ROLax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rol_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1906,7 +1917,7 @@ MOS6510::MOS6510 ()
             break;
 
             case RORz: case RORzx: case RORa: case RORax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::ror_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1915,7 +1926,7 @@ MOS6510::MOS6510 ()
 
             case RRAa: case RRAax: case RRAay: case RRAz: case RRAzx: case RRAix:
             case RRAiy:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rra_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -1993,7 +2004,7 @@ MOS6510::MOS6510 ()
 
             case SLOz: case SLOzx: case SLOa: case SLOax: case SLOay: case SLOix:
             case SLOiy: // Also known as ASO
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::aso_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
@@ -2002,7 +2013,7 @@ MOS6510::MOS6510 ()
 
             case SREz: case SREzx: case SREa: case SREax: case SREay: case SREix:
             case SREiy: // Also known as LSE
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
                 instr->lastAddrCycle = cycleCount;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::lse_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
