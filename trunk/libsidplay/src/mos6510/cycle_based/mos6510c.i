@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/03/28 21:17:34  s_a_white
+ *  Added support for proper RMW instructions.
+ *
  *  Revision 1.12  2001/03/24 18:09:17  s_a_white
  *  On entry to interrupt routine the first instruction in the handler is now always
  *  executed before pending interrupts are re-checked.
@@ -485,7 +488,7 @@ void MOS6510::FetchHighEffAddrY (void)
 
 void MOS6510::FetchEffAddrDataByte (void)
 {
-    Cycle_Data = envReadMemByte (Cycle_EffectiveAddress);
+    Cycle_Data = envReadMemDataByte (Cycle_EffectiveAddress);
 }
 
 void MOS6510::PutEffAddrDataByte (void)
@@ -497,7 +500,7 @@ void MOS6510::PutEffAddrDataByte (void)
 void MOS6510::FetchPutEffAddrDataByte (void)
 {
     FetchEffAddrDataByte ();
-	PutEffAddrDataByte ();
+    PutEffAddrDataByte ();
 }
 
 // Push Program Counter Low Byte on stack, decrement S
@@ -527,7 +530,7 @@ void MOS6510::PopLowPC (void)
     Register_StackPointer++;
     addr = Register_StackPointer;
     endian_16hi8 (addr, SP_PAGE);
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (addr));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
 }
 
 // Increment stack and pull program counter high byte from stack,
@@ -537,7 +540,7 @@ void MOS6510::PopHighPC (void)
     Register_StackPointer++;
     addr = Register_StackPointer;
     endian_16hi8 (addr, SP_PAGE);
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (addr));
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
 }
 
 void MOS6510::WasteCycle (void)
