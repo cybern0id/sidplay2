@@ -17,6 +17,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2003/01/20 18:37:08  s_a_white
+ *  Stealing update.  Apparently the cpu does a memory read from any non
+ *  write cycle (whether it needs to or not) resulting in those cycles
+ *  being stolen.
+ *
  *  Revision 1.17  2003/01/17 08:44:22  s_a_white
  *  Better handling the operation of IRQs during stolen cycles.
  *
@@ -94,7 +99,6 @@ public:
     // Standard Functions
     void reset (void);
     void reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y);
-    void clock (void);
 
     void environment (sid2_env_t mode) { m_mode = mode; }
     void triggerRST (void);
