@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/10/02 18:05:27  s_a_white
+ *  Fix for real C64 tunes which correctly handle BRK.
+ *
  *  Revision 1.2  2001/09/01 11:12:22  s_a_white
  *  Fixes sidplay1 environment modes.
  *
@@ -133,13 +136,14 @@ getsong     ldx playnum
             beq run
             lda #$37
             sta $01
-            ; Kick of sidplay2 optimisation
+            ; Kick off sidplay2 optimisation
 run         brk
             ; This is just incase the song has defined BRK
             ; to point to a handler ending in RTI
             nop 
             
 brkjob      ; Entry from real C64
+            cli
 idle        jmp idle
 
 irqjob      lda $01
