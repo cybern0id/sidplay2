@@ -41,10 +41,7 @@ const int SIDTUNE_SPEED_VBI = 0;        // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
 
 const int SIDTUNE_CLOCK_PAL = 0;        // These are also used in the
-const int SIDTUNE_CLOCK_NTSC = 1;        // emulator engine!
-
-const int SIDTUNE_SID_6581 = 0;
-const int SIDTUNE_SID_8580 = 1;
+const int SIDTUNE_CLOCK_NTSC = 1;       // emulator engine!
 
 struct SidTuneInfo
 {
@@ -77,7 +74,6 @@ struct SidTuneInfo
     // The SID chip base address(es) used by the sidtune.
     uint_least16_t sidChipBase1;    // 0xD400 (normal, 1st SID)
     uint_least16_t sidChipBase2;    // 0xD?00 (2nd SID) or 0 (no 2nd SID)
-    bool           sidRevision;
 
     // Available after song initialization.
     //
@@ -87,7 +83,11 @@ struct SidTuneInfo
     uint_least16_t currentSong;        // the one that has been initialized
     uint_least8_t songSpeed;        // intended speed, see top
     uint_least8_t clockSpeed;        // -"-
+    uint_least8_t relocStartPage;  // First available page for relocation
+    uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
+    bool sidRev8580;               // Sid revision is 8580? If not it's 6581
+    bool samples;                  // PSID specific samples present
     bool fixLoad;                // whether load address might be duplicate
     uint_least16_t songLength;        // --- not yet supported ---
     //
