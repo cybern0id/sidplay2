@@ -37,7 +37,8 @@ enum
     // are recommened to throw that bit away and
     // assign it the following meaning where
     // appropriate.  This bit is not saved to file.
-    SID_LOAD_IMAGE  = 1 << 7
+    SID_LOAD_IMAGE  = 1 << 7,
+    SID_OPCODE      = 1 << 14
 };
 
 enum
@@ -54,7 +55,8 @@ enum
     SID_BAD_STACK   = 1 << 9,  // Tune corrupts stack contents
     SID_INSTR_EX    = 1 << 10, // Extended 6510 instructions
     SID_INSTR_ILL   = 1 << 11, // Illegal 6510 instructions
-    //SID_PSID_RANDOM = 1 << 12, // PSID Random extension
+    //SID_PSID_RANDOM = 1 << 12, // PSID Random extension (obsolete)
+    SID_INFINITE    = 1 << 12, // Code Infinite loops
     SID_INSTR_BRK   = 1 << 13  // 6510 BRK, indications of a bad tune...
 };
 
@@ -62,9 +64,10 @@ enum
 // a zero value
 typedef struct sid_usage_t
 {
+    typedef uint_least16_t memflags_t;
     uint_least32_t flags; // Error flags
     // The next value may change to 16 bits
-    uint_least8_t  memory[0x10000]; // usage flags
+    memflags_t memory[0x10000]; // usage flags
 } sid_usage_t;
 
 #endif // _sidusage_h_
