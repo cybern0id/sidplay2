@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/10 18:57:00  s_a_white
+ *  Interface changes and fixes for bigendian machines.
+ *
  *  Revision 1.4  2001/11/16 19:33:27  s_a_white
  *  Removed old compatibility open.
  *
@@ -38,9 +41,9 @@
 #ifndef WAV_FILE_HEADER_H
 #define WAV_FILE_HEADER_H
 
-#include <iostream.h>
-#include <iomanip.h>
-#include <fstream.h>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 #include "../AudioBase.h"
 
 struct wavHeader                        // little endian format
@@ -73,7 +76,7 @@ private:
     static const wavHeader defaultWavHdr;
     wavHeader wavHdr;
 
-    fstream file;
+    std::fstream file;
     bool isOpen;         // whether file has been opened
     bool headerWritten;  // whether final header has been written
 

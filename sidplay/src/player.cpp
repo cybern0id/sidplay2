@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2004/02/12 05:58:03  s_a_white
+ *  Update argurements and help menu handling.
+ *
  *  Revision 1.29  2004/01/31 17:07:45  s_a_white
  *  Support of specifing max sids writes forming sid2crc and experimental
  *  TSID2 library support.
@@ -108,6 +111,11 @@
  *
  ***************************************************************************/
 
+#include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
+#include <iomanip>
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
@@ -580,8 +588,8 @@ bool ConsolePlayer::play ()
         if (m_crc)
         {
             const SidTuneInfo *tuneInfo = (m_engine.info ()).tuneInfo;
-            cout << setw(8) << setfill('0') << hex
-                 << (m_engine.info ()).sid2crc << " : " << dec
+            cout << std::setw(8) << std::setfill('0') << std::hex
+                 << (m_engine.info ()).sid2crc << " : " << std::dec
                  << m_filename << " - song " << tuneInfo->currentSong
                  << "/" << tuneInfo->songs << endl;
         }
@@ -625,9 +633,9 @@ void ConsolePlayer::event (void)
     uint_least32_t seconds = m_engine.time() / m_engine.timebase();
     if ( !m_quietLevel )
     {
-        cerr << "\b\b\b\b\b" << setw(2) << setfill('0')
-             << ((seconds / 60) % 100) << ':' << setw(2)
-             << setfill('0') << (seconds % 60) << flush;
+        cerr << "\b\b\b\b\b" << std::setw(2) << std::setfill('0')
+             << ((seconds / 60) % 100) << ':' << std::setw(2)
+             << std::setfill('0') << (seconds % 60) << std::flush;
     }
 
     if (seconds != m_timer.current)

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2004/02/12 05:58:03  s_a_white
+ *  Update argurements and help menu handling.
+ *
  *  Revision 1.14  2004/01/31 17:07:44  s_a_white
  *  Support of specifing max sids writes forming sid2crc and experimental
  *  TSID2 library support.
@@ -64,8 +67,10 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <iostream.h>
-//using std::endl;
+#include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
 #include "player.h"
 
 #if defined(HAVE_SGI)
@@ -492,7 +497,7 @@ int ConsolePlayer::args (int argc, const char *argv[])
 
 void ConsolePlayer::displayArgs (const char *arg)
 {
-    ostream &out = arg ? cerr : cout;
+    std::ostream &out = arg ? cerr : cout;
 
     if (arg)
         out << "Option Error: " << arg << endl;

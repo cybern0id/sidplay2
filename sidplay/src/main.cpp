@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2004/02/12 05:58:03  s_a_white
+ *  Update argurements and help menu handling.
+ *
  *  Revision 1.30  2003/06/27 21:09:37  s_a_white
  *  Constified some of the interfaces.
  *
@@ -113,6 +116,9 @@
  ***************************************************************************/
 
 #include <stdlib.h>
+#include <iostream>
+using std::cerr;
+using std::endl;
 #include <signal.h>
 #include "player.h"
 #include "keyboard.h"
