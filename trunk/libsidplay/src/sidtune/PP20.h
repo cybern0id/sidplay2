@@ -35,7 +35,7 @@ class PP20
 	// If successful, allocates a new buffer containing the
 	// uncompresse data and returns the uncompressed length.
 	// Else, returns 0.
-	const udword_ppt decompress(const void* source, 
+	udword_ppt decompress(const void* source, 
 								udword_ppt size,
 								ubyte_ppt** destRef);
 	

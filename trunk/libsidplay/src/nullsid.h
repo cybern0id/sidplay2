@@ -26,6 +26,7 @@ public:
     NullSID () : sidemu (NULL) {;}
 
     // Standard component functions
+    void    reset () { ; }
     void    reset (uint8_t) { ; }
     uint8_t read  (uint_least8_t) { return 0; }
     void    write (uint_least8_t, uint8_t) { ; }

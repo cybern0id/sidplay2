@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2002/07/17 19:18:17  s_a_white
+ *  Changed bad #if to #ifdef
+ *
  *  Revision 1.19  2002/02/21 20:26:13  s_a_white
  *  Nolonger default to Galway Mode when Noise samples init incorrectly. Fixes
  *  VARIOUS/S-Z/Zyron/Bouncy_Balls.sid (HVSC).
@@ -245,12 +248,15 @@ public:
     XSID (EventContext *context);
 
     // Standard calls
+    void    reset () { sidemu::reset (); }
     void    reset (uint8_t);
-    uint8_t read  (uint_least16_t) { return 0; }
-    void    write (uint_least16_t addr, uint8_t data);
+    uint8_t read  (uint_least8_t) { return 0; }
+    void    write (uint_least8_t, uint8_t) { ; }
     const   char *credits (void) {return credit;}
 
     // Specialist calls
+    uint8_t read     (uint_least16_t) { return 0; }
+    void    write    (uint_least16_t addr, uint8_t data);
     int_least32_t output (uint_least8_t bits = 16);
     void    mute     (bool enable);
     bool    isMuted  (void) { return muted; }
