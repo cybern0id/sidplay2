@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2002/11/27 00:16:51  s_a_white
+ *  Make sure driver info gets reset and exported properly.
+ *
  *  Revision 1.23  2002/11/25 21:09:42  s_a_white
  *  Reset address for old sidplay1 modes now directly passed to the CPU.  This
  *  prevents tune corruption and banking issues for the different modes.
@@ -208,10 +211,8 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
         addr += 2;
         endian_little16 (&m_ram[addr], playAddr);
         addr += 2;
-        // Below we limit the delay to something sensible.  The high
-        // byte is incremented by one because the C64 code always
-        // decrements before checking
-        info.rnddelay = ((uint_least16_t) (m_rand >> 3) & 0x0FFF) + 0x0100;
+        // Below we limit the delay to something sensible.
+        info.rnddelay = (uint_least16_t) (m_rand >> 3) & 0x0FFF;
         endian_little16 (&m_ram[addr], m_info.rnddelay);
         addr += 2;
         m_rand        = m_rand * 13 + 1;
