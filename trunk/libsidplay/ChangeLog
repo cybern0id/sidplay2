@@ -1,3 +1,67 @@
+Release Notes 2.0.6:
+
+This version mainly sees bug fixes and finally gets both the Linux and
+Windows versions to exactly the same code state.
+
+Bug Fixes:
+
+Tunes which didn't play.
+DirectX fixes.
+Timers fixed for both directx and mmsystem drivers and will therefore
+never cache ahead by more than 0.5 secs.  This still needs doing under
+Linux to prevent the timers getting 3 seconds ahead.
+And more...
+
+
+Added:
+
+Most of the other features of the expermental version now classed as 2.0.5
+apart from fastforward/rewind and filter redefinition.
+Ability to skip to the prev/next subtune using the '<' and '>' keys.
+And more...
+
+
+Features for next release:
+
+Ansi console support delayed till next release.
+Songlength database support delayed.
+Filter redefinition delayed.
+Fastforward/rewind, delayed indefinately untill feedback is provided
+on how good/bad it is (please any feedback at all!).
+Player configuration file.
+
+
+
+Release Notes 2.0.4-2:
+
+Bug fixes to sid mixer.
+Program termination now quicker from ^C.
+New xSID code included for testing.
+New man page added.
+Thanks to those concerened for finding/fixing the bugs in this release.
+
+To follow shortly:
+Again 2.0.5 will follow, with the last of the features from my unofficial
+experimental version (found on the sidplay2 ftp site).  Be warned that there
+are now bug fixes in the main version which the experimental one does not
+contain!
+
+From now on experimental versions will be released as patches on the
+main release versions in CVS until they are determined to be stable.
+
+
+
+Release Notes 2.0.4:
+
+Temporary release to try and bring code upto date.  A 2.0.5 will follow shortly
+to achieve all that implemented in  experimental release 2.0.4pre5 (This is available
+at ftp://sidplay2.sourceforge.net/pub/sidplay2)
+
+Lots of new options added, bug fixes for Solaris drivers, 16 bit support...  Other
+additions will fall into 2.0.5 once they have stabalised.
+
+
+
 CHANGES since 2.0.2:
 
 Added:
