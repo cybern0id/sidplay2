@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2004/04/23 00:58:22  s_a_white
+ *  Reload counter on starting timer, not stopping.
+ *
  *  Revision 1.21  2004/04/13 07:39:31  s_a_white
  *  Add lightpen support.
  *
@@ -197,8 +200,9 @@ uint8_t MOS6526::read (uint_least8_t addr)
 {
     event_clock_t cycles;
     if (addr > 0x0f) return 0;
+    bool ta_pulse = false, tb_pulse = false;
 
-    cycles       = event_context.getTime (m_accessClk, m_phase);
+    cycles       = event_context.getTime (m_accessClk, event_context.phase ());
     m_accessClk += cycles;
 
     // Sync up timers
@@ -206,13 +210,19 @@ uint8_t MOS6526::read (uint_least8_t addr)
     {
         ta -= cycles;
         if (!ta)
+        {
             ta_event ();
+            ta_pulse = true;
+        }
     }
     if ((crb & 0x61) == 0x01)
     {
         tb -= cycles;
         if (!tb)
+        {
             tb_event ();
+            tb_pulse = true;
+        }
     }
 
     switch (addr)
@@ -226,13 +236,13 @@ uint8_t MOS6526::read (uint_least8_t addr)
         if (cra & 0x02)
         {
             data &= 0xbf;
-            if (ta_underflow)
+            if (cra & 0x04 ? ta_underflow : ta_pulse)
                 data |= 0x40;
         }
         if (crb & 0x02)
         {
             data &= 0x7f;
-            if (tb_underflow)
+            if (crb & 0x04 ? tb_underflow : tb_pulse)
                 data |= 0x80;
         }
         return data;
@@ -279,7 +289,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     if (addr > 0x0f) return;
 
     regs[addr] = data;
-    cycles     = event_context.getTime (m_accessClk, m_phase);
+    cycles     = event_context.getTime (m_accessClk, event_context.phase ());
 
     if (cycles)
     {
@@ -290,18 +300,12 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
             ta -= cycles;
             if (!ta)
                 ta_event ();
-            // Pulse only lasts for 1 cycle
-            else if (cra & 0x04)
-                ta_underflow = false;
         }
         if ((crb & 0x61) == 0x01)
         {
             tb -= cycles;
             if (!tb)
                 tb_event ();
-            // Pulse only lasts for 1 cycle
-            else if (crb & 0x04)
-                tb_underflow = false;
         }
     }
 
@@ -374,9 +378,6 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         {
             ta = ta_latch;
             ta_underflow = true;
-            // Pulse mode
-            if ((data & 0x06) == 0x02)
-                ta_underflow = false;
         }
         cra = data;
 
@@ -403,11 +404,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         {
             tb = tb_latch;
             tb_underflow = true;
-            // Pulse mode
-            if ((data & 0x06) == 0x02)
-                tb_underflow = false;
         }
-
         // Check for forced load
         crb = data;
         if (data & 0x10)
