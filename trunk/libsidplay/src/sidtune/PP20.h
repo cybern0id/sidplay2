@@ -27,44 +27,44 @@
 class PP20
 {
  public:
-	
-	PP20();
+    
+    PP20();
 
-	bool isCompressed(const void* source, const udword_ppt size);
-	
-	// If successful, allocates a new buffer containing the
-	// uncompresse data and returns the uncompressed length.
-	// Else, returns 0.
-	udword_ppt decompress(const void* source, 
-								udword_ppt size,
-								ubyte_ppt** destRef);
-	
-	const char* getStatusString()  { return statusString; }
-	
+    bool isCompressed(const void* source, const udword_ppt size);
+    
+    // If successful, allocates a new buffer containing the
+    // uncompresse data and returns the uncompressed length.
+    // Else, returns 0.
+    udword_ppt decompress(const void* source, 
+                                udword_ppt size,
+                                ubyte_ppt** destRef);
+    
+    const char* getStatusString()  { return statusString; }
+    
  private:
-	bool checkEfficiency(const void* source);
-	
+    bool checkEfficiency(const void* source);
+    
     void bytesTOdword();
     udword_ppt readBits(int count);
     void bytes();
     void sequence();
 
-	static const char* PP_ID;
+    static const char* PP_ID;
 
-	ubyte_ppt efficiency[4];
-	
-	const ubyte_ppt* sourceBeg;
-	const ubyte_ppt* readPtr;
-	
-	const ubyte_ppt* destBeg;
-	ubyte_ppt* writePtr;
-	
-	udword_ppt current;			// compressed data longword
-	int bits;                   // number of bits in 'current' to evaluate
-	
-	bool globalError;           // exception-free version of code
+    ubyte_ppt efficiency[4];
+    
+    const ubyte_ppt* sourceBeg;
+    const ubyte_ppt* readPtr;
+    
+    const ubyte_ppt* destBeg;
+    ubyte_ppt* writePtr;
+    
+    udword_ppt current;            // compressed data longword
+    int bits;                   // number of bits in 'current' to evaluate
+    
+    bool globalError;           // exception-free version of code
 
-	const char* statusString;
+    const char* statusString;
 };
 
 #endif  /* PP_DECOMPRESSOR_H */
