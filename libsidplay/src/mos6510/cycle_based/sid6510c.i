@@ -1,5 +1,5 @@
 /***************************************************************************
-                          sid6510c.h  -  Sidplay Specific 6510 emulation
+                          sid6510c.i  -  Sidplay Specific 6510 emulation
                              -------------------
     begin                : Thu May 11 2000
     copyright            : (C) 2000 by Simon White
@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/01/28 19:32:16  s_a_white
+ *  PSID sample improvements.
+ *
  *  Revision 1.14  2001/10/02 18:00:37  s_a_white
  *  Removed un-necessary cli.
  *
@@ -69,13 +72,16 @@ SID6510::SID6510 (EventContext *context)
     // Prevent break from working correctly and locking the player
     // @FIXME@: Memory has not been released unused cycles
     // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-    cycleCount = 1;
+    instrTable[BRKn].cycle[1] = reinterpret_cast <void (MOS6510::*)()>
+                               (&SID6510::sid_brk);
+
+    cycleCount = 0;
 #ifdef MOS6510_DEBUG
-    instrTable[BRKn].cycle[cycleCount++] = &MOS6510::DebugCycle;
+    m_brkCycle[cycleCount++] = &MOS6510::DebugCycle;
 #endif
-    instrTable[BRKn].cycle[cycleCount++] = reinterpret_cast <void (MOS6510::*)()>
-        (&SID6510::sid_brk);
-    instrTable[BRKn].cycle[cycleCount++] = &MOS6510::FetchOpcode;
+    m_brkCycle[cycleCount++] = reinterpret_cast <void (MOS6510::*)()>
+                               (&SID6510::sid_brk1);
+    m_brkCycle[cycleCount++] = &MOS6510::FetchOpcode;
 
     // Ok start all the hacks for sidplay.  This prevents
     // execution of code in roms.  For real c64 emulation
@@ -139,7 +145,7 @@ void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
 
 void SID6510::reset ()
 {
-    sleeping = false;
+    m_sleeping = false;
     // Call inherited reset
     MOS6510::reset ();
 }
@@ -169,6 +175,20 @@ void SID6510::sid_suppressError (void)
 //**************************************************************************************
 void SID6510::sid_brk (void)
 {
+    if ( (m_mode == sid2_envR) &&
+         ((Register_StackPointer & 0xFF) != 0xFF) )
+    {
+        MOS6510::PushHighPC ();
+        return;
+    }
+    // Execute modified sidplay1 & 2 brk
+    procCycle  = m_brkCycle;
+    cycleCount = 0;
+    MOS6510::clock ();
+}
+
+void SID6510::sid_brk1 (void)
+{
     sei_instr ();
 #if !defined(NO_RTS_UPON_BRK)
     sid_rts ();
@@ -176,10 +196,10 @@ void SID6510::sid_brk (void)
 
     // Sid tunes end by wrapping the stack.  For compatibilty it
     // has to be handled.
-    sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
-    sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+    m_sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
+    m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
 
-    if (!sleeping)
+    if (!m_sleeping)
         return;
 
     // The CPU is about to sleep.  It can only be woken by a
@@ -189,11 +209,20 @@ void SID6510::sid_brk (void)
 
     // When we return from interrupt we will do a break
     // which will sleep the CPU.
+    {
+        uint8_t prg[] = {BRKn, TXSn, 0xFF, LDXb};
+        for (int i = 0; i < sizeof (prg); i++)
+        {
+            Register_Accumulator = prg[i];
+            pha_instr ();
+        }
+    }
     Register_ProgramCounter = Register_StackPointer;
-    Register_Accumulator    = BRKn;
-    pha_instr ();
-    if (m_mode != sid2_envR)
-        Register_ProgramCounter--; // Using RTS not RTI
+    if (m_mode == sid2_envR)
+    {   // Remove spare byte which will then be
+        // replaced by SR.
+        Register_ProgramCounter++;
+    }
 
     // Check for outstanding interrupts
     interrupts.delay = 0;
@@ -207,7 +236,7 @@ void SID6510::sid_brk (void)
         else
         {
             MOS6510::clock ();
-            sleeping = false;
+            m_sleeping = false;
         }
     }
 }
@@ -256,15 +285,15 @@ void SID6510::sid_rti (void)
 
 
 //**************************************************************************************
-// Sidplay compatibility interrupts.  Basically wakes CPU if it is sleeping
+// Sidplay compatibility interrupts.  Basically wakes CPU if it is m_sleeping
 //**************************************************************************************
 void SID6510::triggerRST (void)
 {   // All modes
     MOS6510::triggerRST ();
-    if (sleeping)
+    if (m_sleeping)
     {
         MOS6510::clock ();
-        sleeping = false;
+        m_sleeping = false;
     }
 }
 
@@ -273,10 +302,10 @@ void SID6510::triggerNMI (void)
     if (m_mode == sid2_envR)
     {
         MOS6510::triggerNMI ();
-        if (sleeping)
+        if (m_sleeping)
         {
             MOS6510::clock ();
-            sleeping = false;
+            m_sleeping = false;
         }
     }
 }
@@ -291,14 +320,14 @@ void SID6510::triggerIRQ (void)
         // Deliberate run on
     case sid2_envR:
         MOS6510::triggerIRQ ();
-        if (sleeping)
+        if (m_sleeping)
         {
             MOS6510::clock ();
             // Can't support overlapped IRQs in older
             // environment modes and RTIs are RTSs.
             if (m_mode != sid2_envR)
                 clearIRQ ();
-            sleeping = false;
+            m_sleeping = false;
         }
     }
 }

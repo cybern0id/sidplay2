@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/09/01 11:08:06  s_a_white
+ *  Fixes for sidplay1 environment modes.
+ *
  *  Revision 1.8  2001/07/14 13:18:15  s_a_white
  *  Stack & PC invalid tests now only performed on a BRK.
  *
@@ -52,8 +55,9 @@ class SID6510: public MOS6510
 {
 private:
     // Sidplay Specials
-    bool       sleeping;
+    bool       m_sleeping;
     sid2_env_t m_mode;
+    void      (MOS6510::*m_brkCycle[3]) (void);
 
 public:
     SID6510 (EventContext *context);
@@ -72,18 +76,19 @@ private:
     inline void sid_FetchEffAddrDataByte (void);
     inline void sid_suppressError        (void);
 
-    inline void sid_brk (void);
-    inline void sid_jmp (void);
-    inline void sid_rts (void);
-    inline void sid_cli (void);
-    inline void sid_rti (void);
+    inline void sid_brk  (void);
+    inline void sid_brk1 (void);
+    inline void sid_jmp  (void);
+    inline void sid_rts  (void);
+    inline void sid_cli  (void);
+    inline void sid_rti  (void);
 };
 
 
 inline void SID6510::clock (void)
 {
     // Allow the cpu to idle for sidplay compatibility
-    if (sleeping)
+    if (m_sleeping)
         return;
 
     // Call inherited clock
