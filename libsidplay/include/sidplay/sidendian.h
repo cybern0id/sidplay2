@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/05/07 16:27:24  s_a_white
+ *  Fix optimisation issues with gcc 2.96.
+ *
  *  Revision 1.3  2001/03/25 19:46:12  s_a_white
  *  _endian_h_ changed to _sidendian_h_.
  *
@@ -155,6 +158,11 @@ inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
     ptr[1] = endian_16hi8 (word);
 #   endif
 #endif
+}
+
+inline void endian_16 (char ptr[2], uint_least16_t word)
+{
+	endian_16 ((uint8_t *) ptr, word);
 }
 
 // Convert high-byte and low-byte to 16-bit little endian word.
