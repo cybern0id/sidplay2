@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/07/03 17:47:56  s_a_white
+ *  Added A_NONE.
+ *
  *  Revision 1.1  2001/01/08 16:41:42  s_a_white
  *  App and Library Seperation
  *
@@ -80,6 +83,8 @@ static char keytable[] =
     // General Keys
     '6',0,                  A_RIGHT_ARROW,
     '4',0,                  A_LEFT_ARROW,
+    '8',0,                  A_UP_ARROW,
+    '2',0,                  A_DOWN_ARROW,
     '7',0,                  A_HOME,
     '1',0,                  A_END,
     'p',0,                  A_PAUSED,
