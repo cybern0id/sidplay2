@@ -15,6 +15,6 @@
 #define HAVE_STRSTREA_H
 
 /* Define if ``ios::nocreate'' is supported. */
-#define HAVE_IOS_NOCREATE
+//#define HAVE_IOS_NOCREATE
 
 #endif // _config_h_

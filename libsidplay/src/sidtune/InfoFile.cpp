@@ -23,14 +23,9 @@
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
-#include <fstream.h>
-#include <iostream.h>
-#include <iomanip.h>
-#if defined(HAVE_STRSTREA_H)
-#   include <strstrea.h>
-#else
-#   include <strstream.h>
-#endif
+#include <iostream>
+#include <iomanip>
+#include <strstream>
 #include <ctype.h>
 #include <string.h>
 
@@ -141,9 +136,9 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 				restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuffer);
 			}
 			// Create whitespace eating (!) input string stream.
-			istrstream parseStream((char *) pParseBuf, restLen );
+			std::istrstream parseStream((char *) pParseBuf, restLen );
 			// A second one just for copying.
-			istrstream parseCopyStream((char *) pParseBuf, restLen );
+			std::istrstream parseCopyStream((char *) pParseBuf, restLen );
 			if ( !parseStream || !parseCopyStream )
 			{
 				break;
@@ -291,13 +286,15 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 }
 
 
-bool SidTune::SID_fileSupportSave( ofstream& toFile )
+bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
 {
-	toFile << keyword_id << endl
-		<< keyword_address << hex << setw(4) << setfill('0') << 0 << ','
-		<< hex << setw(4) << info.initAddr << ","
-		<< hex << setw(4) << info.playAddr << endl
-		<< keyword_songs << dec << (int)info.songs << "," << (int)info.startSong << endl;
+    toFile << keyword_id << std::endl
+        << keyword_address << std::hex << std::setw(4)
+        << std::setfill('0') << 0 << ','
+        << std::hex << std::setw(4) << info.initAddr << ","
+		<< std::hex << std::setw(4) << info.playAddr << std::endl
+		<< keyword_songs << std::dec << (int)info.songs << ","
+        << (int)info.startSong << std::endl;
 
 	uint_least32_t oldStyleSpeed = 0;
 	int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
@@ -310,20 +307,21 @@ bool SidTune::SID_fileSupportSave( ofstream& toFile )
 	}
 
 	toFile
-		<< keyword_speed << hex << setw(8) << oldStyleSpeed << endl
-		<< keyword_name << info.infoString[0] << endl
-		<< keyword_author << info.infoString[1] << endl
-		<< keyword_copyright << info.infoString[2] << endl;
+		<< keyword_speed << std::hex << std::setw(8)
+        << oldStyleSpeed << std::endl
+		<< keyword_name << info.infoString[0] << std::endl
+		<< keyword_author << info.infoString[1] << std::endl
+		<< keyword_copyright << info.infoString[2] << std::endl;
 	if ( info.musPlayer )
 	{
-		toFile << keyword_musPlayer << endl;
+		toFile << keyword_musPlayer << std::endl;
 	}
     if ( info.relocStartPage )
     {
         toFile
-            << keyword_reloc << setfill('0')
-            << hex << setw(2) << (int) info.relocStartPage << ","
-            << hex << setw(2) << (int) info.relocPages << endl;
+            << keyword_reloc << std::setfill('0')
+            << std::hex << std::setw(2) << (int) info.relocStartPage << ","
+            << std::hex << std::setw(2) << (int) info.relocPages << std::endl;
     }
     if ( info.clockSpeed != SIDTUNE_CLOCK_UNKNOWN )
     {
@@ -340,7 +338,7 @@ bool SidTune::SID_fileSupportSave( ofstream& toFile )
             toFile << "ANY";
             break;
         }
-        toFile << endl;
+        toFile << std::endl;
     }
     if ( info.sidModel != SIDTUNE_SIDMODEL_UNKNOWN )
     {
@@ -357,11 +355,11 @@ bool SidTune::SID_fileSupportSave( ofstream& toFile )
             toFile << "ANY";
             break;
         }
-        toFile << endl;
+        toFile << std::endl;
     }
 	if ( info.psidSpecific )
 	{
-		toFile << keyword_compatibility << endl;
+		toFile << keyword_compatibility << std::endl;
 	}
 
     if ( !toFile )
