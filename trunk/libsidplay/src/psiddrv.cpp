@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/09/12 21:01:32  s_a_white
+ *  Added support for simulating the random delay before the user loads a
+ *  program on a real C64.
+ *
  *  Revision 1.17  2002/09/09 18:01:30  s_a_white
  *  Prevent m_info driver details getting modified when C64 crashes.
  *
@@ -110,13 +114,6 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         // relocation mode
         int startrp = tuneInfo.relocStartPage;
         int endrp   = startrp + (tuneInfo.relocPages - 1);
-        // Limit check end page to make sure it's legal
-        if (endrp > PSIDDRV_MAX_PAGE)
-        {
-            endrp = PSIDDRV_MAX_PAGE;
-            tuneInfo.relocPages = endrp - startrp + 1;
-        }
-
         if ((startrp <= startlp) && (endrp >= endlp))
         {   // New relocation implementation (exclude region)
             // to complement existing method rejected as being
@@ -241,7 +238,10 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         // decrements before checking
         endian_little16 (&m_ram[addr], ((uint_least16_t) (m_rand >> 3)
                          & 0x0FFF) + 0x0100);
-        m_rand = m_rand * 13 + 1;
+        addr += 2;
+        m_rand        = m_rand * 13 + 1;
+        m_ram[addr++] = iomap (m_tuneInfo.initAddr);
+        m_ram[addr++] = iomap (m_tuneInfo.playAddr);
     }
     return 0;
 }

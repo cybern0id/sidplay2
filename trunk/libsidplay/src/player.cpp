@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.46  2002/09/17 17:02:41  s_a_white
+ *  Fixed location of kernel IRQ exit code.
+ *
  *  Revision 1.45  2002/09/12 21:01:30  s_a_white
  *  Added support for simulating the random delay before the user loads a
  *  program on a real C64.
@@ -195,7 +198,6 @@ const char  *Player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported s
 const char  *Player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
 const char  *Player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 const char  *Player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
-const char  *Player::ERR_PSID_SPECIFIC_FLAG    = "SIDPLAYER ERROR: Real C64 tune has PSID specific flag set.";
 
 const char  *Player::credit[];
 
@@ -426,29 +428,24 @@ void Player::stop (void)
 //-------------------------------------------------------------------------
 // Temporary hack till real bank switching code added
 
-/*
 //  Input: A 16-bit effective address
 // Output: A default bank-select value for $01.
-void Player::initBankSelect (uint_least16_t addr)
+uint8_t Player::iomap (uint_least16_t addr)
 {
-    uint8_t data;
-    if (_environment == sid2_envPS)
-        data = 4;  // RAM only, but special I/O mode
-    else
-    {
-        if (addr < 0xa000)
-            data = 7;  // Basic-ROM, Kernal-ROM, I/O
-        else if (addr  < 0xd000)
-            data = 6;  // Kernal-ROM, I/O
-        else if (addr >= 0xe000)
-            data = 5;  // I/O only
-        else
-            data = 4;  // RAM only
-    }
+    if (m_info.environment != sid2_envPS)
+    {   // Force Real C64 Compatibility
+        if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_R64)
+            return 0x37;
 
-    evalBankSelect (data);
+        if (addr < 0xa000)
+            return 0x37;  // Basic-ROM, Kernal-ROM, I/O
+        else if (addr  < 0xd000)
+            return 0x36;  // Kernal-ROM, I/O
+        else if (addr >= 0xe000)
+            return 0x35;  // I/O only
+    }
+    return 0x34;  // RAM only (special I/O in PlaySID mode)
 }
-*/
 
 void Player::evalBankSelect (uint8_t data)
 {   // Determine new memory configuration.
@@ -700,8 +697,6 @@ void Player::reset (void)
     // Select Sidplay1 compatible CPU or real thing
     cpu = &sid6510;
     sid6510.environment (m_info.environment);
-    if (m_tuneInfo.playAddr == 0xffff)
-        cpu = &mos6510;
 
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)

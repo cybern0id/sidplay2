@@ -26,14 +26,6 @@
 
 #include <fstream>
 
-// Temporary old fixes till
-// namespace code added
-#define TuneInfo SidTuneInfo
-#define Tune     SidTune
-
-/*
-SIDPLAY2_NAMESPACE_START
-*/
 
 const uint_least16_t SIDTUNE_MAX_SONGS = 256;
 // Also PSID file format limit.
@@ -59,13 +51,18 @@ const int SIDTUNE_SIDMODEL_6581    = 0x01; // These are also used in the
 const int SIDTUNE_SIDMODEL_8580    = 0x02; // emulator engine!
 const int SIDTUNE_SIDMODEL_ANY     = (SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580);
 
+const int SIDTUNE_COMPATIBILITY_C64  = 0x00; // File is C64 compatible
+const int SIDTUNE_COMPATIBILITY_PSID = 0x01; // File is PSID specific
+const int SIDTUNE_COMPATIBILITY_R64  = 0x02; // File is Real C64 only
+
+
 // Required to export template
 #ifndef _SidTune_cpp_
 extern
 #endif
 template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
 
-struct TuneInfo
+struct SidTuneInfo
 {
     // An instance of this structure is used to transport values to
     // and from SidTune objects.
@@ -109,7 +106,7 @@ struct TuneInfo
     uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
     int  sidModel;                 // Sid Model required for this sid
-    bool psidSpecific;             // PlaySID specific extensions (samples, random, etc)
+    int  compatibility;            // compatibility requirements
     bool fixLoad;                  // whether load address might be duplicate
     uint_least16_t songLength;     // --- not yet supported ---
     //
@@ -131,7 +128,7 @@ struct TuneInfo
 };
 
 
-class SID_EXTERN Tune
+class SID_EXTERN SidTune
 {
     
  public:  // ----------------------------------------------------------------
@@ -155,14 +152,14 @@ class SID_EXTERN Tune
     // See ``sidtune.cpp'' for the default list of file name extensions.
     // You can specific ``sidTuneFileName = 0'', if you do not want to
     // load a sidtune. You can later load one with open().
-    Tune(const char* fileName, const char **fileNameExt = 0,
-         const bool separatorIsSlash = false);
+    SidTune(const char* fileName, const char **fileNameExt = 0,
+            const bool separatorIsSlash = false);
 
     // Load a single-file sidtune from a memory buffer.
     // Currently supported: PSID format
-    Tune(const uint_least8_t* oneFileFormatSidtune, const uint_least32_t sidtuneLength);
+    SidTune(const uint_least8_t* oneFileFormatSidtune, const uint_least32_t sidtuneLength);
 
-    virtual ~Tune();
+    virtual ~SidTune();
 
     // The sidTune class does not copy the list of file name extensions,
     // so make sure you keep it. If the provided pointer is 0, the
@@ -179,7 +176,7 @@ class SID_EXTERN Tune
 
     // Select sub-song (0 = default starting song)
     // and retrieve active song information.
-    const TuneInfo& operator[](const uint_least16_t songNum);
+    const SidTuneInfo& operator[](const uint_least16_t songNum);
 
     // Select sub-song (0 = default starting song)
     // and return active song number out of [1,2,..,SIDTUNE_MAX_SONGS].
@@ -187,11 +184,11 @@ class SID_EXTERN Tune
     
     // Retrieve sub-song specific information.
     // Beware! Still member-wise copy!
-    const TuneInfo& getInfo();
+    const SidTuneInfo& getInfo();
     
     // Get a copy of sub-song specific information.
     // Beware! Still member-wise copy!
-    void getInfo(TuneInfo&);
+    void getInfo(SidTuneInfo&);
 
     // Determine current state of object (true = okay, false = error).
     // Upon error condition use ``getInfo'' to get a descriptive
@@ -244,7 +241,7 @@ class SID_EXTERN Tune
     
  protected:  // -------------------------------------------------------------
 
-    TuneInfo info;
+    SidTuneInfo info;
     bool status;
 
     uint_least8_t songSpeed[SIDTUNE_MAX_SONGS];
@@ -273,6 +270,9 @@ class SID_EXTERN Tune
     // Convert 32-bit PSID-style speed word to internal tables.
     void convertOldStyleSpeedToTables(uint_least32_t speed,
          int clock = SIDTUNE_CLOCK_PAL);
+
+    // Check SidTuneInfo fields for all real c64 only formats
+    bool checkRealC64Info(uint_least32_t speed);
 
     // Support for various file formats.
 
@@ -336,14 +336,8 @@ class SID_EXTERN Tune
                            const char* sourceName, const char* sourceExt);
 
  private:    // prevent copying
-    Tune(const Tune&);
-    Tune& operator=(Tune&);
+    SidTune(const SidTune&);
+    SidTune& operator=(SidTune&);
 };
-
-/*
-SIDPLAY2_NAMESPACE_STOP
-typedef SID2::TuneInfo SidTuneInfo;
-typedef SID2::Tune     SidTune;
-*/
 
 #endif  /* SIDTUNE_H */
