@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/09/23 21:49:58  s_a_white
+ *  Display error message on engine configuration failure.
+ *
  *  Revision 1.7  2002/04/18 22:57:28  s_a_white
  *  Fixed use of track looping/single when creating audio files.
  *
@@ -306,6 +309,11 @@ bool ConsolePlayer::args (int argc, char *argv[])
                 m_driver.output = OUT_NULL;
             }
 #endif // HAVE_HARDSID_BUILDER
+            // For debug
+            else if (strncmp (&argv[i][1], "-none", 5) == 0)
+            {
+                m_driver.sid = EMU_NONE;
+            }
 
             else
             {
