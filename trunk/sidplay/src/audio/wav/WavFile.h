@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:54:05  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -92,6 +95,7 @@ public:
     void *write() { return write (bufSize); }
     
     void close();
+    void pause () {;}
     ~WavFile() { close(); }
     
     // Have to be defined to use base audio class
