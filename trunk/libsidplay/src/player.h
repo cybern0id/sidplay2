@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2001/10/18 22:34:04  s_a_white
+ *  GCC3 fixes.
+ *
  *  Revision 1.21  2001/10/02 18:26:36  s_a_white
  *  Removed ReSID support and updated for new scheduler.
  *
@@ -100,6 +103,8 @@
 #include "mos6510/mos6510.h"
 #include "sid6526/sid6526.h"
 #include "nullsid.h"
+
+SIDPLAY2_NAMESPACE_START
 
 class Player: private C64Environment, c64env
 {
@@ -351,5 +356,7 @@ inline void Player::interruptRST ()
 {
     stop ();
 }
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _player_h_

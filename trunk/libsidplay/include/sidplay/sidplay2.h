@@ -22,8 +22,8 @@
 #include "SidTune.h"
 #include "sidbuilder.h"
 
-#ifndef _sidplay2_defaults_
-#define _sidplay2_defaults_
+#ifndef SIDPLAY2_DEFAULTS
+#define SIDPLAY2_DEFAULTS
     // Default settings
     const uint_least32_t SID2_DEFAULT_SAMPLING_FREQ = 44100;
     const uint_least8_t  SID2_DEFAULT_PRECISION     = 16;
@@ -32,14 +32,18 @@
     // Maximum values
     const uint_least8_t  SID2_MAX_PRECISION    = 16;
     const uint_least8_t  SID2_MAX_OPTIMISATION = 2;
-#endif // _sidplay2_defaults_
+#endif // SIDPLAY2_DEFAULTS
 
 // Private Sidplayer
-class Player;
+namespace SIDPLAY2_NAMESPACE
+{
+    class Player;
+}
+
 class SID_EXTERN sidplay2
 {
 private:
-    Player &sidplayer;
+    SIDPLAY2_NAMESPACE::Player &sidplayer;
 
 public:
     sidplay2 ();

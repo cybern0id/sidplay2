@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/11/16 19:23:18  s_a_white
+ *  Fixed sign of buf for reloc65 call.
+ *
  *  Revision 1.5  2001/10/28 21:28:35  s_a_white
  *  For none real mode if play != 0 we now always jump to irqjob instead of
  *  playAddr.
@@ -41,6 +44,8 @@
 // --------------------------------------------------------
 #include "sidendian.h"
 #include "player.h"
+
+SIDPLAY2_NAMESPACE_START
 
 const char *Player::ERR_PSIDDRV_NO_SPACE = "ERROR: No space to install psid driver in C64 ram"; 
 const char *Player::ERR_PSIDDRV_RELOC    = "ERROR: Failed whilst relocating psid driver";
@@ -178,3 +183,5 @@ void Player::psidRelocAddr ()
     if (m_tuneInfo.relocPages    == 0x00)
         m_tuneInfo.relocStartPage = 0xff;
 }
+
+SIDPLAY2_NAMESPACE_STOP

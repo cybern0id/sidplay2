@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/12/11 19:24:15  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.10  2001/11/23 22:59:59  s_a_white
  *  Added new header
  *
@@ -53,6 +56,8 @@
 #ifdef HAVE_EXCEPTIONS
 #   include <new.h>
 #endif
+
+SIDPLAY2_NAMESPACE_START
 
 // An instance of this structure is used to transport emulator settings
 // to and from the interface class.
@@ -451,3 +456,5 @@ void Player::sidSamples (bool enable)
         xsid.gain (-75);
     }
 }
+
+SIDPLAY2_NAMESPACE_STOP

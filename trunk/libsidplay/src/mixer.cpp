@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/11/16 19:25:33  s_a_white
+ *  Removed m_context as where getting mixed with parent class.
+ *
  *  Revision 1.7  2001/10/02 18:29:32  s_a_white
  *  Corrected fixed point maths overflow caused by fastforwarding.
  *
@@ -41,6 +44,8 @@
 #include "sidendian.h"
 
 const int_least32_t VOLUME_MAX = 255;
+
+SIDPLAY2_NAMESPACE_START
 
 void Player::mixerReset (void)
 {   // Fixed point 16.16
@@ -164,3 +169,5 @@ uint_least32_t Player::stereoOut16StereoIn (char *buffer)
                (uint_least16_t) monoOutGenericRightIn (16));
     return (2 * sizeof (uint_least16_t));
 }
+
+SIDPLAY2_NAMESPACE_STOP

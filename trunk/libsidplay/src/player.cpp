@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2001/11/16 19:25:33  s_a_white
+ *  Removed m_context as where getting mixed with parent class.
+ *
  *  Revision 1.31  2001/10/18 22:33:40  s_a_white
  *  Initialisation order fixes.
  *
@@ -123,6 +126,8 @@
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
+
+SIDPLAY2_NAMESPACE_START
 
 const double Player::CLOCK_FREQ_NTSC = 1022727.14;
 const double Player::CLOCK_FREQ_PAL  = 985248.4;
@@ -766,3 +771,5 @@ bool Player::envCheckBankJump (uint_least16_t addr)
 
     return true;
 }
+
+SIDPLAY2_NAMESPACE_STOP
