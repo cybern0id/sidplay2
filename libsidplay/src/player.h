@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2002/11/27 00:16:51  s_a_white
+ *  Make sure driver info gets reset and exported properly.
+ *
  *  Revision 1.37  2002/11/20 21:44:34  s_a_white
  *  Initial support for external DMA to steal cycles away from the CPU.
  *
@@ -392,9 +395,12 @@ public:
 };
 
 inline void Player::envSleep (void)
-{   // Start the sample sequence
-    xsid.suppress (false);
-    xsid.suppress (true);
+{
+    if (m_info.environment != sid2_envR)
+    {   // Start the sample sequence
+        xsid.suppress (false);
+        xsid.suppress (true);
+    }
 }
 
 inline void Player::interruptIRQ (bool state)
