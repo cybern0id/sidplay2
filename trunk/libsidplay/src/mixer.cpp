@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/03/01 23:46:37  s_a_white
+ *  Support for sample mode to be selected at runtime.
+ *
  *  Revision 1.2  2000/12/12 22:50:15  s_a_white
  *  Bug Fix #122033.
  *
@@ -26,234 +29,130 @@
 
 const int_least32_t VOLUME_MAX = 255;
 
+void Player::mixerReset (void)
+{
+    event_clock_t cycles;
+    m_sampleClock  = m_samplePeriod;
+    cycles = (event_clock_t) m_sampleClock;
+    m_sampleClock -= (event_clock_t) cycles;
+
+    // Schedule next sample event
+    eventContext.schedule (&mixerEvent, cycles);
+}
+
+void Player::mixer (void)
+{
+    event_clock_t cycles;
+    char   *buf    = m_sampleBuffer + m_sampleIndex;
+    m_sampleClock += m_samplePeriod;
+    cycles = (event_clock_t) m_sampleClock;
+    m_sampleClock -= (event_clock_t) cycles;
+    m_sampleIndex += (this->*output) (buf);
+
+    // Schedule next sample event
+    eventContext.schedule (&mixerEvent, cycles);
+
+    // Filled buffer
+    if (m_sampleIndex >= m_sampleCount)
+        m_running = false;
+}
+
+
 //-------------------------------------------------------------------------
 // Generic sound output generation routines
 //-------------------------------------------------------------------------
-//inline
-int_least32_t player::monoOutGenericMonoIn (uint_least16_t clock, uint_least32_t &count, uint_least8_t bits)
+inline
+int_least32_t Player::monoOutGenericLeftIn (uint_least8_t bits)
 {
-    int_least32_t sample;
-    count++;
-
-    if (_optimiseLevel)
-    {
-        xsid.clock (clock);
-        sid.clock  (clock);
-    }
-    sample = sid.output (bits);
-
-    if (_digiChannel)
-    {
-        sample *= 3;
-        sample += xsid.output (bits);
-        sample /= 4;
-    }
-
-    // Apply volume
-    sample *= _leftVolume;
-    sample /= VOLUME_MAX;
-    return sample;
+    return sid->output (bits) * _leftVolume / VOLUME_MAX;
 }
 
-//inline
-int_least32_t player::monoOutGenericStereoIn (uint_least16_t clock, uint_least32_t &count, uint_least8_t bits)
+inline
+int_least32_t Player::monoOutGenericStereoIn (uint_least8_t bits)
 {
-    int_least32_t sampleL, sampleR;
-    count++;
-
-    if (_optimiseLevel)
-    {
-        xsid.clock (clock);
-        sid.clock  (clock);
-        sid2.clock (clock);
-    }
-    sampleL = sid.output  (bits);
-    sampleR = sid2.output (bits);
-
-    if (_digiChannel)
-    {
-        int_least32_t sampleX;
-        sampleL *= 3;
-        sampleR *= 3;
-        sampleX  = xsid.output (bits);
-        sampleL  = (sampleL + sampleX) / 4;
-        sampleR  = (sampleR + sampleX) / 4;
-    }
-
-    // Apply volume
-    sampleL *= _leftVolume;
-    sampleL /= VOLUME_MAX;
-    sampleR *= _rightVolume;
-    sampleR /= VOLUME_MAX;
     // Convert to mono
-    return (sampleL + sampleR) / 2;
+    return ((sid->output  (bits) * _leftVolume) +
+        (sid2->output (bits) * _rightVolume)) / (VOLUME_MAX * 2);
 }
 
-//inline
-int_least32_t player::monoOutGenericStereoRIn (uint_least16_t clock, uint_least32_t &count, uint_least8_t bits)
+inline
+int_least32_t Player::monoOutGenericRightIn (uint_least8_t bits)
 {
-    int_least32_t sample;
-    count++;
-    
-    if (_optimiseLevel)
-    {
-        xsid.clock (clock);
-        sid2.clock (clock);
-    }
-    sample  = sid2.output (bits);
-
-    if (_digiChannel)
-    {
-        sample *= 3;
-        sample += xsid.output (bits);
-        sample /= 4;
-    }
-
-    // Apply volume
-    sample *= _rightVolume;
-    sample /= VOLUME_MAX;
-    return sample;
+    return sid2->output (bits) * _rightVolume / VOLUME_MAX;
 }
 
-//inline
-int_least32_t player::stereoOutGenericMonoIn (uint_least16_t clock, uint_least32_t &count, uint_least8_t bits)
-{
-    int_least32_t sample;
-    count += 2;
-
-    if (_optimiseLevel)
-    {
-        xsid.clock (clock);
-        sid.clock  (clock);
-    }
-    sample  = sid.output (bits);
-
-    if (_digiChannel)
-    {
-        sample *= 3;
-        sample += xsid.output (bits);
-        sample /= 4;
-    }
-
-    // Apply volume
-    sample *= _leftVolume;
-    sample /= VOLUME_MAX;
-    return sample;
-}
-
-//inline
-int_least32_t player::stereoOutGenericStereoIn (uint_least16_t clock, uint_least32_t &count, uint_least8_t bits,
-                                                int_least32_t &sampleR)
-{
-    int_least32_t sampleL;
-    count += 2;
-
-    if (_optimiseLevel)
-    {
-        xsid.clock (clock);
-        sid.clock  (clock);
-        sid2.clock (clock);
-    }
-    sampleL = sid.output  (bits);
-    sampleR = sid2.output (bits);
-
-    if (_digiChannel)
-    {
-        int_least32_t sampleX;
-        sampleL *= 3;
-        sampleR *= 3;
-        sampleX  = xsid.output (bits);
-        sampleL /= 4;
-        sampleR  = (sampleR + sampleX) / 4;
-    }
-
-    // Apply volume
-    sampleL *= _leftVolume;
-    sampleL /= VOLUME_MAX;
-    sampleR *= _rightVolume;
-    sampleR /= VOLUME_MAX;
-    return sampleL;  // sampleR is reference
-}
 
 //-------------------------------------------------------------------------
 // 8 bit sound output generation routines
 //-------------------------------------------------------------------------
-void player::monoOut8MonoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut8MonoIn (char *buffer)
 {
-    int_least8_t *buf   = (int_least8_t *) buffer + count;
-    int_least8_t sample = (int_least8_t) monoOutGenericMonoIn (clock, count, 8);
-    *buf = sample ^ '\x80';
+    *buffer = (char) monoOutGenericLeftIn (8) ^ '\x80';
+    return sizeof (char);
 }
 
-void player::monoOut8StereoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut8StereoIn (char *buffer)
 {
-    int_least8_t *buf   = (int_least8_t *) buffer + count;
-    int_least8_t sample = (int_least8_t) monoOutGenericStereoIn (clock, count, 8);
-    *buf = sample ^ '\x80';
+    *buffer = (char) monoOutGenericStereoIn (8) ^ '\x80';
+    return sizeof (char);
 }
 
-void player::monoOut8StereoRIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut8StereoRIn (char *buffer)
 {
-    int_least8_t *buf   = (int_least8_t *) buffer + count;
-    int_least8_t sample = (int_least8_t) monoOutGenericStereoRIn (clock, count, 8);
-    *buf = sample ^ '\x80';
+    *buffer = (char) monoOutGenericRightIn (8) ^ '\x80';
+    return sizeof (char);
 }
 
-void player::stereoOut8MonoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::stereoOut8MonoIn (char *buffer)
 {
-    int_least8_t *buf   = (int_least8_t *) buffer + count;
-    int_least8_t sample = (int_least8_t) stereoOutGenericMonoIn (clock, count, 8);
-    sample ^= '\x80';
-    *buf++  = sample; 
-    *buf    = sample; 
+    char sample = (char) monoOutGenericLeftIn (8) ^ '\x80';
+    buffer[0] = sample; 
+    buffer[1] = sample; 
+    return (2 * sizeof (char));
 }
 
-void player::stereoOut8StereoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::stereoOut8StereoIn (char *buffer)
 {
-    int_least32_t sampleR; // Need to get direct. Only sampleL is returned.
-    int_least8_t *buf     = (int_least8_t *) buffer + count;
-    int_least8_t  sampleL = (int_least8_t) stereoOutGenericStereoIn (clock, count, 8, sampleR);
-    *buf++ = sampleL ^ '\x80';
-    *buf   = (int_least8_t) sampleR ^ '\x80';
+    buffer[0] = (char) monoOutGenericLeftIn  (8) ^ '\x80';
+    buffer[1] = (char) monoOutGenericRightIn (8) ^ '\x80';
+    return (2 * sizeof (char));
 }
 
 //-------------------------------------------------------------------------
 // 16 bit sound output generation routines
 //-------------------------------------------------------------------------
-void player::monoOut16MonoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut16MonoIn (char *buffer)
 {
-    uint_least8_t *buf    = (uint_least8_t *) buffer + (count << 1);
-    endian_16 (buf, (uint_least16_t) monoOutGenericMonoIn (clock, count, 16));
+    endian_16 (buffer, (uint_least16_t) monoOutGenericLeftIn (16));
+    return sizeof (uint_least16_t);
 }
 
-void player::monoOut16StereoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut16StereoIn (char *buffer)
 {
-    uint_least8_t *buf    = (uint_least8_t *) buffer + (count << 1);
-    endian_16 (buf, (uint_least16_t) monoOutGenericStereoIn (clock, count, 16));
+    endian_16 (buffer, (uint_least16_t) monoOutGenericStereoIn (16));
+    return sizeof (uint_least16_t);
 }
 
-void player::monoOut16StereoRIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::monoOut16StereoRIn (char *buffer)
 {
-    uint_least8_t *buf    = (uint_least8_t *) buffer + (count << 1);
-    endian_16 (buf, (uint_least16_t) monoOutGenericStereoRIn (clock, count, 16));
+    endian_16 (buffer, (uint_least16_t) monoOutGenericRightIn (16));
+    return sizeof (uint_least16_t);
 }
 
-void player::stereoOut16MonoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::stereoOut16MonoIn (char *buffer)
 {
-    uint_least8_t *buf    = (uint_least8_t *) buffer + (count << 1);
-    uint_least16_t sample = (uint_least16_t)  stereoOutGenericMonoIn (clock, count, 16);
-    endian_16 (buf, sample);
-    buf += 2;
-    endian_16 (buf, sample);
+    uint_least16_t sample = (uint_least16_t) monoOutGenericLeftIn (16);
+    endian_16 (buffer, sample);
+    endian_16 (buffer + sizeof(uint_least16_t), sample);
+    return (2 * sizeof (uint_least16_t));
 }
 
-void player::stereoOut16StereoIn (uint_least16_t clock, void *buffer, uint_least32_t &count)
+uint_least32_t Player::stereoOut16StereoIn (char *buffer)
 {
-    int_least32_t  sampleR; // Need to get direct. Only sampleL is returned.
-    uint_least8_t *buf     = (uint_least8_t *) buffer + (count << 1);
-    uint_least16_t sampleL = (uint_least16_t)  stereoOutGenericStereoIn (clock, count, 16, sampleR);
-    endian_16 (buf, sampleL);
-    buf += 2;
-    endian_16 (buf, (uint_least16_t) sampleR);
+    endian_16 (buffer, (uint_least16_t) monoOutGenericLeftIn  (16));
+    endian_16 (buffer + sizeof(uint_least16_t),
+               (uint_least16_t) monoOutGenericRightIn (16));
+    return (2 * sizeof (uint_least16_t));
 }
+
 
