@@ -1,20 +1,27 @@
-/* Setup for Microsoft Visual C++ Version 5 */
-#ifndef _config_h_
-#define _config_h_
+/***************************************************************************
+                          config.h  -  Redirect to real config.h
+                             -------------------
+    begin                : Tues Dec 4 2001
+    copyright            : (C) 2001 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
 
-#define PACKAGE "libsidplay"
-#define VERSION "2.1.0"
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
-/* Operating System */
-#define HAVE_MSWINDOWS
-
-/* Define if your C++ compiler implements exception-handling.  */
-/* #define HAVE_EXCEPTIONS */
-
-/* Define if you support file names longer than 14 characters.  */
-#define HAVE_LONG_FILE_NAMES
-
-/* Define if you have the <strstrea.h> header file.  */
-#define HAVE_STRSTREA_H
-
-#endif // _config_h_
+#if defined(HAVE_UNIX)
+#   include "../unix/config.h"
+#elif defined(HAVE_WINDOWS)
+#   include "../win/VC/config.h"
+#else
+#   error Platform no supported!
+#endif
