@@ -117,11 +117,27 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         endian_16hi8 (raster_irq, data >> 7);
         ctrl1    = data;
         y_scroll = data & 7;
-        ctrl1    = 0;
+
+        if (raster_x < 11)
+            break;
 
 		// In line $30, the DEN bit controls if Bad Lines can occur
 		if (raster_y == 0x30 && data & 0x10)
 			bad_lines_enabled = true;
+ 
+		// Bad Line condition?
+        bad_line = (raster_y >= first_dma_line) &&
+                   (raster_y <= last_dma_line)  &&
+                   ((raster_y & 7) == y_scroll) &&
+                   bad_lines_enabled;
+        
+        // Start DMA
+        if (bad_line && (raster_x < 54))
+        {
+            busaccess(false);
+            if (raster_x < 52)
+                event_context.schedule (this, 3);
+        }
         break;
 
     case 0x12: // Raster counter
@@ -189,8 +205,8 @@ void MOS656X::event (void)
 
     case 11: // Start bad line
     {   // In line $30, the DEN bit controls if Bad Lines can occur
-        if ((raster_y == first_dma_line) && (ctrl1 & 0x10))
-	        bad_lines_enabled = true;
+        if (raster_y == first_dma_line)
+	        bad_lines_enabled = (ctrl1 & 0x10) != 0;
 
         // Test for bad line condition
         bad_line = (raster_y >= first_dma_line) &&
@@ -206,6 +222,7 @@ void MOS656X::event (void)
         }
         break;
     }
+
     case 14: // Start DMA
         addrctrl (false);
         delay = 40;
@@ -215,6 +232,22 @@ void MOS656X::event (void)
         addrctrl  (true);
         delay = xrasters - 54;
         break;
+
+    case 12:
+    case 13:
+        break;
+
+    default:
+        if (bad_line && (raster_x < 54))
+        {
+            addrctrl (false);
+            delay = 54 - raster_x;
+        }
+        else
+        {   // Skip to the end of raster
+            busaccess (true);
+            delay = xrasters - raster_x;
+        }
     }
 
     raster_x += delay;
