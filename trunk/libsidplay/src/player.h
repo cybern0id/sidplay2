@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.44  2003/05/28 20:11:19  s_a_white
+ *  Support the psiddrv overlapping unused parts of the tunes load image.
+ *
  *  Revision 1.43  2003/02/20 19:11:48  s_a_white
  *  sid2crc support.
  *
@@ -292,6 +295,7 @@ private:
     volatile bool   m_running;
     int             m_rand;
     uint_least32_t  m_sid2crc;
+    bool            m_emulateStereo;
 
     // Mixer settings
     event_clock_t  m_sampleClock;

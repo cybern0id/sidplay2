@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2003/06/27 18:37:50  s_a_white
+ *  Remove mono to stereo sid address bodge.  Make the code that used this
+ *  check the stereo flag.
+ *
  *  Revision 1.31  2003/01/24 19:31:59  s_a_white
  *  An attempt at allowing configuration whilst paused without the tune restarting.
  *
@@ -207,8 +211,15 @@ int Player::config (const sid2_config_t &cfg)
 
     // All parameters check out, so configure player.
     m_info.channels = 1;
+    m_emulateStereo = false;
     if (cfg.playback == sid2_stereo)
+    {
         m_info.channels++;
+        // Enough sids are available to perform
+        // stereo spliting
+        if (sid[1] != &nullsid)
+            m_emulateStereo = cfg.emulateStereo;
+    }
 
     // Only force dual sids if second wasn't detected
     if (!m_sidAddress[1] && cfg.forceDualSids)
@@ -219,7 +230,7 @@ int Player::config (const sid2_config_t &cfg)
 
     if (cfg.playback != sid2_mono)
     {   // Try Spliting channels across 2 sids
-        if (!m_sidAddress[1])
+        if (m_emulateStereo)
         {   // Mute Voices
             sid[0]->voice (0, 0, true);
             sid[0]->voice (2, 0, true);
@@ -246,7 +257,12 @@ int Player::config (const sid2_config_t &cfg)
         if (!m_sidAddress[1])
         {
             if (cfg.playback == sid2_stereo)
-                output = &Player::stereoOut8MonoIn;
+            {
+                if (m_emulateStereo)
+                    output = &Player::stereoOut8StereoIn;
+                else
+                    output = &Player::stereoOut8MonoIn;
+            }
             else
                 output = &Player::monoOut8MonoIn;
         }
@@ -277,7 +293,12 @@ int Player::config (const sid2_config_t &cfg)
         if (!m_sidAddress[1])
         {
             if (cfg.playback == sid2_stereo)
-                output = &Player::stereoOut16MonoIn;
+            {
+                if (m_emulateStereo)
+                    output = &Player::stereoOut16StereoIn;
+                else
+                    output = &Player::stereoOut16MonoIn;
+            }
             else
                 output = &Player::monoOut16MonoIn;
         }
