@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2002/04/18 22:57:28  s_a_white
+ *  Fixed use of track looping/single when creating audio files.
+ *
  *  Revision 1.15  2002/03/11 18:02:56  s_a_white
  *  Display errors like sidplay1.
  *
@@ -310,7 +313,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         if (!*rs) goto createSidEmu_error;
         if (m_filter.enabled && m_filter.definition)
         {   // Setup filter
-            rs->filter (m_filter.definition);
+            rs->filter (m_filter.definition.provide ());
             if (!*rs) goto createSidEmu_error;
         }
         break;
