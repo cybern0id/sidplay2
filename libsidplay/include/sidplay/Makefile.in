@@ -77,7 +77,7 @@ RESID_LDADD = @RESID_LDADD@
 VERSION = @VERSION@
 
 sidplayincludedir = $(includedir)/sidplay
-sidplayinclude_HEADERS = sidconfig.h sidendian.h sidplay2.h sidtypes.h SidTune.h Buffer.h SmartPtr.h
+sidplayinclude_HEADERS = sidconfig.h sidendian.h sidplay2.h sidtypes.h SidTune.h Buffer.h SmartPtr.h c64env.h component.h event.h sidbuilder.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = ../../include/config.h
