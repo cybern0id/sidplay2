@@ -64,8 +64,8 @@ public:
     // Standard SID functions
     int_least32_t output  (uint_least8_t bits);
     void          filter  (bool enable);
-    void          voice   (uint_least8_t num, uint_least8_t volume,
-                           bool mute);
+    void          volume  (uint_least8_t num, uint_least8_t level);
+    void          mute    (uint_least8_t num, bool enable);
     void          gain    (int_least8_t precent);
     void          optimisation (uint_least8_t level);
 
