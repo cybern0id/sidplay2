@@ -1,0 +1,26 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(Makefile.am)
+AC_CONFIG_AUX_DIR(scripts)
+AM_CONFIG_HEADER(config.h)
+
+AM_INIT_AUTOMAKE(xmms-sid2, 0.0)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_RANLIB
+
+dnl Check for GTK+
+AM_PATH_GTK(1.2.0,,
+  AC_MSG_ERROR(Test for GTK failed.), gthread)
+
+dnl Xmms dir
+AC_PATH_PROG(XMMS, xmms)
+xmmsdir=`echo $XMMS | sed s@bin/xmms@lib@`/xmms
+AC_SUBST(xmmsdir)
+
+dnl Initialise libtool
+AM_DISABLE_STATIC
+CONFIG_LIBTOOL
+
+AC_OUTPUT(Makefile src/Makefile)
