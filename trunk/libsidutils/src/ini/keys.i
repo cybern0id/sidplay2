@@ -257,7 +257,7 @@ void __ini_deleteKey (ini_t *ini)
 #ifdef INI_USE_HASH_TABLE
         // Rev 1.3 - Take member out of accelerator list
         if (!current_k->pPrev_Acc)
-	    section->keys[(unsigned char) current_k->crc & 0x0FF] = current_k->pNext_Acc;
+        section->keys[(unsigned char) current_k->crc & 0x0FF] = current_k->pNext_Acc;
         else
             current_k->pPrev_Acc->pNext_Acc = current_k->pNext_Acc;
         if (current_k->pNext_Acc)
@@ -299,9 +299,9 @@ struct key_tag *__ini_locateKey (ini_t *ini, char *key)
         for (current_k = section->keys[(unsigned char) crc32 & 0x0FF]; current_k; current_k = current_k->pNext_Acc)
         {
             if (current_k->crc == crc32)
-	    {
+        {
                 if (!strcmp (current_k->key, key))
-	            break;
+                break;
             }
         }
     }
@@ -310,7 +310,7 @@ struct key_tag *__ini_locateKey (ini_t *ini, char *key)
         for (current_k = section->first; current_k; current_k = current_k->pNext)
         {
             if (!strcmp (current_k->key, key))
-	        break;
+            break;
         }
     }
 #endif // INI_USE_HASH_TABLE

@@ -21,8 +21,7 @@
 
 #define INI_USE_HASH_TABLE
 
-#include <sidplay/utils/libini.h>
-//#include "standard.h"
+#include "libini.h"
 #include "keys.h"
 #include "headings.h"
 #ifdef INI_ADD_LIST_SUPPORT
@@ -39,7 +38,7 @@ typedef struct ini_t
     struct section_tag *first;
     struct section_tag *last;
     struct section_tag *selected;
-	char  *write; // Last written section.
+    char  *write; // Last written section.
     struct section_tag tmpSection;
     struct key_tag     tmpKey;
 
