@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2001/11/16 19:22:04  s_a_white
+ *  Removed compiler warning for unused parameter.
+ *
  *  Revision 1.16  2001/10/18 22:36:16  s_a_white
  *  GCC3 fixes.
  *
@@ -245,7 +248,7 @@ public:
     XSID (EventContext *context);
 
     // Standard calls
-    void    reset (void);
+    void    reset (uint8_t);
     uint8_t read  (uint_least16_t) { return 0; }
     void    write (uint_least16_t addr, uint8_t data);
     const   char *credits (void) {return credit;}

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2002/01/28 19:31:42  s_a_white
+ *  PSID sample improvements.
+ *
  *  Revision 1.16  2001/10/02 18:03:03  s_a_white
  *  Support updated sidbuilder class interface.
  *
@@ -397,7 +400,7 @@ XSID::XSID (EventContext *context)
     sidSamples (true);
 }
 
-void XSID::reset ()
+void XSID::reset (uint8_t)
 {
     ch4.reset ();
     ch5.reset ();
