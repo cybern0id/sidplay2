@@ -1,42 +1,34 @@
 TODO <libsidplay2>:
 
-* hardsid support <Beta testing>
+*Hardsid support <In Progress, non realtime drivers available, realtime drivers
+ in progress.  Windows drivers will begin after this release>
 
-* Song length database support <Started>
-
-*Fix _encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See mixer.cpp
+*Fix encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See mixer.cpp
  and audiodrv.cpp
 
 *Convert MOS6510 Cycle_Data and Register_Accumulator registers to ubyte_sidt.
- Upon changing these, the code will need a serious debugging setion. <Anyone?>
+ Upon changing these the code will need a serious debugging setion.
 
-*CIA, more timer modes (and Real timer tick?)
-
-*VIC basic support and control for scanline/refresh interrupt
-
-*New Kernel Testing <Kernel now written>
-
-*New Bank Switching implementation for remappable componenets <Started>
-
-*Implement Real C64 Mode
+*New Bank Switching implementation for remappable componenets <Delayed>
 
 *Optimise reSID? <Clock, output, read, write>
 
-*Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
+*Fastforward, Rewind.  <Under test, please comment on it's performance, there
+ are both Windows and Linux versions available>
 
-*Length detection <Started, based on Mikes>
+*Length detection <Delayed>
 
 *What functions are required on the interface for other applications <Suggestions please>
 
-*Support for credit access, both from sid and imported components.
+*Support for credit access, both from sid and imported components <Next release>.
 
 *MOS6510:  Remove opcodes to individual files to support optimised versions.
-           I have these in asm already, but was written in BorlandC.  <Need converting>
+           I have these in asm already, but was written in BorlandC.  <Needs converting>
            This way a C functon will be used if an asm is not present.
 
-*xSID Should inherit the sid
+*xSID Should inherit the sid <Next release>
 
-*Provide and base class for the sid to easier support resid/hardsid.
+*Provide and base class for the sid to easier support resid/hardsid <Next release>.
 
 *Possibly provide a wds sync output for stereoplayer.  These helps external players
 which support this to sync properly to the music, there are some that use
@@ -49,4 +41,7 @@ sidplay2@email.com
 
 *Quad sids
 
-*Provide a C interface to the library.
+*Provide a C interface to the library <Maybe next release, probably required for a
+ proposed Java front end>.
+
+*VIC. Possibility for more support.
