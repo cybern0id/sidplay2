@@ -1,0 +1,121 @@
+/* unix/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h (template) */
+#ifndef _config_h_
+#define _config_h_
+
+/* @FOO@ : Define or undefine value FOO as appropriate. */
+
+/* Operating System */
+#define HAVE_UNIX
+
+/* Define if your C++ compiler implements exception-handling.  */
+#undef HAVE_EXCEPTIONS
+
+/* Define if you have the <strstrea.h> header file.  */
+#undef HAVE_STRSTREA_H
+
+/* Define if you have the strncasecmp function.  */
+#undef HAVE_STRNCASECMP
+
+/* Define if you have the strcasecmp function.  */
+#undef HAVE_STRCASECMP
+
+/* Define if standard member ``ios::binary'' is called ``ios::bin''. */
+#undef HAVE_IOS_BIN
+
+/* Define if standard member function ``fstream::is_open()'' is not available.  */
+#undef DONT_HAVE_IS_OPEN
+
+/* Define whether istream member function ``seekg(streamoff,seekdir).offset()''
+   should be used instead of standard ``seekg(streamoff,seekdir); tellg()''.
+*/
+#undef HAVE_SEEKG_OFFSET
+
+/* Defines to indicate that resid is in an non standard location.
+   HAVE_LOCAL_RESID indicates that an include path has been used
+   to where the resid directory is located but does not include
+   the resid directory name.
+   HAVE_USER_RESID indicates that a fully qualified include path
+   has been provided that includes the resid directory name and therefore
+   resids include files are available by calling them directly.
+*/
+#undef HAVE_LOCAL_RESID
+#undef HAVE_USER_RESID
+
+/* Define to disable RESID */
+#undef DISABLE_RESID
+
+/* Define to use HARDSID Soundcard */
+#undef HAVE_HARDSID
+
+/* Define if you support file names longer than 14 characters.  */
+#undef HAVE_LONG_FILE_NAMES
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#undef WORDS_BIGENDIAN
+
+/* Define if the C++ compiler supports BOOL */
+#undef HAVE_BOOL
+
+/* The number of bytes in a char.  */
+#undef SIZEOF_CHAR
+
+/* The number of bytes in a int.  */
+#undef SIZEOF_INT
+
+/* The number of bytes in a long int.  */
+#undef SIZEOF_LONG_INT
+
+/* The number of bytes in a short int.  */
+#undef SIZEOF_SHORT_INT
+
+/* Define if you have the <audio.h> header file.  */
+#undef HAVE_AUDIO_H
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
+
+/* Define if you have the <dmedia/audio.h> header file.  */
+#undef HAVE_DMEDIA_AUDIO_H
+
+/* Define if you have the <linux/soundcard.h> header file.  */
+#undef HAVE_LINUX_SOUNDCARD_H
+
+/* Define if you have the <machine/soundcard.h> header file.  */
+#undef HAVE_MACHINE_SOUNDCARD_H
+
+/* Define if you have the <soundcard.h> header file.  */
+#undef HAVE_SOUNDCARD_H
+
+/* Define if you have the <stdbool.h> header file.  */
+#undef HAVE_STDBOOL_H
+
+/* Define if you have the <stdint.h> header file.  */
+#undef HAVE_STDINT_H
+
+/* Define if you have the <sun/audioio.h> header file.  */
+#undef HAVE_SUN_AUDIOIO_H
+
+/* Define if you have the <sun/dbriio.h> header file.  */
+#undef HAVE_SUN_DBRIIO_H
+
+/* Define if you have the <sys/audio.h> header file.  */
+#undef HAVE_SYS_AUDIO_H
+
+/* Define if you have the <sys/audioio.h> header file.  */
+#undef HAVE_SYS_AUDIOIO_H
+
+/* Define if you have the <sys/ioctl.h> header file.  */
+#undef HAVE_SYS_IOCTL_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+
+#endif /* _config_h_ */
