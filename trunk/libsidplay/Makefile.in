@@ -80,7 +80,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include src
 
-EXTRA_DIST = unix win Makefile.dist acconfig.h
+EXTRA_DIST = unix win Makefile.dist acconfig.h libsidplay.spec
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = ./include/config.h
