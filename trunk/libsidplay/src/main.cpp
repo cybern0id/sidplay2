@@ -90,6 +90,13 @@ int main(int argc, char *argv[])
     // Fastforward/Rewind Patch
     udword_sidt      starttime     = 0;
 
+    // New...
+    AudioConfig   audioCfg;
+
+    audioCfg.frequency = SIDPLAYER_DEFAULT_SAMPLING_FREQ;;
+    audioCfg.precision = SIDPLAYER_DEFAULT_PRECISION;
+    audioCfg.channels  = 1; // Mono
+
     // Install signal error handlers
     if ((signal (SIGINT,  &sighandler) == SIG_ERR)
      || (signal (SIGABRT, &sighandler) == SIG_ERR)
@@ -98,13 +105,6 @@ int main(int argc, char *argv[])
 		displayError(argv[0], ERR_SIGHANDLER);
         goto main_error;
     }
-
-    // New...
-    AudioConfig   audioCfg;
-
-    audioCfg.frequency = SIDPLAYER_DEFAULT_SAMPLING_FREQ;;
-    audioCfg.precision = SIDPLAYER_DEFAULT_PRECISION;
-    audioCfg.channels  = 1; // Mono
 
     if (argc < 2) // at least one argument required
     {
