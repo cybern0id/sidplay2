@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/28 19:40:50  s_a_white
+ *  Added TSID support.
+ *
  *  Revision 1.4  2001/12/05 22:22:48  s_a_white
  *  Added playerFast flag.
  *
@@ -110,6 +113,7 @@ private:
     player_state_t     m_state;
     const char*        m_outfile;
     EventContext      *m_context;
+    const char*        m_filename;
 
     IniConfig          m_iniCfg;
     SidDatabase        m_database;

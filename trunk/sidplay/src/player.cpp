@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/01/28 19:40:50  s_a_white
+ *  Added TSID support.
+ *
  *  Revision 1.10  2002/01/16 19:54:56  s_a_white
  *  Fixed -b command arg with UNKNOWN songlengh.
  *
@@ -77,6 +80,7 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_quietLevel(0),
  m_verboseLevel(0)
 {   // Other defaults
+    m_filename       = "";
     m_filter.enabled = true;
     m_driver.device  = NULL;
     m_timer.start    = 0;
