@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2001/08/10 20:04:46  s_a_white
+ *  Initialise requires rtc reset for correct use with stop operation.
+ *
  *  Revision 1.25  2001/07/27 12:51:55  s_a_white
  *  Removed warning.
  *
@@ -137,8 +140,7 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:c64env("SID Music Player"),
- sid6510 (&eventContext),
+:sid6510 (&eventContext),
  mos6510 (&eventContext),
  cpu   (&sid6510),
  mos6581_1 (this),
@@ -146,6 +148,7 @@ Player::Player (void)
  xsid (this, &mos6581_1),
  cia  (this),
  cia2 (this),
+ sid6526 (this),
  vic  (this),
  mixerEvent (this),
  rtc        (&eventContext),
@@ -174,6 +177,7 @@ Player::Player (void)
     m_info.name            = PACKAGE;
     m_info.tuneInfo        = NULL;
     m_info.version         = VERSION;
+    m_info.eventContext    = &eventContext;
 
     // Configure default settings
     m_cfg.clockForced     = false;
@@ -191,7 +195,7 @@ Player::Player (void)
     m_cfg.sidSamples      = true;
     m_cfg.leftVolume      = 255;
     m_cfg.rightVolume     = 255;
-    configure (m_cfg);
+    config (m_cfg);
 
     // Get component credits
     credit[0] = PACKAGE " V" VERSION " Engine:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
@@ -266,7 +270,7 @@ int Player::loadSong (SidTune *tune)
     }
 
     // Must re-configure on fly for stereo support!
-    return configure (m_cfg);
+    return config (m_cfg);
 }
 
 void Player::mileageCorrect (void)
@@ -382,18 +386,33 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        switch (endian_16hi8 (addr))
+        if (m_cfg.environment == sid2_envR)
         {
-        case 0:
-            return readMemByte_plain (addr);
-        case 0xdc:
-            return cia.read (addr&0x0f);
-        case 0xdd:
-            return cia2.read (addr&0x0f);
-        case 0xd0:
-            return vic.read (addr&0x3f);
-        default:
-            return m_rom[addr];
+            switch (endian_16hi8 (addr))
+            {
+            case 0:
+                return readMemByte_plain (addr);
+            case 0xdc:
+                return cia.read (addr&0x0f);
+            case 0xdd:
+                return cia2.read (addr&0x0f);
+            case 0xd0:
+                return vic.read (addr&0x3f);
+            default:
+                return m_rom[addr];
+            }
+        }
+        else
+        {
+            switch (endian_16hi8 (addr))
+            {
+            case 0:
+                return readMemByte_plain (addr);
+            case 0xdc: // Sidplay1 CIA
+                return sid6526.read (addr);
+            default:
+                return m_rom[addr];
+            }
         }
     }
 
@@ -479,23 +498,41 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        switch (endian_16hi8 (addr))
+        if (m_cfg.environment == sid2_envR)
         {
-        case 0:
-            writeMemByte_plain (addr, data);
-        return;
-        case 0xdc:
-            cia.write (addr&0x0f, data);
-        return;
-        case 0xdd:
-            cia2.write (addr&0x0f, data);
-        return;
-        case 0xd0:
-            vic.write (addr&0x3f, data);
-        return;
-        default:
-            m_rom[addr] = data;
-        return;
+            switch (endian_16hi8 (addr))
+            {
+            case 0:
+                writeMemByte_plain (addr, data);
+            return;
+            case 0xdc:
+                cia.write (addr&0x0f, data);
+            return;
+            case 0xdd:
+                cia2.write (addr&0x0f, data);
+            return;
+            case 0xd0:
+                vic.write (addr&0x3f, data);
+            return;
+            default:
+                m_rom[addr] = data;
+            return;
+            }
+        }
+        else
+        {
+            switch (endian_16hi8 (addr))
+            {
+            case 0:
+                writeMemByte_plain (addr, data);
+            return;
+            case 0xdc: // Sidplay1 CIA
+                sid6526.write (addr, data);
+            return;
+            default:
+                m_rom[addr] = data;
+            return;
+            }
         }
     }
 
@@ -554,6 +591,7 @@ void Player::envReset (void)
 {
     // Select Sidplay1 compatible CPU or real thing
     cpu = &sid6510;
+    sid6510.environment (m_cfg.environment);
     if (m_tuneInfo.playAddr == 0xffff)
         cpu = &mos6510;
 
@@ -561,9 +599,19 @@ void Player::envReset (void)
     cpu->reset  ();
     sid->reset  ();
     sid2->reset ();
-    cia.reset   ();
-    cia2.reset  ();
-    vic.reset   ();
+    if (m_cfg.environment == sid2_envR)
+    {
+        cia.reset  ();
+        cia2.reset ();
+        vic.reset  ();
+    }
+    else
+    {
+        sid6526.reset ();
+        sid6526.write (0x0e, 1); // Start timer
+        if (m_tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
+            sid6526.lock ();
+    }
 
     // Initalise Memory
     memset (m_ram, 0, 0x10000);
@@ -575,8 +623,6 @@ void Player::envReset (void)
     m_ram[0] = 0x2F;
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     evalBankSelect(0x37);
-    // fake VBI-interrupts that do $D019, BMI ...
-    m_rom[0x0d019] = 0xff;
 
     // software vectors
     endian_little16 (&m_ram[0x0314], 0xEA31); // IRQ
@@ -588,10 +634,7 @@ void Player::envReset (void)
     endian_little16 (&m_rom[0xfffc],  0xFCE2); // RESET
     endian_little16 (&m_rom[0xfffe],  0xFF48); // IRQ
 
-    // This provides greater Sidplay1 compatibility at the cost
-    // of being totally incompatible with a real C64.
-    //if ((tuneInfo.playAddr == 0x0000) ||
-    //    (tuneInfo.playAddr == 0xffff))
+    if (m_cfg.environment == sid2_envR)
     {   // Install some basic rom functionality
         /* EA31 IRQ return: jmp($0310). */
         m_rom[0xea31] = JMPw;
@@ -601,26 +644,36 @@ void Player::envReset (void)
         m_rom[0xea7e] = NOPn;
         m_rom[0xea7f] = NOPn;
         m_rom[0xea80] = NOPn;
-        
+
         // NMI entry
         m_rom[0xFE43] = SEIn;
         m_rom[0xFE44] = JMPi;
         m_rom[0xFE45] = 0x18;
         m_rom[0xFE46] = 0x03;
-    }
 
-    {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
-        uint8_t prg[] = {PHAn,  TXAn, PHAn, TYAn, PHAn, TSXn,
-                         LDAax, 0x04, 0x01, ANDb, 0x10, BEQr,
-                         0x03,  JMPi, 0x16, 0x03, JMPi, 0x14,
-                         0x03};
-        memcpy (&m_rom[0xff48], prg, sizeof (prg));
-    }
+        {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
+            uint8_t prg[] = {PHAn,  TXAn, PHAn, TYAn, PHAn, TSXn,
+                             LDAax, 0x04, 0x01, ANDb, 0x10, BEQr,
+                             0x03,  JMPi, 0x16, 0x03, JMPi, 0x14,
+                             0x03};
+            memcpy (&m_rom[0xff48], prg, sizeof (prg));
+        }
 
-    {   // IRQ clean up code
-        uint8_t prg[] = {LDAa, 0x0d, 0xdc, PLAn, TAYn, PLAn,
-                         TAXn, PLAn, RTIn};
-        memcpy (&m_rom[0xea81], prg, sizeof (prg));
+        {   // IRQ clean up code
+            uint8_t prg[] = {LDAa, 0x0d, 0xdc, PLAn, TAYn, PLAn,
+                             TAXn, PLAn, RTIn};
+            memcpy (&m_rom[0xea81], prg, sizeof (prg));
+        }
+    }
+    else // !sid2_envR
+    {   // fake VBI-interrupts that do $D019, BMI ...
+        m_rom[0x0d019] = 0xff;
+        if (m_cfg.environment == sid2_envPS)
+        {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
+            m_rom[0xff48] = 0x6c;
+            m_rom[0xff49] = 0x14;
+            m_rom[0xff4a] = 0x03;
+        }
     }
 
     // Will get done later if can't now
@@ -694,4 +747,3 @@ bool Player::envCheckBankJump (uint_least16_t addr)
 
     return true;
 }
-
