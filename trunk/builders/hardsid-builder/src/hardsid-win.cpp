@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/03/18 20:46:41  s_a_white
+ *  Fixed use of uninitialised variable m_phase.
+ *
  *  Revision 1.11  2003/10/29 23:36:45  s_a_white
  *  Get clock wrt correct phase.
  *
@@ -180,11 +183,18 @@ bool HardSID::lock (c64env *env)
 void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
-    m_accessClk += cycles;
-    if (cycles)
+    if (cycles < HARDSID_DELAY_CYCLES)
+    {
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES - cycles,
+                                EVENT_CLOCK_PHI1);
+    }
+    else
+    {
+        m_accessClk += cycles;
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
-                              EVENT_CLOCK_PHI1);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
+                                EVENT_CLOCK_PHI1);
+    }
 }
 
 // Disable/Enable SID filter
