@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/09/17 19:02:38  s_a_white
+ *  Now uses fixed point maths for sample output and rtc.
+ *
  *  Revision 1.5  2001/07/25 17:02:37  s_a_white
  *  Support for new configuration interface.
  *
@@ -37,24 +40,24 @@
 const int_least32_t VOLUME_MAX = 255;
 
 void Player::mixerReset (void)
-{   // Fixed point 8.24
-    m_sampleClock  = m_samplePeriod & 0x0FFFFFF;
+{   // Fixed point 16.16
+    m_sampleClock  = m_samplePeriod & 0x0FFFF;
     // Schedule next sample event
-    eventContext.schedule (&mixerEvent,
+    m_context.schedule (&mixerEvent,
         m_samplePeriod >> 24);
 }
 
 void Player::mixer (void)
-{   // Fixed point 8.24
+{   // Fixed point 16.16
     event_clock_t cycles;
     char   *buf    = m_sampleBuffer + m_sampleIndex;
     m_sampleClock += m_samplePeriod;
-    cycles         = m_sampleClock >> 24;
-    m_sampleClock &= 0x0FFFFFF;
+    cycles         = m_sampleClock >> 16;
+    m_sampleClock &= 0x0FFFF;
     m_sampleIndex += (this->*output) (buf);
  
     // Schedule next sample event
-    eventContext.schedule (&mixerEvent, cycles);
+    m_context.schedule (&mixerEvent, cycles);
 
     // Filled buffer
     if (m_sampleIndex >= m_sampleCount)
