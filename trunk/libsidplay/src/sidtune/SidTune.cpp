@@ -1230,7 +1230,7 @@ int SidTune::convertPetsciiToAscii(SmartPtr_sidtt<const uint8_t>& spPet, char* d
                 dest[count++] = c;  // copy to info string
 
             // If character is 0x9d (left arrow key) then move back.
-            if ((*spPet==0x9d) && (count>=0))
+            if ((*spPet==0x9d) && (count>0))
                 count--;
             spPet++;
         }
