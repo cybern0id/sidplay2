@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.70  2004/01/31 17:12:15  s_a_white
+ *  Support new & old automake package defines.
+ *
  *  Revision 1.69  2004/01/31 17:01:44  s_a_white
  *  Add ability to specify the maximum number of sid writes forming the sid2crc.
  *
@@ -253,7 +256,7 @@
 #endif
 
 #ifndef PACKAGE_NAME
-#   define PACKAGE_NAME NAME
+#   define PACKAGE_NAME PACKAGE
 #endif
 
 #ifndef PACKAGE_VERSION
