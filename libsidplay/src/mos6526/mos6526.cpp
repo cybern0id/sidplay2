@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/11/20 22:50:27  s_a_white
+ *  Reload count when timers are stopped
+ *
  *  Revision 1.8  2002/10/02 19:49:21  s_a_white
  *  Revert previous change as was incorrect.
  *
@@ -97,6 +100,7 @@ void MOS6526::reset (void)
     cnt_high  = true;
     icr = idr = 0;
     m_accessClk = 0;
+    dpa = 0xf0;
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
@@ -115,6 +119,11 @@ uint8_t MOS6526::read (uint_least8_t addr)
 
     switch (addr)
     {
+    case 0x0: // Simulate a serial port
+        dpa = ((dpa << 1) | (dpa >> 7)) & 0xff;
+        if (dpa & 0x80)
+            return 0xc0;
+        return 0;
     case 0x4: return endian_16lo8 (ta);
     case 0x5: return endian_16hi8 (ta);
     case 0x6: return endian_16lo8 (tb);
