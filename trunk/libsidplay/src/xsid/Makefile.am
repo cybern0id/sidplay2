@@ -1,9 +1,5 @@
-####### kdevelop will overwrite this part!!! (begin)##########
-noinst_LIBRARIES = libxsid.a
 
-libxsid_a_SOURCES = xsid.cpp 
+noinst_LTLIBRARIES = libxsid.la
 
+libxsid_la_SOURCES = xsid.cpp xsid.h
 
-EXTRA_DIST = xsid.cpp xsid.h 
-
-####### kdevelop will overwrite this part!!! (end)############

@@ -1,19 +1,35 @@
-####### kdevelop will overwrite this part!!! (begin)##########
-bin_PROGRAMS = libsidplay
-libsidplay_SOURCES = sidmixer.cpp sidplayer.cpp fake6526.cpp main.cpp 
-libsidplay_LDADD   = ./mos6510/libmos6510.a ./xsid/libxsid.a ./sidtune/libsidtune.a ./audio/oss/liboss.a ./audio/wav/libwav.a ./audio/sunos/libsunos.a $(RESID_LDADD) -lresid
 
-SUBDIRS = mos6510 xsid sidtune audio mos6581 docs 
+SUBDIRS = audio docs mos6510 mos6581 sidtune xsid
 
-EXTRA_DIST = main.cpp fake6526.cpp fake6526.h sidplayer.cpp sidplayer.h sidmixer.cpp sidplayer_pr.h 
+INCLUDES = -Isidtune $(RESID_INCLUDES)
 
-install-data-local:
-	$(mkinstalldirs) /usr/local/include/sidplay2/
-	$(INSTALL_DATA) sidplayer.h /usr/local/include/sidplay2/sidplayer.h
+# The console user interface.
 
-uninstall-local:
-	-rm -f /usr/local/include/sidplay2/sidplayer.h
+bin_PROGRAMS = sidplay2
 
-####### kdevelop will overwrite this part!!! (end)############
+sidplay2_SOURCES = main.cpp
+sidplay2_LDADD = ./audio/oss/liboss.a ./audio/wav/libwav.a \
+./audio/sunos/libsunos.a \
+-L.libs -lsidplay \
+$(RESID_LDADD) -lresid
 
-INCLUDES = $(RESID_INCLUDES)
+# The library.
+
+sidplayincludedir = $(includedir)/sidplay2
+
+sidplayinclude_HEADERS = sidplayer.h
+
+lib_LTLIBRARIES = libsidplay.la
+
+libsidplay_la_SOURCES = fake6526.cpp fake6526.h \
+sidmixer.cpp \
+sidplayer.cpp sidplayer.h sidplayer_pr.h
+
+libsidplay_la_LIBADD   = ./mos6510/libmos6510.la ./xsid/libxsid.la \
+./sidtune/libsidtune.la
+
+## We substitute the libtool-specific library version in configure.in.
+#libsidplay_la_LDFLAGS = -version-info $(LIBVERSION)
+## We substitute the library release version in configure.in.
+libsidplay_la_LDFLAGS = -release $(LIBVERSION)
+
