@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2003/07/10 07:20:00  s_a_white
+ *  Moved sid creation to fix muting and volume problems when switching
+ *  sid emulation types.
+ *
  *  Revision 1.33  2003/06/27 21:15:26  s_a_white
  *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
  *  support from the emulation.  Allow user to override whether they want this
@@ -172,6 +176,7 @@ int Player::config (const sid2_config_t &cfg)
    
     // Only do these if we have a loaded tune
     if (m_tune)
+    {
         if (m_playerState != sid2_paused)
             m_tune->getInfo(m_tuneInfo);
 
