@@ -38,7 +38,20 @@ command line programs very well.  With the new config file, the only thing
 that is now required is to type the file name.  So hopefully the MAC driver
 could be revived until a better solution is found.
 
+On demand loading of SID filter defintions.  Currently this is determined
+by the old/new sid flag in the sidplay2.ini file or on the command line
+with -ns (8580, 6581 by default).  As soon as support is added to sidtune
+the SID filter and emulation will automatically change due to the needs of the
+song.
 
+Currently the PSID defintion does not provide this information so
+an extension has been submitted to store the intended song speed (PAL/NTSC)
+and SID revision (6581/8580).  The 2 bits used to hold this information
+are bits 1 and 2 in the flag register respectively.  The defaults for both
+these 2 bits are zero, which indicates PAL and 6581.  Should bit 0 be set to
+1 (MUS tune) then the meaning of bit 1 is reversed!
+
+	
 New keys:
 
 HOME (first song), END (last song), Cursors (UP/DOWN will change the song
