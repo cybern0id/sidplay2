@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2000/12/24 00:45:38  s_a_white
+ *  HAVE_EXCEPTIONS update
+ *
  *  Revision 1.4  2000/12/14 23:55:07  s_a_white
  *  PushSR optimisation and PopSR code cleanup.
  *
@@ -169,12 +172,12 @@ void MOS6510::RSTRequest (void)
 
 void MOS6510::NMIRequest (void)
 {
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFA));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFA));
 }
 
 void MOS6510::NMI1Request (void)
 {
-    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFB));
+    endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFB));
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
@@ -189,12 +192,12 @@ void MOS6510::IRQRequest (void)
 
 void MOS6510::IRQ1Request (void)
 {
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFE));
 }
 
 void MOS6510::IRQ2Request (void)
 {
-    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
+    endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFF));
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
@@ -378,7 +381,7 @@ void MOS6510::FetchHighPointer (void)
 */
 void MOS6510::FetchLowEffAddr (void)
 {
-    Cycle_EffectiveAddress = envReadMemByte (Cycle_Pointer);
+    Cycle_EffectiveAddress = envReadMemDataByte (Cycle_Pointer);
 }
 
 // Fetch effective address high
@@ -388,7 +391,7 @@ void MOS6510::FetchLowEffAddr (void)
 void MOS6510::FetchHighEffAddr (void)
 {   // Rev 1.03 (Mike) - Extra +1 removed
     endian_16lo8 (Cycle_Pointer, (uint8_t) ++Cycle_Pointer);
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (Cycle_Pointer));
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (Cycle_Pointer));
 }
 
 // Fetch effective address high, add Y to low byte of effective address
@@ -1435,7 +1438,7 @@ MOS6510::MOS6510 ()
             case EORb: case LDAb:  case LDXb:  case LDYb: case LXAb: case NOPb_:
             case ORAb: case SBCb_: case SBXb:
             // OALb ALRb XAAb - Optional Opcode Names
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchDataByte;
+					cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchDataByte;
             break;
 
             // Absolute Indirect Addressing Mode Handler
@@ -2207,8 +2210,8 @@ void MOS6510::reset (void)
 
     // Requires External Bits
     // Read from reset vector for program entry point
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFC));
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFD));
+    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFC));
+    endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFD));
     Register_ProgramCounter = Cycle_EffectiveAddress;
 }
 
