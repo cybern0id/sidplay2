@@ -62,10 +62,18 @@ public:
 class EventScheduler: public EventContext
 {
 private:
-    const   char * const m_name;
-    event_clock_t m_eventClk, m_schedClk;
-    Event  *m_pendingEvents;
-    uint    m_pendingEventClk;
+    const char * const m_name;
+    event_clock_t  m_eventClk, m_schedClk;
+    uint  m_pendingEventClk;
+    uint  m_pendingEventCount;
+
+    class SID_EXTERN EventDummy: public Event
+    {
+    private:
+        void event (void) {;}
+    public:
+        EventDummy () : Event("Bad Event: Dummy") {;}
+    } m_pendingEvents;
 
     class SID_EXTERN EventTimeWarp: public Event
     {
@@ -89,7 +97,7 @@ private:
     void timeWarp (void);
     void dispatch (void)
     {
-        Event &e = *m_pendingEvents;
+        Event &e = *m_pendingEvents.m_next;
         cancelPending (e);
         //printf ("Event \"%s\"\n", e.m_name);
         e.event ();
@@ -97,12 +105,11 @@ private:
 
     void cancelPending (Event &event)
     {
-        event.m_pending = false;
-        m_pendingEvents = event.m_next;
-        if (!m_pendingEvents)
-            return;
-        m_pendingEvents->m_prev = NULL;
-        m_pendingEventClk = m_pendingEvents->m_clk;
+        event.m_pending      = false;
+        event.m_prev->m_next = event.m_next;
+        event.m_next->m_prev = event.m_prev;
+        m_pendingEventClk    = m_pendingEvents.m_next->m_clk;
+        m_pendingEventCount--;
     }
 
 public:
@@ -115,7 +122,7 @@ public:
     {
         m_schedClk  += delta;
         m_eventClk  += delta;
-        while (m_pendingEvents != NULL)
+        while (m_pendingEventCount)
         {   // Dispatch events which have fired
             if (m_eventClk < m_pendingEventClk)
                 break;
