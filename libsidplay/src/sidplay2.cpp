@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/07/25 17:01:13  s_a_white
+ *  Support for new configuration interface.
+ *
  *  Revision 1.9  2001/07/14 16:46:16  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -73,11 +76,11 @@ sidplay2::sidplay2 ()
 sidplay2::~sidplay2 ()
 {   if (&sidplayer) delete &sidplayer; }
 
-int sidplay2::configure (const sid2_config_t &cfg)
-{   return sidplayer.configure (cfg); }
+int sidplay2::config (const sid2_config_t &cfg)
+{   return sidplayer.config (cfg); }
 
-const sid2_config_t &sidplay2::configure (void)
-{   return sidplayer.configure (); }
+const sid2_config_t &sidplay2::config (void)
+{   return sidplayer.config (); }
 
 void sidplay2::stop (void)
 {   sidplayer.stop (); }

@@ -43,10 +43,10 @@ public:
     sidplay2 ();
     virtual ~sidplay2 ();
 
-    const sid2_config_t &configure (void);
-    const sid2_info_t   &info      (void);
+    const sid2_config_t &config (void);
+    const sid2_info_t   &info   (void);
 
-    int            configure    (const sid2_config_t &cfg);
+    int            config       (const sid2_config_t &cfg);
     const char    *error        (void);
     int            fastForward  (uint percent);
     int            loadSong     (SidTune *tune);
