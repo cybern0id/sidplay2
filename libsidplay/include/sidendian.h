@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/11 19:10:59  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _endian_h_
@@ -112,7 +115,7 @@ inline uint_least16_t endian_16 (uint8_t hi, uint8_t lo)
 }
 
 // Convert high-byte and low-byte to 16-bit little endian word.
-inline void endian_16 (const uint8_t ptr[2], uint_least16_t word)
+inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
     *((uint_least16_t *) ptr) = word;
