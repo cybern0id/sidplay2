@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2002/11/01 19:22:36  s_a_white
+ *  Removed debug printf.
+ *
  *  Revision 1.24  2002/11/01 17:35:27  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -151,17 +154,25 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 // Push P on stack, decrement S
 void MOS6510::PushSR (bool b_flag)
 {
-    uint_least16_t addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    /* Rev 1.04 - Corrected flag mask */
-    Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_INTERRUPT) |
-                        (1 << SR_DECIMAL) | (1 << SR_BREAK));
-    Register_Status |= (getFlagN () << SR_NEGATIVE);
-    Register_Status |= (getFlagV () << SR_OVERFLOW);
-    Register_Status |= (getFlagZ () << SR_ZERO);
-    Register_Status |= (getFlagC () << SR_CARRY);
-    envWriteMemByte (addr, Register_Status & ~((!b_flag) << SR_BREAK));
-    Register_StackPointer--;
+    if (aec)
+    {
+        uint_least16_t addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        /* Rev 1.04 - Corrected flag mask */
+        Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_INTERRUPT) |
+                            (1 << SR_DECIMAL) | (1 << SR_BREAK));
+        Register_Status |= (getFlagN () << SR_NEGATIVE);
+        Register_Status |= (getFlagV () << SR_OVERFLOW);
+        Register_Status |= (getFlagZ () << SR_ZERO);
+        Register_Status |= (getFlagC () << SR_CARRY);
+        envWriteMemByte (addr, Register_Status & ~((!b_flag) << SR_BREAK));
+        Register_StackPointer--;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::PushSR (void)
@@ -172,28 +183,36 @@ void MOS6510::PushSR (void)
 // increment S, Pop P off stack
 void MOS6510::PopSR (void)
 {
-    bool newFlagI, oldFlagI;
-    oldFlagI = getFlagI ();
-
-    // Get status register off stack
-    Register_StackPointer++;
+    if (rdy && aec)
     {
-        uint_least16_t addr = Register_StackPointer;
-        endian_16hi8 (addr, SP_PAGE);
-        Register_Status = envReadMemByte (addr);
-    }
-    Register_Status |= ((1 << SR_NOTUSED) | (1 << SR_BREAK));
-    setFlagN (Register_Status);
-    setFlagV (Register_Status   & (1 << SR_OVERFLOW));
-    setFlagZ (!(Register_Status & (1 << SR_ZERO)));
-    setFlagC (Register_Status   & (1 << SR_CARRY));
+        bool newFlagI, oldFlagI;
+        oldFlagI = getFlagI ();
 
-    // I flag change is delayed by 1 instruction
-    newFlagI = getFlagI ();
-    interrupts.irqLatch = oldFlagI ^ newFlagI;
-    // Check to see if interrupts got re-enabled
-    if (!newFlagI && interrupts.irqs)
-        interrupts.irqRequest = true;
+        // Get status register off stack
+        Register_StackPointer++;
+        {
+            uint_least16_t addr = Register_StackPointer;
+            endian_16hi8 (addr, SP_PAGE);
+            Register_Status = envReadMemByte (addr);
+        }
+        Register_Status |= ((1 << SR_NOTUSED) | (1 << SR_BREAK));
+        setFlagN (Register_Status);
+        setFlagV (Register_Status   & (1 << SR_OVERFLOW));
+        setFlagZ (!(Register_Status & (1 << SR_ZERO)));
+        setFlagC (Register_Status   & (1 << SR_CARRY));
+
+        // I flag change is delayed by 1 instruction
+        newFlagI = getFlagI ();
+        interrupts.irqLatch = oldFlagI ^ newFlagI;
+        // Check to see if interrupts got re-enabled
+        if (!newFlagI && interrupts.irqs)
+            interrupts.irqRequest = true;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 
@@ -343,13 +362,27 @@ void MOS6510::RSTRequest (void)
 
 void MOS6510::NMIRequest (void)
 {
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFA));
+    if (rdy && aec)
+        endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFA));
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::NMI1Request (void)
 {
-    endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFB));
-    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    if (rdy && aec)
+    {
+        endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFB));
+        endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::IRQRequest (void)
@@ -361,13 +394,27 @@ void MOS6510::IRQRequest (void)
 
 void MOS6510::IRQ1Request (void)
 {
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFE));
+    if (rdy && aec)
+        endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFE));
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::IRQ2Request (void)
 {
-    endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFF));
-    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    if (rdy && aec)
+    {
+        endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFF));
+        endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::NextInstr (void)
@@ -388,18 +435,26 @@ void MOS6510::NextInstr (void)
 // Fetch opcode, increment PC
 // Addressing Modes: All
 void MOS6510::FetchOpcode (void)
-{   // On new instruction all interrupt delays are reset
-    interrupts.delay    = MOS6510_INTERRUPT_DELAY;
-    interrupts.irqLatch = false;
+{
+    if (rdy && aec)
+    {   // On new instruction all interrupt delays are reset
+        interrupts.delay    = MOS6510_INTERRUPT_DELAY;
+        interrupts.irqLatch = false;
 
-    instrStartPC  = endian_32lo16 (Register_ProgramCounter++);
-    instrOpcode   = envReadMemByte (instrStartPC);
-    // Convert opcode to pointer in instruction table
-    instrCurrent  = &instrTable[instrOpcode];
-    Instr_Operand = 0;
-    procCycle     = instrCurrent->cycle;
-    cycleCount    = 0;
-    clock ();
+        instrStartPC  = endian_32lo16 (Register_ProgramCounter++);
+        instrOpcode   = envReadMemByte (instrStartPC);
+        // Convert opcode to pointer in instruction table
+        instrCurrent  = &instrTable[instrOpcode];
+        Instr_Operand = 0;
+        procCycle     = instrCurrent->cycle;
+        cycleCount    = 0;
+        clock ();
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch value, increment PC
@@ -425,11 +480,19 @@ void MOS6510::FetchDataByte (void)
 */                      
 void MOS6510::FetchLowAddr (void)
 {
-    Cycle_EffectiveAddress = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
-    Register_ProgramCounter++;
+    if (rdy && aec)
+    {
+        Cycle_EffectiveAddress = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
+        Register_ProgramCounter++;
 
-    // Nextline used for Debug
-    Instr_Operand = Cycle_EffectiveAddress;
+        // Nextline used for Debug
+        Instr_Operand = Cycle_EffectiveAddress;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Read from address, add index register X to it
@@ -452,12 +515,20 @@ void MOS6510::FetchLowAddrY (void)
 // Low byte must have been obtained first!
 // Addressing Modes:    Absolute
 void MOS6510::FetchHighAddr (void)
-{   // Get the high byte of an address from memory
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
-    Register_ProgramCounter++;
+{
+    if (rdy && aec)
+    {   // Get the high byte of an address from memory
+        endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
+        Register_ProgramCounter++;
 
-    // Nextline used for Debug
-    endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_EffectiveAddress));
+        // Nextline used for Debug
+        endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_EffectiveAddress));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch high byte of address, add index register X to low address byte,
@@ -516,30 +587,54 @@ void MOS6510::FetchHighAddrY2 (void)
 */
 void MOS6510::FetchLowPointer (void)
 {
-    Cycle_Pointer = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
-    Register_ProgramCounter++;
-    // Nextline used for Debug
-    Instr_Operand = Cycle_Pointer;
+    if (rdy && aec)
+    {
+        Cycle_Pointer = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
+        Register_ProgramCounter++;
+        // Nextline used for Debug
+        Instr_Operand = Cycle_Pointer;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Read pointer from the address and add X to it
 // Addressing Modes:    Indexed Indirect (pre X)
 void MOS6510::FetchLowPointerX (void)
 {
-    endian_16hi8 (Cycle_Pointer, envReadMemDataByte (Cycle_Pointer));
-    // Page boundary crossing is not handled
-    Cycle_Pointer = (Cycle_Pointer + Register_X) & 0xFF;
+    if (rdy && aec)
+    {
+        endian_16hi8 (Cycle_Pointer, envReadMemDataByte (Cycle_Pointer));
+        // Page boundary crossing is not handled
+        Cycle_Pointer = (Cycle_Pointer + Register_X) & 0xFF;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch pointer address high, increment PC
 // Addressing Modes:    Absolute Indirect
 void MOS6510::FetchHighPointer (void)
 {
-    endian_16hi8 (Cycle_Pointer, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
-    Register_ProgramCounter++;
+    if (rdy && aec)
+    {
+        endian_16hi8 (Cycle_Pointer, envReadMemByte (endian_32lo16 (Register_ProgramCounter)));
+        Register_ProgramCounter++;
 
-    // Nextline used for Debug
-    endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_Pointer));
+        // Nextline used for Debug
+        endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_Pointer));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch effective address low
@@ -549,7 +644,13 @@ void MOS6510::FetchHighPointer (void)
 */
 void MOS6510::FetchLowEffAddr (void)
 {
-    Cycle_EffectiveAddress = envReadMemDataByte (Cycle_Pointer);
+    if (rdy && aec)
+        Cycle_EffectiveAddress = envReadMemDataByte (Cycle_Pointer);
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch effective address high
@@ -557,9 +658,17 @@ void MOS6510::FetchLowEffAddr (void)
                         Indexed Indirect (pre X)
 */
 void MOS6510::FetchHighEffAddr (void)
-{   // Rev 1.03 (Mike) - Extra +1 removed
-    endian_16lo8 (Cycle_Pointer, (Cycle_Pointer + 1) & 0xff);
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (Cycle_Pointer));
+{
+    if (rdy && aec)
+    {   // Rev 1.03 (Mike) - Extra +1 removed
+        endian_16lo8 (Cycle_Pointer, (Cycle_Pointer + 1) & 0xff);
+        endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (Cycle_Pointer));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Fetch effective address high, add Y to low byte of effective address
@@ -596,12 +705,24 @@ void MOS6510::FetchHighEffAddrY2 (void)
 
 void MOS6510::FetchEffAddrDataByte (void)
 {
-    Cycle_Data = envReadMemDataByte (Cycle_EffectiveAddress);
+    if (rdy && aec)
+        Cycle_Data = envReadMemDataByte (Cycle_EffectiveAddress);
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::PutEffAddrDataByte (void)
 {
-    envWriteMemByte (Cycle_EffectiveAddress, Cycle_Data);
+    if (aec)
+        envWriteMemByte (Cycle_EffectiveAddress, Cycle_Data);
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Used for Read Modify Write (RMW) instructions
@@ -614,41 +735,73 @@ void MOS6510::FetchPutEffAddrDataByte (void)
 // Push Program Counter Low Byte on stack, decrement S
 void MOS6510::PushLowPC (void)
 {
-    uint_least16_t addr;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    envWriteMemByte (addr, endian_32lo8 (Register_ProgramCounter));
-    Register_StackPointer--;
+    if (aec)
+    {
+        uint_least16_t addr;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        envWriteMemByte (addr, endian_32lo8 (Register_ProgramCounter));
+        Register_StackPointer--;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Push Program Counter High Byte on stack, decrement S
 void MOS6510::PushHighPC (void)
 {
-    uint_least16_t addr;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    envWriteMemByte (addr, endian_32hi8 (Register_ProgramCounter));
-    Register_StackPointer--;
+    if (aec)
+    {
+        uint_least16_t addr;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        envWriteMemByte (addr, endian_32hi8 (Register_ProgramCounter));
+        Register_StackPointer--;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Increment stack and pull program counter low byte from stack,
 void MOS6510::PopLowPC (void)
 {
-    uint_least16_t addr;
-    Register_StackPointer++;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
+    if (rdy && aec)
+    {
+        uint_least16_t addr;
+        Register_StackPointer++;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 // Increment stack and pull program counter high byte from stack,
 void MOS6510::PopHighPC (void)
 {
-    uint_least16_t addr;
-    Register_StackPointer++;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
+    if (rdy && aec)
+    {
+        uint_least16_t addr;
+        Register_StackPointer++;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (addr));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::WasteCycle (void)
@@ -720,11 +873,19 @@ void MOS6510::jsr_instr (void)
 
 void MOS6510::pha_instr (void)
 {
-    uint_least16_t addr;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    envWriteMemByte (addr, Register_Accumulator);
-    Register_StackPointer--;
+    if (aec)
+    {
+        uint_least16_t addr;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        envWriteMemByte (addr, Register_Accumulator);
+        Register_StackPointer--;
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 /* RTI does not delay the IRQ I flag change as it is set 3 cycles before
@@ -1173,11 +1334,19 @@ void MOS6510::ora_instr (void)
 
 void MOS6510::pla_instr (void)
 {
-    uint_least16_t addr;
-    Register_StackPointer++;
-    addr = Register_StackPointer;
-    endian_16hi8 (addr, SP_PAGE);
-    setFlagsNZ (Register_Accumulator = envReadMemByte (addr));
+    if (rdy && aec)
+    {
+        uint_least16_t addr;
+        Register_StackPointer++;
+        addr = Register_StackPointer;
+        endian_16hi8 (addr, SP_PAGE);
+        setFlagsNZ (Register_Accumulator = envReadMemByte (addr));
+    }
+    else
+    {   // Address bus not ready
+        cycleCount--;
+        return;
+    }
 }
 
 void MOS6510::rol_instr (void)
@@ -2326,6 +2495,10 @@ void MOS6510::Initialise (void)
     interrupts.irqRequest = false;
     if (interrupts.irqs)
         interrupts.irqRequest = true;
+
+    // Signals
+    aec = true;
+    rdy = true;
 }
 
 //-------------------------------------------------------------------------//

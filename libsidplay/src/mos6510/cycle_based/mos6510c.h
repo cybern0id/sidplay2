@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/11/01 17:35:27  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.10  2001/08/05 15:46:02  s_a_white
  *  No longer need to check on which cycle an instruction ends or when to print
  *  debug information.
@@ -62,6 +65,10 @@ protected:
     bool dodump;
     EventContext &eventContext;
 
+    // External signals
+    bool aec; /* Address Controller, blocks all */
+    bool rdy; /* Bus Access, blocks reads */
+    
     // Declare processor operations
     struct ProcessorOperations
     {
@@ -253,6 +260,8 @@ public:
     virtual void credits   (char *str);
     virtual void DumpState (void);
     void         debug     (bool enable) {dodump = enable;}
+    void         aecSignal (bool state) {aec = state;}
+    void         rdySignal (bool state) {rdy = state;}
 
     // Non-standard functions
     virtual void triggerRST (void);
