@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2002/11/25 21:07:34  s_a_white
+ *  Allow setting of program counter on reset.
+ *
  *  Revision 1.25  2002/11/21 19:52:48  s_a_white
  *  CPU upgraded to be like other components.  Theres nolonger a clock call,
  *  instead events are registered to occur at a specific time.
@@ -263,6 +266,7 @@ void SID6510::sid_brk (void)
 #if !defined(NO_RTS_UPON_BRK)
     sid_rts ();
 #endif
+    FetchOpcode ();
 }
 
 void SID6510::sid_jmp (void)
