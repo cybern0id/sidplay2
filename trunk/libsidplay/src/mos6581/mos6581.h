@@ -17,12 +17,17 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2000/12/13 12:00:55  mschwendt
+ *  Fix: HAVE_*_RESID is defined in config.h, _NOT_ sidconfig.h
+ *
  *  Revision 1.3  2000/12/11 19:02:10  s_a_white
  *  AC99 Update.
  *
  ***************************************************************************/
 
 #include "config.h"
+
+#ifndef DISABLE_RESID
 
 // Rev 1.2 (saw) - Changed to allow resid to be in more than one location
 #ifdef HAVE_LOCAL_RESID
@@ -33,4 +38,10 @@
 #   else
 #       include <resid/sid.h>
 #   endif
+#endif
+
+#endif // DISABLE_RESID
+
+#ifdef HAVE_HARDSID
+#   include "hardsid/hardsid.h"
 #endif

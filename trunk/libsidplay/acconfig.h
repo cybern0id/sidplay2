@@ -40,6 +40,12 @@
 */
 #undef HAVE_LOCAL_RESID
 #undef HAVE_USER_RESID
+
+/* Define to disable RESID */
+#undef DISABLE_RESID
+
+/* Define to use HARDSID Soundcard */
+#undef HAVE_HARDSID
 @TOP@
 
 /* Define if the C++ compiler supports BOOL */
@@ -51,14 +57,6 @@
 
 /* Define if you need the GNU extensions to compile */
 #undef _GNU_SOURCE
-
-/* Defines Supported Unix Audio Drivers */
-#undef HAVE_OSS
-#undef HAVE_HPUX
-#undef HAVE_SGI
-#undef HAVE_SUNOS
-#undef HAVE_MMSYSTEM
-#undef HAVE_WAV_ONLY
 
 @BOTTOM@
 #endif /* _config_h_ */
