@@ -28,16 +28,16 @@
 #include <new.h>
 #endif
 
-const char _sidtune_txt_format_mus[] = "C64 Sidplayer format (MUS)";
-const char _sidtune_txt_format_str[] = "C64 Stereo Sidplayer format (MUS+STR)";
-const char _sidtune_txt_notEnoughMemory[] = "ERROR: Not enough free memory";
-const char _sidtune_txt_sizeExceeded[] = "ERROR: Total file size too large";
+static const char _sidtune_txt_format_mus[] = "C64 Sidplayer format (MUS)";
+static const char _sidtune_txt_format_str[] = "C64 Stereo Sidplayer format (MUS+STR)";
+static const char _sidtune_txt_notEnoughMemory[] = "ERROR: Not enough free memory";
+static const char _sidtune_txt_sizeExceeded[] = "ERROR: Total file size too large";
 
-const uint_least16_t SIDTUNE_MUS_HLT_CMD = 0x14F;
+static const uint_least16_t SIDTUNE_MUS_HLT_CMD = 0x14F;
 
-const uint_least16_t SIDTUNE_MUS_DATA_ADDR = 0x0900;
-const uint_least16_t SIDTUNE_SID1_BASE_ADDR = 0xd400;
-const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
+static const uint_least16_t SIDTUNE_MUS_DATA_ADDR = 0x0900;
+static const uint_least16_t SIDTUNE_SID1_BASE_ADDR = 0xd400;
+static const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
 
 bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
                               Buffer_sidtt<const uint8_t>& strBuf)
@@ -71,7 +71,7 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
     info.musPlayer = true;
     
     songSpeed[0]  = SIDTUNE_SPEED_CIA_1A;
-    clockSpeed[0] = SIDTUNE_CLOCK_NTSC;
+    clockSpeed[0] = SIDTUNE_CLOCK_ANY;
     fileOffset = 2;  // data after load address
 
     if ( !strBuf.isEmpty() )
@@ -148,7 +148,7 @@ void SidTune::MUS_setPlayerAddress()
     }
 }
 
-const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
+static const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 {
    0x0, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd, 0x1, 0x1,
    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
@@ -192,7 +192,7 @@ int SidTune::MUS_decodePetLine(SmartPtr_sidtt<const uint8_t>& spPet, char* dest)
     return count;
 }
 
-const uint8_t _sidtune_sidplayer1[] =
+static const uint8_t _sidtune_sidplayer1[] =
 {
     0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -398,7 +398,7 @@ const uint8_t _sidtune_sidplayer1[] =
     0x60
 };
 
-const uint8_t _sidtune_sidplayer2[] =
+static const uint8_t _sidtune_sidplayer2[] =
 {
     0x00, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -605,7 +605,7 @@ const uint8_t _sidtune_sidplayer2[] =
 };
 
 bool SidTune::MUS_mergeParts(Buffer_sidtt<const uint8_t>& musBuf,
-                              Buffer_sidtt<const uint8_t>& strBuf)
+                             Buffer_sidtt<const uint8_t>& strBuf)
 {
     Buffer_sidtt<uint8_t> mergeBuf;
     
