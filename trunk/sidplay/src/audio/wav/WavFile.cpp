@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/11/21 19:54:15  s_a_white
+ *  GCC3 update
+ *
  *  Revision 1.3  2001/09/17 19:07:11  s_a_white
  *  Sample enconding support added.
  *
@@ -78,7 +81,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     if (name == NULL)
         return NULL;
 
-    if (isOpen && !file)
+    if (isOpen && !file.fail())
         close();
    
     byteCount = 0;
@@ -101,10 +104,15 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     endian_little16(wavHdr.bitsPerSample,bits);
     endian_little32(wavHdr.dataChunkLen,0);
 
-#if defined(WAV_HAVE_IOS_BIN)
-    ios::openmode createAttr = ios::bin;
+#if defined(HAVE_IOS_OPENMODE)
+    ios_base::openmode createAttr;
 #else
-    ios::openmode createAttr = ios::binary;
+    int createAttr;
+#endif
+#if defined(WAV_HAVE_IOS_BIN)
+    createAttr = ios::bin;
+#else
+    createAttr = ios::binary;
 #endif
     createAttr |= ios::out;
 
@@ -113,14 +121,14 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     else
         file.open( name, createAttr|ios::app );
 
-    isOpen = !file || file.tellp()>0;  // good->true, bad->false
+    isOpen = !(file.fail() || file.tellp());
     _settings = cfg;
     return _sampleBuffer;
 }
 
 void* WavFile::write(unsigned long int bytes)
 {
-    if (isOpen && !file)
+    if (isOpen && !file.fail())
     {
         if (!headerWritten)
         {
@@ -154,7 +162,7 @@ void* WavFile::write(unsigned long int bytes)
 
 void WavFile::close()
 {
-    if (isOpen && !file)
+    if (isOpen && !file.fail())
     {
         endian_little32(wavHdr.length,byteCount+sizeof(wavHeader)-8);
         endian_little32(wavHdr.dataChunkLen,byteCount);

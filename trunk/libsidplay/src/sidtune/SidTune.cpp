@@ -859,7 +859,11 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
+#if defined(HAVE_IOS_OPENMODE)
         ios::openmode createAttr;
+#else
+        int createAttr;
+#endif
 #if defined(HAVE_IOS_BIN)
         createAttr = ios::out | ios::bin;
 #else
@@ -905,7 +909,12 @@ bool SidTune::saveSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open ASCII output file stream.
-        ios::openmode createAttr = ios::out;
+#if defined(HAVE_IOS_OPENMODE)
+        ios::openmode createAttr;
+#else
+        int createAttr;
+#endif
+        createAttr = ios::out;
         if ( overWriteFlag )
             createAttr |= ios::trunc;
         else
@@ -939,7 +948,11 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
+#if defined(HAVE_IOS_OPENMODE)
         ios::openmode createAttr;
+#else
+        int createAttr;
+#endif
 #if defined(HAVE_IOS_BIN)
         createAttr = ios::out | ios::bin;
 #else
