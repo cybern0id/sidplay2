@@ -18,6 +18,16 @@
 #include <sidplay/sidtypes.h>
 #include "libini.h"
 
+// For compatibilty with libsidplay2-0.7.
+#ifndef sid_filter_t
+typedef int sid_fc_t[2];
+typedef struct
+{
+    sid_fc_t       cutoff[0x800];
+    uint_least16_t points;
+} sid_filter_t;
+#define sid_filter_t sid_filter_t
+#endif
 
 class SID_EXTERN SidFilter
 {
@@ -27,8 +37,8 @@ protected:
     sid_filter_t filter;
 
 protected:
-    void readFilterType1 (ini_fd_t ini);
-    void readFilterType2 (ini_fd_t ini);
+    void readType1 (ini_fd_t ini);
+    void readType2 (ini_fd_t ini);
     void clear ();
 
 public:
@@ -37,6 +47,7 @@ public:
 
     void  read (char *filename);
     void  read (ini_fd_t ini, char *heading);
+	void  calcType2 (double fs, double fm, double ft);
     const sid_filter_t* definition ()
     {
         if (!status)
