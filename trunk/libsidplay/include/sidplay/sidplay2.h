@@ -22,17 +22,6 @@
 #include "SidTune.h"
 #include "sidbuilder.h"
 
-#ifndef SIDPLAY2_DEFAULTS
-#define SIDPLAY2_DEFAULTS
-    // Default settings
-    const uint_least32_t SID2_DEFAULT_SAMPLING_FREQ = 44100;
-    const uint_least8_t  SID2_DEFAULT_PRECISION     = 16;
-    const uint_least8_t  SID2_DEFAULT_OPTIMISATION  = 0;
-    const bool           SID2_DEFAULT_SID_SAMPLES   = true; // Samples through sid
-    // Maximum values
-    const uint_least8_t  SID2_MAX_PRECISION    = 16;
-    const uint_least8_t  SID2_MAX_OPTIMISATION = 2;
-#endif // SIDPLAY2_DEFAULTS
 
 // Private Sidplayer
 namespace SIDPLAY2_NAMESPACE
