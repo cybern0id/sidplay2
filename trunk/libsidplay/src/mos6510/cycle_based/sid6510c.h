@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/03/09 22:28:03  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.3  2001/02/13 21:02:25  s_a_white
  *  Small tidy up and possibly a small performace increase.
  *
@@ -35,7 +38,7 @@ class SID6510: public MOS6510
 {
 private:
     // Sidplay Specials
-    bool status;
+    bool sleeping;
 
 public:
     SID6510 ();
@@ -45,7 +48,9 @@ public:
     void reset (uint8_t a, uint8_t x, uint8_t y);
     void clock (void);
 
-    operator bool() { return status; }
+    void triggerRST (void);
+    void triggerNMI (void);
+    void triggerIRQ (void);
 
 private:
     inline void sid_FetchEffAddrDataByte (void);
@@ -58,14 +63,34 @@ private:
 
 
 inline void SID6510::clock (void)
-{   // Call inherited emulate
+{
+	if (sleeping)
+		return;
+
+	// Call inherited clock
     MOS6510::clock ();
 
-    // Sidplay requires that we check to see if
-    // the stack has overflowed.  This then returns
-    // control back to sidplay so music can be played
-    status &= (endian_16hi8  (Register_StackPointer)   == SP_PAGE);
-    status &= (endian_32hi16 (Register_ProgramCounter) == 0);
+    if (cycleCount)
+		return;
+    
+	// Sid tunes end by wrapping the stack.  For compatibilty it
+	// has to be handled.
+    sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
+    sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+
+	if (!sleeping)
+		return;
+
+    // The CPU is about to sleep.  It can only be woken by a
+	// reset or interrupt.
+	Initialise ();
+
+	// Check for outstanding interrupts
+	if (interrupts.pending)
+	{   // Start processing the interrupt
+        FetchOpcode ();
+		sleeping = false;
+	}
 }
 
 #endif // _sid6510c_h_
