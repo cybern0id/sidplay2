@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/07/20 08:34:52  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.7  2001/10/18 22:35:45  s_a_white
  *  GCC3 fixes.
  *
@@ -70,12 +73,12 @@ protected:
 
     // Timer A
     uint8_t cra, cra_latch;
-    uint_least16_t ta, ta_latch;
+    uint_least16_t ta, ta_latch, ta_prescaler;
     int  ta_state;
 
     // Timer B
     uint8_t crb;
-    uint_least16_t tb, tb_latch;
+    uint_least16_t tb, tb_latch, tb_prescaler;
 
     uint8_t icr, idr; // Interrupt Control Register
     event_clock_t m_accessClk;
