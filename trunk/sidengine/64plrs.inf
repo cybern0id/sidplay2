@@ -1,0 +1,4150 @@
+;         ______
+;        /  ___ \
+;       /  /   \_\           _                 _ _
+;       |  |   _____     ___| |_  ___ _ _ _ _ (_) |_ _  _
+;       |  |   |___/    / -_)  _|/ -_) ._| . \| |  _| || |
+;       |  |   |___\    \___|\__|\___|_| |_|__|_|\__|\_, |
+;       |  |    __                                    |__/
+;       \  |___/ /
+;        \______/    (c) Lada 'Ray' Lostak 1998-2003
+;
+; Sid64 Player database v1.0 part of Eternity64 project
+;
+; ------------------------------------------------------------------------
+; Sid64 Database is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2, or (at your option)
+; any later version.
+; 
+; Sid64 Database is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with Sid64 Database; see the file COPYING.  If not, write to
+; the Free Software Foundation, 59 Temple Place - Suite 330,
+; Boston, MA 02111-1307, USA.
+; ------------------------------------------------------------------------
+; Glued together with Advanced Music Searcher AMS 5.0.415 (c) MMS/Taboo
+;
+; Contributors:
+;
+;   Lada 'Ray' Lostak/Unreal
+;   A Live In Hell/Wow
+;   Stefano Tognon
+;   Zdenek Eisenhammer aka PG/Unreal
+;
+;   and other unknown C64 sceners making database for AMS
+;
+;
+; Simple fast-doc
+; ---------------
+; Player {       begin of 'Player' block - the brace ('{') must be placed ON THE SAME LINE)
+;
+;   Name=playername        player name (sometimes author & player)
+;   ID=offset:value 1      up to 16 IDs (see bellow) minimum of IDs are 3....
+;     .
+;   ID=offset:value N
+;   Message=offset:length  1         ; up to 16 different "messages"
+;     .                              ; if length is zero, message is zero padded
+;   Message=offset:length  N
+;   OrderPos=offset1,offset2,offset3 ; these addresses in C64 memory contains actual order position
+;   SecPos=offset1,offset2,offset3   ; these adresses contain the actual row in sector
+; }                                  ; mark for block end
+;
+;
+; Music is searched from $0300 to $ff00 per $100 bytes....
+; For example actual search address is $1200
+;
+;  ID=$0001:$4c       while the value at addy $1201 (actual+ID offset) is$4c
+;  ID=$0003:$56       and the value at $1203, the player was found....
+;
+; The same principle is used for Messages etc....
+;
+; Both Order and Sector positions can be 'byte offsets' - values are converted
+; to lines (every change -> one line increase)
+;
+;  Note: some players have these values in zero page or tape buffer etc...
+;  So, if the player address in memory is not important, use:
+;  #$.... (for. ex. #$0334) - the '#' marks a fixed address (not relative like
+;  without it).
+;
+; ----------------------------------------------------------------------------------------
+
+Player {
+
+     Name=<?> Helge Koiziele (T. Detert)
+     ID=$0000:$4c
+     ID=$0001:$da
+     ID=$0003:$ad
+     ID=$000a:$4c
+     ID=$000b:$da
+     OrderPos=$14c9,$14d0,$14d7
+     SecPos=$14ca,$14d1,$14d8
+}
+
+Player {
+
+     Name=TAXIM?
+     ID=$0001:$12
+     ID=$0002:$C0
+     ID=$0004:$0D
+     OrderPos=#$02C1,#$02C1,#$02C1
+     SecPos=#$02C0,#$02C0,#$02C0
+}
+
+Player {
+
+     Name=Jeroen Tel (Iron Lord)
+     ID=$0044:$A2
+     ID=$0046:$8E
+     ID=$009B:$A9
+     OrderPos=$0008,$0009,$000A
+     SecPos=$000B,$000C,$000D
+}
+
+Player {
+
+     Name=David Whittaker (GP Sim.)
+     ID=$0000:$48
+     ID=$013B:$A5
+     ID=$013E:$A5
+     OrderPos=$00C8,$00C8,$00C8
+}
+
+Player {
+
+     Name=COMPOD?
+     ID=$0000:$4C
+     ID=$0001:$31
+     ID=$0004:$A1
+     OrderPos=$07D7,$07D7,$07D7
+     SecPos=$07D8,$07DA,$07DC
+}
+
+Player {
+
+     Name=PLAYER 10X by DEC
+     ID=$0001:$7E
+     ID=$0004:$4B
+     ID=$0008:$50
+     OrderPos=$011A,$0121,$0128
+     SecPos=$0101,$0108,$010F
+}
+
+Player {
+
+     Name=Rob Hubbard 1
+     ID=$0001:$88
+     ID=$0004:$BC
+     ID=$0007:$C2
+     OrderPos=$04C4,$04C5,$04C6
+     SecPos=$04C7,$04C8,$04C9
+}
+
+Player {
+
+     Name=Unknown (Maniacs of noise)
+     ID=$1b02:$2e
+     ID=$1b03:$53
+     ID=$1b04:$54
+     OrderPos=#$00FA,#$00FA,#$00FA
+     SecPos=#$00E5,#$00E6,#$00E7
+}
+
+Player {
+
+     Name=DMC V7 /UNREAL VERSION
+     ID=$0000:$4C
+     ID=$0001:$07
+     ID=$0003:$4C
+     ID=$0004:$50
+     OrderPos=$0726,$0727,$0728
+     SecPos=$0729,$072A,$072B
+}
+
+Player {
+
+     Name=DMC V7+ /UNREAL VERSION
+     ID=$0001:$35
+     ID=$0004:$7E
+     ID=$0007:$43
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.0
+     ID=$0101:$7E
+     ID=$0103:$4C
+     ID=$0104:$95
+     ID=$0106:$0A
+     OrderPos=$08d8,$08df,$08e6
+     SecPos=$08d9,$08e0,$08e7
+
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.1 BETA
+     ID=$0001:$7E
+     ID=$0003:$4C
+     ID=$0004:$85
+     ID=$0006:$0A
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.2
+     ID=$0001:$FA
+     ID=$0004:$6A
+     ID=$0007:$84
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.3
+     ID=$0001:$FA
+     ID=$0004:$6A
+     ID=$0007:$91
+     ID=$0006:$4C
+     OrderPos=$08F2,$08F9,$0900
+     SecPos=$08F3,$08FA,$0901
+
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.31
+     ID=$0001:$FA
+     ID=$0004:$6A
+     ID=$0007:$9A
+     ID=$0006:$4C
+     OrderPos=$08F2,$08F9,$0900
+     SecPos=$08F3,$08FA,$0901
+
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.4
+     ID=$0001:$FA
+     ID=$0004:$6A
+     ID=$0007:$4C
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 1.5 BETA
+     ID=$0001:$FA
+     ID=$0004:$6F
+     ID=$0007:$24
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.0
+     ID=$0001:$FA
+     ID=$0004:$6F
+     ID=$0007:$21
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.1
+     ID=$0001:$FA
+     ID=$0004:$6F
+     ID=$0007:$2D
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.2 PLUS
+     ID=$0001:$FA
+     ID=$0004:$7F
+     ID=$0007:$13
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.3 BETA
+     ID=$0001:$FA
+     ID=$0004:$75
+     ID=$0007:$20
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.4A
+     ID=$0001:$FA
+     ID=$0004:$72
+     ID=$0007:$2A
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=UNREAL'S TFX 2.7
+     ID=$0001:$FA
+     ID=$0004:$72
+     ID=$0007:$14
+     ID=$0006:$4C
+     OrderPos=$086c,$0873,$087a
+     SecPos=$086d,$0874,$087b
+}
+
+Player {
+
+     Name=VOICETRACKER (USA TEAM)
+     ID=$0021:$A2
+     ID=$0023:$CE
+     ID=$0048:$A9
+     ID=$004A:$8D
+     OrderPos=$0087,$0088,$0089
+     SecPos=$0081,$0082,$0083
+
+}
+
+
+Player {
+
+     Name=-A-
+     ID=$0000:$4C
+     ID=$0001:$68
+     ID=$0003:$4C
+     ID=$0004:$B9
+}
+
+Player {
+
+     Name=20CC 01
+     ID=$00CE:$A0
+     ID=$00D0:$30
+     ID=$00D1:$64
+     ID=$00D3:$58
+}
+
+Player {
+
+     Name=20CC 02
+     ID=$009A:$A0
+     ID=$009B:$FF
+     ID=$009C:$30
+     ID=$009D:$5D
+}
+
+Player {
+
+     Name=20CC 03
+     ID=$0000:$4C
+     ID=$0001:$69
+     ID=$0003:$4C
+     ID=$0004:$8B
+}
+
+Player {
+
+     Name=20CC 04
+     ID=$0003:$4C
+     ID=$0004:$4A
+     ID=$0006:$4C
+     ID=$0007:$40
+}
+
+Player {
+
+     Name=20CC 05
+     ID=$00A8:$A9
+     ID=$00AA:$30
+     ID=$00AC:$F0
+     ID=$00AE:$0A
+}
+
+Player {
+
+     Name=20CC 06
+     ID=$0000:$4C
+     ID=$0001:$A6
+     ID=$0003:$4C
+     ID=$00A6:$B9
+}
+
+Player {
+
+     Name=20CC 07
+     ID=$0000:$4C
+     ID=$0001:$97
+     ID=$0003:$4C
+     ID=$0097:$B9
+}
+
+Player {
+
+     Name=20CC 08
+     ID=$006C:$A9
+     ID=$006E:$30
+     ID=$0070:$F0
+     ID=$0072:$0A
+}
+
+Player {
+
+     Name=20CC 09
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$7C
+     ID=$007C:$A2
+}
+
+Player {
+
+     Name=20CC 10
+     ID=$00D1:$A0
+     ID=$00D3:$30
+     ID=$00D5:$F0
+     ID=$00D7:$88
+}
+
+Player {
+
+     Name=20CC 11
+     ID=$007D:$A9
+     ID=$007F:$30
+     ID=$0081:$F0
+     ID=$0083:$0A
+}
+
+Player {
+
+     Name=20CC 12
+     ID=$0000:$4C
+     ID=$0001:$DD
+     ID=$0003:$4C
+     ID=$0004:$7D
+}
+
+Player {
+
+     Name=20CC DIGI
+     ID=$0000:$4C
+     ID=$0001:$9B
+     ID=$0003:$4C
+     ID=$009B:$84
+}
+
+Player {
+
+     Name=A-MAN 1
+     ID=$0000:$4C
+     ID=$0001:$1E
+     ID=$0003:$4C
+     ID=$0004:$92
+}
+
+Player {
+
+     Name=A-MAN 2
+     ID=$0000:$4C
+     ID=$0001:$1D
+     ID=$0003:$4C
+     ID=$0004:$93
+}
+
+Player {
+
+     Name=A-MAN 3
+     ID=$0000:$4C
+     ID=$0001:$14
+     ID=$0003:$4C
+     ID=$0004:$8A
+}
+
+Player {
+
+     Name=ACTION
+     ID=$0000:$4C
+     ID=$0001:$1D
+     ID=$0003:$4C
+     ID=$0004:$91
+}
+
+Player {
+
+     Name=AFL
+     ID=$0000:$4C
+     ID=$0001:$66
+     ID=$0003:$4C
+     ID=$0004:$EA
+}
+
+Player {
+
+     Name=ALD 1
+     ID=$0000:$4C
+     ID=$0001:$5E
+     ID=$0003:$4C
+     ID=$0004:$89
+}
+
+Player {
+
+     Name=ALD 2
+     ID=$0000:$4C
+     ID=$0001:$3A
+     ID=$0003:$4C
+     ID=$0004:$AB
+}
+
+Player {
+
+     Name=ALD 3
+     ID=$0000:$4C
+     ID=$0001:$46
+     ID=$0003:$4C
+     ID=$0004:$C6
+}
+
+Player {
+
+     Name=AMOK 1
+     ID=$0015:$AD
+     ID=$0016:$5D
+     ID=$0023:$18
+     ID=$0024:$D4
+}
+
+Player {
+
+     Name=AMOK 2
+     ID=$0000:$4C
+     ID=$0001:$8D
+     ID=$0003:$4C
+     ID=$0004:$F8
+}
+
+Player {
+
+     Name=AMOK 3
+     ID=$0000:$4C
+     ID=$0001:$DB
+     ID=$0003:$4C
+     ID=$0004:$2C
+}
+
+Player {
+
+     Name=AMP V2.3
+     ID=$0000:$4C
+     ID=$0001:$DB
+     ID=$0003:$4C
+     ID=$0004:$05
+}
+
+Player {
+
+     Name=ANVIL
+     ID=$0000:$4C
+     ID=$0001:$9C
+     ID=$0003:$4C
+     ID=$0004:$F9
+}
+
+Player {
+
+     Name=ARTLINE DESIGNS 1
+     ID=$0000:$4C
+     ID=$0001:$70
+     ID=$0003:$4C
+     ID=$0004:$9B
+}
+
+Player {
+
+     Name=ARTLINE DESIGNS 2
+     ID=$0000:$4C
+     ID=$0001:$13
+     ID=$0003:$4C
+     ID=$0004:$41
+}
+
+Player {
+
+     Name=ARTLINE DESIGNS 3
+     ID=$0000:$4C
+     ID=$0001:$8D
+     ID=$0003:$4C
+     ID=$0004:$BD
+}
+
+Player {
+
+     Name=ARTLINE DESIGNS 4
+     ID=$0000:$4C
+     ID=$0001:$6A
+     ID=$0003:$4C
+     ID=$0004:$95
+}
+
+Player {
+
+     Name=ARTLINE DESIGNS 5
+     ID=$0000:$4C
+     ID=$0001:$52
+     ID=$0003:$4C
+     ID=$0004:$D2
+}
+
+Player {
+
+     Name=ASSASIN
+     ID=$00D8:$A5
+     ID=$00D9:$01
+     ID=$00DB:$24
+     ID=$00DC:$0D
+}
+
+Player {
+
+     Name=ATLANTIS
+     ID=$0000:$4C
+     ID=$0001:$3E
+     ID=$0003:$4C
+     ID=$0004:$5B
+}
+
+Player {
+
+     Name=AUDIAL ARTS 1
+     ID=$0000:$4C
+     ID=$0001:$6B
+     ID=$0003:$4C
+     ID=$0004:$BC
+}
+
+Player {
+
+     Name=AUDIAL ARTS 2
+     ID=$006A:$A2
+     ID=$006C:$A9
+     ID=$00AF:$A9
+     ID=$00B1:$09
+}
+
+Player {
+
+     Name=AUDIAL ARTS 3
+     ID=$0074:$A2
+     ID=$0076:$A9
+     ID=$00C5:$A9
+     ID=$00C7:$09
+}
+
+Player {
+
+     Name=AUDIAL ARTS 4
+     ID=$0085:$A2
+     ID=$0087:$A9
+     ID=$00D6:$A9
+     ID=$00D8:$09
+}
+
+Player {
+
+     Name=AUDIAL ARTS 5
+     ID=$0000:$4C
+     ID=$0001:$6A
+     ID=$0003:$4C
+     ID=$0004:$A7
+}
+
+Player {
+
+     Name=BRIAN 1
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$A0
+}
+
+Player {
+
+     Name=BYTEMARE
+     ID=$0000:$4C
+     ID=$0001:$9F
+     ID=$0003:$4C
+     ID=$009F:$0A
+}
+
+Player {
+
+     Name=CHARLES DEENEN 2
+     ID=$0000:$4C
+     ID=$0001:$B1
+     ID=$00B1:$48
+     ID=$00B2:$A9
+     OrderPos=$000d,$000e,$000f
+     SecPos=$0010,$0011,$0012
+
+}
+
+Player {
+
+     Name=CHARLES DEENEN 3
+     ID=$0000:$4C
+     ID=$0001:$B1
+     ID=$0006:$4C
+     ID=$0007:$F6
+}
+
+Player {
+
+     Name=CHARLES DEENEN 4
+     ID=$0035:$4C
+     ID=$0036:$12
+     ID=$0038:$4C
+     ID=$0039:$1C
+}
+
+Player {
+
+     Name=CHARLES DEENEN/HAWKEYE 2
+     ID=$0000:$4C
+     ID=$0001:$B4
+     ID=$0003:$4C
+     ID=$0004:$FC
+}
+
+Player {
+
+     Name=DANCE 2 TRANCE
+     ID=$0000:$4C
+     ID=$0001:$64
+     ID=$0009:$4C
+     ID=$000A:$27
+}
+
+Player {
+
+     Name=DEC V3.0B
+     ID=$0000:$4C
+     ID=$0001:$7E
+     ID=$0003:$4C
+     ID=$0004:$47
+}
+
+Player {
+
+     Name=DEC V3.1C
+     ID=$0000:$4C
+     ID=$0001:$7E
+     ID=$0003:$4C
+     ID=$0004:$4B
+}
+
+Player {
+
+     Name=DIGI ORGANIZER
+     ID=$0000:$4C
+     ID=$0001:$26
+     ID=$0003:$4C
+     ID=$0004:$87
+}
+
+Player {
+
+     Name=DIGITAL SYSTEM
+     ID=$0000:$4C
+     ID=$002D:$10
+     ID=$0003:$EE
+     ID=$0061:$16
+}
+
+Player {
+
+     Name=DMC V3.0
+     ID=$0000:$4C
+     ID=$0001:$37
+     ID=$0003:$4C
+     ID=$0004:$85
+     OrderPos=$0726,$0727,$0728
+     SecPos=$0729,$072A,$072B
+}
+
+Player {
+
+     Name=DMC V4.0
+     ID=$0000:$4C
+     ID=$0001:$1D
+     ID=$0003:$4C
+     ID=$0004:$85
+     OrderPos=$0726,$0727,$0728
+     SecPos=$0729,$072A,$072B
+
+}
+
+Player {
+
+     Name=DMC V4 - clone I
+     ID=$0000:$4C
+     ID=$0001:$1D
+     ID=$0003:$4C
+     ID=$0007:$2F
+     ID=$000A:$3E
+     OrderPos=$0726,$0727,$0728
+     SecPos=$0729,$072A,$072B
+}
+
+
+Player {
+
+     Name=DMC V4.? (1)
+     ID=$0000:$4C
+     ID=$0001:$07
+     ID=$0003:$4C
+     ID=$0004:$85
+}
+
+Player {
+
+     Name=DMC V4.? (2)
+     ID=$0000:$4C
+     ID=$0001:$3D
+     ID=$0003:$4C
+     ID=$0004:$20
+}
+
+Player {
+
+     Name=DMC V4.? (3)
+     ID=$0000:$4C
+     ID=$0001:$08
+     ID=$0003:$4C
+     ID=$0004:$86
+}
+
+Player {
+
+     Name=DMC V4.? (4)
+     ID=$0000:$4C
+     ID=$0001:$18
+     ID=$0003:$4C
+     ID=$0004:$96
+}
+
+Player {
+
+     Name=DMC V4.? (5)
+     ID=$0000:$4C
+     ID=$0001:$0D
+     ID=$0003:$20
+     ID=$0004:$07
+}
+
+Player {
+
+     Name=DMC V5.0
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$A1
+     OrderPos=$07d5,$07D6,$07D7
+     SecPos=$07D8,$07D9,$07DA
+
+}
+
+Player {
+
+     Name=DMC V5.1
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$95
+     OrderPos=$07DF,$07E0,$07E1
+     SecPos=$07E2,$07E3,$07E4
+}
+
+Player {
+
+     Name=DMC V6.0
+     ID=$0000:$4C
+     ID=$0001:$50
+     ID=$0003:$4C
+     ID=$0004:$7B
+}
+
+Player {
+
+     Name=DPL V1.0
+     ID=$00A0:$C9
+     ID=$00A1:$04
+     ID=$00A2:$90
+     ID=$00A5:$AA
+}
+
+Player {
+
+     Name=DUNEX
+     ID=$0000:$4C
+     ID=$0001:$7E
+     ID=$0003:$4C
+     ID=$0004:$B2
+}
+
+Player {
+
+     Name=EQUALIZER 01  (1.06)
+     ID=$0000:$4C
+     ID=$0001:$37
+     ID=$0003:$4C
+     ID=$0004:$4E
+}
+
+Player {
+
+     Name=EQUALIZER 02  (1.6)
+     ID=$0000:$4C
+     ID=$0001:$B7
+     ID=$0003:$4C
+     ID=$0004:$CE
+}
+
+Player {
+
+     Name=EQUALIZER 03
+     ID=$0000:$4C
+     ID=$0001:$68
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 04
+     ID=$0000:$4C
+     ID=$0001:$DE
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 05
+     ID=$0000:$4C
+     ID=$0001:$53
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 06
+     ID=$0000:$4C
+     ID=$0001:$DF
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 07
+     ID=$0000:$4C
+     ID=$0001:$FE
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 08
+     ID=$0000:$4C
+     ID=$0001:$39
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 09
+     ID=$0000:$4C
+     ID=$0001:$11
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 10
+     ID=$0000:$4C
+     ID=$0001:$14
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 11
+     ID=$0000:$4C
+     ID=$0001:$50
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 12
+     ID=$0000:$4C
+     ID=$0001:$55
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 13
+     ID=$0000:$4C
+     ID=$0001:$88
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 14
+     ID=$0000:$4C
+     ID=$0001:$EB
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 15
+     ID=$0000:$4C
+     ID=$0001:$A3
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=EQUALIZER 16
+     ID=$0000:$4C
+     ID=$0001:$E1
+     ID=$0003:$4C
+     ID=$0004:$A1
+}
+
+Player {
+
+     Name=FALCO PAUL 1
+     ID=$0000:$4C
+     ID=$0001:$C9
+     ID=$0003:$4C
+     ID=$0004:$2E
+}
+
+Player {
+
+     Name=FALCO PAUL 2
+     ID=$0000:$4C
+     ID=$0001:$E1
+     ID=$0003:$4C
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=FALCO PAUL 3
+     ID=$0000:$4C
+     ID=$0001:$BB
+     ID=$0003:$4C
+     ID=$0004:$27
+}
+
+Player {
+
+     Name=FALCO PAUL 4
+     ID=$0000:$B9
+     ID=$0003:$A8
+     ID=$006C:$AD
+     ID=$006F:$F0
+}
+
+Player {
+
+     Name=FALCO PAUL 5
+     ID=$00CA:$B9
+     ID=$00CD:$A8
+     ID=$00CE:$B9
+     ID=$00D1:$8D
+}
+
+Player {
+
+     Name=FALCO PAUL 6
+     ID=$0000:$4C
+     ID=$0001:$B8
+     ID=$0003:$4C
+     ID=$00B8:$B9
+}
+
+Player {
+
+     Name=FALCO PAUL 7
+     ID=$0000:$4C
+     ID=$0001:$C9
+     ID=$0009:$4C
+     ID=$00C9:$B9
+}
+
+Player {
+
+     Name=FALCO PAUL 8
+     ID=$0000:$4C
+     ID=$0001:$A9
+     ID=$0003:$4C
+     ID=$0004:$5B
+}
+
+Player {
+
+     Name=FALCO PAUL 9
+     ID=$0000:$4C
+     ID=$0001:$DB
+     ID=$0003:$4C
+     ID=$0004:$47
+}
+
+Player {
+
+     Name=FALCO PAUL FX
+     ID=$0000:$4C
+     ID=$0001:$89
+     ID=$0003:$4C
+     ID=$0004:$94
+}
+
+Player {
+
+     Name=FAME 1
+     ID=$002F:$AA
+     ID=$0030:$BD
+     ID=$0033:$8D
+     ID=$0067:$A2
+}
+
+Player {
+
+     Name=FAME 2
+     ID=$0000:$4C
+     ID=$0001:$47
+     ID=$0003:$4C
+     ID=$0004:$7F
+}
+
+Player {
+
+     Name=FAME 3
+     ID=$0003:$4C
+     ID=$0004:$36
+     ID=$0006:$4C
+     ID=$0036:$AA
+}
+
+Player {
+
+     Name=FUTURE COMPOSER 1.0
+     ID=$0006:$AD
+     ID=$0007:$74
+     ID=$0009:$C9
+     ID=$000A:$02
+     OrderPos=$0921,$0922,$0923
+     SecPos=$0924,$0924,$0926
+
+}
+
+Player {
+
+     Name=FUTURE COMPOSER 2.0
+     ID=$000D:$C9
+     ID=$000E:$01
+     ID=$0006:$AD
+     ID=$0007:$CB
+}
+
+Player {
+
+     Name=FUTURE COMPOSER 3.1
+     ID=$0000:$4C
+     ID=$0001:$2B
+     ID=$0003:$4C
+     ID=$0004:$9C
+}
+
+Player {
+
+     Name=GMC
+     ID=$04EA:$AD
+     ID=$04ED:$8D
+     ID=$04EE:$18
+     ID=$04F0:$CE
+     OrderPos=$0041,$0042,$0043
+     SecPos=$0044,$0045,$0046
+}
+
+Player {
+
+     Name=GRABOWSKY
+     ID=$0000:$4C
+     ID=$0001:$AA
+     ID=$0003:$8E
+     ID=$0004:$35
+     SecPos=$06B5,$06BC,$06C3
+     OrderPos=$06B1,$06B1,$06B1
+}
+
+Player {
+
+     Name=GRAY V1.5
+     ID=$0002:$A2
+     ID=$0004:$20
+     ID=$0005:$12
+     ID=$0012:$AD
+}
+
+Player {
+
+     Name=GREG HOLLAND (FIST II)
+     ID=$0000:$4C
+     ID=$0001:$A0
+     ID=$0003:$4C
+     ID=$0004:$EF
+}
+
+Player {
+
+     Name=GROOVY BITS
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$A2
+     ID=$0005:$8A
+}
+
+Player {
+
+     Name=GUY SHAVITT 1
+     ID=$0000:$4C
+     ID=$0001:$AE
+     ID=$0003:$AD
+     ID=$0004:$1E
+}
+
+Player {
+
+     Name=GUY SHAVITT 2
+     ID=$0000:$4C
+     ID=$0001:$9D
+     ID=$003B:$AD
+     ID=$003E:$10
+}
+
+Player {
+
+     Name=GUY SHAVITT 3 (B)
+     ID=$0000:$4C
+     ID=$0003:$AD
+     ID=$0006:$F0
+     ID=$0008:$60
+     ID=$0558:$e0
+     OrderPos=$05b9,$05ba,$05bb
+     SecPos=$05e2,$05e3,$05e4
+}
+
+
+Player {
+
+     Name=GUY SHAVITT 3
+     ID=$0000:$4C
+     ID=$0003:$AD
+     ID=$0006:$F0
+     ID=$0008:$60
+     OrderPos=$0687,$0688,$0689
+     SecPos=$06a2,$06a3,$06a4
+}
+
+Player {
+
+     Name=GUY SHAVITT 4
+     ID=$0000:$4C
+     ID=$001B:$AD
+     ID=$001E:$10
+     ID=$0020:$60
+}
+
+Player {
+
+     Name=HARDTRACK 2
+     ID=$0000:$4C
+     ID=$0001:$49
+     ID=$0003:$4C
+     ID=$0004:$F1
+}
+
+Player {
+
+     Name=HARDTRACK 3
+     ID=$0000:$4C
+     ID=$0001:$44
+     ID=$0003:$4C
+     ID=$0004:$BF
+}
+
+Player {
+
+     Name=HARDTRACK 4
+     ID=$0000:$4C
+     ID=$0001:$60
+     ID=$0003:$4C
+     ID=$0004:$DD
+}
+
+Player {
+
+     Name=HARDTRACK V1
+     ID=$0000:$4C
+     ID=$0001:$60
+     ID=$0003:$4C
+     ID=$0004:$D8
+}
+
+Player {
+
+     Name=HARDTRACK V1+FX
+     ID=$0000:$4C
+     ID=$0001:$60
+     ID=$0003:$4C
+     ID=$0004:$DE
+}
+
+Player {
+
+     Name=HENNIG ROKLING 1
+     ID=$0000:$A2
+     ID=$0002:$86
+     ID=$0095:$A6
+     ID=$0097:$BD
+}
+
+Player {
+
+     Name=HENNIG ROKLING 2
+     ID=$0000:$4C
+     ID=$0001:$F8
+     ID=$0003:$4C
+     ID=$0004:$93
+}
+
+Player {
+
+     Name=JCH 01
+     ID=$0000:$4C
+     ID=$0001:$28
+     ID=$0003:$4C
+     ID=$0004:$65
+}
+
+Player {
+
+     Name=JCH 02/NEWPLAYER V17.G1
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$D8
+}
+
+Player {
+
+     Name=JCH 03/NEWPLAYER V15.G1
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$DC
+}
+
+Player {
+
+     Name=JCH 04/NEWPLAYER V13.G0
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$DA
+}
+
+Player {
+
+     Name=JCH 05
+     ID=$0000:$4C
+     ID=$0001:$28
+     ID=$0003:$4C
+     ID=$0004:$70
+}
+
+Player {
+
+     Name=JCH 06
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$C8
+}
+
+Player {
+
+     Name=JCH 07
+     ID=$0000:$4C
+     ID=$0001:$66
+     ID=$0003:$4C
+     ID=$0004:$AB
+}
+
+Player {
+
+     Name=JCH 08
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$8D
+}
+
+Player {
+
+     Name=JCH 09/NEWPLAYER V20.G0
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$BF
+}
+
+Player {
+
+     Name=JCH 10
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$71
+}
+
+Player {
+
+     Name=JCH 11/NEWPLAYER V18.
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$C0
+}
+
+Player {
+
+     Name=JCH 12
+     ID=$0000:$4C
+     ID=$0001:$48
+     ID=$0003:$4C
+     ID=$0004:$90
+}
+
+Player {
+
+     Name=JCH 13/NEWPLAYER V19.G1
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$B4
+}
+
+Player {
+
+     Name=JCH 14/NEWPLAYER V20.G4
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$C1
+     OrderPos=$072E,$072F,$0730
+     SecPos=$0751,$0752,$0753
+
+}
+
+Player {
+
+     Name=JCH 15/NEWPLAYER V15.G0
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$DF
+}
+
+Player {
+
+     Name=JCH 16
+     ID=$0000:$4C
+     ID=$0001:$79
+     ID=$0003:$4C
+     ID=$0004:$D5
+}
+
+Player {
+
+     Name=JCH 17
+     ID=$0040:$0A
+     ID=$0043:$A8
+     ID=$00D4:$A2
+     ID=$00D6:$A5
+}
+
+Player {
+
+     Name=JCH 18/NEWPLAYER V1.
+     ID=$0060:$0A
+     ID=$0063:$A8
+     ID=$00D2:$A5
+     ID=$00D4:$48
+}
+
+Player {
+
+     Name=JCH 19
+     ID=$000B:$A2
+     ID=$000D:$BD
+     ID=$0035:$A5
+     ID=$0037:$48
+}
+
+Player {
+
+     Name=JCH 20
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$D2
+}
+
+Player {
+
+     Name=JCH 21
+     ID=$0000:$4C
+     ID=$0001:$26
+     ID=$0003:$4C
+     ID=$0004:$6B
+}
+
+Player {
+
+     Name=JCH 22
+     ID=$0000:$4C
+     ID=$0001:$28
+     ID=$0003:$4C
+     ID=$0004:$75
+}
+
+Player {
+
+     Name=JCH 23
+     ID=$0000:$4C
+     ID=$0001:$2B
+     ID=$0003:$4C
+     ID=$0004:$73
+}
+
+Player {
+
+     Name=JCH 24
+     ID=$0000:$4C
+     ID=$0001:$0E
+     ID=$0003:$4C
+     ID=$0004:$36
+}
+
+Player {
+
+     Name=JCH 25
+     ID=$0000:$4C
+     ID=$0001:$60
+     ID=$0003:$4C
+     ID=$0004:$F8
+}
+
+Player {
+
+     Name=JCH 26
+     ID=$0000:$4C
+     ID=$0001:$26
+     ID=$0003:$4C
+     ID=$0004:$65
+}
+
+Player {
+
+     Name=JCH 27/NEWPLAYER V17.Q0
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$20
+     ID=$0004:$D8
+}
+
+Player {
+
+     Name=JEFF
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0006:$A9
+}
+
+Player {
+
+     Name=JEFF 2
+     ID=$0000:$4C
+     ID=$0001:$DB
+     ID=$0003:$4C
+     ID=$0004:$27
+}
+
+Player {
+
+     Name=JEFF 3
+     ID=$0000:$4C
+     ID=$0001:$9D
+     ID=$0003:$4C
+     ID=$0004:$E2
+}
+
+Player {
+
+     Name=JEFF 4
+     ID=$0000:$4C
+     ID=$0001:$A4
+     ID=$0003:$4C
+     ID=$0004:$ED
+}
+
+Player {
+
+     Name=JEFF V5.2
+     ID=$0000:$4C
+     ID=$0001:$88
+     ID=$0003:$4C
+     ID=$0004:$70
+}
+
+Player {
+
+     Name=JEFF V7
+     ID=$00A3:$0A
+     ID=$00A4:$A8
+     ID=$00A5:$B9
+     ID=$00A8:$8D
+}
+
+Player {
+
+     Name=JEFF V7.2
+     ID=$0000:$4C
+     ID=$0001:$A3
+     ID=$0003:$4C
+     ID=$0004:$52
+}
+
+Player {
+
+     Name=JEFF V8
+     ID=$0000:$4C
+     ID=$0001:$8A
+     ID=$0003:$4C
+     ID=$0004:$B6
+}
+
+Player {
+
+     Name=JEFF V9.0
+     ID=$0000:$4C
+     ID=$0001:$AA
+     ID=$0003:$4C
+     ID=$0004:$EE
+}
+
+Player {
+
+     Name=JEFF V9.1+
+     ID=$0000:$4C
+     ID=$0001:$99
+     ID=$0003:$4C
+     ID=$0004:$DE
+}
+
+Player {
+
+     Name=JEFF V9.4
+     ID=$0000:$4C
+     ID=$0001:$9E
+     ID=$0003:$4C
+     ID=$0004:$E6
+}
+
+Player {
+
+     Name=JEROEN TEL 1
+     ID=$0000:$4C
+     ID=$0001:$83
+     ID=$0003:$4C
+     ID=$0004:$BB
+}
+
+Player {
+
+     Name=JEROEN TEL 3
+     ID=$0000:$4C
+     ID=$0001:$3C
+     ID=$0079:$A9
+     ID=$007A:$A0
+}
+
+Player {
+
+     Name=JEROEN TEL 4
+     ID=$0000:$4C
+     ID=$0001:$0A
+     ID=$0003:$4C
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=JEROEN TEL 5
+     ID=$0000:$4C
+     ID=$0001:$7B
+     ID=$0003:$4C
+     ID=$0004:$B0
+}
+
+Player {
+
+     Name=JEROEN TEL 6
+     ID=$0000:$4C
+     ID=$0001:$85
+     ID=$0003:$4C
+     ID=$0004:$BE
+}
+
+Player {
+
+     Name=JEROEN TEL 7
+     ID=$0000:$4C
+     ID=$0001:$33
+     ID=$0003:$4C
+     ID=$0004:$63
+}
+
+Player {
+
+     Name=JEROEN TEL 8
+     ID=$0090:$20
+     ID=$0093:$A9
+     ID=$00D4:$AD
+     ID=$00D7:$F0
+}
+
+Player {
+
+     Name=JEROEN TEL 9
+     ID=$0000:$4C
+     ID=$0001:$07
+     ID=$0003:$4C
+     ID=$0007:$A0
+}
+
+Player {
+
+     Name=JESPER OLSEN
+     ID=$0000:$4C
+     ID=$0001:$5D
+     ID=$0006:$4C
+     ID=$005D:$20
+}
+
+Player {
+
+     Name=JO.'S PLAYER
+     ID=$0000:$4C
+     ID=$0001:$41
+     ID=$0003:$4C
+     ID=$0004:$AE
+}
+
+Player {
+
+     Name=KLEE
+     ID=$0000:$4C
+     ID=$0001:$AB
+     ID=$0003:$4C
+     ID=$0004:$51
+}
+
+Player {
+
+     Name=LAXITY 1
+     ID=$0000:$4C
+     ID=$0001:$8B
+     ID=$000B:$2C
+     ID=$000C:$A0
+}
+
+Player {
+
+     Name=LAXITY 2
+     ID=$0000:$4C
+     ID=$0001:$A2
+     ID=$000B:$2C
+     ID=$000C:$F5
+}
+
+Player {
+
+     Name=LAXITY 3
+     ID=$0000:$4C
+     ID=$0001:$C9
+     ID=$000B:$2C
+     ID=$000C:$49
+}
+
+Player {
+
+     Name=LAXITY 4
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0006:$A9
+     ID=$000B:$2C
+}
+
+Player {
+
+     Name=LAXITY 5
+     ID=$00DC:$A2
+     ID=$00DE:$8A
+     ID=$00DF:$A9
+     ID=$00E1:$9D
+}
+
+Player {
+
+     Name=LAXITY 6
+     ID=$0000:$4C
+     ID=$0001:$BC
+     ID=$0003:$4C
+     ID=$0004:$FA
+}
+
+Player {
+
+     Name=LAXITY 7
+     ID=$0000:$4C
+     ID=$0001:$BC
+     ID=$0006:$4C
+     ID=$0007:$FA
+}
+
+Player {
+
+     Name=LIGHT
+     ID=$0000:$A9
+     ID=$0002:$A2
+     ID=$0018:$CE
+     ID=$001B:$10
+}
+
+Player {
+
+     Name=LIGHT VOICES
+     ID=$0000:$4C
+     ID=$0003:$AD
+     ID=$0009:$AD
+     ID=$000C:$8D
+}
+
+Player {
+
+     Name=LORDS OF SONICS 1
+     ID=$0000:$4C
+     ID=$0001:$D8
+     ID=$0003:$4C
+     ID=$0004:$E6
+}
+
+Player {
+
+     Name=LORDS OF SONICS 2
+     ID=$0000:$4C
+     ID=$0001:$81
+     ID=$0003:$4C
+     ID=$0004:$8C
+}
+
+Player {
+
+     Name=LORDS OF SONICS 3
+     ID=$0000:$4C
+     ID=$0001:$CB
+     ID=$0003:$4C
+     ID=$0004:$D9
+}
+
+Player {
+
+     Name=LOS 1
+     ID=$0000:$4C
+     ID=$0001:$3D
+     ID=$0003:$4C
+     ID=$0004:$49
+}
+
+Player {
+
+     Name=LOS 2
+     ID=$0000:$4C
+     ID=$0001:$AA
+     ID=$0003:$4C
+     ID=$0004:$B7
+}
+
+Player {
+
+     Name=LOS 3
+     ID=$0000:$4C
+     ID=$0001:$80
+     ID=$0003:$4C
+     ID=$0004:$8B
+}
+
+Player {
+
+     Name=MAD V3.0
+     ID=$0000:$4C
+     ID=$0001:$FA
+     ID=$0003:$4C
+     ID=$0004:$4A
+}
+
+Player {
+
+     Name=MAD V4.0
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$59
+     ID=$0059:$A2
+}
+
+Player {
+
+     Name=MAGIC MAN
+     ID=$0000:$4C
+     ID=$0001:$9F
+     ID=$0003:$4C
+     ID=$009F:$A0
+}
+
+Player {
+
+     Name=MANIACS OF NOISE 1
+     ID=$0000:$4C
+     ID=$0001:$3C
+     ID=$0006:$4C
+     ID=$0007:$79
+}
+
+Player {
+
+     Name=MANIACS OF NOISE 2
+     ID=$0000:$4C
+     ID=$0001:$0C
+     ID=$0006:$4C
+     ID=$000C:$A0
+}
+
+Player {
+
+     Name=MANIACS OF NOISE 3
+     ID=$0000:$4C
+     ID=$0001:$03
+     ID=$0003:$4C
+     ID=$0004:$4B
+}
+
+Player {
+
+     Name=MANIACS OF NOISE 4
+     ID=$0000:$4C
+     ID=$0001:$F4
+     ID=$0003:$4C
+     ID=$0004:$21
+}
+
+Player {
+
+     Name=MARCUS SCHNEIDER 1
+     ID=$0000:$4C
+     ID=$0001:$91
+     ID=$0003:$4C
+     ID=$0004:$29
+}
+
+Player {
+
+     Name=MARCUS SCHNEIDER 2
+     ID=$0000:$4C
+     ID=$0001:$E6
+     ID=$0003:$4C
+     ID=$0004:$D8
+}
+
+Player {
+
+     Name=MARCUS SCHNEIDER 3
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$AF
+     ID=$00AF:$A0
+}
+
+Player {
+
+     Name=MARCUS SIEBOLD
+     ID=$0000:$4C
+     ID=$0001:$87
+     ID=$0003:$4C
+     ID=$0004:$F6
+}
+
+Player {
+
+     Name=MATRIX
+     ID=$0000:$4C
+     ID=$0001:$8D
+     ID=$0003:$4C
+     ID=$008D:$86
+}
+
+Player {
+
+     Name=MINE TOO
+     ID=$0000:$4C
+     ID=$0001:$DF
+     ID=$0003:$4C
+     ID=$0004:$2B
+}
+
+Player {
+
+     Name=MON 1
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0006:$4C
+     ID=$0007:$0C
+}
+
+Player {
+
+     Name=MON 2
+     ID=$0000:$4C
+     ID=$0001:$87
+     ID=$0003:$4C
+     ID=$0004:$3A
+}
+
+Player {
+
+     Name=MOZ(IC)ART 01
+     ID=$005F:$A9
+     ID=$0060:$8D
+     ID=$0061:$8D
+     ID=$0064:$60
+}
+
+Player {
+
+     Name=MOZ(IC)ART 02
+     ID=$0000:$A2
+     ID=$0002:$8A
+     ID=$00E6:$A2
+     ID=$00E8:$C6
+}
+
+Player {
+
+     Name=MOZ(IC)ART 03
+     ID=$0000:$4C
+     ID=$0001:$2D
+     ID=$0003:$4C
+     ID=$0004:$95
+}
+
+Player {
+
+     Name=MOZ(IC)ART 04
+     ID=$0000:$4C
+     ID=$0001:$42
+     ID=$0003:$4C
+     ID=$0004:$49
+}
+
+Player {
+
+     Name=MOZ(IC)ART 05
+     ID=$0000:$4C
+     ID=$0003:$A2
+     ID=$0005:$2C
+     ID=$0008:$30
+}
+
+Player {
+
+     Name=MOZ(IC)ART 06
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$47
+}
+
+Player {
+
+     Name=MOZ(IC)ART 07
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$13
+     ID=$0006:$4C
+}
+
+Player {
+
+     Name=MOZ(IC)ART 08
+     ID=$0000:$4C
+     ID=$0001:$19
+     ID=$0003:$4C
+     ID=$0004:$12
+}
+
+Player {
+
+     Name=MOZ(IC)ART 09
+     ID=$0000:$4C
+     ID=$0001:$17
+     ID=$0003:$4C
+     ID=$0004:$10
+     OrderPos=$0853,$0854,$0855
+     SecPos=$0852,$0859,$0860
+
+}
+
+Player {
+
+     Name=MOZ(IC)ART 10
+     ID=$0000:$4C
+     ID=$0001:$8F
+     ID=$008F:$AD
+     ID=$0092:$30
+}
+
+Player {
+
+     Name=MUSIC COMPOSER V3.0
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0006:$A2
+     ID=$0007:$18
+}
+
+Player {
+
+     Name=MUSIC MIXER V5
+     ID=$0000:$4C
+     ID=$0001:$41
+     ID=$0003:$4C
+     ID=$0004:$7A
+}
+
+Player {
+
+     Name=NETWOKE EDITOR
+     ID=$000B:$A2
+     ID=$000D:$A9
+     ID=$000F:$9D
+     ID=$0012:$CA
+;     ID=$0013:$10
+;     ID=$0015:$A2
+;     ID=$0017:$95
+}
+
+Player {
+
+     Name=ODI/DOS
+     ID=$0000:$4C
+     ID=$0001:$9B
+     ID=$0003:$4C
+     ID=$0004:$F5
+}
+
+Player {
+
+     Name=OLAV M0RKRID 1
+     ID=$0003:$4C
+     ID=$0006:$20
+     ID=$0009:$CE
+     ID=$000C:$10
+}
+
+Player {
+
+     Name=OLAV M0RKRID 2
+     ID=$0000:$4C
+     ID=$0003:$20
+     ID=$0006:$CE
+     ID=$0009:$10
+}
+
+Player {
+
+     Name=OLAV M0RKRID 3
+     ID=$0000:$4C
+     ID=$0001:$18
+     ID=$0003:$4C
+     ID=$0018:$20
+}
+
+Player {
+
+     Name=OLAV MORKRID 4
+     ID=$0000:$4C
+     ID=$0001:$EC
+     ID=$0003:$20
+     ID=$0004:$92
+}
+
+Player {
+
+     Name=OLAV MORKRID 5
+     ID=$0000:$4C
+     ID=$0001:$7F
+     ID=$0003:$20
+     ID=$0004:$25
+}
+
+Player {
+
+     Name=OLAV MORKRID 6
+     ID=$0000:$4C
+     ID=$0001:$DC
+     ID=$0003:$20
+     ID=$0004:$82
+}
+
+Player {
+
+     Name=OLIVER KLEE 1
+     ID=$0000:$4C
+     ID=$0001:$A4
+     ID=$0003:$4C
+     ID=$0004:$FC
+}
+
+Player {
+
+     Name=OLIVER KLEE 2
+     ID=$0000:$4C
+     ID=$0001:$9B
+     ID=$0003:$4C
+     ID=$0004:$F3
+}
+
+Player {
+
+     Name=ORIGO 01
+     ID=$0000:$4C
+     ID=$0001:$E9
+     ID=$0006:$4C
+     ID=$0007:$DB
+}
+
+Player {
+
+     Name=ORIGO 02
+     ID=$0000:$4C
+     ID=$0001:$52
+     ID=$0003:$4C
+     ID=$0004:$BD
+}
+
+Player {
+
+     Name=ORIGO 03
+     ID=$0000:$4C
+     ID=$0001:$E1
+     ID=$0003:$4C
+     ID=$0004:$1E
+}
+
+Player {
+
+     Name=ORIGO 04
+     ID=$0000:$4C
+     ID=$0001:$D8
+     ID=$0006:$4C
+     ID=$0007:$4C
+}
+
+Player {
+
+     Name=ORIGO 05
+     ID=$0000:$4C
+     ID=$0001:$AC
+     ID=$0003:$4C
+     ID=$0004:$A9
+}
+
+Player {
+
+     Name=ORIGO 06
+     ID=$0000:$4C
+     ID=$0001:$D0
+     ID=$0003:$4C
+     ID=$0004:$CD
+}
+
+Player {
+
+     Name=ORIGO 07
+     ID=$0000:$4C
+     ID=$0001:$7F
+     ID=$0003:$4C
+     ID=$0004:$FA
+}
+
+Player {
+
+     Name=ORIGO 08
+     ID=$0003:$4C
+     ID=$0004:$90
+     ID=$0006:$4C
+     ID=$0007:$C3
+}
+
+Player {
+
+     Name=ORIGO 09
+     ID=$0000:$4C
+     ID=$0001:$C6
+     ID=$0006:$4C
+     ID=$00C6:$A0
+}
+
+Player {
+
+     Name=ORIGO 10
+     ID=$0000:$4C
+     ID=$0001:$11
+     ID=$0003:$4C
+     ID=$0004:$32
+}
+
+Player {
+
+     Name=ORIGO 11
+     ID=$0000:$4C
+     ID=$0001:$27
+     ID=$0006:$4C
+     ID=$0007:$A3
+}
+
+Player {
+
+     Name=ORIGO 12
+     ID=$0000:$4C
+     ID=$0001:$CD
+     ID=$0003:$4C
+     ID=$00CD:$A0
+}
+
+Player {
+
+     Name=ORIGO 13
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$BB
+     ID=$00BB:$CE
+}
+
+Player {
+
+     Name=ORIGO 14
+     ID=$0000:$4C
+     ID=$0001:$3B
+     ID=$0003:$4C
+     ID=$0004:$D5
+}
+
+Player {
+
+     Name=ORIGO 15
+     ID=$0000:$4C
+     ID=$0003:$A5
+     ID=$0005:$48
+     ID=$0006:$A5
+}
+
+Player {
+
+     Name=ORIGO 16
+     ID=$0000:$4C
+     ID=$0003:$A9
+     ID=$0005:$8D
+     ID=$0008:$A2
+}
+
+Player {
+
+     Name=PASCAL VAN LOOSBROEK
+     ID=$002B:$0A
+     ID=$0081:$AD
+     ID=$0084:$F0
+     ID=$0086:$CE
+}
+
+Player {
+
+     Name=POWER MUSIC
+     ID=$0001:$AD
+     ID=$0002:$00
+     ID=$0004:$F0
+     ID=$0006:$10
+}
+
+Player {
+
+     Name=PROSONIX
+     ID=$0021:$86
+     ID=$0022:$04
+     ID=$0023:$84
+     ID=$0024:$05
+}
+
+Player {
+
+     Name=PVL 1
+     ID=$0000:$4C
+     ID=$0001:$9C
+     ID=$0003:$4C
+     ID=$0004:$F2
+}
+
+Player {
+
+     Name=PVL 2
+     ID=$0000:$4C
+     ID=$0001:$AA
+     ID=$0003:$4C
+     ID=$0004:$FD
+}
+
+Player {
+
+     Name=RABBI V1.1
+     ID=$0000:$4C
+     ID=$0001:$E3
+     ID=$0003:$4C
+     ID=$0004:$00
+}
+
+Player {
+
+     Name=RASTERTIME CRUNCHER
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$15
+}
+
+Player {
+
+     Name=ROCKMONITOR 2
+     ID=$0000:$4C
+     ID=$0001:$12
+     ID=$002A:$A0
+     ID=$0026:$35
+}
+
+Player {
+
+     Name=ROCKMONITOR 3
+     ID=$0000:$4C
+     ID=$0001:$12
+     ID=$0014:$CB
+     ID=$0019:$D4
+}
+
+Player {
+
+     Name=ROCKMONITOR 5
+     ID=$0000:$4C
+     ID=$0001:$12
+     ID=$0014:$8B
+     ID=$001E:$2E
+}
+
+Player {
+
+     Name=ROEL BOSCH
+     ID=$0000:$4C
+     ID=$0001:$41
+     ID=$0003:$4C
+     ID=$0004:$63
+}
+
+Player {
+
+     Name=ROMUZAK
+     ID=$0000:$4C
+     ID=$0001:$88
+     ID=$0003:$4C
+     ID=$0004:$B7
+     OrderPos=$001a,$001b,$001c
+     SecPos=$001d,$001e,$001f
+
+}
+
+Player {
+
+     Name=ROMUZAK V7.9
+     ID=$0000:$4C
+     ID=$0001:$08
+     ID=$0003:$4C
+     ID=$0004:$40
+}
+
+Player {
+
+     Name=S0REN LUND 1
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$49
+}
+
+Player {
+
+     Name=S0REN LUND 2
+     ID=$0000:$4C
+     ID=$0001:$7E
+     ID=$0003:$4C
+     ID=$0004:$32
+}
+
+Player {
+
+     Name=S0REN LUND 3
+     ID=$0000:$4C
+     ID=$0001:$44
+     ID=$0003:$4C
+     ID=$0004:$35
+}
+
+Player {
+
+     Name=S0REN LUND 9.9E
+     ID=$00c2:$42
+     ID=$00c5:$af
+     ID=$00ea:$39
+     ID=$00ec:$39
+     ID=$00ed:$45
+     OrderPos=$020b,$0212,$0219
+     SecPos=$01f8,$01ff,$0206
+
+
+}
+
+Player {
+
+     Name=SAMPL UNKNOWN
+     ID=$0000:$A9
+     ID=$0001:$F0
+     ID=$0003:$06
+     ID=$0004:$D4
+}
+
+Player {
+
+     Name=SCORPION
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$C9
+}
+
+Player {
+
+     Name=SENTINEL V04.G2
+     ID=$0000:$4C
+     ID=$0001:$2E
+     ID=$0003:$4C
+     ID=$0004:$63
+}
+
+Player {
+
+     Name=SHARK 1
+     ID=$0000:$4C
+     ID=$0001:$45
+     ID=$0003:$4C
+     ID=$0004:$7C
+}
+
+Player {
+
+     Name=SHARK 2
+     ID=$0000:$4C
+     ID=$0001:$01
+     ID=$0003:$4C
+     ID=$0004:$38
+}
+
+Player {
+
+     Name=SHARK 3
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$77
+}
+
+Player {
+
+     Name=SHARK 4
+     ID=$0000:$4C
+     ID=$0001:$31
+     ID=$0003:$4C
+     ID=$0004:$68
+}
+
+Player {
+
+     Name=SHARK 5
+     ID=$0000:$4C
+     ID=$0001:$3A
+     ID=$0003:$4C
+     ID=$0004:$71
+}
+
+Player {
+
+     Name=SKYLINE TECHNICS 1
+     ID=$0000:$4C
+     ID=$0001:$9C
+     ID=$0005:$AA
+     ID=$0006:$9D
+     OrderPos=$0046,$0046,$0046
+     SecPos=$0045,$0045,$0045
+
+}
+
+Player {
+
+     Name=SKYLINE TECHNICS 2
+     ID=$0000:$4C
+     ID=$0001:$49
+     ID=$0003:$29
+     ID=$0004:$00
+}
+
+Player {
+
+     Name=SLAYGON
+     ID=$0000:$4C
+     ID=$0001:$0E
+     ID=$0003:$4C
+     ID=$0004:$52
+}
+
+Player {
+
+     Name=SLAYGON 2
+     ID=$0000:$4C
+     ID=$0001:$0E
+     ID=$0003:$4C
+     ID=$0004:$4A
+}
+
+Player {
+
+     Name=SMC
+     ID=$0000:$4C
+     ID=$0001:$7F
+     ID=$0003:$2C
+     ID=$0004:$8B
+}
+
+Player {
+
+     Name=SOEDESOFT
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$44
+}
+
+Player {
+
+     Name=SOEDESOUND
+     ID=$0000:$4C
+     ID=$0029:$A0
+     ID=$002B:$99
+     ID=$002E:$88
+}
+
+Player {
+
+     Name=SONIX SYSTEMS
+     ID=$0000:$4C
+     ID=$0001:$6F
+     ID=$0003:$4C
+     ID=$0004:$AA
+}
+
+Player {
+
+     Name=SOUNDMASTER
+     ID=$0000:$4C
+     ID=$0001:$14
+     ID=$0006:$4C
+     ID=$0007:$7B
+}
+
+Player {
+
+     Name=SOUNDMASTER 3.2
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$47
+}
+
+Player {
+
+     Name=SOUNDMONITOR
+     ID=$0000:$4C
+     ID=$0001:$12
+     ID=$002A:$75
+     ID=$0026:$36
+}
+
+Player {
+
+     Name=SYS 6581 V1
+     ID=$0000:$A8
+     ID=$0001:$F0
+     ID=$0003:$C9
+     ID=$0004:$01
+}
+
+Player {
+
+     Name=SYS 6581 V2
+     ID=$0000:$AA
+     ID=$0001:$F0
+     ID=$0002:$2C
+     ID=$0003:$29
+}
+
+Player {
+
+     Name=T.E.P.
+     ID=$0000:$4C
+     ID=$0001:$85
+     ID=$0003:$4C
+     ID=$0004:$BB
+}
+
+Player {
+
+     Name=TBB 1
+     ID=$0000:$4C
+     ID=$0001:$80
+     ID=$0003:$4C
+     ID=$0004:$DD
+}
+
+Player {
+
+     Name=TBB 2
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$C9
+     ID=$00C9:$A9
+}
+
+Player {
+
+     Name=TBB 3
+     ID=$0000:$4C
+     ID=$0006:$4C
+     ID=$0007:$AE
+     ID=$00AE:$A9
+}
+
+Player {
+
+     Name=TBB 4
+     ID=$0000:$4C
+     ID=$0001:$B0
+     ID=$0003:$4C
+     ID=$0004:$D2
+}
+
+Player {
+
+     Name=TBB 5
+     ID=$0000:$4C
+     ID=$0001:$A7
+     ID=$0003:$4C
+     ID=$0004:$CE
+}
+
+Player {
+
+     Name=TBB 6
+     ID=$0000:$4C
+     ID=$0001:$95
+     ID=$0003:$4C
+     ID=$0004:$B7
+}
+
+Player {
+
+     Name=TBB 7
+     ID=$0000:$4C
+     ID=$0001:$A7
+     ID=$0003:$4C
+     ID=$0004:$98
+}
+
+Player {
+
+     Name=TBB 8
+     ID=$0000:$4C
+     ID=$0001:$90
+     ID=$0003:$4C
+     ID=$0004:$AE
+}
+
+Player {
+
+     Name=TBB 9
+     ID=$0000:$4C
+     ID=$0001:$8C
+     ID=$0003:$4C
+     ID=$0004:$0A
+}
+
+Player {
+
+     Name=TBB 10
+     ID=$0000:$4C
+     ID=$0001:$74
+     ID=$0004:$F2
+     OrderPos=$0068,$0069,$006A
+     SecPos=$0005C,$005D,$005E
+}
+
+Player {
+
+     Name=TWYNN
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$97
+}
+
+Player {
+
+     Name=UNKNOWN 01
+     ID=$0000:$4C
+     ID=$0001:$F0
+     ID=$0003:$4C
+     ID=$0004:$0D
+}
+
+Player {
+
+     Name=UNKNOWN 02
+     ID=$0000:$4C
+     ID=$0001:$6B
+     ID=$0006:$AD
+     ID=$0007:$0C
+}
+
+Player {
+
+     Name=UNKNOWN 03
+     ID=$0000:$4C
+     ID=$0001:$2F
+     ID=$0003:$4C
+     ID=$0004:$67
+}
+
+Player {
+
+     Name=UNKNOWN 04
+     ID=$0000:$4C
+     ID=$0001:$7A
+     ID=$00B0:$AD
+     ID=$00B1:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 05
+     ID=$0000:$4C
+     ID=$0001:$F8
+     ID=$0003:$4C
+     ID=$0004:$F4
+}
+
+Player {
+
+     Name=UNKNOWN 06
+     ID=$0000:$4C
+     ID=$0001:$E9
+     ID=$0003:$4C
+     ID=$0004:$DB
+}
+
+Player {
+
+     Name=UNKNOWN 07
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$C3
+}
+
+Player {
+
+     Name=UNKNOWN 08
+     ID=$0000:$4C
+     ID=$0001:$87
+     ID=$0003:$4C
+     ID=$0004:$EC
+}
+
+Player {
+
+     Name=UNKNOWN 09
+     ID=$0000:$4C
+     ID=$0001:$18
+     ID=$0004:$4C
+     ID=$0005:$30
+}
+
+Player {
+
+     Name=UNKNOWN 10
+     ID=$0000:$4C
+     ID=$0001:$36
+     ID=$0006:$4C
+     ID=$0007:$A8
+}
+
+Player {
+
+     Name=UNKNOWN 100
+     ID=$0000:$4C
+     ID=$0001:$94
+     ID=$0003:$4C
+     ID=$0004:$00
+}
+
+Player {
+
+     Name=UNKNOWN 101
+     ID=$00C0:$4C
+     ID=$00C1:$9E
+     ID=$00C3:$4C
+     ID=$00C4:$46
+}
+
+Player {
+
+     Name=UNKNOWN 102
+     ID=$0000:$4C
+     ID=$0001:$D9
+     ID=$0003:$4C
+     ID=$0004:$3A
+}
+
+Player {
+
+     Name=UNKNOWN 103
+     ID=$0000:$4C
+     ID=$0001:$33
+     ID=$0003:$4C
+     ID=$0004:$52
+}
+
+Player {
+
+     Name=UNKNOWN 104
+     ID=$0000:$4C
+     ID=$0001:$40
+     ID=$0003:$4C
+     ID=$0004:$58
+}
+
+Player {
+
+     Name=UNKNOWN 105
+     ID=$0000:$4C
+     ID=$0001:$CD
+     ID=$0003:$4C
+     ID=$0004:$77
+}
+
+Player {
+
+     Name=UNKNOWN 106
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$DE
+}
+
+Player {
+
+     Name=UNKNOWN 107
+     ID=$0000:$A9
+     ID=$0001:$00
+     ID=$0003:$63
+     ID=$0004:$D0
+}
+
+Player {
+
+     Name=UNKNOWN 108
+     ID=$0000:$4C
+     ID=$0001:$6F
+     ID=$0003:$AA
+     ID=$0004:$48
+}
+
+Player {
+
+     Name=UNKNOWN 109
+     ID=$00ED:$48
+     ID=$00EE:$A9
+     ID=$00EF:$01
+     ID=$00F0:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 11
+     ID=$0000:$4C
+     ID=$0001:$9A
+     ID=$0003:$4C
+     ID=$0004:$A4
+}
+
+Player {
+
+     Name=UNKNOWN 110
+     ID=$0000:$4C
+     ID=$0001:$63
+     ID=$0003:$4C
+     ID=$0004:$F4
+}
+
+Player {
+
+     Name=UNKNOWN 111
+     ID=$0000:$4C
+     ID=$0001:$A0
+     ID=$0003:$4C
+     ID=$0004:$88
+}
+
+Player {
+
+     Name=UNKNOWN 112
+     ID=$0000:$4C
+     ID=$0001:$53
+     ID=$0003:$4C
+     ID=$0004:$0F
+}
+
+Player {
+
+     Name=UNKNOWN 113
+     ID=$0000:$4C
+     ID=$0001:$90
+     ID=$0003:$4C
+     ID=$0004:$0C
+}
+
+Player {
+
+     Name=UNKNOWN 114
+     ID=$0000:$4C
+     ID=$0001:$A0
+     ID=$0003:$4C
+     ID=$0004:$A6
+}
+
+Player {
+
+     Name=UNKNOWN 115
+     ID=$0000:$4C
+     ID=$0001:$00
+     ID=$0003:$4C
+     ID=$0004:$60
+}
+
+Player {
+
+     Name=UNKNOWN 116
+     ID=$0000:$4C
+     ID=$0001:$22
+     ID=$0003:$4C
+     ID=$0004:$D7
+}
+
+Player {
+
+     Name=UNKNOWN 12
+     ID=$0053:$A9
+     ID=$0055:$8D
+     ID=$0056:$18
+     ID=$005D:$AD
+}
+
+Player {
+
+     Name=UNKNOWN 13
+     ID=$0000:$4C
+     ID=$0001:$F1
+     ID=$0006:$4C
+     ID=$0007:$E3
+}
+
+Player {
+
+     Name=UNKNOWN 14
+     ID=$0006:$AD
+     ID=$0007:$54
+     ID=$0009:$C9
+     ID=$000A:$02
+}
+
+Player {
+
+     Name=UNKNOWN 15
+     ID=$0000:$4C
+     ID=$0001:$7C
+     ID=$0006:$4C
+     ID=$0007:$BA
+}
+
+Player {
+
+     Name=UNKNOWN 16
+     ID=$0000:$4C
+     ID=$0001:$30
+     ID=$0003:$4C
+     ID=$0004:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 17
+     ID=$0000:$4C
+     ID=$0001:$08
+     ID=$0003:$4C
+     ID=$0004:$2A
+}
+
+Player {
+
+     Name=UNKNOWN 18
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$7C
+}
+
+Player {
+
+     Name=UNKNOWN 19
+     ID=$0000:$4C
+     ID=$0001:$18
+     ID=$0003:$4C
+     ID=$0004:$74
+}
+
+Player {
+
+     Name=UNKNOWN 20
+     ID=$0000:$4C
+     ID=$0001:$2A
+     ID=$0003:$4C
+     ID=$0004:$8F
+}
+
+Player {
+
+     Name=UNKNOWN 21
+     ID=$00C8:$4C
+     ID=$00C9:$D8
+     ID=$00CB:$4C
+     ID=$00CC:$45
+}
+
+Player {
+
+     Name=UNKNOWN 22
+     ID=$0053:$CE
+     ID=$0056:$10
+     ID=$0057:$05
+     ID=$0058:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 23
+     ID=$0000:$4C
+     ID=$0001:$2E
+     ID=$0003:$4C
+     ID=$0004:$C9
+}
+
+Player {
+
+     Name=UNKNOWN 24
+     ID=$0000:$4C
+     ID=$0001:$A3
+     ID=$0006:$A9
+     ID=$0008:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 25
+     ID=$0066:$A9
+     ID=$0068:$30
+     ID=$006A:$F0
+     ID=$006C:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 26
+     ID=$008B:$AD
+     ID=$008C:$00
+     ID=$008E:$30
+     ID=$0090:$C9
+}
+
+Player {
+
+     Name=UNKNOWN 27
+     ID=$0000:$4C
+     ID=$0001:$66
+     ID=$0009:$4C
+     ID=$000A:$1E
+}
+
+Player {
+
+     Name=UNKNOWN 28
+     ID=$0076:$A9
+     ID=$0078:$30
+     ID=$007A:$F0
+     ID=$007C:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 29
+     ID=$0003:$A2
+     ID=$0005:$8A
+     ID=$0006:$9D
+     ID=$0009:$9D
+}
+
+Player {
+
+     Name=UNKNOWN 30
+     ID=$0081:$A9
+     ID=$0083:$30
+     ID=$0085:$F0
+     ID=$0087:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 31
+     ID=$0012:$A0
+     ID=$0014:$A9
+     ID=$005F:$A9
+     ID=$0061:$85
+}
+
+Player {
+
+     Name=UNKNOWN 32
+     ID=$0087:$AA
+     ID=$0088:$BD
+     ID=$0079:$AD
+     ID=$007C:$C9
+}
+
+Player {
+
+     Name=UNKNOWN 33
+     ID=$0003:$4C
+     ID=$0004:$79
+     ID=$0006:$4C
+     ID=$0007:$DC
+}
+
+Player {
+
+     Name=UNKNOWN 34
+     ID=$0054:$A9
+     ID=$0056:$8D
+     ID=$00CC:$A5
+     ID=$00CE:$48
+}
+
+Player {
+
+     Name=UNKNOWN 35
+     ID=$0000:$4C
+     ID=$0001:$A4
+     ID=$0003:$4C
+     ID=$00A4:$0A
+}
+
+Player {
+
+     Name=UNKNOWN 36
+     ID=$001D:$0A
+     ID=$001E:$0A
+     ID=$0093:$A0
+     ID=$0095:$F0
+}
+
+Player {
+
+     Name=UNKNOWN 37
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$35
+}
+
+Player {
+
+     Name=UNKNOWN 39
+     ID=$0050:$AD
+     ID=$0053:$10
+     ID=$0055:$60
+     ID=$0056:$CE
+}
+
+Player {
+
+     Name=UNKNOWN 40
+     ID=$0000:$4C
+     ID=$0001:$A3
+     ID=$0003:$4C
+     ID=$0004:$B1
+}
+
+Player {
+
+     Name=UNKNOWN 41
+     ID=$0076:$AA
+     ID=$0077:$BD
+     ID=$0030:$AD
+     ID=$0033:$D0
+}
+
+Player {
+
+     Name=UNKNOWN 42
+     ID=$0000:$4C
+     ID=$0003:$CE
+     ID=$0006:$10
+     ID=$0008:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 43
+     ID=$0000:$4C
+     ID=$0006:$EE
+     ID=$0009:$2C
+     ID=$000C:$30
+}
+
+Player {
+
+     Name=UNKNOWN 44
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$B8
+     ID=$00B8:$20
+}
+
+Player {
+
+     Name=UNKNOWN 45
+     ID=$0000:$4C
+     ID=$0001:$0D
+     ID=$0003:$4C
+     ID=$0004:$35
+}
+
+Player {
+
+     Name=UNKNOWN 46
+     ID=$0000:$4C
+     ID=$0001:$48
+     ID=$0003:$4C
+     ID=$0004:$E0
+}
+
+Player {
+
+     Name=UNKNOWN 47
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$74
+     ID=$0074:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 48
+     ID=$0000:$4C
+     ID=$0001:$B1
+     ID=$0003:$4C
+     ID=$0004:$A3
+}
+
+Player {
+
+     Name=UNKNOWN 49
+     ID=$0000:$4C
+     ID=$0006:$2C
+     ID=$0009:$30
+     ID=$000B:$60
+}
+
+Player {
+
+     Name=UNKNOWN 50
+     ID=$0000:$4C
+     ID=$0001:$60
+     ID=$0003:$A9
+     ID=$0005:$A2
+}
+
+Player {
+
+     Name=UNKNOWN 51
+     ID=$0000:$4C
+     ID=$0001:$0C
+     ID=$0003:$4C
+     ID=$000C:$A0
+}
+
+Player {
+
+     Name=UNKNOWN 52
+     ID=$0000:$4C
+     ID=$0001:$97
+     ID=$0003:$4C
+     ID=$0097:$AD
+}
+
+Player {
+
+     Name=UNKNOWN 53
+     ID=$0000:$4C
+     ID=$0001:$D7
+     ID=$0003:$A8
+     ID=$0004:$A2
+}
+
+Player {
+
+     Name=UNKNOWN 54
+     ID=$0000:$4C
+     ID=$0001:$FA
+     ID=$0003:$4C
+     ID=$0004:$F7
+}
+
+Player {
+
+     Name=UNKNOWN 55
+     ID=$0055:$AD
+     ID=$0058:$C9
+     ID=$0063:$AA
+     ID=$0064:$BD
+}
+
+Player {
+
+     Name=UNKNOWN 56
+     ID=$0000:$4C
+     ID=$0001:$6B
+     ID=$0003:$4C
+     ID=$0004:$96
+}
+
+Player {
+
+     Name=UNKNOWN 57
+     ID=$0000:$4C
+     ID=$0001:$18
+     ID=$0003:$4C
+     ID=$0004:$85
+}
+
+Player {
+
+     Name=UNKNOWN 58
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$1E
+     ID=$001E:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 59
+     ID=$0000:$4C
+     ID=$0001:$94
+     ID=$0003:$8D
+     ID=$0004:$07
+}
+
+Player {
+
+     Name=UNKNOWN 60
+     ID=$0000:$4C
+     ID=$0001:$54
+     ID=$0003:$A9
+     ID=$0005:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 61
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$17
+}
+
+Player {
+
+     Name=UNKNOWN 62
+     ID=$0000:$4C
+     ID=$0001:$34
+     ID=$0003:$4C
+     ID=$0004:$18
+}
+
+Player {
+
+     Name=UNKNOWN 63
+     ID=$002A:$A2
+     ID=$002C:$8A
+     ID=$005A:$CE
+     ID=$005B:$27
+}
+
+Player {
+
+     Name=UNKNOWN 64
+     ID=$0000:$4C
+     ID=$0001:$27
+     ID=$0003:$4C
+     ID=$0004:$87
+}
+
+Player {
+
+     Name=UNKNOWN 65
+     ID=$0000:$4C
+     ID=$0001:$0C
+     ID=$0012:$EE
+     ID=$0013:$25
+}
+
+Player {
+
+     Name=UNKNOWN 66
+     ID=$0000:$4C
+     ID=$0001:$2B
+     ID=$0003:$4C
+     ID=$0004:$85
+}
+
+Player {
+
+     Name=UNKNOWN 67
+     ID=$0000:$4C
+     ID=$0003:$A2
+     ID=$0005:$20
+     ID=$0008:$CA
+}
+
+Player {
+
+     Name=UNKNOWN 68
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$4B
+}
+
+Player {
+
+     Name=UNKNOWN 69
+     ID=$0000:$4C
+     ID=$0001:$C4
+     ID=$0003:$4C
+     ID=$0004:$D2
+}
+
+Player {
+
+     Name=UNKNOWN 70
+     ID=$0000:$4C
+     ID=$0006:$4C
+     ID=$0007:$0A
+     ID=$000A:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 71
+     ID=$0000:$AA
+     ID=$0001:$BD
+     ID=$003E:$A9
+     ID=$0040:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 72
+     ID=$0000:$0A
+     ID=$0001:$0A
+     ID=$0059:$2C
+     ID=$005C:$30
+}
+
+Player {
+
+     Name=UNKNOWN 73
+     ID=$0000:$4C
+     ID=$0003:$4C
+     ID=$0004:$06
+     ID=$0006:$A9
+}
+
+Player {
+
+     Name=UNKNOWN 74
+     ID=$0000:$4C
+     ID=$0009:$A9
+     ID=$000B:$D0
+     ID=$000D:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 75
+     ID=$0000:$4C
+     ID=$0001:$8E
+     ID=$0003:$4C
+     ID=$0004:$FA
+}
+
+Player {
+
+     Name=UNKNOWN 76
+     ID=$0000:$4C
+     ID=$0001:$86
+     ID=$0003:$4C
+     ID=$0004:$FB
+}
+
+Player {
+
+     Name=UNKNOWN 77
+     ID=$0003:$4C
+     ID=$0004:$7E
+     ID=$0006:$4C
+     ID=$0007:$CE
+}
+
+Player {
+
+     Name=UNKNOWN 78
+     ID=$0046:$AA
+     ID=$0047:$0A
+     ID=$0048:$A8
+     ID=$004B:$8D
+}
+
+Player {
+
+     Name=UNKNOWN 79
+     ID=$0040:$4C
+     ID=$0041:$48
+     ID=$0043:$4C
+     ID=$0044:$E0
+}
+
+Player {
+
+     Name=UNKNOWN 80
+     ID=$0000:$4C
+     ID=$0001:$9A
+     ID=$0003:$4C
+     ID=$0004:$10
+}
+
+Player {
+
+     Name=UNKNOWN 81
+     ID=$0000:$4C
+     ID=$0001:$69
+     ID=$0003:$4C
+     ID=$0004:$87
+}
+
+Player {
+
+     Name=UNKNOWN 82
+     ID=$0000:$4C
+     ID=$0001:$0D
+     ID=$0003:$4C
+     ID=$0004:$46
+}
+
+Player {
+
+     Name=UNKNOWN 83
+     ID=$0000:$4C
+     ID=$0001:$71
+     ID=$0003:$4C
+     ID=$0004:$6B
+}
+
+Player {
+
+     Name=UNKNOWN 84
+     ID=$0000:$4C
+     ID=$0001:$5C
+     ID=$0003:$4C
+     ID=$0004:$D3
+}
+
+Player {
+
+     Name=UNKNOWN 85
+     ID=$0000:$4C
+     ID=$0001:$8A
+     ID=$0003:$4C
+     ID=$0004:$91
+}
+
+Player {
+
+     Name=UNKNOWN 86
+     ID=$0000:$4C
+     ID=$0001:$66
+     ID=$0003:$4C
+     ID=$0020:$15
+}
+
+Player {
+
+     Name=UNKNOWN 87
+     ID=$0000:$4C
+     ID=$0001:$94
+     ID=$0003:$4C
+     ID=$0004:$01
+}
+
+Player {
+
+     Name=UNKNOWN 88
+     ID=$0000:$4C
+     ID=$0001:$46
+     ID=$0003:$4C
+     ID=$0004:$50
+}
+
+Player {
+
+     Name=UNKNOWN 89
+     ID=$0000:$4C
+     ID=$0001:$FF
+     ID=$0040:$A0
+     ID=$0041:$00
+}
+
+Player {
+
+     Name=UNKNOWN 90
+     ID=$0000:$4C
+     ID=$0001:$08
+     ID=$0003:$4C
+     ID=$0004:$17
+}
+
+Player {
+
+     Name=UNKNOWN 91
+     ID=$0000:$4C
+     ID=$0001:$30
+     ID=$0003:$AD
+     ID=$0004:$00
+}
+
+Player {
+
+     Name=UNKNOWN 92
+     ID=$0000:$4C
+     ID=$0001:$00
+     ID=$0003:$4C
+     ID=$0004:$06
+}
+
+Player {
+
+     Name=UNKNOWN 93
+     ID=$0000:$4C
+     ID=$0001:$74
+     ID=$0003:$4C
+     ID=$0004:$12
+}
+
+Player {
+
+     Name=UNKNOWN 94
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$B4
+}
+
+Player {
+
+     Name=UNKNOWN 95
+     ID=$0000:$4C
+     ID=$0001:$09
+     ID=$0003:$4C
+     ID=$0004:$0F
+}
+
+Player {
+
+     Name=UNKNOWN 96
+     ID=$0000:$4C
+     ID=$0001:$46
+     ID=$0003:$4C
+     ID=$0004:$7E
+}
+
+Player {
+
+     Name=UNKNOWN 97
+     ID=$0000:$4C
+     ID=$0001:$06
+     ID=$0003:$4C
+     ID=$0004:$26
+}
+
+Player {
+
+     Name=UNKNOWN 98
+     ID=$0000:$4C
+     ID=$0001:$10
+     ID=$0003:$4C
+     ID=$0004:$09
+}
+
+Player {
+
+     Name=UNKNOWN 99
+     ID=$0000:$4C
+     ID=$0001:$E0
+     ID=$0003:$4C
+     ID=$0004:$3E
+}
+
+Player {
+
+     Name=Unknown-known #001
+     ID=$1790:$f0
+     ID=$1798:$5c
+     ID=$17b0:$a5
+     ID=$17c8:$a6
+     OrderPos=$0c20,$0c20,$0c20
+     SecPos=$0c25,$0c25,$0c25
+}
+
+Player {
+
+     Name=Unknown-known #002
+     ID=$0000:$4C
+     ID=$0001:$0D
+     ID=$0003:$4C
+     ID=$0004:$EA
+     OrderPos=#$03cc,#$03cc,#$03cc
+     SecPos=#$03cd,#$03cd,#$03cd
+}
+
+
+
+
+Player {
+
+     Name=UNKNOWN DIGI
+     ID=$0002:$78
+     ID=$0003:$A5
+     ID=$0005:$48
+     ID=$0006:$AD
+}
+
+Player {
+
+     Name=WALT
+     ID=$0000:$4C
+     ID=$0001:$B8
+     ID=$0003:$4C
+     ID=$0004:$DB
+}
+
+Player {
+
+     Name=X-AMPLE 1
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$76
+}
+
+Player {
+
+     Name=X-AMPLE 2
+     ID=$0000:$4C
+     ID=$0001:$20
+     ID=$0003:$4C
+     ID=$0004:$6D
+}
+
+Player {
+
+     Name=X-AMPLE 3
+     ID=$0000:$4C
+     ID=$0001:$87
+     ID=$0003:$4C
+     ID=$0004:$47
+}
+
+Player {
+
+     Name=XAKK
+     ID=$0000:$A9
+     ID=$0001:$00
+     ID=$0002:$A0
+     ID=$0003:$AD
+}
+
+Player {
+
+     Name=YANKEE
+     ID=$0000:$4C
+     ID=$0001:$E5
+     ID=$0003:$4C
+     ID=$0004:$CF
+}
+
+Player {
+
+     Name=ZAKMOVER
+     ID=$0000:$4C
+     ID=$0001:$11
+     ID=$0003:$A5
+     ID=$0004:$01
+}
+
+Player {
+
+     Name=ZODIAC V4.0 (NO 2*SPEED)
+     ID=$0000:$4C
+     ID=$0001:$29
+     ID=$0003:$4C
+     ID=$0004:$5B
+}
+
+Player {
+; Yes from source (saw)
+      Name=GoatTracker (v1.2x)
+      ID=$0000:$4C
+      ID=$0001:$0A
+      ID=$0003:$4C
+      ID=$0004:$0E
+      ID=$0006:$8D
+      ID=$0007:$6A
+
+}
+
+Player {
+;Yes from source (saw)
+      Name=GoatTracker (v1.3x-1.4x)
+      ID=$0000:$4C:$06,$0003:$4C:$40,$0006:$8D:$0B
+}
+
+;Player {
+;Yes from source (saw)
+;      Name=GoatTracker (v1.3x-1.4x)
+;      ID=$0000:$4C
+;      ID=$0001:$06
+;      ID=$0003:$4C
+;      ID=$0004:$40
+;      ID=$0006:$8D
+;      ID=$0007:$0B
+;
+;}
+
+Player {
+; confirmed from 1.1 by loorni@mail.student.oulu.fi
+      Name=SadoTracker (v1.0?)
+      ID=$0000:$4C
+      ID=$0001:$09
+      ID=$0003:$4C
+      ID=$0004:$67
+      ID=$0006:$4C
+      ID=$0007:$52
+
+}
+
+Player {
+; Not found in 1.1 when above was confirmed.
+      Name=SadoTracker (v1.1)
+      ID=$0000:$4C
+      ID=$0001:$09
+      ID=$0003:$4C
+      ID=$0004:$6A
+      ID=$0006:$4C
+      ID=$0007:$55
+
+}
+
+Player {
+; From source (saw) vmusic
+      Name=SadoTracker (v1.2)
+      ID=$0000:$4C
+      ID=$0001:$09
+      ID=$0003:$4C
+      ID=$0004:$65
+      ID=$0006:$4C
+      ID=$0007:$50
+
+}
+
+Player {
+; From source (saw)
+      Name=NinjaTracker
+      ID=$0040:$4C
+      ID=$0041:$03
+      ID=$0043:$CE
+      ID=$0046:$D8
+      ID=$0047:$20
+      ID=$0048:$00
+}
+
+
+Player {
+
+    Name=Sid Dizz It! (Nibbleman+)
+    ID=$0000:$4C
+    ID=$0001:$61
+    ID=$0003:$4C
+    ID=$0004:$A8
+    OrderPos=$14A7,$14A8,$14A9
+    SecPos=$14A7,$14A8,$14A9
+}
+
+Player {
+
+    Name=Sid Dizz It! (Cybermist)
+    ID=$0000:$4C
+    ID=$0001:$75
+    ID=$0003:$4C
+    ID=$0004:$E6
+    OrderPos=$0CBB,$0CBC,$0CBD
+    SecPos=$0CBB,$0CBC,$0CBD
+}
+
+Player {
+
+    Name=Sid Dizz It! (GRG in Cyberspace)
+    ID=$0000:$4C
+    ID=$0001:$46
+    ID=$0003:$4C
+    ID=$0004:$AC
+    OrderPos=$129C,$129D,$129E
+    SecPos=$129C,$129D,$129E
+}
+
+Player {
+
+    Name=Sid Dizz It! (Endelia)
+    ID=$0000:$4C
+    ID=$0001:$A2
+    ID=$0003:$4C
+    ID=$0004:$E9
+    OrderPos=$0DEA,$0DE9,$0DE8
+    SecPos=$0DEA,$0DE9,$0DE8
+}
+
+Player {
+
+    Name=Martin Galway (Ocean Loader 1/2)
+    ID=$0000:$A2
+    ID=$0001:$17
+    ID=$0002:$BD
+    ID=$0003:$E9
+    OrderPos=$06A0,$06A1,$06A2
+    SecPos=$06A0,$06A1,$06A2
+}
