@@ -56,7 +56,7 @@ struct section_tag *__ini_addHeading (ini_t *ini, char *heading)
     section = __ini_faddHeading (ini, ini->ftmp, pos, length);
     fseek (ini->ftmp, 0, SEEK_END);
     fputs ("]\n", ini->ftmp);
-	ini->write = section->heading;
+    ini->write = section->heading;
     return section;
 }
 
@@ -127,23 +127,23 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
         pNew->heading = heading;
 
         if (*heading)
-	{   // Normal case
+    {   // Normal case
             pNew->pPrev = ini->last;
             ini->last   = pNew;
             if (pNew->pPrev)
                 pNew->pPrev->pNext = pNew;
             else
-	        ini->first = pNew;
+            ini->first = pNew;
         }
         else
-	{   // This case must always be first
-	    pNew->pNext = ini->first;
+    {   // This case must always be first
+        pNew->pNext = ini->first;
             ini->first  = pNew;
             if (pNew->pNext)
                 pNew->pNext->pPrev = pNew;
             else
-	        ini->last = pNew;
-	}
+            ini->last = pNew;
+    }
         
             
 #ifdef INI_USE_HASH_TABLE
@@ -207,7 +207,7 @@ void __ini_deleteHeading (ini_t *ini)
 #ifdef INI_USE_HASH_TABLE
         // Rev 1.3 - Take member out of accelerator list
         if (!current_h->pPrev_Acc)
-	    ini->sections[(unsigned char) current_h->crc & 0x0FF] = current_h->pNext_Acc;
+        ini->sections[(unsigned char) current_h->crc & 0x0FF] = current_h->pNext_Acc;
         else
             current_h->pPrev_Acc->pNext_Acc = current_h->pNext_Acc;
         if (current_h->pNext_Acc)
@@ -254,9 +254,9 @@ struct section_tag *__ini_locateHeading (ini_t *ini, char *heading)
     for (current_h = ini->sections[(unsigned char) crc32 & 0x0FF]; current_h; current_h = current_h->pNext_Acc)
     {
         if (current_h->crc == crc32)
-	{
+    {
             if (!strcmp (current_h->heading, heading))
-	        break;
+            break;
         }
     }
 #else
@@ -264,7 +264,7 @@ struct section_tag *__ini_locateHeading (ini_t *ini, char *heading)
     for (current_h = ini->first; current_h; current_h = current_h->pNext)
     {
         if (!strcmp (current_h->heading, heading))
-	    break;
+        break;
     }
 #endif // INI_USE_HASH_TABLE
 

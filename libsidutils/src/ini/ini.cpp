@@ -1,6 +1,6 @@
 /***************************************************************************
-                          ini.c  -  Reads and writes keys to a
-                                    ini file.
+                          ini.cpp  -  Reads and writes keys to a
+                                      ini file.
 
                              -------------------
     begin                : Fri Apr 21 2000
@@ -28,11 +28,6 @@
 #include <string.h>
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define INI_EXPORT __declspec(dllexport)
-#endif
-
 #include "ini.h"
 
 
@@ -153,9 +148,8 @@ void strtrim (char *str)
  ********************************************************************************************************************/
 ini_t *__ini_open (char *name, bool allowNew)
 {
-    int      ret;
     ini_t   *ini;
-    FILE    *file;
+    FILE    *file = NULL;
     unsigned long length;
 
     if (!name)
@@ -177,6 +171,14 @@ ini_t *__ini_open (char *name, bool allowNew)
         goto ini_openError;
     strcpy (ini->filename, name);
 
+    // Open input file
+    file = fopen (ini->filename, "rb");
+    if (!(file || allowNew))
+    {   // File doesn't exist and we are not allowed
+        // to create one
+        goto ini_openError;
+    }
+
     // Open backup file
     ini->filename[length - 1] = '~';
     ini->ftmp = fopen (ini->filename, "w");
@@ -186,42 +188,34 @@ ini_t *__ini_open (char *name, bool allowNew)
     ini->ftmp = fopen (ini->filename, "rb+");
     if (!ini->ftmp)
         goto ini_openError;
-
-    // Open input file
     ini->filename[length - 1] = name[length - 1];
-    file = fopen (ini->filename, "rb");
-    if (file)
-    {   // Process existing ini file
-        ret = __ini_process (ini, file);
-        fclose (file);
-        if (ret < 0)
-            goto ini_openError;
-    }
-    else if (!allowNew)
-    {   // File shoudl exist and are not allowed
-        // to create a new one so exit
-        goto ini_openError;
-    }
 
-    // Rev 1.1 Added - Fix chnaged set on
-    // open bug
+    // Process existing ini file
+    if (__ini_process (ini, file) < 0)
+        goto ini_openError;
+    fclose (file);
+    file = NULL;
+
+    // Rev 1.1 Added - Changed set on open bug fix
     ini->changed = false;
-    return ini;
+return ini;
 
 ini_openError:
     if (ini)
     {
-        if (ini->filename)
-            free   (ini->filename);
         if (ini->ftmp)
-	{   // Close and remove backup file
+        {   // Close and remove backup file
             fclose (ini->ftmp);
             ini->filename[strlen (ini->filename) - 1] = '~';
             remove (ini->filename);
         }
+        if (ini->filename)
+            free (ini->filename);
         free (ini);
     }
 
+    if (file)
+        fclose (file);
 
     return 0;
 }
@@ -430,6 +424,7 @@ int __ini_process (ini_t *ini, FILE *file)
 
             // Check for a comment
             case ';':
+            case '#':
                 findNewline = true;
             __ini_processDataEnd:
                 // Now know keys data length
@@ -451,13 +446,13 @@ int __ini_process (ini_t *ini, FILE *file)
                             last = pos;
                             if (first > 0)
                             {
-			        if (!ini->selected) // Handle keys which are not in a section
-				{                                   
+                                if (!ini->selected) // Handle keys which are not in a section
+                                {                                   
                                     if (!__ini_faddHeading (ini, file, 0, 0))
                                         goto __ini_processError;
                                 }
 
- 				key = __ini_faddKey (ini, file, first, last - first);
+                                key = __ini_faddKey (ini, file, first, last - first);
                                 if (!key)
                                     goto __ini_processError;
                             }
@@ -506,7 +501,7 @@ int __ini_process (ini_t *ini, FILE *file)
             if (isEOF)
                 break;
 
-	    fputc (ch, ini->ftmp);
+        fputc (ch, ini->ftmp);
             pos++;
             if (!pos)
             {
@@ -557,7 +552,7 @@ int __ini_store (ini_t *ini, FILE *file)
     {
         // Output section heading
         if (*current_h->heading)
-	{
+    {
             if (fprintf (file, "[%s]\n", current_h->heading) < 0)
                 goto __ini_storeError;
         }
@@ -586,7 +581,7 @@ int __ini_store (ini_t *ini, FILE *file)
             }
 
             // Output keys data (point to correct keys data)
-	    ini->selected       = current_h;
+            ini->selected       = current_h;
             current_h->selected = current_k;
             if (ini_readString ((ini_fd_t) ini, str, length) < 0)
                 goto __ini_storeError;
