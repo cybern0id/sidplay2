@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/02/07 18:02:10  s_a_white
+ *  Real C64 compatibility fixes. Debug of BRK works again. Fixed illegal
+ *  instructions to work like sidplay1.
+ *
  *  Revision 1.10  2002/02/04 23:53:23  s_a_white
  *  Improved compatibilty of older sidplay1 modes. Fixed BRK to work like sidplay1
  *  only when stack is 0xff in real mode for better compatibility with C64.
@@ -82,6 +86,7 @@ private:
     inline void sid_rts  (void);
     inline void sid_cli  (void);
     inline void sid_rti  (void);
+    inline void sid_irq  (void);
 };
 
 
