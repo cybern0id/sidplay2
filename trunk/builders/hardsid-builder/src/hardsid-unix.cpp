@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/05/05 23:48:01  s_a_white
+ *  Detect available sid devices on Unix system.
+ *
  *  Revision 1.12  2004/04/29 23:20:01  s_a_white
  *  Optimisation to polling hardsid delay write to only access the hardsid
  *  if really necessary.
@@ -230,7 +233,7 @@ void HardSID::event (void)
 
 void HardSID::filter(bool enable)
 {
-    ioctl (m_handle, HSID_IOCTL_NOFILTER, enable);
+    ioctl (m_handle, HSID_IOCTL_NOFILTER, !enable);
 }
 
 void HardSID::flush(void)
