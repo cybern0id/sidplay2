@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2004/04/23 01:00:32  s_a_white
+ *  jmp_instr now modifies instrStartPC so will always match if tested after call.
+ *
  *  Revision 1.36  2003/10/29 22:18:04  s_a_white
  *  IRQs are now only taken in on phase 1 as previously they could be clocked
  *  in on both phases of the cycle resulting in them sometimes not being
@@ -304,12 +307,15 @@ void SID6510::sid_brk (void)
 void SID6510::sid_jmp (void)
 {   // For sidplay compatibility, inherited from environment
     if (m_mode == sid2_envR)
-    {
-        bool sleep = Cycle_EffectiveAddress == instrStartPC;
-        jmp_instr ();
-        // If a busy loop then just sleep
-        if (sleep)
-            this->sleep ();
+    {   // If a busy loop then just sleep
+        if (Cycle_EffectiveAddress == instrStartPC)
+        {
+            endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+            if (!interruptPending ())
+                this->sleep ();
+        }
+        else
+            jmp_instr ();
         return;
     }
 
@@ -391,7 +397,7 @@ void SID6510::sid_delay (void)
         eventContext.cancel (this);
     else
     {
-        event_clock_t cycle = (delayed - 1) % 3;
+        event_clock_t cycle = delayed % 3;
         if (cycle == 0)
         {
             if (interruptPending ())
