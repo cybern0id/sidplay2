@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2004/03/01 00:45:01  s_a_white
+ *  Let C64 driver know the tunes intended speed allowing use of the
+ *  compatibility raster when the tune is forced to the opposite.
+ *
  *  Revision 1.33  2004/02/18 20:19:03  s_a_white
  *  Decrement tune number before passing it to the psid code.  Setup default
  *  processor status register flags.
@@ -222,7 +226,16 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
         // If not a basic tune then the psiddrv must install
         // interrupt hooks and trap programs trying to restart basic
-        if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_BASIC)
+        if (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
+        {   // Install hook to set subtune number for basic
+            uint8_t prg[] = {LDAb, (uint8_t) (tuneInfo.currentSong-1),
+                             STAa, 0x0c, 0x03, JSRw, 0x2c, 0xa8,
+                             JMPw, 0xb1, 0xa7};
+            memcpy (&m_rom[0xbf53], prg, sizeof (prg));
+            m_rom[0xa7ae] = JMPw;
+            endian_little16 (&m_rom[0xa7af], 0xbf53);
+        }
+        else
         {   // Only install irq handle for RSID tunes
             if (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_R64)
                 memcpy (&m_ram[0x0314], &reloc_driver[2], 2);
@@ -246,7 +259,7 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         uint8_t *addr = &m_rom[0]; // &m_ram[relocAddr];
 
         // Tell C64 about song
-        *addr++ = (uint8_t) tuneInfo.currentSong-1;
+        *addr++ = (uint8_t) (tuneInfo.currentSong-1);
         if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
             *addr = 0;
         else // SIDTUNE_SPEED_CIA_1A
