@@ -131,6 +131,8 @@ char *ini_getBuffer (ini_buffer_t *buffer)
 
 #endif /* SWIG */
 
+/* Backwards compatibilty with sidplay2-0.7 */
+#define ini_new(name) ini_open(name, "w")
 
 /* Rev 1.2 Added new fuction */
 INI_EXTERN ini_fd_t INI_LINKAGE ini_open     (const char *name, const char *mode);
