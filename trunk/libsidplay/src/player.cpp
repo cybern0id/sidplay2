@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.51  2002/11/19 22:55:18  s_a_white
+ *  Sidplay1 modes modified to make them nolonger require the psid driver.
+ *  Full c64 kernal supported in real c64 mode.
+ *
  *  Revision 1.50  2002/11/01 17:36:01  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -309,11 +313,11 @@ void Player::fakeIRQ (void)
 {   // Check to see if the play address has been provided or whether
     // we should pick it up from an IRQ vector
     uint_least16_t playAddr = m_tuneInfo.playAddr;
+    uint8_t        bankreg  = m_playBank;
 
-    evalBankSelect (0x37);
-    // Setup the entry point and restart the cpu
-    endian_little16 (&m_rom[0xfffc], playAddr);
-    cpu->triggerIRQ ();
+    // Always make sure kernal is switched in
+    // for fake irq trigger
+    isKernal = true;
 
     // We have to reload the new play address
     if (!playAddr)
@@ -326,10 +330,13 @@ void Player::fakeIRQ (void)
         {   // Setup the entry point from software IRQ
             playAddr = endian_little16 (&m_ram[0xFFFF]);
         }
-        evalBankSelect (m_bankReg);
+        bankreg = m_bankReg;
     }
-    else
-        evalBankSelect (m_playBank);
+
+    // Setup the entry point and restart the cpu
+    endian_little16 (&m_rom[0xfffc], playAddr);
+    cpu->triggerIRQ ();
+    evalBankSelect  (bankreg);
 }
 
 int Player::fastForward (uint percent)
