@@ -14,8 +14,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
-#define  _COMPONENT_
 #include "fake6526.h"
 
 fake6526::fake6526 ()
@@ -27,31 +29,31 @@ fake6526::fake6526 ()
 void fake6526::reset (void)
 {
     locked = false;
-    count  = (setCount = defCount);
+    _count = (setCount = defCount);
     cra    = 0;
 }
 
-void fake6526::reset (uword_sidt _count)
+void fake6526::reset (uint_least16_t count)
 {
-    defCount = _count;
+    defCount = count;
     reset ();
 }
 
-ubyte_sidt fake6526::read (ubyte_sidt addr)
+uint8_t fake6526::read (uint_least8_t addr)
 {
    if (addr > 0x0f) return 0;
 
    switch (addr)
    {
-   case 0x04: return (ubyte_sidt) count;
-   case 0x05: return (ubyte_sidt) (count >> 8);
+   case 0x04: return (uint8_t) _count;
+   case 0x05: return (uint8_t) (_count >> 8);
    default:   return regs[addr];
    }
 }
 
-void fake6526::write (ubyte_sidt addr, ubyte_sidt data)
+void fake6526::write (uint_least8_t addr, uint8_t data)
 {
-   static uword_sidt latch = 0;
+   static uint_least16_t latch = 0;
    if (addr > 0x0f) return;
 
    regs[addr] = data;
@@ -59,16 +61,16 @@ void fake6526::write (ubyte_sidt addr, ubyte_sidt data)
    switch (addr)
    {
    case 0x04:
-       latch = (uword_sidt) data;
+       latch = (uint_least16_t) data;
    break;
    case 0x05:
-       latch   |= (uword_sidt) (data << 8);
+       latch   |= (uint_least16_t) data << 8;
        setCount = latch;
    break;
    case 0x0e:
        cra = data & 0xef;  // (ms) mask strobe flag
        if (cra & 0x01)
-           count = setCount;
+           _count = setCount;
    break;
    default:
    break;
