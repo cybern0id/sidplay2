@@ -273,6 +273,12 @@ class SID_EXTERN SidTune
 
     // Check SidTuneInfo fields for all real c64 only formats
     bool checkRealC64Info(uint_least32_t speed);
+    // Check the init address is legal for real C64 only tunes
+    bool checkRealC64Init(void);
+    // Check for valid relocation information
+    bool checkRelocInfo(void);
+    // Common address resolution procedure
+    bool resolveAddrs(const uint_least8_t* c64data);
 
     // Support for various file formats.
 
@@ -312,6 +318,8 @@ class SID_EXTERN SidTune
     static const char* txt_CIA;
     static const char* txt_noErrors;
     static const char* txt_na;
+    static const char* txt_badAddr;
+    static const char* txt_badReloc;
 
  private:  // ---------------------------------------------------------------
     

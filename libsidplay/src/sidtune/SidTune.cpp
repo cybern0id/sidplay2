@@ -39,6 +39,9 @@
     typedef int openmode;
 #endif
 
+// Used in address resolution procedure
+#define SIDTUNE_BASIC_START 0x0801
+
 const char* SidTune::txt_songNumberExceed = "SIDTUNE WARNING: Selected song number was too high";
 const char* SidTune::txt_empty = "SIDTUNE ERROR: No data to load";
 const char* SidTune::txt_unrecognizedFormat = "SIDTUNE ERROR: Could not determine file format";
@@ -54,6 +57,8 @@ const char* SidTune::txt_VBI = "VBI";
 const char* SidTune::txt_CIA = "CIA 1 Timer A";
 const char* SidTune::txt_noErrors = "No errors";
 const char* SidTune::txt_na = "N/A";
+const char* SidTune::txt_badAddr = "SIDTUNE ERROR: Bad address data";
+const char* SidTune::txt_badReloc = "SIDTUNE ERROR: Bad reloc data";
 
 // Default sidtune file name extensions. This selection can be overriden
 // by specifying a custom list in the constructor.
@@ -986,5 +991,156 @@ bool SidTune::checkRealC64Info (uint_least32_t speed)
         return false;
     if (info.compatibility == SIDTUNE_COMPATIBILITY_PSID)
         return false;
+    return true;
+}
+
+bool SidTune::checkRealC64Init (void)
+{
+    if (info.initAddr == 0)
+        info.initAddr = info.loadAddr;
+
+    // Check valid init address
+    switch (info.initAddr >> 12)
+    {
+    case 0x0F:
+    case 0x0E:
+    case 0x0D:
+    case 0x0B:
+    case 0x0A:
+        return false;
+    default:
+        if ( (info.initAddr < info.loadAddr) ||
+             (info.initAddr > (info.loadAddr + info.c64dataLen - 1)) )
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool SidTune::checkRelocInfo (void)
+{
+    uint_least8_t startp, endp;
+
+    // Fix relocation information
+    if (info.relocStartPage == 0xFF)
+    {
+        info.relocPages = 0;
+        return true;
+    }
+    else if (info.relocPages == 0)
+    {
+        info.relocStartPage = 0;
+        return true;
+    }
+
+    // Calculate start/end page
+    startp = info.relocStartPage;
+    endp   = (startp + info.relocPages - 1) & 0xff;
+    if (endp < startp)
+    {
+        info.formatString = txt_badReloc;
+        return false;
+    }
+
+    {    // Check against load range
+        uint_least8_t startlp, endlp;
+        startlp = (uint_least8_t) (info.loadAddr >> 8);
+        endlp   = startlp;
+        endlp  += (uint_least8_t) ((info.c64dataLen - 1) >> 8);
+
+        if ( ((startp <= startlp) && (endp >= startlp)) ||
+             ((startp <= endlp)   && (endp >= endlp)) )
+        {
+            info.formatString = txt_badReloc;
+            return false;
+        }
+    }
+
+    // Check that the relocation information does not use the following
+    // memory areas: 0x0000-0x03FF, 0xA000-0xBFFF and 0xD000-0xFFFF
+    if ((startp < 0x04)
+        || ((0xa0 <= startp) && (startp <= 0xbf))
+        || (startp >= 0xd0)
+        || ((0xa0 <= endp) && (endp <= 0xbf))
+        || (endp >= 0xd0))
+    {
+        info.formatString = txt_badReloc;
+        return false;
+    }
+    return true;
+}
+
+bool SidTune::resolveAddrs (const uint_least8_t* c64data)
+{
+    if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
+    {
+        bool initAddrCheck = true;
+
+        // Check tune is loadable on a real C64
+        if ( info.loadAddr < SIDTUNE_R64_MIN_LOAD_ADDR )
+        {
+            info.formatString = txt_badAddr;
+            return false;
+        }
+
+        if ( (info.initAddr == 0) && (info.loadAddr == SIDTUNE_BASIC_START) )
+        {   // Scan basic for a sys call
+            const uint_least8_t* pData = c64data;
+            uint_least16_t addr = 0;
+            uint_least16_t next = endian_little16(pData);
+            uint_least16_t init = 0;
+
+            while (next)
+            {   // skip addr & line number
+                const uint_least8_t *p = &pData[addr + 4];
+
+SidTune_resolveAddrs_basic:
+                // Check for SYS
+                if (*p++ != 0x9e)
+                {   // Check for ':' instruction seperator before
+                    // jumping to next basic line
+                    while (*p != '\0')
+                    {
+                        if (*p++ == ':')
+                        {   // Skip spaces
+                            while (*p == ' ')
+                                p++;                            
+                            // Make sure havent hit end of line
+                            if (*p != '\0')
+                                goto SidTune_resolveAddrs_basic;
+                        }
+                    }
+                    // Not a sys so jump to next intruction
+                    addr = next;
+                    // Get addr of next line of basic
+                    next = endian_little16(&pData[addr]);
+                    continue;
+                }
+                // Skip spaces
+                while (*p == ' ')
+                    p++;
+                // Found a sys, extract all numbers
+                while ( (*p >= '0') && (*p <= '9') )
+                {
+                    init *= 10;
+                    init += *p++ - '0';
+                }
+                info.initAddr = init;
+                // Assume address is legal otherwise
+                // a real c64 would crash
+                initAddrCheck = false;
+                break;
+            }
+        }
+
+        if ( checkRealC64Init() == false )
+        {
+	        info.formatString = txt_badAddr;
+	        return false;
+        }
+    }
+    else if ( info.initAddr == 0 )
+        info.initAddr = info.loadAddr;
     return true;
 }

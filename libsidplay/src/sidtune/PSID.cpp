@@ -146,6 +146,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
     }
 
     fileOffset         = endian_big16(pHeader->data);
+    info.c64dataLen    = bufLen - fileOffset;
     info.loadAddr      = endian_big16(pHeader->load);
     info.initAddr      = endian_big16(pHeader->init);
     info.playAddr      = endian_big16(pHeader->play);
@@ -231,93 +232,11 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         fileOffset += 2;
     }
 
-    if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
-    {
-        bool initAddrCheck = true;
+    if ( resolveAddrs((uint_least8_t*)buffer + fileOffset) == false )
+        return false;
 
-        // Check tune is loadable on a real C64
-        if ( info.loadAddr < 0x0801 )
-        {
-            info.formatString = _sidtune_invalid;
-            return false;
-        }
-
-        if ( (info.initAddr == 0) && (info.loadAddr == 0x0801) )
-        {   // Scan basic for a sys call
-            uint_least8_t* pData = (uint_least8_t*)buffer + fileOffset;
-            uint_least16_t addr  = 0x0801;
-            uint_least16_t next  = endian_little16(pData);
-            uint_least16_t init  = 0;
-
-            while (next)
-            {   // skip addr & line number
-                uint_least8_t *p = &pData[addr - 0x0801 + 4];
-
-PSID_fileSupport_basic:
-                // Check for SYS
-                if (*p++ != 0x9e)
-                {   // Check for ':' instruction seperator before
-                    // jumping to next basic line
-                    while (*p != '\0')
-                    {
-                        if (*p++ == ':')
-                        {   // Skip spaces
-                            while (*p == ' ')
-                                p++;                            
-                            // Make sure havent hit end of line
-                            if (*p != '\0')
-                                goto PSID_fileSupport_basic;
-                        }
-                    }
-                    // Not a sys so jump to next intruction
-                    addr = next;
-                    // Get addr of next line of basic
-                    next = endian_little16(&pData[addr - 0x0801]);
-                    continue;
-                }
-                // Skip spaces
-                while (*p == ' ')
-                    p++;
-                // Found a sys, extract all numbers
-                while ( (*p >= '0') && (*p <= '9') )
-                {
-                    init *= 10;
-                    init += *p++ - '0';
-                }
-                info.initAddr = init;
-                // Assume address is legal otherwise
-                // a real c64 would crash
-                initAddrCheck = false;
-                break;
-            }
-        }
-
-        if ( info.initAddr == 0 )
-            info.initAddr = info.loadAddr;
-
-        if ( initAddrCheck )
-        {
-            // Check init is not under ROMS/IO
-            switch (info.initAddr >> 12)
-            {
-            case 0x0F:
-            case 0x0E:
-            case 0x0D:
-            case 0x0B:
-            case 0x0A:
-                info.formatString = _sidtune_invalid;
-                return false;
-            default:
-                if ( info.initAddr < 0x0801 )
-                {
-                    info.formatString = _sidtune_invalid;
-                    return false;
-                }
-            }
-        }
-    }
-    else if ( info.initAddr == 0 )
-        info.initAddr = info.loadAddr;
+    if ( checkRelocInfo() == false )
+        return false;
 
     // Copy info strings, so they will not get lost.
     info.numberOfInfoStrings = 3;
@@ -365,15 +284,8 @@ bool SidTune::PSID_fileSupportSave(std::ofstream& fMyOut, const uint_least8_t* d
 
     tmpFlags |= (info.clockSpeed << 2);
     tmpFlags |= (info.sidModel << 4);
-
     endian_big16(myHeader.flags,tmpFlags);
     endian_big16(myHeader.reserved,0);
-
-    // Fix relocation information
-    if (info.relocStartPage == 0xFF)
-        info.relocPages = 0;
-    else if (info.relocPages == 0)
-        info.relocStartPage  = 0;
     myHeader.relocStartPage = info.relocStartPage;
     myHeader.relocPages     = info.relocPages;
 
