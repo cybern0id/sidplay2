@@ -6,7 +6,7 @@
 #define VERSION "2.1.0a3"
 
 /* Define if your C++ compiler implements exception-handling.  */
-/* #define HAVE_EXCEPTIONS */
+#define HAVE_EXCEPTIONS
 
 /* Define if you support file names longer than 14 characters.  */
 #define HAVE_LONG_FILE_NAMES
