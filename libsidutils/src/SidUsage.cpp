@@ -548,7 +548,6 @@ void SidUsage::writeMAP (FILE *file, const sid2_usage_t &usage)
                         u |= (SID_BAD_READ | SID_BAD_EXECUTE);
                     // Apply usage filter for this memory location
                     u &= m_filterMAP[addr];
-		    printf ("%04x %02x\n", addr, u);
                     err |= fprintf (file, "%s", m_decodeMAP[u]) < 0;
                     if ((j & 7) == 7)
                         err |= fprintf (file, " ") < 0;
