@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/11 19:04:32  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _sid6510c_h_
@@ -26,17 +29,19 @@
 
 class SID6510: public MOS6510
 {
-public:
+private:
     // Sidplay Specials
-    bool SPWrapped;
-    bool PCWrapped;
+    bool status;
 
+public:
     SID6510 ();
 
     // Standard Functions
     void        reset (void);
     void        reset (uint8_t a, uint8_t x, uint8_t y);
     inline void clock (void);
+
+	operator bool() { return status; }
 
 private:
     inline void sid_FetchEffAddrDataByte (void);

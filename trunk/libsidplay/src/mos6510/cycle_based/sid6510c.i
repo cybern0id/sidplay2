@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2000/12/11 19:04:32  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #include "sid6510c.h"
@@ -87,7 +90,7 @@ void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
 
 void SID6510::reset ()
 {
-    SPWrapped = (PCWrapped = false);
+    status = true;
     // Call inherited reset
     MOS6510::reset ();
 }
@@ -99,8 +102,8 @@ void SID6510::clock (void)
     // Sidplay requires that we check to see if
     // the stack has overflowed.  This then returns
     // control back to sidplay so music can be played
-    if (endian_16hi8  (Register_StackPointer)   != SP_PAGE) SPWrapped = true;
-    if (endian_32hi16 (Register_ProgramCounter) != 0)       PCWrapped = true;
+    status &= (endian_16hi8  (Register_StackPointer)   == SP_PAGE);
+    status &= (endian_32hi16 (Register_ProgramCounter) == 0);
 }
 
 //**************************************************************************************
