@@ -630,9 +630,12 @@ void sighandler (int signum)
     case SIGINT:
     case SIGABRT:
     case SIGTERM:
+        {
+        if (audioDrv)
+            audioDrv->reset();
         cleanup ();
-    exit (EXIT_ERROR_STATUS);
-
+        exit (EXIT_SUCCESS);
+        }
     default:
         break;
     }
