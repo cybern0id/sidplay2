@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1.1.1  2001/11/25 15:03:20  s_a_white
+ *  Initial Release
+ *
  ***************************************************************************/
 
 #include <stdio.h>
@@ -86,6 +89,30 @@ ReSIDBuilder_create_error:
         delete sid;
     return count;
 }
+
+const char *ReSIDBuilder::credits ()
+{
+    m_status = true;
+
+    // Available devices
+    if (sidobjs.size ())
+    {
+        ReSID *sid = (ReSID *) sidobjs[0];
+        return sid->credits ();
+    }
+
+    {   // Create an emulation to obtain credits
+        ReSID sid(this);
+        if (!sid)
+		{
+            m_status = false;
+            strcpy (m_errorBuffer, sid.error ());
+            return 0;
+        }
+        return sid.credits ();
+    }
+}
+
 
 uint ReSIDBuilder::devices (bool created)
 {
