@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/14 16:53:29  s_a_white
+ *  Updated to use new audio base class.
+ *
  *  Revision 1.3  2001/01/23 17:50:59  s_a_white
  *  Removed duplicate #endif.
  *
@@ -90,6 +93,7 @@ public:  // --------------------------------------------------------- public
         return NULL;
     }
     void *write ();
+    void  pause () {;}
 };
 
 #endif // HAVE_OSS

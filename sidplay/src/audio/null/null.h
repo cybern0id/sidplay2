@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/07/03 17:54:50  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.2  2001/01/18 18:36:16  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -51,6 +54,7 @@ public:  // --------------------------------------------------------- public
     void  close ();    
     void *reset ();
     void *write ();
+    void  pause () {;}
 };
 
 #endif // audio_null_h_

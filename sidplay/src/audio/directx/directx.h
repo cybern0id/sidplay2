@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/03 17:54:35  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.3  2001/01/23 17:50:59  s_a_white
  *  Removed duplicate #endif.
  *
@@ -82,6 +85,7 @@ public:  // --------------------------------------------------------- public
     // Rev 1.3 (saw) - Changed
     void *reset ();
     void *write ();
+    void  pause ();
 };
 
 #endif // HAVE_DIRECTX

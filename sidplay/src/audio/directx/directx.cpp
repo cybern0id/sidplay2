@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/17 19:09:39  s_a_white
+ *  Sample enconding support added.
+ *
  *  Revision 1.2  2001/07/03 17:54:35  s_a_white
  *  Support for new audio interface for better compatibility.
  *
@@ -196,6 +199,13 @@ void *Audio_DirectX::open (AudioConfig &cfg, const char *, HWND hwnd)
         goto Audio_DirectX_openError;
     }
 
+    // Rev 1.7 (saw) - Set the play position back to the begining
+    if (FAILED (lpDsb->SetCurrentPosition(0)))
+    {
+        _errorString = "DIRECTX ERROR: Unable to set play position to start of buffer.";
+        return NULL;
+    }
+
     // Update the users settings
     cfg.bufSize   = bufSize;
     // Setup the required sample format encoding.
@@ -231,13 +241,6 @@ void *Audio_DirectX::write ()
     if (!isPlaying)
     {
         isPlaying = true;
-        // Rev 1.7 (saw) - Set the play position back to the begining
-        if (FAILED (lpDsb->SetCurrentPosition(0)))
-        {
-            _errorString = "DIRECTX ERROR: Unable to set play position to start of buffer.";
-            return NULL;
-        }
-
         if (FAILED (lpDsb->Play (0,0,DSBPLAY_LOOPING)))
         {
             _errorString = "DIRECTX ERROR: Unable to start playback.";
@@ -317,6 +320,12 @@ void Audio_DirectX::close (void)
     // as closing invalid handle.
     for (int i=0;i < AUDIO_DIRECTX_BUFFERS; i++) 
         CloseHandle (rghEvent[i]);
+}
+
+void Audio_DirectX::pause (void)
+{
+    lpDsb->Stop ();
+    isPlaying = false;
 }
 
 #endif // HAVE_DIRECTX
