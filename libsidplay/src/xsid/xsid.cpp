@@ -91,7 +91,7 @@ inline void channel::clock (uint_least16_t delta_t)
 }
 
 #ifndef XSID_USE_SID_VOLUME
-inline int32_t channel::output ()
+inline int_least32_t channel::output ()
 #else
 inline uint8_t channel::output ()
 #endif
@@ -165,9 +165,9 @@ void channel::sampleInit ()
     // Noise sequence begins
     if (mode == FM_NONE)
         mode  = FM_HUELS;
-    active  = true;
-    _clock  = &channel::sampleClock;
-    sample  = sampleCalculate ();
+    active = true;
+    _clock = &channel::sampleClock;
+    sample = sampleCalculate ();
 
 #ifdef XSID_USE_SID_VOLUME
     changed = true;
@@ -182,6 +182,7 @@ void channel::sampleInit ()
     printf ("XSID [%lu]: Sample Repeat Address: 0x%04x\n", (unsigned long) this, samRepeatAddr);
     printf ("XSID [%lu]: Sample Period: %u\n", (unsigned long) this, samPeriod);
     printf ("XSID [%lu]: Sample Repeat: %u\n", (unsigned long) this, samRepeat);
+    printf ("XSID [%lu]: Sample Order:  %u\n", (unsigned long) this, samOrder);
 #endif
 
 #ifdef XSID_DEBUG
@@ -234,7 +235,6 @@ void channel::sampleClock ()
         samMax = sample;
     changed    = true;
 #endif
-    samNibble &= 1;
 }
 
 int8_t channel::sampleCalculate ()
@@ -263,7 +263,8 @@ int8_t channel::sampleCalculate ()
 
     // Move to next address
     address   += samNibble;
-    samNibble ^= 1;;
+    samNibble ^= 1;
+    samNibble &= 1;
 #ifndef XSID_USE_SID_VOLUME
     return sampleConvertTable[(tempSample & 0x0f) >> volShift];
 #else
@@ -330,7 +331,8 @@ void channel::galwayClock ()
         printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
             (unsigned long) this, cycles, outputs);
         if (reg[convertAddr (0x1d)])
-            printf ("XSID [%lu]: Starting Delayed Sequence\n");
+            printf ("XSID [%lu]: Starting Delayed Sequence\n",
+                (unsigned long) this);
 #endif
         free ();
         checkForInit ();
@@ -359,6 +361,13 @@ void channel::galwayTonePeriod ()
     samPeriod *= galLoopWait;
     samPeriod += galNullWait;
     cycleCount = samPeriod;
+#if XSID_DEBUG > 2
+    printf ("XSID [%lu]: Galway Settings\n", (unsigned long) this);
+    printf ("XSID [%lu]: Length %u, LoopWait %u, NullWait %u\n",
+        (unsigned long) this, galLength, galLoopWait, galNullWait);
+    printf ("XSID [%lu]: Tones %u, Data %u\n",
+        (unsigned long) this, galTones, envReadMemByte (address + galTones));
+#endif
     galTones--;
 }
 
@@ -369,6 +378,20 @@ void channel::silence ()
 #endif
 }
 
+void XSID::mute (bool enable)
+{
+	muted = enable;
+	if (muted)
+	{   // Stop the channels dead
+	  //		ch4.write (0x1d, 0xFD);
+	  //		ch5.write (0x1d, 0xFD);
+	}
+	else
+	{   // Get the channels running again
+		ch4.checkForInit ();
+		ch5.checkForInit ();
+	}
+}
 
 void XSID::write (uint_least16_t addr, uint8_t data)
 {
@@ -396,7 +419,7 @@ void XSID::write (uint_least16_t addr, uint8_t data)
 #if XSID_DEBUG
             printf ("XSID: Muted\n");
 #endif
-            ch->write (tempAddr, 0xFD);
+			return;
         }
         ch->checkForInit ();
     }       
@@ -427,7 +450,7 @@ uint8_t XSID::read (uint_least16_t addr)
 // to the mode.  It's kept like this so I don't have to
 // keep updating 2 bits of code
 #ifndef XSID_USE_SID_VOLUME
-int32_t XSID::output (uint_least8_t bits)
+int_least32_t XSID::output (uint_least8_t bits)
 {
     int_least32_t sample = 0;
 #else
@@ -461,6 +484,9 @@ void XSID::setSidVolume (bool cached)
         volume |= (envReadMemDataByte (sidVolAddr, true) & 0xf0);
         ch4.changed = false;
         ch5.changed = false;
+#if XSID_DEBUG > 1
+        printf ("XSID: Writing Sample to SID Volume [0x%02x]\n", volume);
+#endif
         envWriteMemByte (sidVolAddr, volume, false);
     }
 }

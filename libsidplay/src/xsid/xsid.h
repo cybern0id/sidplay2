@@ -65,6 +65,11 @@ These effects are however be present in the oringial SID music.
 #   define XSID_DEBUG DEBUG
 #endif
 
+#if XSID_DEBUG
+#   include <stdio.h>
+#endif
+
+
 class channel: public C64Environment
 {
 private:
@@ -134,8 +139,8 @@ public:
 
 #ifdef XSID_DEBUG
 private:
-    uint_fast32_t cycles;
-    uint_fast32_t outputs;
+    uint_least32_t cycles;
+    uint_least32_t outputs;
 #endif
 
 #ifdef XSID_USE_SID_VOLUME
@@ -171,30 +176,43 @@ private:
     void checkForInit  (channel *ch);
 
 public:
-    void    reset (void);
-    void    mute  (bool enable)
-    {   muted = enable; }
-    uint8_t read  (uint_least16_t addr);
-    void    write (uint_least16_t addr, uint8_t data);
-    void    clock (uint_least16_t delta_t = 1);
+    void    reset   (void);
+    void    mute    (bool enable);
+	bool    isMuted (void)
+	{   return muted; }
+    uint8_t read    (uint_least16_t addr);
+    void    write   (uint_least16_t addr, uint8_t data);
+    void    clock   (uint_least16_t delta_t = 1);
     void    setEnvironment (C64Environment *envp);
 
 #ifdef XSID_USE_SID_VOLUME
-public:
-    void setSIDAddress (uint_least16_t addr)
-    {
-        sidVolAddr = addr + 0x18;
-    }
+private:
+    void    setSidVolume (bool cached = false);
+    uint8_t output ();
 
+public:
     XSID ()
     {
         setSIDAddress (0xd400);
         muted = false;
     }
 
-private:
-    void    setSidVolume (bool cached = false);
-    uint8_t output ();
+    void setSIDAddress (uint_least16_t addr)
+    {
+        sidVolAddr = addr + 0x18;
+    }
+
+	void volumeUpdated (void)
+	{
+		if (ch4 || ch5)
+		{   // Force volume to be restored at
+			// next clock
+			ch4.changed = true;
+#if XSID_DEBUG
+            printf ("XSID: External SID Volume Change (Correcting).\n");
+#endif
+		}
+	}
 #else
 public:
     // This provides standard 16 bit outputs
