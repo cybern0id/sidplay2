@@ -153,7 +153,7 @@ MD5::MD5()
 void
 MD5::reset()
 {
-    count[0] = count[1] = count[2] = 0;
+    count[0] = count[1] = 0;
     abcd[0] = 0x67452301;
     abcd[1] = 0xefcdab89;
     abcd[2] = 0x98badcfe;
