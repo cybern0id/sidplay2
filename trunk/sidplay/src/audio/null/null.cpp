@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/14 16:55:51  s_a_white
+ *  Cast _sampleBuffer from void * for delete to avoid warning
+ *  message.
+ *
  *  Revision 1.3  2001/07/03 17:54:50  s_a_white
  *  Support for new audio interface for better compatibility.
  *
@@ -54,7 +58,7 @@ void *Audio_Null::open (AudioConfig &cfg, const char *)
         return NULL;
     }
 
-    if (bufSize)
+    if (bufSize == 0)
     {
         bufSize  = cfg.frequency * cfg.precision / 8 * cfg.channels;
         bufSize /= 4;
