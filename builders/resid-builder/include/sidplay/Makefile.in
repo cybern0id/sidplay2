@@ -70,6 +70,8 @@ EXEEXT = @EXEEXT@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBSIDPLAY2_CXXFLAGS = @LIBSIDPLAY2_CXXFLAGS@
+LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
@@ -89,7 +91,7 @@ install_sh = @install_sh@
 SUBDIRS = builders
 subdir = include/sidplay
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 DIST_SOURCES =
 
