@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2004/02/11 21:00:31  s_a_white
+ *  For RSID tunes loop interrupt handler through to the real C64 one ($ea31).
+ *
  *  Revision 1.22  2004/02/08 21:30:28  s_a_white
  *  Default VIC raster line should be 311
  *
@@ -139,11 +142,15 @@ ntsc        lda #$95
 timer       sta $dc04
             stx $dc05
 
-            ; set VICII raster to line 311 and
-            ; clear any outstanding irqs
-            lda #$9b
+            ; set VICII raster to line 0 for PSIDs
+            lda #$1b
+            ldx #$00
+            cpx initiomap
+            bne vicinit
+            ; set VICII raster to line 311 for RSIDs
+            ora #$80
             ldx #$37
-            sta $d011
+vicinit     sta $d011
             stx $d012
             lda $d019
             sta $d019
