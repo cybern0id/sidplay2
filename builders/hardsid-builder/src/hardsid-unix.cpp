@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/10/28 00:15:16  s_a_white
+ *  Get time with respect to correct clock phase.
+ *
  *  Revision 1.10  2003/01/20 16:25:25  s_a_white
  *  Updated for new event scheduler interface.
  *
@@ -195,13 +198,18 @@ void HardSID::voice (uint_least8_t num, uint_least8_t volume,
 void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
-    m_accessClk += cycles;
-    if (cycles)
+    if (cycles < HARDSID_DELAY_CYCLES)
+    {
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES - cycles,
+                                EVENT_CLOCK_PHI1);
+    }
+    else
     {
         uint delay = (uint) cycles;
+        m_accessClk += cycles;
         ioctl(m_handle, HSID_IOCTL_DELAY, delay);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
     }
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 void HardSID::filter(bool enable)
