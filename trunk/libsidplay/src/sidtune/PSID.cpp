@@ -115,8 +115,14 @@ SidTune::LoadStatus SidTune::PSID_fileSupport(const void* buffer, const uint_lea
         return LOAD_NOT_MINE;
     if (endian_big32((const uint_least8_t*)pHeader->id)==PSID_ID)
     {
-       if (endian_big16(pHeader->version) >= 3)
+       switch (endian_big16(pHeader->version))
        {
+       case 1:
+           compatibility = SIDTUNE_COMPATIBILITY_PSID;
+           // Deliberate run on
+       case 2:
+           break;
+       default:
            info.formatString = _sidtune_unknown_psid;
            return LOAD_ERROR;
        }
