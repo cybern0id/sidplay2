@@ -22,19 +22,19 @@
 #include <stdio.h>
 #include "sidtypes.h"
 
-typedef uint event_clock_t;
+typedef uint_fast32_t event_clock_t;
 #define EVENT_CONTEXT_MAX_PENDING_EVENTS 0x100
 
 class EventContext;
-class Event
+class SID_EXTERN Event
 {
 private:
     friend  EventContext;
     const   char * const m_name;
     event_clock_t m_clk;
 
-    /* Index into the pending event list.  If < 0 the
-     * event is not pending.  */
+    /* This variable is set by the event context
+       when it is scheduled */
     bool m_pending;
 
     /* Link to the next and previous events in the
@@ -50,7 +50,7 @@ public:
 };
 
 
-class EventContext
+class SID_EXTERN EventContext
 {
 private:
     const   char * const m_name;
@@ -58,13 +58,15 @@ private:
     Event  *m_pendingEvents;
     uint    m_pendingEventClk;
 
-    class EventTimeWarp: public Event
+    class SID_EXTERN EventTimeWarp: public Event
     {
     private:
         EventContext &m_eventContext;
 
         void event (void)
-        {   m_eventContext.timeWarp (); }
+        {
+            m_eventContext.timeWarp ();
+        }
 
     public:
         EventTimeWarp (EventContext *context)
@@ -72,30 +74,36 @@ private:
          m_eventContext(*context)
         {;}
     } m_timeWarp;
+    friend EventTimeWarp;
 
 private:
+    void timeWarp (void);
     void dispatch (void)
     {
         Event &e = *m_pendingEvents;
-        cancel (m_pendingEvents);
+        cancelPending (e);
         //printf ("Event \"%s\"\n", e.m_name);
         e.event ();
+    }
+
+    void cancelPending (Event &event)
+    {
+        event.m_pending = false;
+        m_pendingEvents = event.m_next;
+        if (!m_pendingEvents)
+            return;
+        m_pendingEvents->m_prev = NULL;
+        m_pendingEventClk = m_pendingEvents->m_clk;
     }
 
 public:
     EventContext (const char * const name)
         : m_name(name),
-          m_eventClk(0),
-          m_schedClk(0),
-          m_pendingEvents(NULL),
-          m_timeWarp(this) { timeWarp (0); }
+          m_timeWarp(this) { reset (); }
 
     void cancel   (Event *event);
     void reset    (void);
     void schedule (Event *event, event_clock_t cycles);
-    void timeWarp (void)
-    {   timeWarp ( -((int) m_pendingEventClk) ); }
-    void timeWarp (int cycles);
 
     void clock (event_clock_t delta = 1)
     {
@@ -109,9 +117,9 @@ public:
         }
     }
 
-    event_clock_t getTime (void)
+    event_clock_t getTime (void) const
     {   return m_schedClk; }
-    event_clock_t getTime (event_clock_t clock)
+    event_clock_t getTime (event_clock_t clock) const
     {   return m_schedClk - clock; }
 };
 
