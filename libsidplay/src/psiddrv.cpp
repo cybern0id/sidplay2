@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/07/18 18:37:42  s_a_white
+ *  Buffer overflow fixes for tunes providing bad reloc information.
+ *
  *  Revision 1.14  2002/07/17 21:48:10  s_a_white
  *  PSIDv2NG reloc exclude region extension.
  *
@@ -74,8 +77,9 @@
 
 SIDPLAY2_NAMESPACE_START
 
-const char *Player::ERR_PSIDDRV_NO_SPACE = "ERROR: No space to install psid driver in C64 ram"; 
-const char *Player::ERR_PSIDDRV_RELOC    = "ERROR: Failed whilst relocating psid driver";
+const char *Player::ERR_PSIDDRV_NO_SPACE  = "ERROR: No space to install psid driver in C64 ram"; 
+const char *Player::ERR_PSIDDRV_RELOC     = "ERROR: Failed whilst relocating psid driver";
+const char *Player::ERR_PSIDDRV_BAD_PAGES = "ERROR: Tune contains bad relocation information";
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
@@ -95,20 +99,37 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
         psidRelocAddr (tuneInfo, startlp, endlp);
     }
     else
-    {   // Check for reloc information describing used space
-        // instead of free space
-        int startxp = tuneInfo.relocStartPage;
-        int endxp   = startxp + (tuneInfo.relocPages - 1);
+    {   // Check for reloc information for errors and
+        // relocation mode
+        int startrp = tuneInfo.relocStartPage;
+        int endrp   = startrp + (tuneInfo.relocPages - 1);
         // Limit check end page to make sure it's legal
-        if (endxp > PSIDDRV_MAX_PAGE)
+        if (endrp > PSIDDRV_MAX_PAGE)
         {
-            endxp = PSIDDRV_MAX_PAGE;
-            tuneInfo.relocPages = endxp - startxp + 1;
+            endrp = PSIDDRV_MAX_PAGE;
+            tuneInfo.relocPages = endrp - startrp + 1;
         }
-        if ((startxp <= startlp) && (endxp >= endlp))
-        {   // Is describing used space so find some free
+
+        if ((startrp <= startlp) && (endrp >= endlp))
+        {   // New relocation implementation (exclude region)
+            // to complement existing method rejected as being
+            // unnecessary.  From tests it most cases this
+            // method increases memory availibility.
+            //************************************************
+            // Is describing used space so find some free
             // ram outside this range
-            psidRelocAddr (tuneInfo, startxp, endxp);
+            // psidRelocAddr (tuneInfo, startrp, endrp);
+            m_errorString = ERR_PSIDDRV_BAD_PAGES;
+            return -1;
+        }
+        // Check for relocation area partially covering load
+        // image.  This is not currently allowed even though
+        // large unused areas may exist in the image.
+        else if ( ((startlp <= startrp) && (startrp <= endlp)) ||
+                  ((startlp <= endrp)   && (endrp   <= endlp)) )
+        {
+            m_errorString = ERR_PSIDDRV_BAD_PAGES;
+            return -1;
         }
     }
 
