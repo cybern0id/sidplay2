@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.42  2002/04/14 21:46:50  s_a_white
+ *  PlaySID reads fixed to come from RAM only.
+ *
  *  Revision 1.41  2002/03/12 18:43:59  s_a_white
  *  Tidy up handling of envReset on illegal CPU instructions.
  *
@@ -248,6 +251,11 @@ Player::Player (void)
     m_cfg.sidSamples      = true;
     m_cfg.leftVolume      = 255;
     m_cfg.rightVolume     = 255;
+    m_cfg.sampleFormat    = SID2_LITTLE_SIGNED;
+
+    // Configured by default for Sound Blaster (compatibles)
+    if (SID2_DEFAULT_PRECISION == 8)
+        m_cfg.sampleFormat = SID2_LITTLE_UNSIGNED;
     config (m_cfg);
 
     // Get component credits
