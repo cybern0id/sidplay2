@@ -1,5 +1,7 @@
 # The library.
 
+EXTRA_DIST = hardsid-win.cpp
+
 lib_LTLIBRARIES = libhardsid-builder.la
 
 libhardsid_builder_la_SOURCES = hardsid-unix.cpp hardsid-builder.cpp \
