@@ -35,8 +35,8 @@ public:
 
     // Standard SID functions
     int_least32_t output (uint_least8_t) { return 0; }
-    void          voice  (uint_least8_t, uint_least8_t,
-                          bool) { ; }
+    void          volume (uint_least8_t, uint_least8_t) { ; }
+    void          mute   (uint_least8_t, bool) { ; }
     void          gain   (int_least8_t) { ; }
 };
 
