@@ -27,8 +27,10 @@ AC_DEFUN(SID2_TEST_BUILDER,
         sid2_def="HAVE_`echo $1 | tr [a-z] [A-Z]`_BUILDER"
         AC_DEFINE_UNQUOTED($sid2_def)
         $4="-l$1-builder"
+        AC_MSG_RESULT(yes)
+    else
+        AC_MSG_RESULT(no)
     fi
-    AC_MSG_RESULT($sid2_builder_works)
 ])
 
 
@@ -46,6 +48,12 @@ AC_DEFUN(SID2_FIND_BUILDERS,
             where the sid builder libraries are installed],
         [LIBSIDPLAY2_BUILDERS="$withval"]
     )
+
+    AH_TOP([
+/* Define supported builder */
+#undef HAVE_RESID_BUILDER
+#undef HAVE_HARDSID_BUILDER
+    ])
 
     AC_MSG_RESULT($LIBSIDPLAY2_BUILDERS)
     BUILDERS_LDFLAGS=""
@@ -76,13 +84,33 @@ install dir.  Please check your installation!
 
 
 dnl -------------------------------------------------------------------------
+dnl Disable library build checks
+dnl -------------------------------------------------------------------------
+AC_DEFUN(SID2_LIB_CHECKS,
+[
+    AC_ARG_ENABLE(library-checks,
+    [  --disable-library-checks  do not check for working libraries])
+    if test x"${enable_library_checks+set}" = xset; then
+        SID2_LIB_CHECK=0
+    fi
+])
+
+
+dnl -------------------------------------------------------------------------
 dnl Find libsidplay2 library
 dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDPLAY2,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
-                           sidplay2 *myEngine)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
+                               sidplay2 *myEngine)
+    else
+        MY_FIND_LIB_NO_CHECK(sidplay2,sidplay/sidplay2.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+        LIBSIDPLAY2_PREFIX=NONE
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDPLAY2_CXXFLAGS)
     AC_SUBST(LIBSIDPLAY2_LDFLAGS)
@@ -95,8 +123,14 @@ dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDUTILS,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
-                           SidDatabase *d)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
+                               SidDatabase *d)
+    else
+        MY_FIND_LIB_NO_CHECK(sidutils,sidplay/utils/SidDatabase.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDUTILS_CXXFLAGS)
     AC_SUBST(LIBSIDUTILS_LDFLAGS)

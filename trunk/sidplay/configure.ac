@@ -103,7 +103,8 @@ dnl Check ANSI C++ ios features
 MY_CHECK_IOS_BIN
 MY_CHECK_IOS_OPENMODE
 
-dnl Check for libsidplay2 libraries
+dnl Check for libraries
+SID2_LIB_CHECKS
 SID2_FIND_LIBSIDPLAY2
 SID2_FIND_LIBSIDUTILS
 
