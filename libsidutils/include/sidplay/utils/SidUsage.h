@@ -15,6 +15,9 @@
  *                                                                         *
  ***************************************************************************/
 
+#ifndef _SidUsage_h_
+#define _SidUsage_h_
+
 #include <sidplay/sidusage.h>
 #include <sidplay/SidTune.h>
 
@@ -31,6 +34,9 @@ public:
     void           read       (const char *filename, sid_usage_t &usage);
     void           write      (const char *filename, const sid_usage_t &usage,
                                SidTuneInfo &tuneInfo);
+    const char *   error      (void) { return m_errorString; }
 
     operator bool () { return m_status; }
 };
+
+#endif // _SidUsage_h_
