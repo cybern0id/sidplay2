@@ -69,6 +69,7 @@ typedef void* ini_fd_t;
 ini_buffer_t *ini_createBuffer        (unsigned long size);
 void          ini_deleteBuffer        (ini_buffer_t *buffer);
 char         *ini_getBuffer           (ini_buffer_t *buffer);
+int           ini_setBuffer           (ini_buffer_t *buffer, char *str);
 
 %{
 #include "libini.h"
@@ -127,15 +128,28 @@ char *ini_getBuffer (ini_buffer_t *buffer)
     return buffer->buffer;
 }
 
+int ini_setBuffer (ini_buffer_t *buffer, char *str)
+{
+    size_t len;
+    if (!buffer)
+        return -1;
+    len = strlen (str);
+    if (len > buffer->size)
+        len = buffer->size;
+
+    memcpy (buffer->buffer, str, len);
+    buffer->buffer[len] = '\0';
+    return len;
+}
+
 %}
 
 #endif /* SWIG */
 
-/* Backwards compatibilty with sidplay2-0.7 */
-INI_EXTERN ini_fd_t INI_LINKAGE ini_new      (const char *name);
 
 /* Rev 1.2 Added new fuction */
-INI_EXTERN ini_fd_t INI_LINKAGE ini_open     (const char *name, const char *mode);
+INI_EXTERN ini_fd_t INI_LINKAGE ini_open     (const char *name, const char *mode,
+                                              const char *comment);
 INI_EXTERN int      INI_LINKAGE ini_close    (ini_fd_t fd);
 INI_EXTERN int      INI_LINKAGE ini_flush    (ini_fd_t fd);
 INI_EXTERN int      INI_LINKAGE ini_delete   (ini_fd_t fd);
@@ -173,8 +187,8 @@ INI_EXTERN int INI_LINKAGE ini_readInt     (ini_fd_t fd, int  *value);
     INI_EXTERN int INI_LINKAGE ini_writeLong   (ini_fd_t fd, long   value);
     INI_EXTERN int INI_LINKAGE ini_writeDouble (ini_fd_t fd, double value);
 
-	/* Extra Functions */
-	INI_EXTERN int INI_LINKAGE ini_append      (ini_fd_t fddst, ini_fd_t fdsrc);
+    /* Extra Functions */
+    INI_EXTERN int INI_LINKAGE ini_append      (ini_fd_t fddst, ini_fd_t fdsrc);
 #endif /* INI_ADD_EXTRAS */
 
 
