@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/07/20 08:34:52  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.2  2002/03/11 18:00:29  s_a_white
  *  Better mirror sidplay1s handling of random numbers.
  *
@@ -66,7 +69,8 @@ public:
     SID6526 (c64env *env);
 
     //Common:
-    void    reset (void);
+    void    reset (void) { reset (false); }
+    void    reset (bool seed);
     uint8_t read  (uint_least8_t addr);
     void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}

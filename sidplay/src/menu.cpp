@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/11/22 08:35:16  s_a_white
+ *  Renamed "Copyright" to "Released".
+ *
  *  Revision 1.6  2002/03/04 19:28:28  s_a_white
  *  Displays more details about sidplay2s psid driver.
  *
@@ -47,7 +50,10 @@ void ConsolePlayer::menu ()
     const sid2_info_t &info     = m_engine.info ();
     const SidTuneInfo &tuneInfo = *info.tuneInfo;
 
-    // cerr << (char) 12 << '\b'; // New Page
+    if (m_quietLevel > 1)
+        return;
+
+    // cerr << (char) 12 << '\f'; // New Page
     if ((m_iniCfg.console ()).ansi)
     {
         cerr << '\x1b' << "[40m";  // Background black
@@ -87,7 +93,7 @@ void ConsolePlayer::menu ()
     {
         consoleTable  (tableMiddle);
         consoleColour (cyan, true);
-        cerr << " Name         : ";
+        cerr << " Title        : ";
         consoleColour (magenta, true);
         cerr << tuneInfo.infoString[0] << endl;
         consoleTable  (tableMiddle);
@@ -290,9 +296,7 @@ void ConsolePlayer::menu ()
 
     // Get all the text to the screen so music playback
     // is not disturbed.
-    if ( m_quietLevel > 0 )
-        cerr << endl;
-    else
+    if ( !m_quietLevel )
         cerr << "00:00";
     cerr << flush;
 }
