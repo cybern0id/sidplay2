@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2001/09/01 11:24:22  s_a_white
+ *  Renamed configure to config.
+ *
  *  Revision 1.17  2001/08/20 18:29:55  s_a_white
  *  SID Model now obtained from info structure.
  *
@@ -1157,7 +1160,7 @@ void displayError (char* arg0, uint num)
 
 void displaySyntax (char* arg0)
 {
-    cerr 
+    cout 
         << "Syntax: " << arg0 << " [-<option>...] <datafile>" << endl
         << "Options:" << endl
         << " --help|-h    display this screen" << endl
