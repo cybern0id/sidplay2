@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2001/10/28 21:31:26  s_a_white
+ *  Removed kernel debuging code.
+ *
  *  Revision 1.19  2001/09/03 22:21:52  s_a_white
  *  When initialising the status register and therefore unmasking the irqs,
  *  check the irq line to see if any are pending.
@@ -114,15 +117,15 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 // Use macros to access flags.  Allows compatiblity with other versions
 // of this emulation
 // Set N and Z flags according to byte
-#define setFlagsNZ(x) (Register_z_Flag = (Register_n_Flag = (int_least8_t) (x)))
-#define setFlagN(x)   (Register_n_Flag = (int_least8_t) (x))
-#define setFlagV(x)   (Register_v_Flag = (int_least8_t) (x))
+#define setFlagsNZ(x) (Register_z_Flag = (Register_n_Flag = (uint_least8_t) (x)))
+#define setFlagN(x)   (Register_n_Flag = (uint_least8_t) (x))
+#define setFlagV(x)   (Register_v_Flag = (uint_least8_t) (x))
 #define setFlagD(x)   (Register_Status = (Register_Status & ~(1 << SR_DECIMAL)) \
                                        | (((x) != 0) << SR_DECIMAL))
 #define setFlagI(x)   (Register_Status = (Register_Status & ~(1 << SR_INTERRUPT)) \
                                        | (((x) != 0) << SR_INTERRUPT))
-#define setFlagZ(x)   (Register_z_Flag = (int_least8_t) (x))
-#define setFlagC(x)   (Register_c_Flag = (int_least8_t) (x))
+#define setFlagZ(x)   (Register_z_Flag = (uint_least8_t) (x))
+#define setFlagC(x)   (Register_c_Flag = (uint_least8_t) (x))
 
 
 #define getFlagN()    ((Register_n_Flag &  (1 << SR_NEGATIVE))  != 0)
