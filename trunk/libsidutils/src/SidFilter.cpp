@@ -18,6 +18,7 @@
 #include <new>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "config.h"
 #include "SidFilter.h"
