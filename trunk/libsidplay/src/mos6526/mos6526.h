@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/03/22 22:41:45  s_a_white
+ *  Replaced tab characters
+ *
  *  Revision 1.1  2001/03/21 22:41:45  s_a_white
  *  Non faked CIA emulation with NMI support.  Removal of Hacked VIC support
  *  off CIA timer.
@@ -69,11 +72,8 @@ public:
     ~MOS6526 ();
 
     //Common:
-    void clock (void);
-    void reset (void);
-
-    // Specific:
-    void    reset (uint_least16_t count);
+    void    clock (void);
+    void    reset (void);
     uint8_t read  (uint_least8_t  addr);
     void    write (uint_least8_t  addr, uint8_t data);
 };
