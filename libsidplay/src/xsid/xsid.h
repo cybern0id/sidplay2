@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2002/09/23 19:42:52  s_a_white
+ *  Fixed intel compiler warnings.
+ *
  *  Revision 1.20  2002/07/17 19:18:17  s_a_white
  *  Changed bad #if to #ifdef
  *
@@ -123,6 +126,7 @@ private:
     // General
     const char * const m_name;
     EventContext &m_context;
+    event_phase_t m_phase;
     XSID         &m_xsid;
     friend class XSID;
 

@@ -44,6 +44,7 @@ protected:
 
     event_clock_t m_rasterClk;
     EventContext &event_context;
+    event_phase_t m_phase;
 
 protected:
     MOS656X (EventContext *context);

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/02/24 19:45:00  s_a_white
+ *  Make sure events are canceled on reset.
+ *
  *  Revision 1.9  2003/02/20 18:55:14  s_a_white
  *  sid2crc support.
  *
@@ -58,6 +61,7 @@ const char * const SID6526::credit =
 SID6526::SID6526 (c64env *env)
 :m_env(*env),
  m_eventContext(m_env.context ()),
+ m_phase(EVENT_CLOCK_PHI1),
  rnd(0),
  m_taEvent(*this)
 {
@@ -111,9 +115,11 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
 
     {   // Sync up timer
         event_clock_t cycles;
-        cycles       = m_eventContext.getTime (m_accessClk);
+        cycles       = m_eventContext.getTime (m_accessClk, m_phase);
         m_accessClk += cycles;
         ta          -= cycles;
+        if (!ta)
+            event ();
     }
 
     switch (addr)
@@ -132,7 +138,7 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             ta   = ta_latch;
         }
         m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
-                                 EVENT_CLOCK_PHI1);
+                                 m_phase);
     break;
     default:
     break;
@@ -141,9 +147,9 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
 
 void SID6526::event (void)
 {   // Timer Modes
-    m_accessClk = m_eventContext.getTime ();
+    m_accessClk = m_eventContext.getTime (m_phase);
     ta = ta_latch;
     m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
-                             EVENT_CLOCK_PHI1);
+                             m_phase);
     m_env.interruptIRQ (true);
 }

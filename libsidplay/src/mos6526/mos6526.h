@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/12/16 22:12:27  s_a_white
+ *  Simulate serial input from data port A to prevent kernel lockups.
+ *
  *  Revision 1.10  2002/10/02 19:49:22  s_a_white
  *  Revert previous change as was incorrect.
  *
@@ -90,6 +93,7 @@ protected:
     uint8_t icr, idr; // Interrupt Control Register
     event_clock_t m_accessClk;
     EventContext &event_context;
+    event_phase_t m_phase;
 
     class EventTa: public Event
     {

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2003/10/16 07:48:32  s_a_white
+ *  Allow redirection of debug information of file.
+ *
  *  Revision 1.18  2003/01/20 23:10:48  s_a_white
  *  Fixed RMW instructions to perform memory re-write on the correct cycle.
  *
@@ -97,6 +100,7 @@ protected:
 
     bool dodump;
     EventContext &eventContext;
+    event_phase_t m_phase;
 
     struct ProcessorCycle
     {
@@ -319,7 +323,7 @@ inline void MOS6510::clock (void)
     else
     {
         m_blocked     = true;
-        m_stealingClk = eventContext.getTime ();
+        m_stealingClk = eventContext.getTime (m_phase);
         cycleCount--;
         eventContext.cancel (this);
     }
@@ -327,7 +331,7 @@ inline void MOS6510::clock (void)
 
 inline void MOS6510::event (void)
 {
-    eventContext.schedule (this, 1, EVENT_CLOCK_PHI2);
+    eventContext.schedule (this, 1, m_phase);
     clock ();
 }
 

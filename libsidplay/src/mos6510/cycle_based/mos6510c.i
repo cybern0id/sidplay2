@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.40  2003/10/16 07:48:32  s_a_white
+ *  Allow redirection of debug information of file.
+ *
  *  Revision 1.39  2003/07/10 06:52:26  s_a_white
  *  Fixed two memory reads that should have been data and not code accesses
  *
@@ -204,7 +207,7 @@ void MOS6510::aecSignal (bool state)
     aec = state;
     if (state && m_blocked)
     {   // Correct IRQs that appeard before the steal
-        event_clock_t clock  = eventContext.getTime ();
+        event_clock_t clock  = eventContext.getTime (m_phase);
         event_clock_t stolen = clock - m_stealingClk;
         interrupts.nmiClk += stolen;
         interrupts.irqClk += stolen;
@@ -216,7 +219,7 @@ void MOS6510::aecSignal (bool state)
             interrupts.irqClk = clock - 1;
         m_blocked = false;
     }
-    eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+    eventContext.schedule (this, 0, m_phase);
 }
 
 // Push P on stack, decrement S
@@ -298,7 +301,7 @@ void MOS6510::triggerRST (void)
 void MOS6510::triggerNMI (void)
 {
     interrupts.pending |= iNMI;
-    interrupts.nmiClk   = eventContext.getTime ();
+    interrupts.nmiClk   = eventContext.getTime (m_phase);
 }
 
 // Level triggered interrupt
@@ -307,7 +310,7 @@ void MOS6510::triggerIRQ (void)
     if (!getFlagI ())
         interrupts.irqRequest = true;
     if (!interrupts.irqs++)
-        interrupts.irqClk = eventContext.getTime ();
+        interrupts.irqClk = eventContext.getTime (m_phase);
 
     if (interrupts.irqs > iIRQSMAX)
     {
@@ -352,8 +355,8 @@ MOS6510_interruptPending_check:
     case oNMI:
     {
         // Try to determine if we should be processing the NMI yet
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk);
-        if (cycles > interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
+        if (cycles >= interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             break;
@@ -367,8 +370,8 @@ MOS6510_interruptPending_check:
     case oIRQ:
     {
         // Try to determine if we should be processing the IRQ yet
-        event_clock_t cycles = eventContext.getTime (interrupts.irqClk);
-        if (cycles > interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_phase);
+        if (cycles >= interrupts.delay)
             break;
 
         // NMI delayed so check for other interrupts
@@ -381,19 +384,20 @@ MOS6510_interruptPending_check:
     }
 
 #ifdef MOS6510_DEBUG
+    event_clock_t cycles = eventContext.getTime (m_phase);
     if (dodump)
     {
     fprintf (m_fdbg, "****************************************************\n");
     switch (offset)
     {
     case oIRQ:
-        fprintf (m_fdbg, " IRQ Routine\n");
+        fprintf (m_fdbg, " IRQ Routine (%u)\n", cycles);
     break;
     case oNMI:
-        fprintf (m_fdbg, " NMI Routine\n");
+        fprintf (m_fdbg, " NMI Routine (%u)\n", cycles);
     break;
     case oRST:
-        fprintf (m_fdbg, " RST Routine\n");
+        fprintf (m_fdbg, " RST Routine (%u)\n", cycles);
     break;
     }
     fprintf (m_fdbg, "****************************************************\n");
@@ -743,8 +747,8 @@ void MOS6510::brk_instr (void)
     // Check for an NMI, and switch over if pending
     if (interrupts.pending & iNMI)
     {
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk);
-        if (cycles > interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
+        if (cycles >= interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
@@ -1521,7 +1525,8 @@ void MOS6510::tas_instr (void)
 MOS6510::MOS6510 (EventContext *context)
 :eventContext(*context),
  Event("CPU"),
- m_fdbg(stdout)
+ m_fdbg(stdout),
+ m_phase(EVENT_CLOCK_PHI2)
 {
     struct ProcessorOperations *instr;
     uint8_t legalMode  = true;
@@ -2435,7 +2440,7 @@ void MOS6510::Initialise (void)
     aec = true;
 
     m_blocked = false;
-    eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+    eventContext.schedule (this, 0, m_phase);
 }
 
 //-------------------------------------------------------------------------//
