@@ -18,6 +18,10 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.26  2003/04/26 08:45:36  s_a_white
+ * parser.first can be 0 for anonymous sections (should be checking against
+ * -1 anyway).
+ *
  * Revision 1.25  2003/02/04 22:54:02  s_a_white
  * Treat NULL comment string as no comment (same as 0 length comment string).
  *
@@ -504,7 +508,7 @@ bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
         if (parser.state != INI_IN_SECTION)
         {   // Make sure the key has a string content
             parser.last = parser.pos;
-            if (parser.first > 0)
+            if (parser.first >= 0)
             {
                 if (!ini->selected) // Handle keys which are not in a section
                 {                                   

@@ -140,16 +140,10 @@ int INI_LINKAGE ini_readString (ini_fd_t fd, char *str, size_t size)
 #ifdef INI_ADD_LIST_SUPPORT
     if (ini->listDelims)
     {
-        size_t length;
         char  *data = __ini_readList (ini);
         if (!data)
             return -1;
-
-        // Check to make sure size is correct
-        length = strlen (data);
-        if (size > length)
-            size = length;
-        memcpy (str, data, size);
+		strncpy (str, data, size);
     }
     else
 #endif // INI_ADD_LIST_SUPPORT
