@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Makefile.am)
 AC_CONFIG_AUX_DIR(unix)
-AM_CONFIG_HEADER(include/config.h)
+AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
@@ -45,39 +45,15 @@ SID_EXTENDED_LIBRESID
 
 dnl Check for libsidplay2
 LIBSIDPLAY2_REQUIRED_VERSION=2.1.0
-
-AC_MSG_CHECKING(for libsidplay2)
-if $PKG_CONFIG --atleast-version $LIBSIDPLAY2_REQUIRED_VERSION libsidplay2; then
-    LIBSIDPLAY2_LIBDIR=`$PKG_CONFIG --variable=libdir libsidplay2`
-    LIBSIDPLAY2_INCLUDEDIR=`$PKG_CONFIG --variable=includedir libsidplay2`
-    AC_MSG_RESULT([$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR])
-    LIBSIDPLAY2_CXXFLAGS=`$PKG_CONFIG --cflags libsidplay2`
-    LIBSIDPLAY2_LDFLAGS=`$PKG_CONFIG --libs libsidplay2`
-    LIBSIDPLAY2_TRY_COMPILE
-    if test "$LIBSIDPLAY2_WORKS" = no; then
-        AC_MSG_ERROR([
-libsidplay2 build test failed with found library and header files.
-Please check your installation!
-        ])
-    fi  
-else
-    AC_MSG_ERROR([
-libsidplay $LIBSIDPLAY2_REQUIRED_VERSION library not found.
-Please check your installation!
-    ]);
-fi
+LIBSIDPLAY2_FIND
 
 AC_MSG_CHECKING([for sidbuilders install directory])
-if test "${libdir}" == '${exec_prefix}/lib'; then
-    libdir=`$PKG_CONFIG --variable=builders libsidplay2`
-else
-    libdir="${libdir}/sidplay/builders"
-fi
 AC_MSG_RESULT([${libdir}])
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay/builders \
-\$(RESID_CXXFLAGS) \$(LIBSIDPLAY2_CXXFLAGS) -Wall"
+CXXFLAGS="$CXXFLAGS -Wall -DHAVE_UNIX -I\$(top_srcdir)/include \
+-I\$(top_srcdir)/include/sidplay/builders \
+\$(RESID_CXXFLAGS) \$(LIBSIDPLAY2_CXXFLAGS)"
 
 AC_OUTPUT(
 Makefile \
@@ -85,4 +61,5 @@ include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/builders/Makefile \
 src/Makefile \
+unix/Makefile \
 )

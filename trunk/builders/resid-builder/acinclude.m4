@@ -19,6 +19,26 @@ AC_DEFUN(SID_SUBST,
 ])
 
 dnl -------------------------------------------------------------------------
+dnl Try to find a file (or one of more files in a list of dirs).
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(SID_FIND_FILE,
+    [
+    $3=NO
+    for i in $2;
+    do
+        for j in $1;
+        do
+	        if test -r "$i/$j"; then
+		        $3=$i
+                break 2
+            fi
+        done
+    done
+    ]
+)
+
+dnl -------------------------------------------------------------------------
 dnl Check whether compiler has a working ``bool'' type.
 dnl Will substitute @HAVE_BOOL@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
@@ -64,26 +84,6 @@ AC_DEFUN(CHECK_EXCEPTIONS,
         AC_DEFINE(HAVE_EXCEPTIONS)
     fi
 ])
-
-dnl -------------------------------------------------------------------------
-dnl Try to find a file (or one of more files in a list of dirs).
-dnl -------------------------------------------------------------------------
-
-AC_DEFUN(SID_FIND_FILE,
-    [
-    $3=NO
-    for i in $2;
-    do
-        for j in $1;
-        do
-	        if test -r "$i/$j"; then
-		        $3=$i
-                break 2
-            fi
-        done
-    done
-    ]
-)
 
 dnl -------------------------------------------------------------------------
 dnl Try to find reSID includes and library.
@@ -217,7 +217,7 @@ Please check your installation!
         AC_MSG_RESULT([$sid_have_resid]);
     fi
 
-    RESID_LDFLAGS="$sid_resid_libadd"
+    RESID_LDFLAGS="$sid_resid_libadd -lresid"
     RESID_CXXFLAGS="$sid_resid_incadd"
 
     AC_SUBST(RESID_LDFLAGS)
@@ -239,12 +239,10 @@ AC_DEFUN(SID_TRY_LIBRESID,
 [
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
-    sid_libs_save=$LIBS
     sid_cxx_save=$CXX
 
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
-    LDFLAGS="$LDFLAGS $sid_resid_libadd"
-    LIBS="-lresid"
+    LDFLAGS="$LDFLAGS $sid_resid_libadd -lresid"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
     
 
@@ -257,7 +255,6 @@ AC_DEFUN(SID_TRY_LIBRESID,
 
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
-    LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
 ])
 
@@ -268,12 +265,10 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
 [
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
-    sid_libs_save=$LIBS
     sid_cxx_save=$CXX
 
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
-    LDFLAGS="$LDFLAGS $sid_resid_libadd"
-    LIBS="-lresid"
+    LDFLAGS="$LDFLAGS $sid_resid_libadd -lresid"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
@@ -285,7 +280,6 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
 
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
-    LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
 ])
 
@@ -300,7 +294,6 @@ AC_DEFUN(SID_EXTENDED_LIBRESID,
         AC_MSG_CHECKING([for extended reSID features])
         sid_cxxflags_save=$CXXFLAGS
         sid_ldflags_save=$LDFLAGS
-        sid_libs_save=$LIBS
         sid_cxx_save=$CXX
 
         if test "$sid_resid_install" = user; then
@@ -310,8 +303,7 @@ AC_DEFUN(SID_EXTENDED_LIBRESID,
         fi
 
         CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
-        LDFLAGS="$LDFLAGS $sid_resid_libadd"
-        LIBS="-lresid"
+        LDFLAGS="$LDFLAGS $sid_resid_libadd -lresid"
         CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
         AC_TRY_LINK(
@@ -325,7 +317,6 @@ AC_DEFUN(SID_EXTENDED_LIBRESID,
 
         CXXFLAGS="$sid_cxxflags_save"
         LDFLAGS="$sid_ldflags_save"
-        LIBS="$sid_libs_save"
         CXX="$sid_cxx_save"
 
         if test "$sid_libresid_extended" = no; then
@@ -342,10 +333,92 @@ Patches are available from http://sidplay2.sourceforge.net
     fi
 ])
 
+dnl -------------------------------------------------------------------------
+dnl Find libsidplay2 on the system.
+dnl -------------------------------------------------------------------------
+AC_DEFUN(LIBSIDPLAY2_FIND,
+[
+    AC_MSG_CHECKING([for working SIDPlay2 library and headers])
+
+    dnl Be pessimistic.
+    LIBSIDPLAY2_LIBDIR=NO
+    LIBSIDPLAY2_INCLUDEDIR=NO
+
+    AC_ARG_WITH(sidplay2,
+        [  --with-sidplay2=DIR
+            where the libsidplay2 is located],
+        [LIBSIDPLAY2_INCLUDEDIR="$withval"
+         LIBSIDPLAY2_LIBDIR="$withval"]
+    )
+
+    AC_ARG_WITH(sidplay2-includes,
+        [  --with-sidplay2-includes=DIR
+            where the libsidplay2 includes are located],
+        [LIBSIDPLAY2_INCLUDEDIR="$withval"]
+    )
+
+    AC_ARG_WITH(sidplay2-library,
+        [  --with-sidplay2-library=DIR
+            where the libsidplay2 library is installed],
+        [LIBSIDPLAY2_LIBDIR="$withval"]
+    )
+
+    dnl If user didn't provide paths see if pkg-config knows them
+    if test "$LIBSIDPLAY2_INCLUDEDIR" = NO || test "$LIBSIDPLAY2_LIBDIR" = NO; then
+        if $PKG_CONFIG --atleast-version $LIBSIDPLAY2_REQUIRED_VERSION libsidplay2; then
+            :
+        else
+            AC_MSG_ERROR([
+libsidplay $LIBSIDPLAY2_REQUIRED_VERSION library and/or headers not found.
+Please check your installation!
+            ]);
+        fi
+    fi
+
+    dnl Find headers
+    if test "$LIBSIDPLAY2_INCLUDEDIR" = NO; then
+        LIBSIDPLAY2_INCLUDEDIR=`$PKG_CONFIG --variable=includedir libsidplay2`
+        LIBSIDPLAY2_CXXFLAGS=`$PKG_CONFIG --cflags libsidplay2`
+    else
+        LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_INCLUDEDIR $LIBSIDPLAY2_INCLUDEDIR/include"
+        SID_FIND_FILE(sidplay/sidplay2.h,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_INCLUDEDIR)
+        LIBSIDPLAY2_CXXFLAGS="-I$LIBSIDPLAY2_INCLUDEDIR"
+    fi
+
+    dnl find libs
+    if test "$LIBSIDPLAY2_LIBDIR" = NO; then
+        LIBSIDPLAY2_LIBDIR=`$PKG_CONFIG --variable=libdir libsidplay2`
+        LIBSIDPLAY2_LDFLAGS=`$PKG_CONFIG --libs libsidplay2`
+        LIBSIDPLAY2_BUILDERS=`$PKG_CONFIG --variable=builders libsidplay2`
+    else
+        LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_LIBDIR $LIBSIDPLAY2_LIBDIR/lib \
+                          $LIBSIDPLAY2_LIBDIR/.libs"
+        SID_FIND_FILE(libsidplay2.la,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_LIBDIR)
+        LIBSIDPLAY2_LDFLAGS="-L$LIBSIDPLAY2_LIBDIR -lsidplay2"
+        LIBSIDPLAY2_BUILDERS="$LIBSIDPLAY2_LIBDIR/sidplay/builders"
+    fi
+
+    AC_MSG_RESULT([$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR])
+    LIBSIDPLAY2_TRY_COMPILE
+    if test "$LIBSIDPLAY2_WORKS" = NO; then
+        AC_MSG_ERROR([
+libsidplay2 build test failed with found library and header files.
+Please check your installation!
+        ])
+    fi
+
+    dnl setup builder dir
+    if test "${libdir}" == '${exec_prefix}/lib'; then
+        libdir="$LIBSIDPLAY2_BUILDERS"
+    fi
+
+    AC_SUBST(LIBSIDPLAY2_LDFLAGS)
+    AC_SUBST(LIBSIDPLAY2_CXXFLAGS)
+])
+
 
 dnl -------------------------------------------------------------------------
-dnl Find libsidplay2.  Don't bother to check if it works as we only require
-dnl the header files.
+dnl Make sure libsidplay2 works.
 dnl -------------------------------------------------------------------------
 AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
 [
@@ -360,15 +433,14 @@ AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
     AC_TRY_LINK(
         [#include <sidplay/sidplay2.h>],
         [sidplay2 *myEngine;],
-        [LIBSIDPLAY2_WORKS=yes],
-        [LIBSIDPLAY2_WORKS=no]
+        [LIBSIDPLAY2_WORKS=YES],
+        [LIBSIDPLAY2_WORKS=NO]
     )
 
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     CXX="$sid_cxx_save"
 ])
-
 
 dnl -------------------------------------------------------------------------
 dnl Pass C++ compiler options to libtool which supports C only.

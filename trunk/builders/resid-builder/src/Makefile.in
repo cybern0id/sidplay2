@@ -72,6 +72,8 @@ EXEEXT = @EXEEXT@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBSIDPLAY2_CXXFLAGS = @LIBSIDPLAY2_CXXFLAGS@
+LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
@@ -95,9 +97,12 @@ libresid_builder_la_LIBADD = $(RESID_LDFLAGS)
 
 # We substitute the libtool-specific library version in configure.in.
 libresid_builder_la_LDFLAGS = -version-info $(LIBVERSION)
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
@@ -106,7 +111,6 @@ am_libresid_builder_la_OBJECTS = resid.lo resid-builder.lo
 libresid_builder_la_OBJECTS = $(am_libresid_builder_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
