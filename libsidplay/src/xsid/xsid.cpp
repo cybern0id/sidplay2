@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.22  2003/02/24 19:45:32  s_a_white
  *  Make sure events are canceled on reset.
  *
@@ -74,6 +77,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "config.h"
 #include "sidendian.h"
 #include "xsid.h"
 
@@ -96,7 +100,7 @@ const int8_t XSID::sampleConvertTable[16] =
 const char *XSID::credit =
 {
     "xSID (Extended SID) Engine:\0"
-    "\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0"
+    "\tCopyright (C) 2000 Simon White <" S_A_WHITE_EMAIL ">\0"
 };
 
 

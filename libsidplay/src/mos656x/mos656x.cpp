@@ -23,6 +23,7 @@
 
 
 #include <string.h>
+#include "config.h"
 #include "sidendian.h"
 #include "mos656x.h"
 
@@ -44,7 +45,7 @@
 const char *MOS656X::credit =
 {   // Optional information
     "*MOS656X (VICII) Emulation:\0"
-    "\tCopyright (C) 2001 Simon White <sidplay2@email.com>\0"
+    "\tCopyright (C) 2001 Simon White <" S_A_WHITE_EMAIL ">\0"
 };
 
 
