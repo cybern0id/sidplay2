@@ -1,0 +1,116 @@
+--------------------Configuration: libsidplay - Win32 Release--------------------
+Begining build with project "e:\LIBSIDPLAY\WIN\VC\libsidplay.dsp", at root.
+Active configuration is Win32 (x86) Dynamic-Link Library (based on Win32 (x86) Dynamic-Link Library)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MT /W3 /GX /O2 /I "." /I "../../include" /I "../../src/sidtune" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c "
+			"OLE Type Library Maker" with flags "/nologo /D "NDEBUG" /mktyplib203 /o NUL /win32 "
+			"Win32 Resource Compiler" with flags "/l 0x809 /d "NDEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"Release/libsidplay.bsc" "
+			"COFF Linker for 80x86" with flags "kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /incremental:no /pdb:"Release/libsidplay2.pdb" /machine:I386 /out:"Release/libsidplay2.dll" /implib:"Release/libsidplay2.lib" "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "f:\temp\RSP8143.TMP" with contents </nologo /MT /W3 /GX /O2 /I "." /I "../../include" /I "../../src/sidtune" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"e:\LIBSIDPLAY\src\fake6526.cpp"
+"e:\LIBSIDPLAY\src\sidtune\IconInfo.cpp"
+"e:\LIBSIDPLAY\src\sidtune\InfoFile.cpp"
+"e:\LIBSIDPLAY\src\mixer.cpp"
+"e:\LIBSIDPLAY\src\mos6510\mos6510.cpp"
+"e:\LIBSIDPLAY\src\sidtune\MUS.cpp"
+"e:\LIBSIDPLAY\src\player.cpp"
+"e:\LIBSIDPLAY\src\sidtune\PSID.cpp"
+"e:\LIBSIDPLAY\src\sidplay2.cpp"
+"e:\LIBSIDPLAY\src\sidtune\SidTune.cpp"
+"e:\LIBSIDPLAY\src\sidtune\SidTuneTools.cpp"
+"e:\LIBSIDPLAY\src\xsid\xsid.cpp"
+>
+Creating command line "cl.exe @f:\temp\RSP8143.TMP" 
+Creating temp file "f:\temp\RSP8144.TMP" with contents <kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /incremental:no /pdb:"Release/libsidplay2.pdb" /machine:I386 /out:"Release/libsidplay2.dll" /implib:"Release/libsidplay2.lib" 
+.\Release\envelope.obj
+.\Release\extfilt.obj
+.\Release\fake6526.obj
+.\Release\filter.obj
+.\Release\IconInfo.obj
+.\Release\InfoFile.obj
+.\Release\mixer.obj
+.\Release\mos6510.obj
+.\Release\MUS.obj
+.\Release\player.obj
+.\Release\pot.obj
+.\Release\PP20.obj
+.\Release\PSID.obj
+.\Release\sid.obj
+.\Release\sidplay2.obj
+.\Release\SidTune.obj
+.\Release\SidTuneTools.obj
+.\Release\version.obj
+.\Release\voice.obj
+.\Release\wave.obj
+.\Release\wave6581__ST.obj
+.\Release\wave6581_P_T.obj
+.\Release\wave6581_PS_.obj
+.\Release\wave6581_PST.obj
+.\Release\wave8580__ST.obj
+.\Release\wave8580_P_T.obj
+.\Release\wave8580_PS_.obj
+.\Release\wave8580_PST.obj
+.\Release\xsid.obj>
+Creating command line "link.exe @f:\temp\RSP8144.TMP" 
+Compiling...
+fake6526.cpp
+IconInfo.cpp
+InfoFile.cpp
+mixer.cpp
+mos6510.cpp
+MUS.cpp
+player.cpp
+PSID.cpp
+sidplay2.cpp
+SidTune.cpp
+SidTuneTools.cpp
+xsid.cpp
+Linking...
+   Creating library Release/libsidplay2.lib and object Release/libsidplay2.exp
+--------------------Configuration: sidplay - Win32 Release--------------------
+Begining build with project "e:\LIBSIDPLAY\WIN\VC\sidplay.dsp", at root.
+Active configuration is Win32 (x86) Console Application (based on Win32 (x86) Console Application)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /ML /W3 /GX /O2 /I "." /I "../../include" /I "../../src/sidtune" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/sidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c "
+			"Win32 Resource Compiler" with flags "/l 0x809 /d "NDEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"Release/sidplay.bsc" "
+			"COFF Linker for 80x86" with flags "kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib dsound.lib dxguid.lib /nologo /subsystem:console /incremental:no /pdb:"Release/sidplay2.pdb" /machine:I386 /out:"Release/sidplay2.exe" "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "f:\temp\RSP8194.TMP" with contents </nologo /ML /W3 /GX /O2 /I "." /I "../../include" /I "../../src/sidtune" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/sidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"e:\LIBSIDPLAY\src\audio\directx\directx.cpp"
+"e:\LIBSIDPLAY\src\keyboard.cpp"
+"e:\LIBSIDPLAY\src\main.cpp"
+"e:\LIBSIDPLAY\src\audio\mmsystem\mmsystem.cpp"
+"e:\LIBSIDPLAY\src\audio\null\null.cpp"
+"e:\LIBSIDPLAY\src\audio\wav\WavFile.cpp"
+>
+Creating command line "cl.exe @f:\temp\RSP8194.TMP" 
+Creating temp file "f:\temp\RSP8195.TMP" with contents <kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib dsound.lib dxguid.lib /nologo /subsystem:console /incremental:no /pdb:"Release/sidplay2.pdb" /machine:I386 /out:"Release/sidplay2.exe" 
+.\Release\directx.obj
+.\Release\keyboard.obj
+.\Release\main.obj
+.\Release\mmsystem.obj
+.\Release\null.obj
+.\Release\WavFile.obj
+.\Release\libsidplay2.lib>
+Creating command line "link.exe @f:\temp\RSP8195.TMP" 
+Compiling...
+directx.cpp
+keyboard.cpp
+main.cpp
+mmsystem.cpp
+null.cpp
+WavFile.cpp
+Linking...
+
+
+
+sidplay2.exe - 0 error(s), 0 warning(s)
