@@ -109,7 +109,7 @@ void SidDatabase::close ()
         ini_close (database);
 }
 
-int_least32_t SidDatabase::getSongLength (SidTuneMod &tune)
+int_least32_t SidDatabase::length (SidTuneMod &tune)
 {
     SidTuneInfo    tuneInfo;
     int_least32_t  time = 0;

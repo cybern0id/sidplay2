@@ -122,8 +122,8 @@ void SidFilter::readFilterType1 (ini_fd_t ini)
                 goto SidFilter_readFilterType1_errorDefinition;
 
             // Got valid reg/fc
-            filter.fc[i][0] = (uint) reg;
-            filter.fc[i][1] = (uint) fc;
+            filter.cutoff[i][0] = (uint) reg;
+            filter.cutoff[i][1] = (uint) fc;
         }
     }
 return;
@@ -166,13 +166,13 @@ void SidFilter::readFilterType2 (ini_fd_t ini)
         for (uint i = 0; i < 0x100; i++)
         {
             uint rk = i << 3;
-            filter.fc[i][0] = rk;
+            filter.cutoff[i][0] = rk;
             fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
             if (fc < fcMin)
                 fc = fcMin;
             if (fc > fcMax)
                 fc = fcMax;
-            filter.fc[i][1] = (uint) (fc * 7000);
+            filter.cutoff[i][1] = (uint) (fc * 4100);
         }
     }
 return;

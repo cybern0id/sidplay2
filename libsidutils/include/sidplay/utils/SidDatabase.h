@@ -20,10 +20,8 @@ public:
     SidDatabase  () : database (0) {;}
     ~SidDatabase ();
 
-    int           open  (const char *filename);
-    void          close ();
-    int_least32_t getSongLength (SidTuneMod &tune);
-
-    const char *  getErrorString (void)
-    {   return errorString; }
+    int           open   (const char *filename);
+    void          close  ();
+    int_least32_t length (SidTuneMod &tune);
+    const char *  error  (void) { return errorString; }
 };
