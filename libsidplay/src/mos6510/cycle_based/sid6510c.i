@@ -5,21 +5,15 @@ SID6510::SID6510 ()
 {
     uword_sidt i;
     sbyte_sidt n;
-    union
-    {
-        void (SID6510::*procSID) (void);
-        void (MOS6510::*procMOS) (void);
-    };    
     sbyte_sidt maxCycle = -1;
 
     // Added V1.04 (saw) - Support of sidplays break functionality
-    // Prevent break from working correctly and locking
-    // the player
-    // @FIXME@: Memory has not been released for cycle
-    // 2 and above
-    instrTable[BRKn].lastCycle = 1; 
-    procSID                    = &SID6510::sid_brk;
-    instrTable[BRKn].cycle[1]  = procMOS;
+    // Prevent break from working correctly and locking the player
+    // @FIXME@: Memory has not been released for cycle 2 and above
+    instrTable[BRKn].lastCycle = 1;
+    // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
+    instrTable[BRKn].cycle[1]  = reinterpret_cast <void (MOS6510::*)()>
+        (&SID6510::sid_brk);
 
     // Ok start all the hacks for sidplay.  This prevents
     // execution of code in roms.  For real c64 emulation
@@ -35,13 +29,14 @@ SID6510::SID6510 ()
         for (n = 0; n < maxCycle; n++)
         {
             if (instrTable[i].cycle[n] == &MOS6510::FetchEffAddrDataByte)
-            {   procSID                =  &SID6510::sid_FetchEffAddrDataByte;
-                instrTable[i].cycle[n] =  procMOS;
+            {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
+                instrTable[i].cycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_FetchEffAddrDataByte);
             }
             else if (instrTable[i].cycle[n] == &MOS6510::illegal_instr)
-            {
-                procSID                = &SID6510::sid_suppressError;
-                instrTable[i].cycle[n] = procMOS;
+            {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
+                instrTable[i].cycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_suppressError);
                 // Need to make instruction appear in debug output
                 // By default it is -1, which is debug off.
                 instrTable[i].lastAddrCycle = 0;
@@ -49,11 +44,14 @@ SID6510::SID6510 ()
         }
     }
 
-    // Stop jumps into rom code
-    procSID                   = &SID6510::sid_jmp;
-    instrTable[JSRw].cycle[4] = procMOS;
-    instrTable[JMPw].cycle[2] = procMOS;
-    instrTable[JMPi].cycle[4] = procMOS;
+    {   // Stop jumps into rom code
+        void (MOS6510::*p) ();
+        // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
+        p = reinterpret_cast <void (MOS6510::*)()> (&SID6510::sid_jmp);
+        instrTable[JSRw].cycle[4] = p;
+        instrTable[JMPw].cycle[2] = p;
+        instrTable[JMPi].cycle[4] = p;
+    }
 }
     
 void SID6510::reset (ubyte_sidt a, ubyte_sidt x, ubyte_sidt y)
