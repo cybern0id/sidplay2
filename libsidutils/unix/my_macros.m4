@@ -271,7 +271,7 @@ AC_DEFUN(MY_FIND_PKG_CONFIG_LIB,
     dnl Be pessimistic.
     my_includedir=NO
     my_libdir=NO
-    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+    my_uname=LIB`echo $1 | tr [[a-z]] [[A-Z]]`
 
     AC_ARG_WITH($1,
         [  --with-$1=DIR
@@ -338,7 +338,7 @@ Please check your installation!
     if test "$3" != ""; then
         my_vars="$3"
         for my_var in $my_vars; do
-            my_out=${my_uname}_`echo $my_var | tr [a-z] [A-Z]`
+            my_out=${my_uname}_`echo $my_var | tr [[a-z]] [[A-Z]]`
             eval $my_out=\`$PKG_CONFIG --variable=$my_var lib$1\`
         done
     fi
@@ -386,7 +386,7 @@ AC_DEFUN(MY_FIND_LIB,
     dnl Be pessimistic.
     my_libdir=""
     my_includedir=""
-    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+    my_uname=LIB`echo $1 | tr [[a-z]] [[A-Z]]`
 
     AC_ARG_WITH($1,
         [  --with-$1=DIR
@@ -499,7 +499,7 @@ AC_DEFUN(MY_FIND_LIB_NO_CHECK,
 
     my_libdir=""
     my_includedir=""
-    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+    my_uname=LIB`echo $1 | tr [[a-z]] [[A-Z]]`
 
     AC_ARG_WITH($1-includes,
         [  --with-$1-includes=DIR

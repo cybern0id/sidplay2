@@ -24,7 +24,7 @@ AC_DEFUN(SID2_TEST_BUILDER,
     dnl it and linker flags
     $4=""
     if test "$sid2_builder_works" = YES; then
-        sid2_def="HAVE_`echo $1 | tr [a-z] [A-Z]`_BUILDER"
+        sid2_def="HAVE_`echo $1 | tr [[a-z]] [[A-Z]]`_BUILDER"
         AC_DEFINE_UNQUOTED($sid2_def)
         $4="-l$1-builder"
         AC_MSG_RESULT(yes)
@@ -60,7 +60,7 @@ AC_DEFUN(SID2_FIND_BUILDERS,
     dnl @FIXME@ detection of builders should be automatic
     for sid2_lib in resid hardsid; do
         dnl builder must be lower case
-        sid2_lib=`echo $sid2_lib | tr [A-Z] [a-z]`
+        sid2_lib=`echo $sid2_lib | tr [[A-Z]] [[a-z]]`
         SID2_TEST_BUILDER($sid2_lib,
                           $LIBSIDPLAY2_CXXFLAGS,
                           -L$LIBSIDPLAY2_BUILDERS,
