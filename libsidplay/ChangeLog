@@ -47,6 +47,10 @@ Direct ReSID support removed.  Now supported through extenal sidbuilder class.
 
 Floating point code in critical code parts have been converted to fixed point.
 
+Relocatable C64 assembly driver added using PSID 2NG.
+
+Support for random tunes in Real C64 mode.
+
 
 Fixes:
 
