@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.66  2003/10/01 22:30:59  s_a_white
+ *  Fixed memory accesses to second sid.  Can be accessed by mirroring
+ *  addresses that we must convert to the non mirrored address.
+ *
  *  Revision 1.65  2003/07/16 20:56:54  s_a_white
  *  Some initialisation code from the psiddrv is required to start basic tunes.
  *
@@ -239,6 +243,8 @@
 #   include <new>
 #endif
 
+SIDPLAY2_NAMESPACE_START
+
 static const uint8_t kernal[] = {
 #include "kernal.bin"
 };
@@ -250,8 +256,6 @@ static const uint8_t basic[] = {
 static const uint8_t poweron[] = {
 #include "poweron.bin"
 };
-
-SIDPLAY2_NAMESPACE_START
 
 const double Player::CLOCK_FREQ_NTSC = 1022727.14;
 const double Player::CLOCK_FREQ_PAL  = 985248.4;
@@ -490,8 +494,9 @@ int Player::load (SidTune *tune)
 }
 
 void Player::mileageCorrect (void)
-{   // If just finished a song, round samples to correct mileage
-    if (m_sampleCount >= (m_cfg.frequency / 2))
+{   // Calculate 1 bit below the timebase so we can round the
+    // mileage count
+    if (((m_sampleCount * 2 * SID2_TIME_BASE) / m_cfg.frequency) & 1)
         m_mileage++;
     m_sampleCount = 0;
 }
@@ -866,6 +871,7 @@ void Player::reset (void)
         // the kernel reset routine and storing the usefull values
         // from $0000-$03ff.  Format is offset, data pairs, where
         // offset is one less than actually intended.
+        //if (m_tuneInfo.compatibility >= SIDTUNE_COMPATIBILITY_R64)
         {
             uint_least16_t addr = ~0;
             for (int i = 0; i < sizeof (poweron); i++)
@@ -960,21 +966,6 @@ void Player::envReset (bool safe)
 
     mixerReset ();
     xsid.suppress (true);
-}
-
-uint8_t Player::envReadMemByte (uint_least16_t addr)
-{   // Read from plain only to prevent execution of rom code
-    return (this->*(m_readMemByte)) (addr);
-}
-
-void Player::envWriteMemByte (uint_least16_t addr, uint8_t data)
-{   // Writes must be passed to env version.
-    (this->*(m_writeMemByte)) (addr, data);
-}
-
-uint8_t Player::envReadMemDataByte (uint_least16_t addr)
-{   // Read from plain only to prevent execution of rom code
-    return (this->*(m_readMemDataByte)) (addr);
 }
 
 bool Player::envCheckBankJump (uint_least16_t addr)
@@ -1094,7 +1085,7 @@ static const uint_least32_t crc32Table[0x100] =
 
 void Player::updateCrc32 (uint_least32_t &crc, uint8_t data)
 {
-   crc = (crc >> 8) ^ crc32Table[(crc & 0xFF) ^ data];
+    crc = (crc >> 8) ^ crc32Table[(crc & 0xFF) ^ data];
 }
 
 SIDPLAY2_NAMESPACE_STOP
