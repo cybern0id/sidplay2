@@ -134,7 +134,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
     dnl Be pessimistic.
     sid_resid_library=NO
     sid_resid_includes=NO
-    sid_resid_installed=yes
+    sid_resid_install=system
 
     AC_ARG_WITH(resid,
         [  --with-resid=DIR
@@ -162,35 +162,47 @@ AC_DEFUN(SID_PATH_LIBRESID,
 
     # Use library path given by user (if any).
     if test "$sid_resid_library" != NO; then
+        # Help to try and better locate library just from --with-resid option
+        resid_libdirs="$sid_resid_library $sid_resid_library/lib $sid_resid_library/.libs"
+        SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
+        sid_resid_library=$resid_foundlibdir
         sid_resid_libadd="-L$sid_resid_library"
-   fi
+    fi
 
     # Use include path given by user (if any).
     if test "$sid_resid_includes" != NO; then
+        resid_libdirs="$sid_resid_library $sid_resid_library/include"
+        SID_FIND_FILE(sid.h resid/sid.h,$resid_libdirs,resid_foundlibdir)
+        sid_resid_library=$resid_foundlibdir
         sid_resid_incadd="-I$sid_resid_includes"
-        sid_resid_installed=no
-        sid_resid_local=yes
+        sid_resid_install=user
     fi
 
     # Run test compilation.
-    SID_TRY_LIBRESID
-    if test "$sid_libresid_works" = no; then
-        sid_resid_local=no
+    if test "$sid_libresid_install" = user; then
         SID_TRY_USER_LIBRESID
+        if test "$sid_libresid_works" = no; then
+            sid_resid_install=local
+        fi
+    fi
+    
+    if test "$sid_libresid_works" != user; then
+        SID_TRY_LIBRESID
     fi
 
     if test "$sid_libresid_works" = no; then
+        sid_resid_install=local
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        sid_resid_installed=no
-        sid_resid_local=yes
-        resid_incdirs="src/mos6581 /usr/include /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
+        resid_incdirs="src/mos6581 src/mos6581/resid/include /usr/include /usr/local/include \
+                       /usr/lib/resid/include /usr/local/lib/resid/include"
         SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="src/mos6581 /usr/lib /usr/local/lib /usr/lib/resid /usr/local/lib/resid"
+        resid_libdirs="src/mos6581/resid src/mos6581/resid/lib /usr/lib /usr/local/lib \
+                       /usr/lib/resid/lib /usr/local/lib/resid/lib"
         SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
 
@@ -223,7 +235,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
         if test "$sid_have_resid" = no; then
             AC_MSG_ERROR(
 [
-reSID library and/or headers found not found.
+reSID library and/or header files not found.
 Please check your installation!
 ]);
         fi
@@ -239,8 +251,8 @@ Please check your installation!
     AC_SUBST(RESID_LDADD)
     AC_SUBST(RESID_INCLUDES)
 
-    if test "$sid_resid_installed" = no; then
-        if test "$sid_resid_local" = yes; then
+    if test "$sid_resid_install" != system; then
+        if test "$sid_resid_install" = local; then
             AC_DEFINE(HAVE_LOCAL_RESID)
         else
             AC_DEFINE(HAVE_USER_RESID)
@@ -328,7 +340,7 @@ LD="$LD" LDFLAGS="$LDFLAGS" LIBS="$LIBS" \
 LN_S="$LN_S" NM="$NM" RANLIB="$RANLIB" \
 DLLTOOL="$DLLTOOL" AS="$AS" OBJDUMP="$OBJDUMP" \
 ${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig --no-reexec \
-$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $lt_target \
+$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
 || AC_MSG_ERROR([libtool configure failed])
 
 # Reload cache, that may have been modified by ltconfig
@@ -360,11 +372,6 @@ AC_REQUIRE([AC_PROG_NM])dnl
 AC_REQUIRE([AC_PROG_LN_S])dnl
 dnl
 
-case "$target" in
-NONE) lt_target="$host" ;;
-*) lt_target="$target" ;;
-esac
-
 # Check for any special flags to pass to ltconfig.
 #
 # the following will cause an existing older ltconfig to fail, so
@@ -388,7 +395,7 @@ test x"$silent" = xyes && libtool_flags="$libtool_flags --silent"
 
 # Some flags need to be propagated to the compiler or linker for good
 # libtool support.
-case "$lt_target" in
+case "$host" in
 *-*-irix6*)
   # Find out which ABI we are using.
   echo '[#]line __oline__ "configure"' > conftest.$ac_ext
@@ -604,6 +611,7 @@ else
   AC_MSG_RESULT(no)
 fi
 test -z "$LD" && AC_MSG_ERROR([no acceptable ld found in \$PATH])
+AC_SUBST(LD)
 AC_PROG_LD_GNU
 ])
 
@@ -649,13 +657,14 @@ else
 fi])
 NM="$ac_cv_path_NM"
 AC_MSG_RESULT([$NM])
+AC_SUBST(NM)
 ])
 
 # AC_CHECK_LIBM - check for math library
 AC_DEFUN(AC_CHECK_LIBM,
 [AC_REQUIRE([AC_CANONICAL_HOST])dnl
 LIBM=
-case "$lt_target" in
+case "$host" in
 *-*-beos* | *-*-cygwin*)
   # These system don't have libm
   ;;
@@ -670,35 +679,31 @@ esac
 ])
 
 # AC_LIBLTDL_CONVENIENCE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl convenience library and INCLTDL to the include flags for
-# the libltdl header and adds --enable-ltdl-convenience to the
-# configure arguments.  Note that LIBLTDL and INCLTDL are not
-# AC_SUBSTed, nor is AC_CONFIG_SUBDIRS called.  If DIR is not
-# provided, it is assumed to be `libltdl'.  LIBLTDL will be prefixed
-# with '${top_builddir}/' and INCLTDL will be prefixed with
-# '${top_srcdir}/' (note the single quotes!).  If your package is not
-# flat and you're not using automake, define top_builddir and
-# top_srcdir appropriately in the Makefiles.
+# the libltdl convenience library, adds --enable-ltdl-convenience to
+# the configure arguments.  Note that LIBLTDL is not AC_SUBSTed, nor
+# is AC_CONFIG_SUBDIRS called.  If DIR is not provided, it is assumed
+# to be `${top_builddir}/libltdl'.  Make sure you start DIR with
+# '${top_builddir}/' (note the single quotes!) if your package is not
+# flat, and, if you're not using automake, define top_builddir as
+# appropriate in the Makefiles.
 AC_DEFUN(AC_LIBLTDL_CONVENIENCE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   case "$enable_ltdl_convenience" in
   no) AC_MSG_ERROR([this package needs a convenience libltdl]) ;;
   "") enable_ltdl_convenience=yes
       ac_configure_args="$ac_configure_args --enable-ltdl-convenience" ;;
   esac
-  LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdlc.la
-  INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
+  LIBLTDL=ifelse($#,1,$1,['${top_builddir}/libltdl'])/libltdlc.la
+  INCLTDL=ifelse($#,1,-I$1,['-I${top_builddir}/libltdl'])
 ])
 
 # AC_LIBLTDL_INSTALLABLE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl installable library and INCLTDL to the include flags for
-# the libltdl header and adds --enable-ltdl-install to the configure
-# arguments.  Note that LIBLTDL and INCLTDL are not AC_SUBSTed, nor is
-# AC_CONFIG_SUBDIRS called.  If DIR is not provided and an installed
-# libltdl is not found, it is assumed to be `libltdl'.  LIBLTDL will
-# be prefixed with '${top_builddir}/' and INCLTDL will be prefixed
-# with '${top_srcdir}/' (note the single quotes!).  If your package is
-# not flat and you're not using automake, define top_builddir and
-# top_srcdir appropriately in the Makefiles.
+# the libltdl installable library, and adds --enable-ltdl-install to
+# the configure arguments.  Note that LIBLTDL is not AC_SUBSTed, nor
+# is AC_CONFIG_SUBDIRS called.  If DIR is not provided, it is assumed
+# to be `${top_builddir}/libltdl'.  Make sure you start DIR with
+# '${top_builddir}/' (note the single quotes!) if your package is not
+# flat, and, if you're not using automake, define top_builddir as
+# appropriate in the Makefiles.
 # In the future, this macro may have to be called after AC_PROG_LIBTOOL.
 AC_DEFUN(AC_LIBLTDL_INSTALLABLE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   AC_CHECK_LIB(ltdl, main,
@@ -711,8 +716,8 @@ AC_DEFUN(AC_LIBLTDL_INSTALLABLE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   ])
   if test x"$enable_ltdl_install" = x"yes"; then
     ac_configure_args="$ac_configure_args --enable-ltdl-install"
-    LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdl.la
-    INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
+    LIBLTDL=ifelse($#,1,$1,['${top_builddir}/libltdl'])/libltdl.la
+    INCLTDL=ifelse($#,1,-I$1,['-I${top_builddir}/libltdl'])
   else
     ac_configure_args="$ac_configure_args --enable-ltdl-install=no"
     LIBLTDL="-lltdl"
