@@ -16,7 +16,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-   $Id: aboutdlg.cpp,v 1.1 2004-02-27 16:30:29 vividos Exp $
+   $Id: aboutdlg.cpp,v 1.2 2005-01-24 22:15:05 vividos Exp $
 
 */
 /* \file aboutdlg.cpp
@@ -70,7 +70,7 @@ AboutDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             char buffer[512];
 
             _snprintf(buffer,sizeof(buffer),
-               "in_sid2 uses %s %s and %s",
+               "in_sid2 uses %s %s and resid %s",
                info.name,info.version,resid_version_string);
 
             ::SetDlgItemText(hWnd,IDC_STATIC_VERSIONS,buffer);
