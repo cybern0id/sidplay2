@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/14 13:04:34  s_a_white
+ *  Accumulator is now unsigned, which improves code readability.
+ *
  *  Revision 1.3  2000/12/11 19:03:16  s_a_white
  *  AC99 Update.
  *
@@ -27,6 +30,7 @@
 #include "config.h"
 #include "component.h"
 #include "sidenv.h"
+#include "event.h"
 
 #undef  MOS6510_VERSION
 #undef  MOS6510_DATE

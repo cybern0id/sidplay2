@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/07/14 12:59:39  s_a_white
+ *  XSID effeciency increased.  Now uses new component classes and event
+ *  generation.
+ *
  *  Revision 1.13  2001/04/20 22:21:06  s_a_white
  *  inlined updateSidData0x18.
  *
@@ -86,7 +90,8 @@ programmed with.
 #define _xsid_h_
 
 #include "config.h"
-#include "sidemu.h"
+#include "sidbuilder.h"
+#include "event.h"
 
 // XSID configuration settings
 //#define XSID_DEBUG 1

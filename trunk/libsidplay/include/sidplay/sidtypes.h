@@ -85,4 +85,16 @@ typedef int sid_fc_t[2];
 #define FOREVER for(;;)
 #define SWAP(x,y) ((x)^=(y)^=(x)^=(y))
 
+typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback_t;
+typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
+typedef enum {SID2_MODEL_CORRECT, SID2_MOS6581, SID2_MOS8580}      sid2_model_t;
+typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
+
+/* Environment Modes
+sid2_envPS = Playsid
+sid2_envTP = Sidplay  - Transparent Rom
+sid2_envBS = Sidplay  - Bankswitching
+sid2_envR  = Sidplay2 - Real C64 Environment
+*/
+
 #endif /* _sidtypes_h_ */
