@@ -147,13 +147,6 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
     {
     case 0x11: // Control register 1
     {
-        event_clock_t cycles = event_context.getTime (m_rasterClk, m_phase);
-
-        // Update x raster
-        m_rasterClk += cycles;
-        raster_x    += cycles;
-        raster_x    %= xrasters;
-
         endian_16hi8 (raster_irq, data >> 7);
         ctrl1    = data;
         y_scroll = data & 7;
@@ -171,8 +164,9 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
                    ((raster_y & 7) == y_scroll) &&
                    bad_lines_enabled;
 
-        if (bad_line)
-            event_context.schedule (this, 0, m_phase);
+        // Start bad dma line now
+        if (bad_line && (raster_x < 53))
+            addrctrl (false);
         break;
     }
 
@@ -221,8 +215,13 @@ void MOS656X::trigger (int irq)
 
 void MOS656X::event (void)
 {
+    event_clock_t  cycles = event_context.getTime (m_rasterClk, event_context.phase());
+
+    // Cycle already executed check
+    if (!cycles)
+        return;
+
     event_clock_t  delay  = 1;
-    event_clock_t  cycles = event_context.getTime (m_rasterClk, m_phase);
     uint_least16_t cycle;
 
     // Update x raster
@@ -237,16 +236,15 @@ void MOS656X::event (void)
     {   // Calculate sprite DMA
         uint8_t y    = raster_y & 0xff;
         uint8_t mask = 1;
+        sprite_expand_y ^= sprite_y_expansion; // 3.8.1-2
         for (unsigned int i=1; i<0x10; i+=2, mask<<=1)
         {   // 3.8.1-3
             if ((sprite_enable & mask) && (y == regs[i]))
             {
                 sprite_dma |= mask;
                 sprite_mc_base[i >> 1] = 0;
-                if (sprite_y_expansion & mask)
-                    sprite_expand_y &= ~mask;
-            } else if (sprite_y_expansion & mask)
-                sprite_expand_y ^= mask; // 3.8.1-2
+                sprite_expand_y &= ~(sprite_y_expansion & mask);
+            }
         }
 
         delay = 2;
@@ -326,7 +324,7 @@ void MOS656X::event (void)
         if (sprite_dma & 0x20)
             addrctrl (false);
         // No sprites before next compulsory cycle
-        else if (!(sprite_dma & 0xf0))
+        else if (!(sprite_dma & 0xf8))
            delay = 10;
         break;
 
@@ -393,7 +391,7 @@ void MOS656X::event (void)
         {   // DMA starts on cycle 23
             addrctrl (false);
         }
-        delay = 23 - cycle;
+        delay = 3;
         break;
     }
 
@@ -417,12 +415,14 @@ void MOS656X::event (void)
             if ((sprite_mc_base[i] & 0x3f) == 0x3f)
                 sprite_dma &= ~mask;
         }
+        delay = 39;
         break;
     }
 
     case 63: // End DMA - Only get here for non PAL
-        addrctrl  (true);
-        // Deliberate run on
+        addrctrl (true);
+        delay = xrasters - cycle;
+        break;
 
     default:
         if (cycle < 23)
@@ -433,7 +433,7 @@ void MOS656X::event (void)
             delay = xrasters - cycle;
     }
 
-    event_context.schedule (this, delay, m_phase);
+    event_context.schedule (this, delay - event_context.phase(), m_phase);
 }
 
 // Handle light pen trigger
