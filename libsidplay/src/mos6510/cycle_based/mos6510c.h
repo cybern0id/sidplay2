@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2004/03/07 22:38:57  s_a_white
+ *  Rename write to nosteal since it needs setting for non memory access cycles to
+ *
  *  Revision 1.23  2004/03/06 21:07:12  s_a_white
  *  Don't start a new cycle stealing sequence if one is already started!  This can
  *  happen if an interrupt occurs during an optimised sleep.
@@ -112,6 +115,7 @@ protected:
     bool aec; /* Address Controller, blocks reads */
     bool m_blocked;
     event_clock_t m_stealingClk;
+    event_clock_t m_dbgClk;
     FILE *m_fdbg;
 
     bool dodump;
