@@ -175,13 +175,12 @@ bool Chunk::write (FILE *file, const sid2_usage_t &usage, uint_least32_t &length
 // remaining - length remaining of chunk
 bool Chunk::_read (FILE *file, uint8_t *data, uint_least32_t length, uint_least32_t &remaining)
 {
-    if (length > remaining)
-        return false;
-
     if (length)
     {
         size_t ret = fread ((char *)data, length, 1, file);
         if ( ret != 1 )
+            return false;
+        if (length > remaining)
             return false;
     }
     remaining -= length;
