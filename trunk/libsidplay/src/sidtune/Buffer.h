@@ -23,7 +23,7 @@
 
 #include "sidtypes.h"
 
-template <class T> class Buffer_sidtt
+template <class T> class SID_EXPORT Buffer_sidtt
 {
  public:
 	Buffer_sidtt(void) : dummy(0)
