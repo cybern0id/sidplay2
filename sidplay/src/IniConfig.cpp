@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/02/18 20:05:52  s_a_white
+ *  Fixed for new libini ini_open call.
+ *
  *  Revision 1.10  2001/11/16 19:30:45  s_a_white
  *  Libsidutils support update.
  *
@@ -161,15 +164,14 @@ IniCofig_readString_error:
 
 bool IniConfig::readBool (ini_fd_t ini, char *key, bool &boolean)
 {
-    int  i   = boolean;
-    bool ret = readInt (ini, key, i);
-    if (!ret)
+    int b = boolean;
+    if (ini_locateKey (ini, key) < 0)
+    {   // Dosen't exist, add it
+        (void) ini_writeString (ini, "");
+    }
+    if (ini_readBool (ini, &b) < 0)
         return false;
-
-    // Check with boolean limits
-    if (i < 0 || i > 1)
-        return false;
-    boolean = (i != 0);
+    boolean = (b != 0);
     return true;
 }
 
