@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:36:16  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -11,7 +15,7 @@
 #include "audiodrv.h"
 #ifdef   HAVE_HPUX
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
@@ -85,21 +89,21 @@ void *Audio_HPUX::open (AudioConfig& cfg)
     {
         perror (AUDIODEVICE);
         _errorString = "ERROR: Could not set sample format.\n       See standard error output.";
-	goto open_error;
+        goto open_error;
     }
 
     if (ioctl(_audiofd, AUDIO_SET_CHANNELS, _settings.channels) < 0 )
     {
         perror (AUDIODEVICE);
         _errorString = "ERROR: Could not set mono/stereo.\n       See standard error output.";
-	goto open_error;
-   } 
+        goto open_error;
+    } 
 
     if (ioctl(_audiofd, AUDIO_SET_SAMPLE_RATE,_settings.frequency)< 0)
     {
         perror (AUDIODEVICE);
         _errorString = "ERROR: Could not set sample rate.\n       See standard error output.";
-	goto open_error;
+        goto open_error;
    } 
  
     // Setup internal Config
@@ -110,7 +114,7 @@ void *Audio_HPUX::open (AudioConfig& cfg)
     getConfig (cfg);
 
     // Allocate memory same size as buffer
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
     _sampleBuffer = new(nothrow) ubyte_sidt[_settings.bufSize];
 #else
     _sampleBuffer = new ubyte_sidt[_settings.bufSize];

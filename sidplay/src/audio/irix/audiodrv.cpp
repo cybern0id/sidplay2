@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:36:16  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -11,7 +15,7 @@
 #include "audiodrv.h"
 #ifdef   HAVE_IRIX
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
@@ -65,7 +69,7 @@ void *Audio_Irix::open (AudioConfig& cfg)
     {
         perror("AUDIO:");
         _errorString = "ERROR: Could not open audio device.\n       See standard error output.";
-	ALfreeconfig(_config);
+        ALfreeconfig(_config);
         return 0;
     }
 
@@ -82,10 +86,7 @@ void *Audio_Irix::open (AudioConfig& cfg)
     getConfig (cfg);
 
     // Allocate memory same size as buffer
-    // configure thinks we have exception support, but for some reason
-    // the compiler thinks otherwise
-#undef SID_HAVE_EXCEPTIONS
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
     _sampleBuffer = new(nothrow) ubyte_sidt[blockSize];
 #else
     _sampleBuffer = new ubyte_sidt[blockSize];
@@ -111,8 +112,8 @@ void Audio_Irix::close ()
     {
         ALcloseport(_audio);
         ALfreeconfig(_config);
-        _audio = NULL;
-	_config = NULL;
+        _audio  = NULL;
+        _config = NULL;
         outOfOrder ();
     }
 }

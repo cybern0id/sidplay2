@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:35:41  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -12,7 +16,7 @@
 #ifdef   HAVE_ALSA
 
 #include <stdio.h>
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
@@ -66,8 +70,8 @@ void *Audio_ALSA::open (AudioConfig &cfg)
     pi.channel = SND_PCM_CHANNEL_PLAYBACK;
     if ((rtn = snd_pcm_plugin_info (_audioHandle, &pi)))
     {
-       _errorString = "ALSA: snd_pcm_plugin_info failed.";
-       goto open_error;
+        _errorString = "ALSA: snd_pcm_plugin_info failed.";
+        goto open_error;
     }
 			
     memset(&pp, 0, sizeof (pp));
@@ -89,40 +93,40 @@ void *Audio_ALSA::open (AudioConfig &cfg)
     // Set sample precision and type of encoding.
     if ( tmpCfg.precision == 8 )
     {
-       tmpCfg.encoding = AUDIO_UNSIGNED_PCM;
-       pp.format.format = SND_PCM_SFMT_U8;
+        tmpCfg.encoding = AUDIO_UNSIGNED_PCM;
+        pp.format.format = SND_PCM_SFMT_U8;
     }
     if ( tmpCfg.precision == 16 )
     {
-       tmpCfg.encoding = AUDIO_SIGNED_PCM;
-       pp.format.format = SND_PCM_SFMT_S16_LE;
+        tmpCfg.encoding = AUDIO_SIGNED_PCM;
+        pp.format.format = SND_PCM_SFMT_S16_LE;
     }
 
     if ((rtn = snd_pcm_plugin_params (_audioHandle, &pp)) < 0)
     {
-       _errorString = "ALSA: snd_pcm_plugin_params failed.";
-       goto open_error;
+        _errorString = "ALSA: snd_pcm_plugin_params failed.";
+        goto open_error;
     }
    
     if ((rtn = snd_pcm_plugin_prepare (_audioHandle, SND_PCM_CHANNEL_PLAYBACK)) < 0)
-     {
-	_errorString = "ALSA: snd_pcm_plugin_prepare failed.";
-	goto open_error;
-     }
+    {
+        _errorString = "ALSA: snd_pcm_plugin_prepare failed.";
+        goto open_error;
+    }
    
-   memset (&setup, 0, sizeof (setup));
-   setup.channel = SND_PCM_CHANNEL_PLAYBACK;
-   if ((rtn = snd_pcm_plugin_setup (_audioHandle, &setup)) < 0)
-     {
-	_errorString = "ALSA: snd_pcm_plugin_setup failed.";
-	goto open_error;
-     }
+    memset (&setup, 0, sizeof (setup));
+    setup.channel = SND_PCM_CHANNEL_PLAYBACK;
+    if ((rtn = snd_pcm_plugin_setup (_audioHandle, &setup)) < 0)
+    {
+        _errorString = "ALSA: snd_pcm_plugin_setup failed.";
+        goto open_error;
+    }
 
-   tmpCfg.bufSize = setup.buf.block.frag_size;
-#ifdef SID_HAVE_EXCEPTIONS
-        _sampleBuffer = new(nothrow) ubyte_sidt[tmpCfg.bufSize];
+    tmpCfg.bufSize = setup.buf.block.frag_size;
+#ifdef HAVE_EXCEPTIONS
+    _sampleBuffer = new(nothrow) ubyte_sidt[tmpCfg.bufSize];
 #else
-        _sampleBuffer = new ubyte_sidt[tmpCfg.bufSize];
+    _sampleBuffer = new ubyte_sidt[tmpCfg.bufSize];
 #endif
 
     if (!_sampleBuffer)
