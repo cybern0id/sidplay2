@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2003/07/16 20:52:30  s_a_white
+ *  Basic tunes can only run in a real C64 environment.
+ *
  *  Revision 1.35  2003/07/10 07:32:01  s_a_white
  *  Added missed brace.
  *
@@ -145,6 +148,8 @@ SIDPLAY2_NAMESPACE_START
 
 int Player::config (const sid2_config_t &cfg)
 {
+    bool monosid = false;
+
     if (m_running)
     {
         m_errorString = ERR_CONF_WHILST_ACTIVE;
@@ -223,6 +228,7 @@ int Player::config (const sid2_config_t &cfg)
     sidSamples (cfg.sidSamples);
 
     // All parameters check out, so configure player.
+    monosid = !m_sidAddress[1];
     m_info.channels = 1;
     m_emulateStereo = false;
     if (cfg.playback == sid2_stereo)
@@ -230,12 +236,12 @@ int Player::config (const sid2_config_t &cfg)
         m_info.channels++;
         // Enough sids are available to perform
         // stereo spliting
-        if (sid[1] != &nullsid)
+        if (monosid && (sid[1] != &nullsid))
             m_emulateStereo = cfg.emulateStereo;
     }
 
     // Only force dual sids if second wasn't detected
-    if (!m_sidAddress[1] && cfg.forceDualSids)
+    if (monosid && cfg.forceDualSids)
         m_sidAddress[1] = 0xd500; // Assumed
 
     m_leftVolume  = cfg.leftVolume;
