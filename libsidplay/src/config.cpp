@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2002/01/16 19:11:38  s_a_white
+ *  Always release sid emulations now on a call to sidCreate until a better
+ *  method is implemented for hardware emulations with locked sids.
+ *
  *  Revision 1.16  2002/01/16 08:23:45  s_a_white
  *  Force a clock speed when unknown.
  *
@@ -116,6 +120,8 @@ int Player::config (const sid2_config_t &cfg)
     if (m_tune)
     {
         float64_t cpuFreq;
+        // Reset tune info
+        m_tune->getInfo(m_tuneInfo);
         // External Setups
         if (sidCreate (cfg.sidEmulation, cfg.sidModel) < 0)
         {
@@ -167,9 +173,9 @@ int Player::config (const sid2_config_t &cfg)
             m_sidAddress[1] = m_sidAddress[0];
 
             // Mute Voices
-            sid->voice  (0, 0, true);
-            sid->voice  (2, 0, true);
-            sid2->voice (1, 0, true);
+            sid[0]->voice (0, 0, true);
+            sid[0]->voice (2, 0, true);
+            sid[1]->voice (1, 0, true);
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
             //    m_rightVolume *= 2;
@@ -348,10 +354,18 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
 
 int Player::environment (sid2_env_t env)
 {
+    if (m_tuneInfo.playAddr == 0xffff)
+        env = sid2_envR;
+    if (m_tuneInfo.psidSpecific)
+    {
+        if (env == sid2_envR)
+            env  = sid2_envBS;
+    }
+
     // Environment already set?
-    if (!(m_ram && (m_environment == env)))
+    if (!(m_ram && (m_info.environment == env)))
     {   // Setup new player environment
-        m_environment = env;
+        m_info.environment = env;
         if (m_ram)
         {
             if (m_ram == m_rom)
@@ -371,7 +385,7 @@ int Player::environment (sid2_env_t env)
 
         // Setup the access functions to the environment
         // and the properties the memory has.
-        if (m_environment == sid2_envPS)
+        if (m_info.environment == sid2_envPS)
         {   // Playsid has no roms and SID exists in ram space
             m_rom = m_ram;
             m_readMemByte     = &Player::readMemByte_player;
@@ -386,7 +400,7 @@ int Player::environment (sid2_env_t env)
             m_rom = new uint8_t[0x10000];
 #endif
 
-            switch (m_environment)
+            switch (m_info.environment)
             {
             case sid2_envTP:
                 m_readMemByte     = &Player::readMemByte_player;
@@ -411,7 +425,7 @@ int Player::environment (sid2_env_t env)
     }
 
     // Check if tune is invalid
-    if ((m_environment != sid2_envR) &&
+    if ((m_info.environment != sid2_envR) &&
         (m_tuneInfo.playAddr == 0xffff))
     {   // Unload song.
         load (NULL);
@@ -420,10 +434,10 @@ int Player::environment (sid2_env_t env)
     {   // Have to reload the song into memory as
         // everything has changed
         int ret;
-        sid2_env_t old = m_cfg.environment;
-        m_cfg.environment = env;
+        sid2_env_t old = m_info.environment;
+        m_info.environment = env;
         ret = initialise ();
-        m_cfg.environment = old;
+        m_info.environment = old;
         return ret;
     }
 }
@@ -432,25 +446,33 @@ int Player::environment (sid2_env_t env)
 // libsidplay2
 int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
 {
-    sidemu *sid1 = xsid.emulation ();
+    sid[0] = xsid.emulation ();
+    
+    // If we are already using the emulation
+    // then don't change
+    if (builder == sid[0]->builder ())
+    {
+        sid[0] = &xsid;
+        return 0;
+    }
 
     // Make xsid forget it's emulation
     xsid.emulation (&nullsid);
 
     {   // Release old sids
-        sidbuilder *b;
-        b = sid1->builder ();
-        if (b)
-            b->unlock (sid1);
-        b = sid2->builder ();
-        if (b)
-           b->unlock (sid2);
+        for (int i = 0; i < SID2_MAX_SIDS; i++)
+        {
+            sidbuilder *b;
+            b = sid[i]->builder ();
+            if (b)
+                b->unlock (sid[i]);
+        }
     }
 
     if (!builder)
     {   // No sid
-        sid1 = &nullsid;
-        sid2 = &nullsid;
+        for (int i = 0; i < SID2_MAX_SIDS; i++)
+            sid[i] = &nullsid;
     }
     else
     {
@@ -475,38 +497,34 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
         if (model == SID2_MOS8580)
             m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
 
-        // Get first SID emulation
-        sid1 = builder->lock (this, model);
-        if (!sid1)
-            sid1 = &nullsid;
-        if (!*builder)
-            return -1;
-
-        // Get second SID emulation
-        sid2 = builder->lock (this, model);
-        if (!sid2)
-            sid2 = &nullsid;
+        for (int i = 0; i < SID2_MAX_SIDS; i++)
+        {   // Get first SID emulation
+            sid[i] = builder->lock (this, model);
+            if (!sid[i])
+                sid[i] = &nullsid;
+            if ((i == 0) && !*builder)
+                return -1;
+        }
     }
-    xsid.emulation (sid1);
+    xsid.emulation (sid[0]);
+    sid[0] = &xsid;
     return 0;
 }
 
 void Player::sidSamples (bool enable)
 {
-    sidemu *sid1 = xsid.emulation ();
+    int_least8_t gain = 0;
     xsid.sidSamples (enable);
 
     // Now balance voices
+    sid[0] = xsid.emulation ();
     if (enable)
-    {
-        sid1->gain (0);
-        sid2->gain (0);
-        xsid.gain (-100);
-    } else {
-        sid1->gain (-25);
-        sid2->gain (-25);
-        xsid.gain (-75);
-    }
+        gain = -25;
+
+    xsid.gain (-100 - gain);
+    for (int i = 0; i < SID2_MAX_SIDS; i++)
+        sid[i]->gain (gain);
+    sid[0] = &xsid;
 }
 
 SIDPLAY2_NAMESPACE_STOP

@@ -1,4 +1,4 @@
-/***************************************************************************
+    /***************************************************************************
                           player.h  -  description
                              -------------------
     begin                : Fri Jun 9 2000
@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2002/01/28 19:32:01  s_a_white
+ *  PSID sample improvements.
+ *
  *  Revision 1.23  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -106,6 +109,7 @@
 #include "mos6510/mos6510.h"
 #include "sid6526/sid6526.h"
 #include "nullsid.h"
+#define  SID2_MAX_SIDS 2
 
 SIDPLAY2_NAMESPACE_START
 
@@ -132,7 +136,6 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
-    static const char  *ERR_REQUIRES_REAL_C64;
     static const char  *credit[10]; // 10 credits max
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
@@ -151,8 +154,7 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    sidemu *sid;
-    sidemu *sid2;
+    sidemu *sid[SID2_MAX_SIDS];
 
     class EventMixer: public Event
     {
@@ -215,7 +217,6 @@ private:
     sid2_info_t   m_info;
     sid2_config_t m_cfg;
 
-    sid2_env_t      m_environment;
     const char     *m_errorString;
     float64_t       m_fastForwardFactor;
     uint_least32_t  m_mileage;
