@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/02/23 08:53:11  s_a_white
+ *  Option none nolonger uses the audio hardware (removing realtime delays).
+ *  New option nosid allows library profiling without the sid emulation.
+ *
  *  Revision 1.10  2003/02/20 18:50:43  s_a_white
  *  sid2crc support.
  *
@@ -50,6 +54,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <iostream.h>
+//using std::endl;
 #include "player.h"
 
 #if defined(HAVE_SGI)
@@ -58,7 +64,7 @@
 #endif
 
 // Convert time from integer
-bool ConsolePlayer::parseTime (char *str, uint_least32_t &time)
+bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
 {
     char *sep;
     uint_least32_t _time;
@@ -91,7 +97,7 @@ bool ConsolePlayer::parseTime (char *str, uint_least32_t &time)
 }
 
 // Parse command line arguments
-bool ConsolePlayer::args (int argc, char *argv[])
+bool ConsolePlayer::args (int argc, const char *argv[])
 {
     int  infile = 0;
     int  i      = 0;
@@ -113,20 +119,20 @@ bool ConsolePlayer::args (int argc, char *argv[])
     {
         if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
         {
-            if (strncmp (&argv[i][1], "b", 1) == 0)
+            if (argv[i][1] == 'b')
             {
                 if (!parseTime (&argv[i][2], m_timer.start))
                     err = true;
             }
-            else if (strncmp (&argv[i][1], "fd", 2) == 0)
+            else if (strcmp (&argv[i][1], "fd") == 0)
             {   // Override sidTune and enable the second sid
                 m_engCfg.forceDualSids = true;
             }
-            else if (strncmp (&argv[i][1], "fs", 2) == 0)
+            else if (strcmp (&argv[i][1], "fs") == 0)
             {   // Force samples through soundcard instead of SID
                 m_engCfg.sidSamples = false;
             }
-            else if (strncmp (&argv[i][1], "f", 1) == 0)
+            else if (argv[i][1] == 'f')
             {
                 if (argv[i][2] == '\0')
                     err = true;
@@ -134,19 +140,19 @@ bool ConsolePlayer::args (int argc, char *argv[])
             }
 
             // Player Mode (Environment) Options ----------
-            else if (strncmp (&argv[i][1], "mb", 2) == 0)
+            else if (strcmp (&argv[i][1], "mb") == 0)
             {   // Bankswitching
                 m_engCfg.environment = sid2_envBS;
             }
-            else if (strncmp (&argv[i][1], "mr", 2) == 0)
+            else if (strcmp (&argv[i][1], "mr") == 0)
             {   // Real C64
                 m_engCfg.environment = sid2_envR;
             }
-            else if (strncmp (&argv[i][1], "mt", 2) == 0)
+            else if (strcmp (&argv[i][1], "mt") == 0)
             {   // Transparent Rom
                 m_engCfg.environment = sid2_envTP;
             }
-            else if (strncmp (&argv[i][1], "m", 1) == 0)
+            else if (argv[i][1] == 'm')
             {   // PlaySID
                 m_engCfg.environment = sid2_envPS;
             }
@@ -170,7 +176,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
             }
 
             // Newer sid (8580)
-            else if (strncmp (&argv[i][1], "ns", 2) == 0)
+            else if (strcmp (&argv[i][1], "ns") == 0)
             {
                 m_engCfg.sidModel = SID2_MOS8580;
             }
@@ -192,20 +198,20 @@ bool ConsolePlayer::args (int argc, char *argv[])
                 m_track.single = true;
                 m_track.first  = atoi(&argv[i][3]);
             }
-            else if (strncmp (&argv[i][1], "o", 1) == 0)
+            else if (argv[i][1] == 'o')
             {   // User forgot track number ?
                 if (argv[i][2] == '\0')
                     err = true;
                 m_track.first = atoi(&argv[i][2]);
             }
 
-            else if (strncmp (&argv[i][1], "O", 1) == 0)
+            else if (argv[i][1] == 'O')
             {
                 if (argv[i][2] != '\0')
                     m_engCfg.optimisation = atoi(&argv[i][2]);
             }
 
-            else if (strncmp (&argv[i][1], "p", 1) == 0)
+            else if (argv[i][1] == 'p')
             {   // User forgot precision
                 if (argv[i][2] == '\0')
                     err = true;
@@ -224,7 +230,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
                 }
             }
 
-            else if (strncmp (&argv[i][1], "q", 1) == 0)
+            else if (argv[i][1] == 'q')
             {
                 if (argv[i][2] == '\0')
                     m_quietLevel = 1;
@@ -233,20 +239,20 @@ bool ConsolePlayer::args (int argc, char *argv[])
             }
 
             // Stereo Options
-            else if (strncmp (&argv[i][1], "sl", 2) == 0)
+            else if (strcmp (&argv[i][1], "sl") == 0)
             {   // Left Channel
                 m_engCfg.playback = sid2_left;
             }
-            else if (strncmp (&argv[i][1], "sr", 2) == 0)
+            else if (strcmp (&argv[i][1], "sr") == 0)
             {   // Right Channel
                 m_engCfg.playback = sid2_right;
             }
-            else if (strncmp (&argv[i][1], "s", 1) == 0)
+            else if (argv[i][1] == 's')
             {   // Stereo Playback
                 m_engCfg.playback = sid2_stereo;
             }
 
-            else if (strncmp (&argv[i][1], "t", 1) == 0)
+            else if (argv[i][1] == 't')
             {
                 if (!parseTime (&argv[i][2], m_timer.length))
                     err = true;
@@ -254,43 +260,43 @@ bool ConsolePlayer::args (int argc, char *argv[])
             }
 
             // Video/Verbose Options
-            else if (strncmp (&argv[i][1], "vnf", 3) == 0)
+            else if (strcmp (&argv[i][1], "vnf") == 0)
             {
                 m_engCfg.clockForced = true;
                 m_engCfg.clockSpeed  = SID2_CLOCK_NTSC;
             }
-            else if (strncmp (&argv[i][1], "vpf", 3) == 0)
+            else if (strcmp (&argv[i][1], "vpf") == 0)
             {
                 m_engCfg.clockForced = true;
                 m_engCfg.clockSpeed  = SID2_CLOCK_PAL;
             }
-            else if (strncmp (&argv[i][1], "vf", 2) == 0)
+            else if (strcmp (&argv[i][1], "vf") == 0)
             {
                 m_engCfg.clockForced = true;
             }
-            else if (strncmp (&argv[i][1], "vn", 2) == 0)
+            else if (strcmp (&argv[i][1], "vn") == 0)
             {
                 m_engCfg.clockSpeed  = SID2_CLOCK_NTSC;
             }
-            else if (strncmp (&argv[i][1], "vp", 2) == 0)
+            else if (strcmp (&argv[i][1], "vp") == 0)
             {
                 m_engCfg.clockSpeed  = SID2_CLOCK_PAL;
             }
-            else if (strncmp (&argv[i][1], "v", 1) == 0)
+            else if (argv[i][1] == 'v')
             {
                 if (argv[i][2] == '\0')
                     m_verboseLevel = 1;
                 else
                     m_verboseLevel = atoi(&argv[i][2]);
             }
-            else if (strncmp (&argv[i][1], "-crc", 4) == 0)
+            else if (strcmp (&argv[i][1], "-crc") == 0)
             {
                 m_crc = true;
                 m_engCfg.powerOnDelay = 0;
             }
 
             // File format conversions
-            else if (strncmp (&argv[i][1], "w", 1) == 0)
+            else if (argv[i][1] == 'w')
             {
                 m_driver.output = OUT_WAV;
                 m_driver.file   = true;
@@ -314,20 +320,20 @@ bool ConsolePlayer::args (int argc, char *argv[])
 
             // Hardware selection
 #ifdef HAVE_HARDSID_BUILDER
-            else if (strncmp (&argv[i][1], "-hardsid", 8) == 0)
+            else if (strcmp (&argv[i][1], "-hardsid") == 0)
             {
                 m_driver.sid    = EMU_HARDSID;
                 m_driver.output = OUT_NULL;
             }
 #endif // HAVE_HARDSID_BUILDER
             // These two are for debug
-            else if (strncmp (&argv[i][1], "-none", 5) == 0)
+            else if (strcmp (&argv[i][1], "-none") == 0)
             {
                 m_driver.sid    = EMU_NONE;
                 m_driver.output = OUT_NULL;
             }
 
-            else if (strncmp (&argv[i][1], "-nosid", 6) == 0)
+            else if (strcmp (&argv[i][1], "-nosid") == 0)
             {
                 m_driver.sid = EMU_NONE;
             }
@@ -348,7 +354,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
 
         if (err)
         {
-            displayArgs ();
+            displayArgs (argv[i]);
             return false;
         }
 
@@ -433,11 +439,16 @@ bool ConsolePlayer::args (int argc, char *argv[])
 }
 
 
-void ConsolePlayer::displayArgs ()
+void ConsolePlayer::displayArgs (const char *arg)
 {
-    cout 
-        << "Syntax: " << m_name << " [-<option>...] <datafile>" << endl
-        << "Options:" << endl
+    ostream &out = arg ? cerr : cout;
+
+    if (arg)
+        out << "Option Error: " << arg << endl;
+    else
+        out << "Syntax: " << m_name << " [-<option>...] <datafile>" << endl;
+
+    out << "Options:" << endl
         << " --help|-h    display this screen" << endl
 
         << " -b<num>      set start time in [m:]s format (default 0)" << endl
