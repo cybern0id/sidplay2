@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/01/29 21:47:35  s_a_white
+ *  Constant fixed interval delay added to prevent emulation going fast when
+ *  there are no writes to the sid.
+ *
  *  Revision 1.1  2002/01/28 22:35:20  s_a_white
  *  Initial Release.
  *
@@ -97,7 +101,8 @@ void HardSID::reset (void)
     
     m_accessClk = 0;
     hsid2.Reset ((BYTE) m_instance);
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+    if (m_eventContext != NULL)
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
 void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
@@ -113,6 +118,7 @@ void HardSID::lock (c64env *env)
 {
     if (env == NULL)
     {
+        m_eventContext->cancel (this);
         m_locked = false;
         m_eventContext = NULL;
     }
@@ -120,6 +126,7 @@ void HardSID::lock (c64env *env)
     {
         m_locked = true;
         m_eventContext = &env->context ();
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
     }
 }
 
@@ -127,8 +134,8 @@ void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk);
     m_accessClk += cycles;
-    if (m_accessClk)
-        hsid2.Delay ((BYTE) m_instance, 0xFFFF);
+    if (cycles)
+        hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
     m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
