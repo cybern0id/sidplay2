@@ -6,7 +6,7 @@ dnl $3=found dir
 dnl [$4=found file]
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(MY_FIND_FILE,
+AC_DEFUN([MY_FIND_FILE],
 [
     $3=NO
     for i in $2; do
@@ -24,19 +24,19 @@ AC_DEFUN(MY_FIND_FILE,
 
 
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_SUBST_DEF,
+AC_DEFUN([MY_SUBST_DEF],
 [
     eval "$1=\"#define $1\""
     AC_SUBST($1)
 ])
 
-AC_DEFUN(MY_SUBST_UNDEF,
+AC_DEFUN([MY_SUBST_UNDEF],
 [
     eval "$1=\"#undef $1\""
     AC_SUBST($1)
 ])
 
-AC_DEFUN(MY_SUBST,
+AC_DEFUN([MY_SUBST],
 [
     eval "$1=$2"
     AC_SUBST($1)
@@ -51,7 +51,7 @@ dnl Check whether compiler has a working ``bool'' type.
 dnl Will substitute @HAVE_BOOL@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(MY_CHECK_BOOL,
+AC_DEFUN([MY_CHECK_BOOL],
 [
     AC_MSG_CHECKING([for bool])
     AC_CACHE_VAL(test_cv_have_bool,
@@ -74,7 +74,7 @@ dnl Check whether C++ library has member ios::bin instead of ios::binary.
 dnl Will substitute @HAVE_IOS_BIN@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(MY_CHECK_IOS_BIN,
+AC_DEFUN([MY_CHECK_IOS_BIN],
 [
     AC_MSG_CHECKING([whether standard member ios::binary is available])
     AC_CACHE_VAL(test_cv_have_ios_binary,
@@ -99,7 +99,7 @@ dnl Check whether C++ library has member ios::bin instead of ios::binary.
 dnl Will substitute @HAVE_IOS_OPENMODE@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(MY_CHECK_IOS_OPENMODE,
+AC_DEFUN([MY_CHECK_IOS_OPENMODE],
 [
     AC_MSG_CHECKING([whether standard member ios::openmode is available])
     AC_CACHE_VAL(test_cv_have_ios_openmode,
@@ -125,7 +125,7 @@ dnl Check whether C++ environment provides the "nothrow allocator".
 dnl Will substitute @HAVE_EXCEPTIONS@ if test code compiles.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(MY_CHECK_EXCEPTIONS,
+AC_DEFUN([MY_CHECK_EXCEPTIONS],
 [
     AC_MSG_CHECKING([whether exceptions are available])
     AC_CACHE_VAL(test_cv_have_exceptions,
@@ -145,23 +145,6 @@ AC_DEFUN(MY_CHECK_EXCEPTIONS,
     fi
 ])
 
-
-dnl -------------------------------------------------------------------------
-dnl Pass C++ compiler options to libtool which supports C only.
-dnl -------------------------------------------------------------------------
-
-AC_DEFUN(MY_CONFIG_LIBTOOL,
-[
-    my_save_cc=$CC
-    my_save_cflags=$CFLAGS
-    CC=$CXX
-    CFLAGS=$CXXFLAGS
-    AM_PROG_LIBTOOL
-    CC=$my_save_cc
-    CFLAGS=$my_save_cflags
-])
-
-
 dnl -------------------------------------------------------------------------
 dnl Library compile test using libtool
 dnl $1 = CXXFLAGS
@@ -170,7 +153,7 @@ dnl $3 = include header
 dnl $4 = program to compile
 dnl $5 = variable name to store result
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_TRY_COMPILE,
+AC_DEFUN([MY_TRY_COMPILE],
 [
     my_save_cxxflags=$CXXFLAGS
     my_save_ldflags=$LDFLAGS
@@ -196,7 +179,7 @@ AC_DEFUN(MY_TRY_COMPILE,
 dnl -------------------------------------------------------------------------
 dnl Expand prefix variable and others relying on it
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_EXPAND_PREFIX,
+AC_DEFUN([MY_EXPAND_PREFIX],
 [
     # Expand prefix/exec_prefix
     my_save_prefix="$prefix"
@@ -219,7 +202,7 @@ dnl Returns path to program in variable PKG_CONFIG
 dnl Modifies PKG_CONFIG_PATH to contain default install prefix
 dnl $1 - Version
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_CONFIG_PKG_CONFIG,
+AC_DEFUN([MY_CONFIG_PKG_CONFIG],
 [
     dnl Find pkg-config
     AC_PATH_PROG(PKG_CONFIG, pkg-config, NO)
@@ -259,7 +242,7 @@ dnl $4 - library header
 dnl $5 - program body
 dnl [$6 - used header]
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_FIND_PKG_CONFIG_LIB,
+AC_DEFUN([MY_FIND_PKG_CONFIG_LIB],
 [
     dnl Check if pkg-config is configured
     if test "$PKG_CONFIG" = ""; then
@@ -375,7 +358,7 @@ dnl $4 - library header
 dnl $5 - program body
 dnl [$6 - used header]
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_FIND_LIB,
+AC_DEFUN([MY_FIND_LIB],
 [
     AC_MSG_CHECKING([for working $1 library and headers])
     
@@ -493,7 +476,7 @@ dnl $1 - library
 dnl $2 - library header
 dnl [$3 - used header]
 dnl -------------------------------------------------------------------------
-AC_DEFUN(MY_FIND_LIB_NO_CHECK,
+AC_DEFUN([MY_FIND_LIB_NO_CHECK],
 [
     AC_MSG_CHECKING([for $1 library and headers])
 
