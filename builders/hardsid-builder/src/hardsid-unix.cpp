@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/01/30 00:43:50  s_a_white
+ *  Added realtime delays even when there is no accesses to
+ *  the sid.  Prevents excessive CPU usage.
+ *
  *  Revision 1.3  2002/01/29 21:47:35  s_a_white
  *  Constant fixed interval delay added to prevent emulation going fast when
  *  there are no writes to the sid.
@@ -45,7 +49,7 @@
 #define HSID_IOCTL_NOFILTER  _IOW('S', 6, int)
 #define HSID_IOCTL_FLUSH     _IO ('S', 7)
 #define HSID_IOCTL_DELAY     _IOW('S', 8, int)
-#define HSID_IOCTL_READ      _IOWR('S', 9, int)
+#define HSID_IOCTL_READ      _IOWR('S', 9, int*)
 
 bool       HardSID::m_sidFree[16] = {0};
 const uint HardSID::voices = HARDSID_VOICES;
@@ -176,7 +180,7 @@ void HardSID::event (void)
     if (cycles)
     {
         uint delay = (uint) cycles;
-        ioctl(m_handle, HSID_IOCTL_DELAY, &delay);
+        ioctl(m_handle, HSID_IOCTL_DELAY, delay);
     }
     m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
