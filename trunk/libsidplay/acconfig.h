@@ -40,10 +40,6 @@
 */
 #undef HAVE_LOCAL_RESID
 #undef HAVE_USER_RESID
-
-/* Define if your processor stores words with the least significant
-   byte first (like Intel and VAX).  */
-#undef WORDS_LITTLEENDIAN
 @TOP@
 
 /* Define if the C++ compiler supports BOOL */
