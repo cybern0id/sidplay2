@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2001/09/17 19:02:38  s_a_white
+ *  Now uses fixed point maths for sample output and rtc.
+ *
  *  Revision 1.18  2001/09/01 11:15:46  s_a_white
  *  Fixes sidplay1 environment modes.
  *
@@ -89,6 +92,7 @@
 
 #include "mos6510/mos6510.h"
 #include "sid6526/sid6526.h"
+#include "nullsid.h"
 
 class Player: private C64Environment, c64env
 {
@@ -126,6 +130,7 @@ private:
     // Sid objects to use.
     c64sid  mos6581_1;
     c64sid  mos6581_2;
+    NullSID nullsid;
     c64xsid xsid;
     c64cia1 cia;
     c64cia2 cia2;
@@ -183,7 +188,7 @@ private:
 
         void clock (float64_t period)
         {   // Fixed point 25.7
-            m_period = (event_clock_t) (period * (float64_t) (1 << 7));
+            m_period = (event_clock_t) (period / 10.0 * (float64_t) (1 << 7));
             reset ();
         }   
     } rtc;
@@ -233,7 +238,7 @@ private:
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    void      sidEmulation   (sidbuilder *builder);
+    int       sidEmulation   (sidbuilder *builder);
     void      sidFilter      (bool enable);
     int       sidFilterDef   (const sid_filter_t *filter);
     void      sidModel       (sid2_model_t model);
