@@ -36,9 +36,11 @@ private:
 
 protected:
     uint8_t        regs[0x40];
-    uint8_t        icr, idr;
+    uint8_t        icr, idr, ctrl1;
     uint_least16_t yrasters, xrasters, raster_irq;
-    event_clock_t  raster_cycle, raster_cycles;
+    uint_least16_t raster_x, raster_y;
+    uint_least16_t first_dma_line, last_dma_line, y_scroll;
+    bool           bad_lines_enabled, bad_line;
 
     event_clock_t m_accessClk;
     EventContext &event_context;
@@ -64,6 +66,8 @@ protected:
 
     // Environment Interface
     virtual void interrupt (bool state) = 0;
+    virtual void busaccess (bool state) = 0;
+    virtual void addrctrl  (bool state) = 0;
 
 public:
     void    chip  (mos656x_model_t model);
