@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.46  2003/10/16 07:42:49  s_a_white
+ *  Allow redirection of debug information to file.
+ *
  *  Revision 1.45  2003/06/27 21:15:25  s_a_white
  *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
  *  support from the emulation.  Allow user to override whether they want this
@@ -184,6 +187,7 @@
 #include "sid6526/sid6526.h"
 #include "nullsid.h"
 #define  SID2_MAX_SIDS 2
+#define  SID2_TIME_BASE 10
 
 SIDPLAY2_NAMESPACE_START
 
@@ -318,8 +322,8 @@ private:
     bool   isKernal;
     bool   isBasic;
     bool   isIO;
-    inline void evalBankSelect (uint8_t data);
-    void   c64_initialise      (void);
+    void   evalBankSelect (uint8_t data);
+    void   c64_initialise (void);
     // ------------------------
 
 private:
@@ -360,10 +364,10 @@ private:
 
     // Environment Function entry Points
     void           envReset           (bool safe);
-    inline void    envReset           (void) { envReset (true); }
+    void           envReset           (void) { envReset (true); }
     inline uint8_t envReadMemByte     (uint_least16_t addr);
     inline void    envWriteMemByte    (uint_least16_t addr, uint8_t data);
-    inline bool    envCheckBankJump   (uint_least16_t addr);
+    bool           envCheckBankJump   (uint_least16_t addr);
     inline uint8_t envReadMemDataByte (uint_least16_t addr);
     inline void    envSleep           (void);
 
@@ -398,10 +402,10 @@ private:
     uint_least32_t stereoOut16MonoIn    (char *buffer);
     uint_least32_t stereoOut16StereoIn  (char *buffer);
 
-    void interruptIRQ (bool state);
-    void interruptNMI (void);
-    void interruptRST (void);
-    void signalAEC    (bool state) { cpu->aecSignal (state); }
+    inline void interruptIRQ (bool state);
+    inline void interruptNMI (void);
+    inline void interruptRST (void);
+    void signalAEC (bool state) { cpu->aecSignal (state); }
 
     // PSID driver
     int  psidDrvReloc   (SidTuneInfo &tuneInfo, sid2_info_t &info);
@@ -420,7 +424,7 @@ public:
     int            config       (const sid2_config_t &cfg);
     int            fastForward  (uint percent);
     int            load         (SidTune *tune);
-    uint_least8_t  mileage      (void) const { return m_mileage + time(); }
+    uint_least32_t mileage      (void) const { return m_mileage + time(); }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
     sid2_player_t  state        (void) const { return m_playerState; }
@@ -431,7 +435,23 @@ public:
     const char    *error        (void) const { return m_errorString; }
 };
 
-inline void Player::envSleep (void)
+
+uint8_t Player::envReadMemByte (uint_least16_t addr)
+{   // Read from plain only to prevent execution of rom code
+    return (this->*(m_readMemByte)) (addr);
+}
+
+void Player::envWriteMemByte (uint_least16_t addr, uint8_t data)
+{   // Writes must be passed to env version.
+    (this->*(m_writeMemByte)) (addr, data);
+}
+
+uint8_t Player::envReadMemDataByte (uint_least16_t addr)
+{   // Read from plain only to prevent execution of rom code
+    return (this->*(m_readMemDataByte)) (addr);
+}
+
+void Player::envSleep (void)
 {
     if (m_info.environment != sid2_envR)
     {   // Start the sample sequence
@@ -440,7 +460,7 @@ inline void Player::envSleep (void)
     }
 }
 
-inline void Player::interruptIRQ (bool state)
+void Player::interruptIRQ (bool state)
 {
     if (state)
     {
@@ -453,12 +473,12 @@ inline void Player::interruptIRQ (bool state)
         cpu->clearIRQ ();
 }
 
-inline void Player::interruptNMI ()
+void Player::interruptNMI ()
 {
     cpu->triggerNMI ();
 }
 
-inline void Player::interruptRST ()
+void Player::interruptRST ()
 {
     stop ();
 }
