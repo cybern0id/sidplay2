@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.6  2001/11/16 19:23:18  s_a_white
  *  Fixed sign of buf for reloc65 call.
  *
@@ -95,14 +98,15 @@ int Player::psidDrvInstall ()
         {
         case sid2_envBS:
             memcpy (&m_rom[0xfffa], &m_ram[0x0318],   2);
-            memcpy (&m_rom[0xfffe], &reloc_driver[2], 2);
-        case sid2_envR:
-            memcpy (&m_rom[0xfffc], &reloc_driver[0], 2);
-            break;
+            memcpy (&m_rom[0xfffc], &reloc_driver[0], 4);
         case sid2_envTP:
         case sid2_envPS:
             memcpy (&m_ram[0xfffa], &m_ram[0x0318],   2);
             memcpy (&m_ram[0xfffc], &reloc_driver[0], 4);
+            break;
+        case sid2_envR:
+            memcpy (&m_rom[0xfffc], &reloc_driver[0], 2);
+            break;
         }
 
         // Support older modes ability to ignore the IRQ
@@ -111,7 +115,7 @@ int Player::psidDrvInstall ()
         {   // Get the addr of the sidplay vector
             uint_least16_t addr = endian_little16(&reloc_driver[2]);
             // Get the brkjob vector.  Add 3 to get the irqjob vector
-            uint_least16_t vec  = endian_little16(&reloc_driver[9]) + 3;
+            uint_least16_t vec  = endian_little16(&reloc_driver[9]) + 4;
             endian_little16 (&m_ram[addr + 1], vec);
         }
     }
