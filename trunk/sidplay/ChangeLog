@@ -1,3 +1,9 @@
+Release Notes 2.0.7-2:
+
+Fixed -w[name] option to override default wav filename.  Now files are stored
+into the current directory you happen to be in.
+
+
 Release Notes 2.0.7:
 
 This application has now been split, with the other part forming a new library

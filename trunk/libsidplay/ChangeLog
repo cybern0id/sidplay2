@@ -1,3 +1,22 @@
+Release Notes 2.0.7-3:
+
+Linux RPM fixes
+
+Changes:
+
+Fixed SidTune ('/' directory seperators are allowed on Microsoft platforms with
+programs that use standard c/c++ libraries).
+
+Songs with there own interrupt handlers are no longer assumed to initialise
+the VIC should the require it.  Songs that do install there own handlers MUST
+acknowledge the interrupt source else the song will play too fast.
+
+
+Release Notes 2.0.7-2:
+
+Linux RPM fixes
+
+
 Release Notes 2.0.7:
 
 This version sees a fully compliant C64 cycle based emulation.  The emulation
