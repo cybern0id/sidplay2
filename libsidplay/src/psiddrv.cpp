@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2004/03/06 21:10:02  s_a_white
+ *  Power on delay should be read from the local info structure, not the global one.
+ *
  *  Revision 1.35  2004/03/06 16:25:29  s_a_white
  *  Add support for selecting the subtune on basic programs.
  *
@@ -270,7 +273,7 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
 
         addr++;
         endian_little16 (addr, tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC ?
-                         0xa7ae : tuneInfo.initAddr);
+                         0xbf55 /*Was 0xa7ae, see above*/ : tuneInfo.initAddr);
         addr += 2;
         endian_little16 (addr, tuneInfo.playAddr);
         addr += 2;
