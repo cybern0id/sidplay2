@@ -75,7 +75,7 @@ LIB32=link.exe -lib
 
 # Name "resid_builder - Win32 Release"
 # Name "resid_builder - Win32 Debug"
-# Begin Group "ReSID 0.12"
+# Begin Group "ReSID 0.13"
 
 # PROP Default_Filter ""
 # Begin Source File
