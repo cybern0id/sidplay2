@@ -181,4 +181,3 @@ void MOS656X::rasterEvent (void)
     trigger (MOS656X_INTERRUPT_RST);
     event_context.schedule (&event_raster, raster_cycles);
 }
-
