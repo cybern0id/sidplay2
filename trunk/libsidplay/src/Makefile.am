@@ -13,7 +13,7 @@ psiddrv.cpp mixer.cpp \
 reloc65.c sidplay2.cpp \
 nullsid.h
 
-libsidplay2_la_LIBADD  = ./c64/libc64.la \
+libsidplay2_la_LIBADD  = \
 ./mos6510/libmos6510.la ./mos6526/libmos6526.la \
 ./mos656x/libmos656x.la ./xsid/libxsid.la \
 ./sidtune/libsidtune.la ./sid6526/libsid6526.la
