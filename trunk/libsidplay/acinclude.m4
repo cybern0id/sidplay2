@@ -20,76 +20,71 @@ AC_DEFUN(SID_SUBST,
 
 dnl -------------------------------------------------------------------------
 dnl Check whether compiler has a working ``bool'' type.
-dnl Will substitute @SID_HAVE_BOOL@ with either a def or undef line.
+dnl Will substitute @HAVE_BOOL@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(SID_CHECK_BOOL,
+AC_DEFUN(CHECK_BOOL,
 [
     AC_MSG_CHECKING([for bool])
-    AC_CACHE_VAL(sid_cv_have_bool,
+    AC_CACHE_VAL(test_cv_have_bool,
     [
         AC_TRY_COMPILE(
             [],
             [bool aBool = true;],
-            [sid_cv_have_bool=yes],
-            [sid_cv_have_bool=no]
+            [test_cv_have_bool=yes],
+            [test_cv_have_bool=no]
         )
     ])
-    AC_MSG_RESULT($sid_cv_have_bool)
-    if test "$sid_cv_have_bool" = yes; then
-        SID_SUBST_DEF(SID_HAVE_BOOL)
-    else
-        SID_SUBST_UNDEF(SID_HAVE_BOOL)
+    if test "$test_cv_have_bool" = yes; then
+        test_cv_have_bool=yes
+        AC_DEFINE(HAVE_BOOL,)
     fi
+    AC_MSG_RESULT($test_cv_have_bool)
 ])
 
 dnl -------------------------------------------------------------------------
 dnl Check whether C++ library has member ios::bin instead of ios::binary.
-dnl Will substitute @SID_HAVE_IOS_BIN@ with either a def or undef line.
+dnl Will substitute @HAVE_IOS_BIN@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(SID_CHECK_IOS_BIN,
+AC_DEFUN(CHECK_IOS_BIN,
 [
     AC_MSG_CHECKING(whether standard member ios::binary is available)
-    AC_CACHE_VAL(sid_cv_have_ios_binary,
+    AC_CACHE_VAL(test_cv_have_ios_binary,
     [
         AC_TRY_COMPILE(
             [#include <fstream.h>],
 		    [ifstream myTest(ios::in|ios::binary);],
-		    [sid_cv_have_ios_binary=yes],
-		    [sid_cv_have_ios_binary=no]
+		    [test_cv_have_ios_binary=yes],
+		    [test_cv_have_ios_binary=no]
 	    )
     ])
-    AC_MSG_RESULT($sid_cv_have_ios_binary)
-    if test "$sid_cv_have_ios_binary" = no; then
-        SID_SUBST_DEF(SID_HAVE_IOS_BIN)
-    else
-        SID_SUBST_UNDEF(SID_HAVE_IOS_BIN)
+    AC_MSG_RESULT($test_cv_have_ios_binary)
+    if test "$test_cv_have_ios_binary" = yes; then
+        AC_DEFINE(HAVE_IOS_BIN,)
     fi
 ])
 
 dnl -------------------------------------------------------------------------
 dnl Check whether C++ environment provides the "nothrow allocator".
-dnl Will substitute @SID_HAVE_EXCEPTIONS@ if test code compiles.
+dnl Will substitute @HAVE_EXCEPTIONS@ if test code compiles.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(SID_CHECK_EXCEPTIONS,
+AC_DEFUN(CHECK_EXCEPTIONS,
 [
     AC_MSG_CHECKING([whether nothrow allocator is available])
-    AC_CACHE_VAL(sid_cv_have_exceptions,
+    AC_CACHE_VAL(test_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
             [#include <new>],
 		    [char* buf = new(nothrow) char[1024];],
-		    [sid_cv_have_exceptions=yes],
-		    [sid_cv_have_exceptions=no]
+		    [test_cv_have_exceptions=yes],
+		    [test_cv_have_exceptions=no]
 	    )
     ])
-    AC_MSG_RESULT($sid_cv_have_exceptions)
-    if test "$sid_cv_have_exceptions" = yes; then
-        SID_SUBST_DEF(SID_HAVE_EXCEPTIONS)
-    else
-        SID_SUBST_UNDEF(SID_HAVE_EXCEPTIONS)
+    AC_MSG_RESULT($test_cv_have_exceptions)
+    if test "$test_cv_have_exceptions" = yes; then
+        AC_DEFINE(HAVE_EXCEPTIONS,)
     fi
 ])
 
@@ -234,15 +229,10 @@ Please check your installation!
 
     if test "$sid_resid_installed" = no; then
         if test "$sid_resid_local" = yes; then
-            SID_SUBST_DEF(SID_HAVE_LOCAL_RESID)
-            SID_SUBST_UNDEF(SID_HAVE_USER_RESID)
+            AC_DEFINE(HAVE_LOCAL_RESID,)
         else
-            SID_SUBST_UNDEF(SID_HAVE_LOCAL_RESID)
-            SID_SUBST_DEF(SID_HAVE_USER_RESID)
+            AC_DEFINE(HAVE_USER_RESID,)
         fi
-    else
-        SID_SUBST_UNDEF(SID_HAVE_LOCAL_RESID)
-        SID_SUBST_UNDEF(SID_HAVE_USER_RESID)
     fi
 ])
 
@@ -300,14 +290,14 @@ dnl -------------------------------------------------------------------------
 dnl Pass C++ compiler options to libtool which supports C only.
 dnl -------------------------------------------------------------------------
 
-AC_DEFUN(SID_PROG_LIBTOOL,
+AC_DEFUN(CONFIG_LIBTOOL,
 [
-    sid_save_cc=$CC
-    sid_save_cflags=$CFLAGS
+    save_cc=$CC
+    save_cflags=$CFLAGS
     CC=$CXX
     CFLAGS=$CXXFLAGS
     AM_PROG_LIBTOOL
-    CC=$sid_save_cc
-    CFLAGS=$sid_save_cflags
+    CC=$save_cc
+    CFLAGS=$save_cflags
 ])
     

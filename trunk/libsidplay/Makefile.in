@@ -64,10 +64,12 @@ AUDIODRV_LDADD = @AUDIODRV_LDADD@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
+LD = @LD@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
@@ -77,22 +79,18 @@ VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src include 
+SUBDIRS = include unix src 
 
-EXTRA_DIST = scripts win libsidplay.lsm Makefile.dist sidconfig.h.in
+EXTRA_DIST = win Makefile.dist
 
-sidplayincludedir = $(includedir)/sidplay2
-
-sidplayinclude_HEADERS = sidconfig.h
+sidplayincludedir = $(includedir)/sidplay
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
-CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =  sidconfig.h
-HEADERS =  $(sidplayinclude_HEADERS)
-
-DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
-Makefile.am Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 \
-config.h.in configure configure.in sidconfig.h.in
+mkinstalldirs = $(SHELL) $(top_srcdir)/unix/scripts/mkinstalldirs
+CONFIG_HEADER = ./unix/config.h
+CONFIG_CLEAN_FILES = 
+DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
+Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 configure \
+configure.in unix/config.h.in unix/stamp-h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -102,9 +100,9 @@ GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign --include-deps Makefile
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -116,50 +114,33 @@ config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
-config.h: stamp-h
+unix/config.h: unix/stamp-h
 	@if test ! -f $@; then \
-		rm -f stamp-h; \
-		$(MAKE) stamp-h; \
+		rm -f unix/stamp-h; \
+		$(MAKE) unix/stamp-h; \
 	else :; fi
-stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
+unix/stamp-h: $(srcdir)/unix/config.h.in $(top_builddir)/config.status
 	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=config.h \
+	  && CONFIG_FILES= CONFIG_HEADERS=unix/config.h \
 	     $(SHELL) ./config.status
-	@echo timestamp > stamp-h 2> /dev/null
-$(srcdir)/config.h.in: $(srcdir)/stamp-h.in
+	@echo timestamp > unix/stamp-h 2> /dev/null
+$(srcdir)/unix/config.h.in: $(srcdir)/unix/stamp-h.in
 	@if test ! -f $@; then \
-		rm -f $(srcdir)/stamp-h.in; \
-		$(MAKE) $(srcdir)/stamp-h.in; \
+		rm -f $(srcdir)/unix/stamp-h.in; \
+		$(MAKE) $(srcdir)/unix/stamp-h.in; \
 	else :; fi
-$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
+$(srcdir)/unix/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
 	cd $(top_srcdir) && $(AUTOHEADER)
-	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
+	@echo timestamp > $(srcdir)/unix/stamp-h.in 2> /dev/null
 
 mostlyclean-hdr:
 
 clean-hdr:
 
 distclean-hdr:
-	-rm -f config.h
+	-rm -f unix/config.h
 
 maintainer-clean-hdr:
-sidconfig.h: $(top_builddir)/config.status sidconfig.h.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-install-sidplayincludeHEADERS: $(sidplayinclude_HEADERS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(sidplayincludedir)
-	@list='$(sidplayinclude_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
-	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(sidplayincludedir)/$$p"; \
-	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(sidplayincludedir)/$$p; \
-	done
-
-uninstall-sidplayincludeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	list='$(sidplayinclude_HEADERS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(sidplayincludedir)/$$p; \
-	done
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -226,7 +207,7 @@ ID: $(HEADERS) $(SOURCES) $(LISP)
 	here=`pwd` && cd $(srcdir) \
 	  && mkid -f$$here/ID $$unique $(LISP)
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LISP)
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	tags=; \
 	here=`pwd`; \
 	list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -238,8 +219,8 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LI
 	unique=`for i in $$list; do echo $$i; done | \
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
-	test -z "$(ETAGS_ARGS)config.h.in$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $$unique $(LISP) -o $$here/TAGS)
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -288,11 +269,6 @@ distdir: $(DISTFILES)
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
-	here=`cd $(top_builddir) && pwd`; \
-	top_distdir=`cd $(distdir) && pwd`; \
-	distdir=`cd $(distdir) && pwd`; \
-	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -322,27 +298,23 @@ check-am: all-am
 check: check-recursive
 installcheck-am:
 installcheck: installcheck-recursive
-all-recursive-am: config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-recursive
-
 install-exec-am:
 install-exec: install-exec-recursive
 
-install-data-am: install-sidplayincludeHEADERS
+install-data-am:
 install-data: install-data-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-recursive
-uninstall-am: uninstall-sidplayincludeHEADERS
+uninstall-am:
 uninstall: uninstall-recursive
-all-am: Makefile $(HEADERS) config.h
-all-redirect: all-recursive-am
+all-am: Makefile
+all-redirect: all-recursive
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs: installdirs-recursive
 installdirs-am:
-	$(mkinstalldirs)  $(DESTDIR)$(sidplayincludedir)
 
 
 mostlyclean-generic:
@@ -377,16 +349,15 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f config.status
 
 .PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-uninstall-sidplayincludeHEADERS install-sidplayincludeHEADERS \
 install-data-recursive uninstall-data-recursive install-exec-recursive \
 uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
 all-recursive check-recursive installcheck-recursive info-recursive \
 dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
 maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
 distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
-dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
-install-exec-am install-exec install-data-am install-data install-am \
-install uninstall-am uninstall all-redirect all-am all installdirs-am \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs-am \
 installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
