@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2003/05/28 20:09:35  s_a_white
+ *  Support the psiddrv overlapping unused parts of the tunes load image.
+ *
  *  Revision 1.27  2003/02/20 19:02:21  s_a_white
  *  sid2crc support.
  *
@@ -128,8 +131,9 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
     int startlp = tuneInfo.loadAddr >> 8;
     int endlp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
-    if (info.environment != sid2_envR)
-    {   // Sidplay1 modes require no psid driver
+    if ((info.environment != sid2_envR) ||
+        (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC))
+    {   // Sidplay1/BASIC modes require no psid driver
         info.driverAddr   = 0;
         info.driverLength = 0;
         info.powerOnDelay = 0;
