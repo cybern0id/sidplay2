@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/09/09 22:49:06  s_a_white
+ *  Proper idr clear if interrupt was only internally pending.
+ *
  *  Revision 1.5  2002/07/20 08:34:52  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -79,8 +82,8 @@ MOS6526::MOS6526 (EventContext *context)
 
 void MOS6526::reset (void)
 {
-    ta  = ta_latch = 0xffff;
-    tb  = tb_latch = 0xffff;
+    ta  = ta_latch = ta_prescaler = 0xffff;
+    tb  = tb_latch = tb_prescaler = 0xffff;
     cra = crb = 0;
     // Clear off any IRQs
     trigger (0);
@@ -141,16 +144,18 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
     switch (addr)
     {
-    case 0x4: endian_16lo8 (ta_latch, data); break;
+    case 0x4: endian_16lo8 (ta_prescaler, data); break;
     case 0x5:
-        endian_16hi8 (ta_latch, data);
+        endian_16hi8 (ta_prescaler, data);
+        ta_latch = ta_prescaler;
         if (!(cra & 0x01)) // Reload timer if stopped
             ta = ta_latch;
     break;
 
-    case 0x6: endian_16lo8 (tb_latch, data); break;
+    case 0x6: endian_16lo8 (tb_prescaler, data); break;
     case 0x7:
-        endian_16hi8 (tb_latch, data);
+        endian_16hi8 (tb_prescaler, data);
+        tb_latch = tb_prescaler;
         if (!(crb & 0x01)) // Reload timer if stopped
             tb = tb_latch;
     break;
