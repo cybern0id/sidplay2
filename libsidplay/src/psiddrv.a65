@@ -19,10 +19,13 @@
  *
  * Build with:
  * xa -R -G psiddrv.a65 -o psiddrv.o65
- * od -v -An -w8 -tx1 psiddrv.o65 | sed 's/\w\w/0x&,/g' > psiddrv.bin
+ * od -v -An -w8 -tx1 psiddrv.o65 | sed -re 's/[[:alnum:]]+/0x&,/g' > psiddrv.bin
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2004/01/08 09:12:53  s_a_white
+ *  Support the TOD frequency divider.
+ *
  *  Revision 1.19  2003/05/28 22:21:32  s_a_white
  *  Restored irqret to correct position as speed problems were the result
  *  of sidtune.
