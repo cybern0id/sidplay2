@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/03/27 19:35:33  s_a_white
+ *  Moved default record length for wav files from main.cpp to IniConfig.cpp.
+ *
  *  Revision 1.10  2001/03/27 19:00:49  s_a_white
  *  Default record and play lengths can now be set in the sidplay2.ini file.
  *
@@ -137,6 +140,7 @@ public:
 
 
 // Function prototypes
+#define SAFE_DELETE(x) if (x) {delete x; x = 0;}
 static void displayError  (char *arg0, uint num);
 static void displaySyntax (char *arg0);
 static void sighandler    (int signum);
@@ -153,6 +157,7 @@ int main(int argc, char *argv[])
     sid2_env_t      playerMode    = sid2_envR;
     bool            wavOutput     = false;
     uint            sidFile       = 0;
+	char           *wavName       = 0;
     void           *nextBuffer    = NULL;
     uint_least32_t  runtime       = 0;
     bool            timeValid     = false;
@@ -457,6 +462,12 @@ int main(int argc, char *argv[])
 
                 case 'w':
                     wavOutput = true;
+					if (argv[i][x] != '\0')
+					{
+						wavName = &argv[i][x];
+	                    while (argv[i][x] != '\0')
+		                    x++;
+					}
                 break;
 
                 default:
@@ -591,42 +602,47 @@ main_restart:
 
     if (wavOutput)
     {
-        // Generate a name for the wav file
-        WavFile *wavFile = 0;
-        char    *wavName = 0;
-        size_t  length, i;
+        WavFile *wavFile    = 0;
+		bool     deleteName = false;
 
-        length = strlen (argv[sidFile]);
-        i      = length;
-        while (i > 0)
-        {
-            if (argv[sidFile][--i] == '.')
-                break;
-        }
-        if (!i) i = length;
+		if (!wavName)
+		{
+			// Generate a name for the wav file
+			size_t  length, i;
+
+			length = strlen (tuneInfo.dataFileName);
+			i      = length;
+			while (i > 0)
+			{
+				if (tuneInfo.dataFileName[--i] == '.')
+					break;
+			}
+			if (!i) i = length;
         
-        // Rev 1.12 (saw - Create wav filename
 #ifdef HAVE_EXCEPTIONS
-        wavName = new(nothrow) char[i + 10];
+	        wavName = new(nothrow) char[i + 10];
 #else
-        wavName = new char[i + 10];
+	        wavName = new char[i + 10];
 #endif
-        if (!wavName)
-        {
-            displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
-            goto main_error;
-        }
+			if (!wavName)
+			{
+				displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
+				goto main_error;
+			}
 
-        strcpy (wavName, argv[sidFile]);
-        // Rev 1.16 (saw) - BugFix to prevent extension ".sid.wav"
-        wavName[i] = '\0';
+            deleteName = true;
+			strcpy (wavName, tuneInfo.dataFileName);
+			// Prevent extension ".sid.wav"
+			wavName[i] = '\0';
 
-        // Rev 1.12 (saw) - Modified to change wav name based on subtune
-        // Now we have a name
-        if (tuneInfo.songs > 1)
-            sprintf (&wavName[i], "[%u]", tuneInfo.currentSong);
-        strcat (&wavName[i], ".wav");
-        // lets create the wav object
+			// Rev 1.12 (saw) - Modified to change wav name based on subtune
+			// Now we have a name
+			if (tuneInfo.songs > 1)
+				sprintf (&wavName[i], "[%u]", tuneInfo.currentSong);
+			strcat (&wavName[i], ".wav");
+		}
+
+		// lets create the wav object
 #ifdef HAVE_EXCEPTIONS
         wavFile = new(nothrow) WavFile;
 #else
@@ -635,14 +651,16 @@ main_restart:
 
         if (!wavFile)
         {
-            delete wavName;
+			if (deleteName)
+				SAFE_DELETE (wavName);
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
 
         player.audioDrv = wavFile;
         nextBuffer = (char *) wavFile->open (audioCfg, wavName, true);
-        delete wavName;
+		if (deleteName)
+			SAFE_DELETE (wavName);
 
         if (!runtime)
             runtime = sidplay2.recordLength;
@@ -1054,8 +1072,7 @@ void displaySyntax (char* arg0)
         << " -vf          force song speed by preventing speed fixing" << endl
         << " -v<p|n>      set VIC PAL/NTSC clock speed (default: defined by song)" << endl
 
-        << " -w           create wav file (default: <datafile>.wav)" << endl
-//        << " -w[name]     explicitly defines wav output name" << endl
+        << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl
         << endl
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
