@@ -1096,7 +1096,15 @@ bool SidTune::resolveAddrs (const uint_least8_t *c64data)
         info.c64dataLen -= 2;
     }
 
-    if ( info.initAddr == 0 )
+    if ( info.compatibility == SIDTUNE_COMPATIBILITY_BASIC )
+    {
+        if ( info.initAddr != 0 )
+        {
+            info.statusString = txt_badAddr;
+            return false;
+        }
+    }
+    else if ( info.initAddr == 0 )
         info.initAddr = info.loadAddr;
     return true;
 }
@@ -1106,14 +1114,6 @@ bool SidTune::checkCompatibility (void)
     switch ( info.compatibility )
     {
     case SIDTUNE_COMPATIBILITY_R64:
-    case SIDTUNE_COMPATIBILITY_BASIC:
-        // Check tune is loadable on a real C64
-        if ( info.loadAddr < SIDTUNE_R64_MIN_LOAD_ADDR )
-        {
-            info.statusString = txt_badAddr;
-            return false;
-        }
-
         // Check valid init address
         switch (info.initAddr >> 12)
         {
@@ -1132,6 +1132,15 @@ bool SidTune::checkCompatibility (void)
                 return false;
             }
         }
+        // deliberate run on
+
+    case SIDTUNE_COMPATIBILITY_BASIC:
+        // Check tune is loadable on a real C64
+        if ( info.loadAddr < SIDTUNE_R64_MIN_LOAD_ADDR )
+        {
+            info.statusString = txt_badAddr;
+            return false;
+        }    
         break;
     }
     return true;
