@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.2  2001/01/18 18:36:16  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -79,7 +82,7 @@ void Audio_SunOS::outOfOrder()
     _audiofd     = (-1);
 }
 
-void *Audio_SunOS::open (AudioConfig& cfg)
+void *Audio_SunOS::open (AudioConfig& cfg, const char *)
 {
     if ((_audiofd =::open (AUDIODEVICE,O_WRONLY,0)) == (-1))
     {
