@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.47  2004/04/23 01:34:59  s_a_white
+ *  CPU timing corrected.
+ *
  *  Revision 1.46  2004/04/23 01:04:26  s_a_white
  *  Overlap FetchOpcode with last cycle of previous instruction rather than
  *  next cycle of this instruction.  Although results are almost indentical there
@@ -166,7 +169,15 @@
  *
  ***************************************************************************/
 
-const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
+#include "config.h"
+
+#ifdef HAVE_EXCEPTIONS
+#   include <new>
+#endif
+
+//#define PC64_TESTSUITE
+#ifdef PC64_TESTSUITE
+static const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 {
    0x0, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0xd, 0x1, 0x1,
    0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
@@ -187,15 +198,10 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
   0x20,0x7c,0x23,0x2d,0x2d,0x7c,0x23,0x7c,0x23,0x2f,0x7c,0x7c,0x2f,0x5c,0x5c,0x2d,
   0x2f,0x2d,0x2d,0x7c,0x7c,0x7c,0x7c,0x2d,0x2d,0x2d,0x2f,0x5c,0x5c,0x2f,0x2f,0x23
 };
+static char filetmp[0x100];
+static int  filepos = 0;
+#endif // PC64_TESTSUITE
 
-#include "config.h"
-
-#ifdef HAVE_EXCEPTIONS
-#   include <new>
-#endif
-
-char filetmp[0x100];
-int  filepos = 0;
 
 //-------------------------------------------------------------------------//
 //-------------------------------------------------------------------------//
@@ -819,8 +825,11 @@ void MOS6510::cli_instr (void)
 void MOS6510::jmp_instr (void)
 {
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+
+#ifdef PC64_TESTSUITE
     // Hack - Output character to screen
-    if (Register_ProgramCounter == 0xffd2)
+    unsigned short pc = endian_32lo16 (Register_ProgramCounter);
+    if (pc == 0xffd2)
     {
         char ch = _sidtune_CHRtab[Register_Accumulator];
         switch (ch)
@@ -842,11 +851,12 @@ void MOS6510::jmp_instr (void)
         }
     }
 
-    if (Register_ProgramCounter == 0xe16f)
+    if (pc == 0xe16f)
     {
         filetmp[filepos] = '\0';
         envLoadFile (filetmp);
     }
+#endif // PC64_TESTSUITE
 
     clock ();
 }
