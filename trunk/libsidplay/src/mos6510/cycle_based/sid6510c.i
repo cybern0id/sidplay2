@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2002/02/04 23:53:23  s_a_white
+ *  Improved compatibilty of older sidplay1 modes. Fixed BRK to work like sidplay1
+ *  only when stack is 0xff in real mode for better compatibility with C64.
+ *
  *  Revision 1.15  2002/01/28 19:32:16  s_a_white
  *  PSID sample improvements.
  *
@@ -211,7 +215,7 @@ void SID6510::sid_brk1 (void)
     // which will sleep the CPU.
     {
         uint8_t prg[] = {BRKn, TXSn, 0xFF, LDXb};
-        for (int i = 0; i < sizeof (prg); i++)
+        for (size_t i = 0; i < sizeof (prg); i++)
         {
             Register_Accumulator = prg[i];
             pha_instr ();
