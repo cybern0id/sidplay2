@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2002/01/28 22:35:20  s_a_white
+ *  Initial Release.
+ *
  *
  ***************************************************************************/
 
@@ -34,7 +37,8 @@
 #define HSID_IOCTL_MUTE      _IOW('S', 5, int)
 #define HSID_IOCTL_NOFILTER  _IOW('S', 6, int)
 #define HSID_IOCTL_FLUSH     _IO ('S', 7)
-
+#define HSID_IOCTL_DELAY     _IOW('S', 8, int)
+#define HSID_IOCTL_READ      _IOWR('S', 9, int)
 
 bool       HardSID::m_sidFree[16] = {0};
 const uint HardSID::voices = HARDSID_VOICES;
@@ -100,22 +104,28 @@ void HardSID::reset (void)
 
 uint8_t HardSID::read (const uint_least8_t addr)
 {
-    uint_least8_t value;
-
-//    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
-//    m_accessClk += cycles;
-
     if (!m_handle)
         return 0;
 
-    lseek  (m_handle, addr, 0);
-    ::read (m_handle, &value, 1);
-    return (uint8_t) value;
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    m_accessClk += cycles;
+
+    while ( cycles > 0xffff )
+    {
+        /* delay */
+        ioctl(m_handle, HSID_IOCTL_DELAY, 0xffff);
+        cycles -= 0xffff;
+    }
+
+    uint packet = (( cycles & 0xffff ) << 16 ) | (( addr & 0x1f ) << 8 );
+    ioctl(m_handle, HSID_IOCTL_READ, &packet);
+
+    cycles = 0;
+    return (uint8_t) (packet & 0xff);
 }
 
 void HardSID::write (const uint_least8_t addr, const uint8_t data)
 {
-    uint packet;
     if (!m_handle)
         return;
 
@@ -124,13 +134,13 @@ void HardSID::write (const uint_least8_t addr, const uint8_t data)
 
     while ( cycles > 0xffff )
     {
-        /* Add dummy packets */
-        packet = (( 0xffff << 16 ) | ( 0x1f << 8 ) | 0);
-        ::write (m_handle, &packet, sizeof (packet));
+        /* delay */
+        ioctl(m_handle, HSID_IOCTL_DELAY, 0xffff);
         cycles -= 0xffff;
     }
 
-    packet = (( cycles & 0xffff ) << 16 ) | (( addr & 0x1f )<< 8 ) | (data & 0xff);
+    uint packet = (( cycles & 0xffff ) << 16 ) | (( addr & 0x1f ) << 8 )
+        | (data & 0xff);
     cycles = 0;
     ::write (m_handle, &packet, sizeof (packet));
 }
