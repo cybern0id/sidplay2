@@ -16,7 +16,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-   $Id: in_sid2.cpp,v 1.1 2004-02-27 16:30:29 vividos Exp $
+   $Id: in_sid2.cpp,v 1.2 2004-06-01 20:13:27 vividos Exp $
 
 */
 /* \file in_sid2.cpp
@@ -316,7 +316,7 @@ DWORD WINAPI __stdcall DecodeThread(void* b)
 In_Module mod =
 {
    IN_VER,
-   "Winamp2 Sid File Player (based on "PACKAGE" "VERSION")",
+   "Winamp Sid File Player (based on "PACKAGE" "VERSION")",
 
    0,  // hMainWindow
    0,  // hDllInstance
