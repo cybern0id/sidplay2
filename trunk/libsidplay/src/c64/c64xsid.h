@@ -39,7 +39,7 @@ private:
 
 public:
     c64xsid (c64env *env, sidemu *sid)
-    :XSID(&env->eventContext),
+    :XSID(&env->context ()),
      m_env(*env), m_sid(sid), m_gain(100)
     {;}
     
@@ -70,8 +70,6 @@ public:
     int_least32_t output (const uint_least8_t bits)
     {   return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100); }
 
-    void filter (const bool enable)        {m_sid->filter (enable);}
-    void model  (const sid2_model_t model) {m_sid->model  (model);}
     void voice  (const uint_least8_t num, const uint_least8_t vol,
         const bool mute)
     {
@@ -92,7 +90,5 @@ public:
 
     // Xsid specific
     void emulation (sidemu *sid) {m_sid = sid;}
+    sidemu *emulation (void) { return m_sid; }
 };
-
-
-

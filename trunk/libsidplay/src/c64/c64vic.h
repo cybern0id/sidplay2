@@ -36,7 +36,7 @@ protected:
 
 public:
     c64vic (c64env *env)
-    :MOS656X(&(env->eventContext)),
+    :MOS656X(&(env->context ())),
      m_env(*env) {}
     const char *error (void) {return "";}
 };

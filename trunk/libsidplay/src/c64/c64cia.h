@@ -40,7 +40,7 @@ protected:
 
 public:
     c64cia1 (c64env *env)
-    :MOS6526(&(env->eventContext)),
+    :MOS6526(&(env->context ())),
      m_env(*env) {}
     const char *error (void) {return "";}
 };
@@ -62,7 +62,7 @@ protected:
 
 public:
     c64cia2 (c64env *env)
-    :MOS6526(&(env->eventContext)),
+    :MOS6526(&(env->context ())),
      m_env(*env) {}
     const char *error (void) {return "";}
 };
