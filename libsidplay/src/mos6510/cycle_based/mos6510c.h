@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/07/14 13:15:30  s_a_white
+ *  Accumulator is now unsigned, which improves code readability.  Emulation
+ *  tested with testsuite 2.15.  Various instructions required modification.
+ *
  *  Revision 1.7  2001/03/28 21:17:34  s_a_white
  *  Added support for proper RMW instructions.
  *
@@ -69,9 +73,9 @@ protected:
     uint_least16_t instrStartPC;
     uint_least8_t  instrOpcode;
     void (MOS6510::**procCycle) (void);
-    uint_least8_t   lastAddrCycle;
-    uint_least8_t   lastCycle;
-    uint_least8_t   cycleCount;
+    int_least8_t   lastAddrCycle;
+    int_least8_t   lastCycle;
+    int_least8_t   cycleCount;
 
     // Pointers to the current instruction cycle
     uint_least16_t Cycle_EffectiveAddress;
