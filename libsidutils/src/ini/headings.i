@@ -41,8 +41,6 @@ struct section_tag *__ini_addHeading (ini_t *ini, char *heading)
 
     // Format heading for storing
     strtrim (heading);
-    if (!*heading)
-        return NULL;
 
     /* Create a backup of the file we are about to edit */
     if (ini->write == heading)
@@ -80,20 +78,23 @@ struct section_tag *__ini_faddHeading (ini_t *ini, FILE *file, long pos, size_t 
     struct section_tag *section;
     char  *str;
 
-    if (!length)
-        return NULL;
-
-    length++;
-    str = (char *) malloc (sizeof(char) * length);
-    assert  (str);
-    fseek   (file, pos, SEEK_SET);
-    fgets   (str, (int) length, file);
-    strtrim (str);
+    if (length)
+    {
+        length++;
+        str = (char *) malloc (sizeof(char) * length);
+        assert  (str);
+        fseek   (file, pos, SEEK_SET);
+        fgets   (str, (int) length, file);
+        strtrim (str);
+    }
+    else
+        str = "";
 
     section = __ini_createHeading (ini, str);
     // Make sure heading was created
-    if (!section)
-    {   free (str);
+    if (!(section || length))
+    {
+        free (str);
         return NULL;
     }
 
@@ -116,9 +117,6 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
 {
     struct section_tag *pNew;
 
-    if (!*heading)
-        return NULL;
-
     pNew  = __ini_locateHeading (ini, heading);
     // Check to see if heading already exists
     if (!pNew)
@@ -128,14 +126,26 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
         memset (pNew, 0, sizeof (struct section_tag));
         pNew->heading = heading;
 
-        if (!ini->first)
-            ini->first = pNew;
+        if (*heading)
+	{   // Normal case
+            pNew->pPrev = ini->last;
+            ini->last   = pNew;
+            if (pNew->pPrev)
+                pNew->pPrev->pNext = pNew;
+            else
+	        ini->first = pNew;
+        }
         else
-            ini->last->pNext = pNew;
-
-        pNew->pPrev = ini->last;
-        ini->last   = pNew;
-
+	{   // This case must always be first
+	    pNew->pNext = ini->first;
+            ini->first  = pNew;
+            if (pNew->pNext)
+                pNew->pNext->pPrev = pNew;
+            else
+	        ini->last = pNew;
+	}
+        
+            
 #ifdef INI_USE_HASH_TABLE
         {   // Rev 1.3 - Added
             struct   section_tag *pOld;
@@ -212,7 +222,8 @@ void __ini_deleteHeading (ini_t *ini)
         }
 
         // Delete Heading
-        free (current_h->heading);
+        if (*current_h->heading)
+            free (current_h->heading);
         free (current_h);
         ini->changed = true;
     }
@@ -295,6 +306,9 @@ int ini_locateHeading (ini_fd_t fd, char *heading)
 {
     ini_t *ini = (ini_t *) fd;
     struct section_tag *section;
+
+    if (!heading)
+        return -1;
 
     section = __ini_locateHeading (ini, heading);
 
