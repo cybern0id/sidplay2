@@ -45,7 +45,8 @@ const char *MOS656X::credit =
 MOS656X::MOS656X (EventContext *context)
 :Event("VIC Raster"),
  event_context(*context),
- m_phase(EVENT_CLOCK_PHI1)
+ m_phase(EVENT_CLOCK_PHI1),
+ sprite_enable(regs[0x13])
 {
     chip  (MOS6569);
 }
@@ -59,6 +60,9 @@ void MOS656X::reset ()
     raster_x     = 0;
     bad_lines_enabled = false;
     m_rasterClk  = 0;
+    vblanking    = lp_triggered = false;
+    lpx          = lpy = 0;
+    sprite_dma   = 0;
     memset (regs, 0, sizeof (regs));
     event_context.schedule (this, 0, m_phase);
 }
@@ -108,11 +112,15 @@ uint8_t MOS656X::read (uint_least8_t addr)
     case 0x11:    // Control register 1 
         return (ctrl1 & 0x7f) | ((raster_y & 0x100) >> 1);
     case 0x12:    // Raster counter
-        return raster_y & 0xFF; 
-    case 0x19:    // IRQ flags 
-        return idr; 
-    case 0x1a:    // IRQ mask 
-        return icr | 0xf0; 
+        return raster_y & 0xFF;
+    case 0x13:
+        return lpx;
+    case 0x14:
+        return lpy;
+    case 0x19:    // IRQ flags
+        return idr;
+    case 0x1a:    // IRQ mask
+        return icr | 0xf0;
     default: return regs[addr];
     }
 }
@@ -200,36 +208,159 @@ void MOS656X::trigger (int irq)
 
 void MOS656X::event (void)
 {
-    event_clock_t delay  = 1;
-    event_clock_t cycles = event_context.getTime (m_rasterClk, m_phase);
+    event_clock_t  delay  = 1;
+    event_clock_t  cycles = event_context.getTime (m_rasterClk, m_phase);
+    uint_least16_t cycle;
 
     // Update x raster
     m_rasterClk += cycles;
     raster_x    += cycles;
+    cycle        = (raster_x + 9) % xrasters;
     raster_x    %= xrasters;
 
-    switch (raster_x)
+    switch (cycle)
     {
-    case 0:  // IRQ occurred (xraster != 0)
-        if (raster_y != yrasters - 1)
+    case 0:
+    {   // Calculate sprite DMA
+        uint8_t mask = 1;
+        uint8_t y    = raster_y & 0xff;
+        sprite_dma   = 0;
+        for (unsigned int i=1; i<0x10; i+=2, mask<<=1)
+        {
+            if ((sprite_enable & mask) && (y == regs[i]))
+                sprite_dma |= mask;
+        }
+
+        delay = 2;
+        if (sprite_dma & 0x01)
+            addrctrl (false);
+        else
+        {
+            addrctrl (true);
+            // No sprites before next compulsory cycle
+            if (!(sprite_dma & 0x1f))
+                delay = 9;
+        }
+        break;
+    }
+
+    case 1:
+        break;
+
+    case 2:
+        if (sprite_dma & 0x02)
+            addrctrl (false);
+        break;
+
+    case 3:
+        if (!(sprite_dma & 0x03))
+            addrctrl (true);
+        break;
+
+    case 4:
+        if (sprite_dma & 0x04)
+            addrctrl (false);
+        break;
+
+    case 5:
+        if (!(sprite_dma & 0x06))
+            addrctrl (true);
+        break;
+
+    case 6:
+        if (sprite_dma & 0x08)
+            addrctrl (false);
+        break;
+
+    case 7:
+        if (!(sprite_dma & 0x0c))
+            addrctrl (true);
+        break;
+
+    case 8:
+        if (sprite_dma & 0x10)
+            addrctrl (false);
+        break;
+
+    case 9:  // IRQ occurred (xraster != 0)
+        if (raster_y == (yrasters - 1))
+            vblanking = true;
+        else
         {
             raster_y++;
             // Trigger raster IRQ if IRQ line reached
             if (raster_y == raster_irq)
                 trigger (MOS656X_INTERRUPT_RST);
-            delay = 11;
         }
-        break;
-    case 1:  // Vertical blank (line 0)
-        if (raster_y == yrasters - 1)
-            raster_y = 0;
-        // Trigger raster IRQ if IRQ in line 0
-        if (raster_y == raster_irq)
-            trigger (MOS656X_INTERRUPT_RST);
-        delay = 10;
+        if (!(sprite_dma & 0x18))
+            addrctrl (true);
         break;
 
-    case 11: // Start bad line
+    case 10:  // Vertical blank (line 0)
+        if (vblanking)
+        {
+            vblanking = lp_triggered = false;
+            raster_y = 0;
+            // Trigger raster IRQ if IRQ in line 0
+            if (raster_irq == 0)
+                trigger (MOS656X_INTERRUPT_RST);
+        }
+        if (sprite_dma & 0x20)
+            addrctrl (false);
+        // No sprites before next compulsory cycle
+        else if (!(sprite_dma & 0xe0))
+           delay = 10;
+        break;
+
+    case 11:
+        if (!(sprite_dma & 0x30))
+            addrctrl (true);
+        break;
+
+    case 12:
+        if (sprite_dma & 0x40)
+            addrctrl (false);
+        break;
+
+    case 13:
+        if (!(sprite_dma & 0x60))
+            addrctrl (true);
+        break;
+
+    case 14:
+        if (sprite_dma & 0x80)
+            addrctrl (false);
+        break;
+
+    case 15:
+        delay = 2;
+        if (!(sprite_dma & 0xc0))
+        {
+            addrctrl (true);
+            delay = 5;
+        }
+        break;
+
+    case 16:
+        break;
+
+    case 17:
+        delay = 2;
+        if (!(sprite_dma & 0x80))
+        {
+            addrctrl (true);
+            delay = 3;
+        }
+        break;
+
+    case 18:
+        break;
+
+    case 19:
+        addrctrl (true);
+        break;
+
+    case 20: // Start bad line
     {   // In line $30, the DEN bit controls if Bad Lines can occur
         if (raster_y == first_dma_line)
             bad_lines_enabled = (ctrl1 & 0x10) != 0;
@@ -240,31 +371,37 @@ void MOS656X::event (void)
                    ((raster_y & 7) == y_scroll) &&
                    bad_lines_enabled;
 
-        delay = xrasters - 11;
         if (bad_line)
-        {   // DMA starts on cycle 14
+        {   // DMA starts on cycle 23
             addrctrl (false);
-            delay = 54 - 11;
         }
+        delay = xrasters - cycle;
         break;
     }
 
-    case 54: // End DMA
+    case 63: // End DMA - Only get here for non PAL
         addrctrl  (true);
-        delay = xrasters - 54;
-        break;
+        // Deliberate run on
 
     default:
-        if (bad_line && (raster_x < 54))
-        {
-            addrctrl (false);
-            delay = 54 - raster_x;
-        }
+        if (cycle < 63)
+            delay = 63 - cycle;
         else
-        {   // Skip to the end of raster
-            delay = xrasters - raster_x;
-        }
+            delay = xrasters - cycle;
     }
 
     event_context.schedule (this, delay, m_phase);
+}
+
+// Handle light pen trigger
+void MOS656X::lightpen ()
+{   // Synchronise simulation
+    event ();
+
+    if (!lp_triggered)
+    {   // Latch current coordinates
+        lpx = raster_x << 2;
+        lpy = raster_y;
+        trigger(MOS656X_INTERRUPT_LP);
+    }
 }

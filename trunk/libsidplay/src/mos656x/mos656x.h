@@ -41,6 +41,11 @@ protected:
     uint_least16_t raster_x, raster_y;
     uint_least16_t first_dma_line, last_dma_line, y_scroll;
     bool           bad_lines_enabled, bad_line;
+    bool           vblanking;
+    bool           lp_triggered;
+    uint8_t        lpx, lpy;
+    uint8_t       &sprite_enable;
+    uint8_t        sprite_dma;
 
     event_clock_t m_rasterClk;
     EventContext &event_context;
@@ -57,6 +62,7 @@ protected:
 
 public:
     void    chip  (mos656x_model_t model);
+    void    lightpen ();
 
     // Component Standard Calls
     void    reset (void);
@@ -73,6 +79,7 @@ public:
 enum
 {
     MOS656X_INTERRUPT_RST     = 1 << 0,
+    MOS656X_INTERRUPT_LP      = 1 << 3,
     MOS656X_INTERRUPT_REQUEST = 1 << 7
 };
 
