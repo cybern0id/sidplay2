@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2003/06/27 21:15:26  s_a_white
+ *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
+ *  support from the emulation.  Allow user to override whether they want this
+ *  to happen.
+ *
  *  Revision 1.32  2003/06/27 18:37:50  s_a_white
  *  Remove mono to stereo sid address bodge.  Make the code that used this
  *  check the stereo flag.
@@ -167,13 +172,21 @@ int Player::config (const sid2_config_t &cfg)
    
     // Only do these if we have a loaded tune
     if (m_tune)
-    {
+        if (m_playerState != sid2_paused)
+            m_tune->getInfo(m_tuneInfo);
+
+        // SID emulation setup (must be performed before the
+        // environment setup call)
+        if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
+        {
+            m_errorString      = cfg.sidEmulation->error ();
+            m_cfg.sidEmulation = NULL;
+            goto Player_configure_restore;
+        }
+
         if (m_playerState != sid2_paused)
         {
             float64_t cpuFreq;
-            // Reset tune info
-            m_tune->getInfo(m_tuneInfo);
-
             // Must be this order:
             // Determine clock speed
             cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
@@ -194,14 +207,6 @@ int Player::config (const sid2_config_t &cfg)
                 goto Player_configure_restore;
             // Start the real time clock event
             rtc.clock  (cpuFreq);
-        }
-
-        // SID emulation setup
-        if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
-        {
-            m_errorString      = cfg.sidEmulation->error ();
-            m_cfg.sidEmulation = NULL;
-            goto Player_configure_restore;
         }
 
         m_sidAddress[0] = m_tuneInfo.sidChipBase1;
