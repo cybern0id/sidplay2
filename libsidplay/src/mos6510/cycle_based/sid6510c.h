@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2002/11/19 22:56:25  s_a_white
+ *  Sidplay1 modes modified to make them nolonger require the psid driver.
+ *
  *  Revision 1.13  2002/11/01 17:35:27  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -104,12 +107,5 @@ private:
     inline void sid_rti  (void);
     inline void sid_irq  (void);
 };
-
-
-inline void SID6510::clock (void)
-{   // Allow the cpu to idle for sidplay compatibility
-    if (!m_sleeping)
-        MOS6510::clock ();
-}
 
 #endif // _sid6510c_h_
