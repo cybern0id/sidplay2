@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2004/03/06 16:25:29  s_a_white
+ *  Add support for selecting the subtune on basic programs.
+ *
  *  Revision 1.34  2004/03/01 00:45:01  s_a_white
  *  Let C64 driver know the tunes intended speed allowing use of the
  *  compatibility raster when the tune is forced to the opposite.
@@ -279,7 +282,7 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
             info.powerOnDelay = (uint_least16_t) (m_rand >> 3) &
                                 SID2_MAX_POWER_ON_DELAY;
         }
-        endian_little16 (addr, m_info.powerOnDelay);
+        endian_little16 (addr, info.powerOnDelay);
         addr += 2;
         m_rand  = m_rand * 13 + 1;
         *addr++ = iomap (m_tuneInfo.initAddr);
