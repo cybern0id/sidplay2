@@ -74,7 +74,6 @@ static struct key_tag *__ini_write (ini_t *ini)
 int INI_LINKAGE ini_readString (ini_fd_t fd, char *str, size_t size)
 {
     struct key_tag *_key;
-    int    ret;
     ini_t *ini = (ini_t *) fd;
 
     if (!ini->selected)
@@ -115,11 +114,10 @@ int INI_LINKAGE ini_readString (ini_fd_t fd, char *str, size_t size)
         if (size)
         {
             fseek (ini->ftmp, _key->pos, SEEK_SET);
-            ret = fread (str, sizeof(char), size, ini->ftmp);
-            if (ret < 0)
-                return ret;
-            size = (size_t) ret;
+            size = fread (str, sizeof(char), size, ini->ftmp);
         }
+        else if (_key == &ini->tmpKey)
+            return -1; // Can't read tmpKey
     }
 
     str[size] = '\0';
@@ -201,6 +199,8 @@ int INI_LINKAGE ini_readInt (ini_fd_t fd, int *value)
             fseek  (ini->ftmp, _key->pos, SEEK_SET);
             fscanf (ini->ftmp, "%d", value);
         }
+        else if (_key == &ini->tmpKey)
+            return -1; // Can't read tmpKey
     }
     
     return 0;
@@ -252,6 +252,8 @@ int INI_LINKAGE ini_readLong (ini_fd_t fd, long *value)
             fseek  (ini->ftmp, _key->pos, SEEK_SET);
             fscanf (ini->ftmp, "%ld", value);
         }
+        else if (_key == &ini->tmpKey)
+            return -1; // Can't read tmpKey
     }
 
     return 0;
@@ -302,6 +304,8 @@ int INI_LINKAGE ini_readDouble (ini_fd_t fd, double *value)
             fseek  (ini->ftmp, _key->pos, SEEK_SET);
             fscanf (ini->ftmp, "%f", &fval);
         }
+        else if (_key == &ini->tmpKey)
+            return -1; // Can't read tmpKey
     }
 
     *value = (double) fval;

@@ -54,6 +54,8 @@ int __ini_listEval (ini_t *ini)
     {
         ini->listIndex  = '\0';
         ini->listLength = 0;
+        if (ini->selected->selected == &ini->tmpKey)
+            return -1; // Can't read tmpKey
         return 0;
     }
 
