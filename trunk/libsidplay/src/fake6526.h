@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/02/13 21:00:01  s_a_white
+ *  Support for real interrupts.
+ *
  *  Revision 1.3  2000/12/11 18:52:12  s_a_white
  *  Conversion to AC99
  *
@@ -33,7 +36,7 @@ class fake6526: public C64Environment
 {
 private:
     uint8_t        regs[0x10];
-	bool           idr;
+    bool           idr;
     uint8_t        cra;  // Timer A Control Register
     uint_least16_t ta_latch;
     uint_least16_t ta;   // Timer A Count (reduces to zero)
@@ -43,6 +46,7 @@ public:
 
 public:
     fake6526  ();
+    ~fake6526 ();
 
     //Common:
     void clock (void);
@@ -64,8 +68,11 @@ inline void fake6526::clock (void)
         {   // one shot, stop timer A
             cra &= (~0x01);
         }
-		idr = true;
-        envTriggerIRQ ();
+        if (!idr)
+        {
+            idr = true;
+            envTriggerIRQ ();
+        }
     }
 }
 

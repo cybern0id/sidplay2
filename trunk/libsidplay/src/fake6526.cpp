@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/02/13 21:00:01  s_a_white
+ *  Support for real interrupts.
+ *
  *  Revision 1.4  2000/12/11 18:52:12  s_a_white
  *  Conversion to AC99
  *
@@ -24,6 +27,12 @@
 #include "fake6526.h"
 
 fake6526::fake6526 ()
+: idr(false)
+{
+    reset ();
+}
+
+fake6526::~fake6526 ()
 {
     reset ();
 }
@@ -38,7 +47,9 @@ void fake6526::reset (uint_least16_t count)
     locked = false;
     ta     = ta_latch = count;
     cra    = 0;
-	idr    = 0;
+    if (idr) // Clear interrupts
+        envClearIRQ ();
+    idr    = false;
 }
 
 uint8_t fake6526::read (uint_least8_t addr)
