@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/01/28 19:40:50  s_a_white
+ *  Added TSID support.
+ *
  *  Revision 1.2  2001/12/01 20:16:23  s_a_white
  *  Player changed to ConsolePlayer.
  *
@@ -369,7 +372,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
     // Set TSIDs base directory
     if (!m_tsid.setBaseDir(true))
     {
-        cerr << m_name << "\n" << m_tsid.getError (); << endl;
+        cerr << m_name << "\n" << m_tsid.getError () << endl;
         return false;
     }
 #endif
