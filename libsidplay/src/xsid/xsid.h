@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2001/10/18 22:36:16  s_a_white
+ *  GCC3 fixes.
+ *
  *  Revision 1.15  2001/07/14 16:48:35  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -243,7 +246,7 @@ public:
 
     // Standard calls
     void    reset (void);
-    uint8_t read  (uint_least16_t addr) { return 0; }
+    uint8_t read  (uint_least16_t) { return 0; }
     void    write (uint_least16_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
 
