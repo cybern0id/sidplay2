@@ -1,12 +1,13 @@
-/* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* unix/config.h.in.  Generated automatically from configure.in by autoheader.  */
 /* config.h (template) */
 #ifndef _config_h_
 #define _config_h_
 
 /* @FOO@ : Define or undefine value FOO as appropriate. */
 
-/* Operating System */
-#define HAVE_UNIX
+/* Define the sidbuilder modules at appropriate */
+#undef HAVE_RESID_BUILDER
+#undef HAVE_HARDSID_BUILDER
 
 /* Define if your C++ compiler implements exception-handling.  */
 #undef HAVE_EXCEPTIONS
@@ -14,18 +15,13 @@
 /* Define if standard member ``ios::binary'' is called ``ios::bin''. */
 #undef HAVE_IOS_BIN
 
-
 /* Define if the C++ compiler supports BOOL */
 #undef HAVE_BOOL
-
-#undef VERSION
-
-#undef PACKAGE
 
 /* Define if you need the GNU extensions to compile */
 #undef _GNU_SOURCE
 
-/* Defines Supported Unix Audio Drivers */
+/* Define supported audio driver */
 #undef HAVE_HARDSID
 #undef HAVE_ALSA
 #undef HAVE_IRIX
@@ -35,7 +31,6 @@
 #undef HAVE_SGI
 #undef HAVE_SUNOS
 #undef HAVE_WAV_ONLY
-
 
 /* Define if you have the <audio.h> header file. */
 #undef HAVE_AUDIO_H
@@ -73,13 +68,11 @@
 /* Name of package */
 #undef PACKAGE
 
-/* Define if you have the ANSI C header files. */
-#undef STDC_HEADERS
-
 /* Version number of package */
 #undef VERSION
 
 /* Define if your processor stores words with the most significant byte first
    (like Motorola and SPARC, unlike Intel and VAX). */
 #undef WORDS_BIGENDIAN
+
 #endif /* _config_h_ */
