@@ -18,8 +18,7 @@
 #ifndef _mos656x_h_
 #define _mos656x_h_
 
-#include "sidtypes.h"
-#include "sidenv.h"
+#include "component.h"
 
 typedef enum
 {
@@ -29,26 +28,50 @@ typedef enum
 } mos656x_model_t;
 
 
-class MOS656X: public C64Environment
+class MOS656X: public component
 {
+private:
+    static const char *credit;
+
 protected:
     uint8_t        regs[0x40];
     uint8_t        icr, idr;
-    uint_least16_t raster_y, raster_irq;
-    uint_least16_t rasters, cycles, cycle;
+    uint_least16_t yrasters, xrasters, raster_irq;
+    event_clock_t  raster_cycle, raster_cycles;
+
+    event_clock_t m_accessClk;
+    EventContext &event_context;
+
+    class EventRaster: public Event
+    {
+    private:
+        MOS656X &m_vic;
+        void event (void) {m_vic.rasterEvent ();}
+
+    public:
+        EventRaster (MOS656X *vic)
+            :Event("VIC Raster"),
+             m_vic(*vic) {}
+    } event_raster;
+
+    friend EventRaster;
 
 protected:
-    void    rasterClock (void);
-    void    trigger     (int interrupt);
+    MOS656X (EventContext *context);
+    void    rasterEvent (void);
+    void    trigger     (int irq);
+
+    // Environment Interface
+    virtual void interrupt (const bool state) = 0;
 
 public:
-    MOS656X ();
-
     void    chip  (mos656x_model_t model);
-    void    clock (void);
-    uint8_t read  (uint_least8_t addr);
+
+    // Component Standard Calls
     void    reset (void);
-    void    write (uint_least8_t addr, uint8_t data);
+    uint8_t read  (const uint_least8_t addr);
+    void    write (const uint_least8_t addr, const uint8_t data);
+    const   char *credits (void) {return credit;}
 };
 
 
@@ -62,19 +85,5 @@ enum
     MOS656X_INTERRUPT_REQUEST = 1 << 7
 };
 
-inline void MOS656X::clock ()
-{
-    if (!--cycle)
-        rasterClock ();
-}
-
-inline void MOS656X::rasterClock ()
-{
-    raster_y++;
-    raster_y %= rasters;
-    cycle = cycles;
-    if (raster_y == raster_irq)
-        trigger (MOS656X_INTERRUPT_RST);
-}
-
 #endif // _mos656x_h_
+

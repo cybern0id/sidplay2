@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/03/23 23:21:38  s_a_white
+ *  Removed redundant reset funtion.  Timer b now gets initialised properly.
+ *  Switch case now allows write/read from timer b.
+ *
  *  Revision 1.1  2001/03/21 22:41:45  s_a_white
  *  Non faked CIA emulation with NMI support.  Removal of Hacked VIC support
  *  off CIA timer.
@@ -35,6 +39,7 @@
  *
  ***************************************************************************/
 
+#include "sidendian.h"
 #include "mos6526.h"
 
 enum
@@ -47,15 +52,18 @@ enum
     INTERRUPT_REQUEST = 1 << 7
 };
 
+const char *MOS6526::credit =
+{   // Optional information
+    "*MOS6526 (CIA) Emulation:\0"
+    "\tCopyright (C) 2001 Simon White <sidplay2@email.com>\0"
+};
 
-MOS6526::MOS6526 (const bool isnmi)
-: idr(0),
-  nmi(isnmi)
-{
-    reset ();
-}
 
-MOS6526::~MOS6526 ()
+MOS6526::MOS6526 (EventContext *context)
+:idr(0),
+ event_context(*context),
+ event_ta(this),
+ event_tb(this)
 {
     reset ();
 }
@@ -67,19 +75,31 @@ void MOS6526::reset (void)
     cra = crb = 0;
     // Clear off any IRQs
     trigger (0);
+    cnt_high  = true;
     icr = idr = 0;
+    m_accessClk = 0;
 }
 
-uint8_t MOS6526::read (uint_least8_t addr)
+uint8_t MOS6526::read (const uint_least8_t addr)
 {
+    event_clock_t cycles;
     if (addr > 0x0f) return 0;
+
+    cycles       = event_context.getTime (m_accessClk);
+    m_accessClk += cycles;
+
+    // Sync up timers
+    if ((cra & 0x21) == 0x01)
+        ta -= cycles;
+    if ((crb & 0x61) == 0x01)
+        tb -= cycles;
 
     switch (addr)
     {
-    case 0x4: return endian_16lo8 (ta_latch);
-    case 0x5: return endian_16hi8 (ta_latch);
-    case 0x6: return endian_16lo8 (tb_latch);
-    case 0x7: return endian_16hi8 (tb_latch);
+    case 0x4: return endian_16lo8 (ta);
+    case 0x5: return endian_16hi8 (ta);
+    case 0x6: return endian_16lo8 (tb);
+    case 0x7: return endian_16hi8 (tb);
 
     case 0xd:
     {   // Clear IRQs, and return interrupt
@@ -95,11 +115,21 @@ uint8_t MOS6526::read (uint_least8_t addr)
     }
 }
 
-void MOS6526::write (uint_least8_t addr, uint8_t data)
+void MOS6526::write (const uint_least8_t addr, const uint8_t data)
 {
+    event_clock_t cycles;
     if (addr > 0x0f) return;
 
-    regs[addr] = data;
+    regs[addr]   = data;
+    cycles       = event_context.getTime (m_accessClk);
+    m_accessClk += cycles;
+
+    // Sync up timers
+    if ((cra & 0x21) == 0x01)
+        ta -= cycles;
+    if ((crb & 0x61) == 0x01)
+        tb -= cycles;
+
     switch (addr)
     {
     case 0x4: endian_16lo8 (ta_latch, data); break;
@@ -111,7 +141,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
     case 0x6: endian_16lo8 (tb_latch, data); break;
     case 0x7:
-        endian_16hi8 (tb_latch, data); break;
+        endian_16hi8 (tb_latch, data);
         if (!(crb & 0x01)) // Reload timer if stopped
             tb = tb_latch;
     break;
@@ -126,16 +156,38 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
     case 0x0e:
         // Check for forced load
+        cra = data;
         if (data & 0x10)
-            ta = ta_latch;
-        cra = data & 0xef;  // (ms) mask strobe flag
+        {
+            cra &= (~0x10);
+            ta   = ta_latch;
+        }
+
+        if ((data & 0x21) == 0x01)
+        {   // Active
+            event_context.schedule (&event_ta, (event_clock_t) ta + 1);
+        } else
+        {   // Inactive
+            event_context.cancel (&event_ta);
+        }
     break;
 
     case 0x0f:
         // Check for forced load
+        crb = data;
         if (data & 0x10)
-            tb = tb_latch;
-        crb = data & 0xef;
+        {
+            crb &= (~0x10);
+            tb   = tb_latch;
+        }
+
+        if ((data & 0x61) == 0x01)
+        {   // Active
+            event_context.schedule (&event_tb, (event_clock_t) tb + 1);
+        } else
+        {   // Inactive
+            event_context.cancel (&event_tb);
+        }
     break;
 
     default:
@@ -143,79 +195,102 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     }
 }
 
-void MOS6526::trigger (int interrupt)
+void MOS6526::trigger (int irq)
 {
-    if (!interrupt)
+    if (!irq)
     {   // Clear any requested IRQs
         if (idr & INTERRUPT_REQUEST)
         {
             idr = 0;
-            if (!nmi)
-                envClearIRQ ();
+            interrupt (false);
         }
         return;
     }
 
-    idr |= interrupt;
+    idr |= irq;
     if (icr & idr)
     {
         if (!(idr & INTERRUPT_REQUEST))
         {
             idr |= INTERRUPT_REQUEST;
-            if (nmi)
-                envTriggerNMI ();
-            else
-                envTriggerIRQ ();
+            interrupt (true);
         }
     }
 }
 
-bool MOS6526::ta_clock (void)
-{
-    if (!ta--)
-    {   // Underflow 
-        ta = ta_latch;
-        if (cra & 0x08)
-        {   // one shot, stop timer A
-            cra &= (~0x01);
-        }
-        trigger (INTERRUPT_TA);
-        return true;
-    }
-    return false;
-}
+void MOS6526::ta_event (void)
+{   // Timer Modes
+    event_clock_t cycles;
+    uint8_t mode = cra & 0x21;
 
-void MOS6526::tb_clock (bool ta_underflow)
-{
-    // All timer
+    if (mode == 0x21)
+    {
+        if (ta--)
+            return;
+    }
+
+    cycles       = event_context.getTime (m_accessClk);
+    m_accessClk += cycles;
+
+    ta = ta_latch;
+    if (cra & 0x08)
+    {   // one shot, stop timer A
+        cra &= (~0x01);
+    } else if (mode == 0x01)
+    {   // Reset event
+        event_clock_t cycles = ta + 1;
+        event_context.schedule (&event_ta, cycles);
+    }
+    trigger (INTERRUPT_TA);
+    
     switch (crb & 0x61)
     {
-    case 0x01: goto MOS6526_tb_clock;
-    case 0x21:
-//        if (cnt_edge)
-//            goto MOS6526_tb_clock;
-    break;
+    case 0x01: tb -= cycles; break;
     case 0x41:
-        if (ta_underflow)
-            goto MOS6526_tb_clock;
-    break;
     case 0x61:
-//        if (ta_underflow && cnt_high)
-//            goto MOS6526_tb_clock;
+        tb_event ();
     break;
-    default:
+    }
+}
+    
+void MOS6526::tb_event (void)
+{   // Timer Modes
+    event_clock_t cycles;
+    uint8_t mode = crb & 0x61;
+    switch (mode)
+    {
+    case 0x01:
         break;
-    }
-return;
 
-MOS6526_tb_clock:
-    if (!tb--)
-    {   // Underflow 
-        tb = tb_latch;
-        if (crb & 0x08)
-        {   // one shot, stop timer
-            crb &= (~0x01);
+    case 0x21:
+    case 0x41:
+        if (tb--)
+            return;
+    break;
+
+    case 0x61:
+        if (cnt_high)
+        {
+            if (tb--)
+                return;
         }
-        trigger (INTERRUPT_TB);
+    break;
+    
+    default:
+        return;
     }
+
+    cycles       = event_context.getTime (m_accessClk);
+    m_accessClk += cycles;
+
+    tb = tb_latch;
+    if (crb & 0x08)
+    {   // one shot, stop timer A
+        crb &= (~0x01);
+    } else if (mode == 0x01)
+    {   // Reset event
+        cycles = tb + 1;
+        event_context.schedule (&event_tb, cycles);
+    }
+    trigger (INTERRUPT_TB);
 }
