@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2003/02/20 19:02:21  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.26  2003/01/15 08:26:11  s_a_white
  *  Basic restart hooked into via stop vector (only way compatible with real c64).
  *  Maximum random delay increased to exceed the generation period of both
@@ -119,7 +122,7 @@ const char *Player::ERR_PSIDDRV_RELOC     = "ERROR: Failed whilst relocating psi
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
-int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
+int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
 {
     uint_least16_t relocAddr;
     int startlp = tuneInfo.loadAddr >> 8;
@@ -199,24 +202,27 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
             endian_little16 (&m_rom[0xa7af], 0xffe1);
             endian_little16 (&m_ram[0x0328], addr);
         }
-        memcpy (&m_ram[relocAddr], &reloc_driver[10], reloc_size);
+        // Install driver to rom so it can be copied later into
+        // ram once the tune is installed.
+        //memcpy (&m_ram[relocAddr], &reloc_driver[10], reloc_size);
+        memcpy (&m_rom[0], &reloc_driver[10], reloc_size);
     }
 
     {   // Setup the Initial entry point
         uint_least16_t playAddr = tuneInfo.playAddr;
-        uint_least16_t addr = relocAddr;
+        uint8_t *addr = &m_rom[0]; // &m_ram[relocAddr];
 
         // Tell C64 about song
-        m_ram[addr++] = (uint8_t) tuneInfo.currentSong;
+        *addr++ = (uint8_t) tuneInfo.currentSong;
         if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
-            m_ram[addr] = 0;
+            *addr = 0;
         else // SIDTUNE_SPEED_CIA_1A
-            m_ram[addr] = 1;
+            *addr = 1;
 
         addr++;
-        endian_little16 (&m_ram[addr], tuneInfo.initAddr);
+        endian_little16 (addr, tuneInfo.initAddr);
         addr += 2;
-        endian_little16 (&m_ram[addr], playAddr);
+        endian_little16 (addr, playAddr);
         addr += 2;
         // Initialise random number generator
         info.powerOnDelay = m_cfg.powerOnDelay;
@@ -226,12 +232,12 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
             info.powerOnDelay = (uint_least16_t) (m_rand >> 3) &
                                 SID2_MAX_POWER_ON_DELAY;
         }
-        endian_little16 (&m_ram[addr], m_info.powerOnDelay);
+        endian_little16 (addr, m_info.powerOnDelay);
         addr += 2;
-        m_rand        = m_rand * 13 + 1;
-        m_ram[addr++] = iomap (m_tuneInfo.initAddr);
-        m_ram[addr++] = iomap (m_tuneInfo.playAddr);
-        m_ram[addr++] = m_ram[0x02a6]; // PAL/NTSC flag
+        m_rand  = m_rand * 13 + 1;
+        *addr++ = iomap (m_tuneInfo.initAddr);
+        *addr++ = iomap (m_tuneInfo.playAddr);
+        *addr++ = m_ram[0x02a6]; // PAL/NTSC flag
     }
     return 0;
 }
@@ -272,6 +278,14 @@ void Player::psidRelocAddr (SidTuneInfo &tuneInfo, int startp, int endp)
 
     if (tuneInfo.relocPages    == 0)
         tuneInfo.relocStartPage = PSIDDRV_MAX_PAGE;
+}
+
+// The driver is relocated above and here is actually
+// installed into ram.  The two operations are now split
+// to allow the driver to be installed inside the load image
+void Player::psidDrvInstall (sid2_info_t &info)
+{
+    memcpy (&m_ram[info.driverAddr], &m_rom[0], info.driverLength);
 }
 
 SIDPLAY2_NAMESPACE_STOP

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.43  2003/02/20 19:11:48  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.42  2003/01/23 17:32:39  s_a_white
  *  Redundent code removal.
  *
@@ -392,13 +395,15 @@ private:
     void signalAEC    (bool state) { cpu->aecSignal (state); }
 
     // PSID driver
-    int  psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info);
+    int  psidDrvReloc   (SidTuneInfo &tuneInfo, sid2_info_t &info);
+    void psidDrvInstall (sid2_info_t &info);
     void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
     // SID2CRC support
     void updateCrc32    (uint_least32_t &crc, uint8_t data);
 
 public:
     Player ();
+    ~Player ();
 
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }
