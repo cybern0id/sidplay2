@@ -113,19 +113,17 @@ public:
 
     void clock (void)
     {
-        if (m_events)
-        {
-            event_clock_t delta = m_next->m_clk - m_clk;
-            m_clk  += delta;
-            //m_phase = (event_phase_t) (m_phase ^ (delta & 1));
-            dispatch (*m_next);
-        }
+//        m_clk++;
+//        while (m_events && (m_clk >= m_next->m_clk))
+//            dispatch (*m_next);
+        m_clk = m_next->m_clk;
+        dispatch (*m_next);
     }
 
     event_clock_t getTime (void) const
     {   return (m_absClk + m_clk) >> 1; }
     event_clock_t getTime (event_clock_t clock) const
-    {   return ((m_absClk + m_clk) >> 1) - clock; }
+    {   return getTime () - clock; }
 };
 
 #endif // _event_h_
