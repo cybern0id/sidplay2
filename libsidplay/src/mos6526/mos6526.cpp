@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/10/02 19:49:21  s_a_white
+ *  Revert previous change as was incorrect.
+ *
  *  Revision 1.7  2002/09/11 22:30:47  s_a_white
  *  Counter interval writes now go to a new register call prescaler.  This is
  *  copied to the timer latch/counter as appropriate.
@@ -184,6 +187,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
             event_context.schedule (&event_ta, (event_clock_t) ta + 1);
         } else
         {   // Inactive
+            ta = ta_latch;
             event_context.cancel (&event_ta);
         }
     break;
@@ -202,6 +206,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
             event_context.schedule (&event_tb, (event_clock_t) tb + 1);
         } else
         {   // Inactive
+            tb = tb_latch;
             event_context.cancel (&event_tb);
         }
     break;
