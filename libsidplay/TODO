@@ -1,10 +1,5 @@
 TODO <libsidplay2>:
 
-*Hardsid support <Beta versions available>
-
-*Fix encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See mixer.cpp
- and audiodrv.cpp
-
 *New Bank Switching implementation for remappable componenets <Delayed>
 
 *Optimise reSID? <Clock, output, read, write>
@@ -21,17 +16,16 @@ TODO <libsidplay2>:
            This way a C functon will be used if an asm is not present.
 
 *Possibly provide a wds sync output for stereoplayer.  These helps external players
-which support this to sync properly to the music, there are some that use
-non-real time.  Needs stereosidplayer v10.3 being ripped
-<Do not implement full wds support in libsidplay, SYNC ONLY>.  If anyone knows
-anything about the C64s stereosidplayers internals could they contact
-sidplay2@email.com
+ which support this to sync properly to the music, there are some that use
+ non-real time.  Needs stereosidplayer v10.3 being ripped
+ <Do not implement full wds support in libsidplay, SYNC ONLY>.  If anyone knows
+ anything about the C64s stereosidplayers internals could they contact
+ sidplay2@email.com
 
 *Add 24 bit support.
 
-*Quad sids
+*Quad sids.
 
-*Provide a C interface to the library <Maybe next release, probably required for a
- proposed Java front end>.
+*Provide a C interface to the library.
 
 *VIC. Possibility for more support.
