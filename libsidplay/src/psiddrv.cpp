@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/10/02 18:31:24  s_a_white
+ *  No longer dies if relocStartPages != 0 byr relocPages == 0.  For none real
+ *  evironment modes, play is always followed even if interrupt handlers are
+ *  installed.
+ *
  *  Revision 1.3  2001/09/01 11:13:18  s_a_white
  *  Fixes sidplay1 environment modes.
  *
@@ -94,9 +99,11 @@ int Player::psidDrvInstall ()
         // Support older modes ability to ignore the IRQ
         // vectors if valid play
         if ((m_cfg.environment != sid2_envR) && m_tuneInfo.playAddr)
-        {
+        {   // Get the addr of the sidplay vector
             uint_least16_t addr = endian_little16(&reloc_driver[2]);
-            endian_little16 (&m_ram[addr + 1], m_tuneInfo.playAddr);
+            // Get the brkjob vector.  Add 3 to get the irqjob vector
+            uint_least16_t vec  = endian_little16(&reloc_driver[9]) + 3;
+            endian_little16 (&m_ram[addr + 1], vec);
         }
     }
 
