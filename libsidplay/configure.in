@@ -3,7 +3,7 @@ AC_INIT(Makefile.am)
 
 AM_CONFIG_HEADER(config.h)
 
-AM_INIT_AUTOMAKE(libsidplay,2.0.4)
+AM_INIT_AUTOMAKE(libsidplay,2.0.6)
 
 AC_CANONICAL_HOST
 
@@ -106,4 +106,7 @@ esac
 AUDIODRV_LDADD="$sid_audiodrv_libadd"
 AC_SUBST(AUDIODRV_LDADD)
 
-AC_OUTPUT(sidconfig.h Makefile src/Makefile src/docs/Makefile src/docs/en/Makefile src/mos6510/Makefile src/mos6510/cycle_based/Makefile src/xsid/Makefile src/sidtune/Makefile src/audio/Makefile src/audio/oss/Makefile src/audio/wav/Makefile src/mos6581/Makefile src/audio/directx/Makefile win/Makefile src/audio/sunos/Makefile )
+dnl Add absolute directory for header files
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include"
+
+AC_OUTPUT(sidconfig.h Makefile src/Makefile src/docs/Makefile src/docs/en/Makefile src/mos6510/Makefile src/mos6510/cycle_based/Makefile src/xsid/Makefile src/sidtune/Makefile src/audio/Makefile src/audio/oss/Makefile src/audio/wav/Makefile src/mos6581/Makefile src/audio/sunos/Makefile include/Makefile )
