@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/07/03 17:50:14  s_a_white
+ *  External filter no longer supported.  This filter is needed internally by the
+ *  library.
+ *
  *  Revision 1.5  2001/04/09 17:11:03  s_a_white
  *  Added INI file version number so theres a possibility for automated updates
  *  should the keys/sections change names (or meaning).
@@ -159,7 +163,7 @@ bool IniConfig::readBool (ini_fd_t ini, char *key, bool &boolean)
 
 bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
 {
-    char *str, c;
+    char *str, c = 0;
     bool  ret = readString (ini, key, str);
     if (!ret)
         return false;
