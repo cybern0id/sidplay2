@@ -11029,7 +11029,7 @@ _ACEOF
 
     fi
 
-if test "$my_cv_have_bool" = yes; then
+if test "$test_cv_have_bool" = yes; then
 
     eval "SID_HAVE_BOOL=\"#define SID_HAVE_BOOL\""
 
