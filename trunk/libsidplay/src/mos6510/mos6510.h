@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "sidtypes.h"
-#include SID_ENVIRONMENT_H
+#include "sidenv.h"
 
 #undef  MOS6510_VERSION
 #undef  MOS6510_DATE

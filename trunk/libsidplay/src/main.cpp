@@ -54,8 +54,10 @@ enum
 
 // Global variables
 static sidplayer  player;
-static AudioBase *audioDrv = NULL;
-int quietLevel;
+static AudioBase *player_audioDrv = NULL;
+// Rev 1.11 (saw) - Bug fix for Ctrl C exiting
+static volatile bool player_fastExit = false;
+static int player_quietLevel;
 
 // Function prototypes
 static void displayError  (char *arg0, int num);
@@ -63,7 +65,7 @@ static void displaySyntax (char *arg0);
 // Rev 2.0.4 (saw) - Added for better MAC support
 static inline bool generateMusic (AudioConfig &cfg, void *buffer);
 static void sighandler    (int signum);
-static void cleanup (void);
+static void cleanup (bool fast);
 
 int main(int argc, char *argv[])
 {
@@ -84,7 +86,7 @@ int main(int argc, char *argv[])
 
     // (ms) Opposite of verbose output.
     // 1 = no time display
-    quietLevel = 0;
+    player_quietLevel = 0;
 
 	// (ms) Incomplete...
     // Fastforward/Rewind Patch
@@ -257,7 +259,7 @@ int main(int argc, char *argv[])
             case 'q':
                 // Later introduce incremental mode.
                 if (argv[i][x] == '\0')
-                    ++quietLevel;
+                    ++player_quietLevel;
             break;
 
             // Stereo Options
@@ -395,20 +397,20 @@ int main(int argc, char *argv[])
     {
         // Open Audio Driver
 #ifdef SID_HAVE_EXCEPTIONS
-        audioDrv = new(nothrow) AudioDriver;
+        player_audioDrv = new(nothrow) AudioDriver;
 #else
-        audioDrv = new AudioDriver;
+        player_audioDrv = new AudioDriver;
 #endif
-        if (!audioDrv)
+        if (!player_audioDrv)
         {
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
 
-        nextBuffer = (ubyte_sidt *) audioDrv->open (audioCfg);
+        nextBuffer = (ubyte_sidt *) player_audioDrv->open (audioCfg);
         if (!nextBuffer)
         {
-            cout << argv[0] << " " << audioDrv->getErrorString () << endl;
+            cout << argv[0] << " " << player_audioDrv->getErrorString () << endl;
             goto main_error;
         }
     }
@@ -466,7 +468,7 @@ int main(int argc, char *argv[])
             goto main_error;
         }
 
-        audioDrv   = wavFile;
+        player_audioDrv = wavFile;
         nextBuffer = (ubyte_sidt *) wavFile->open (audioCfg, wavName, true);
         if (!nextBuffer)
         {
@@ -566,7 +568,7 @@ int main(int argc, char *argv[])
     // Get all the text to the screen so music playback
     // is not disturbed.
     player.playLength (runtime);
-    if ( quietLevel == 1 )
+    if ( player_quietLevel == 1 )
     {
         cout << endl;
     }
@@ -578,10 +580,11 @@ int main(int argc, char *argv[])
 
     // Play loop
     bool keepPlaying;
+    // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
     FOREVER
     {
         keepPlaying = generateMusic (audioCfg, nextBuffer);
-        nextBuffer  = (ubyte_sidt *) audioDrv->write ();
+        nextBuffer  = (ubyte_sidt *) player_audioDrv->write ();
 
         if (!keepPlaying)
         {   // Check to see if we haven't got an
@@ -590,15 +593,18 @@ int main(int argc, char *argv[])
             if (runtime && !secs)
                 break;
         }
+
+		if (player_fastExit)
+			break;
     }
 
     // Clean up
-    cleanup ();
+    cleanup (player_fastExit);
     return EXIT_SUCCESS;
 
 main_error:
-    cleanup ();
-    exit (EXIT_ERROR_STATUS);
+    cleanup (true);
+    return EXIT_ERROR_STATUS;
 }
 
 bool generateMusic (AudioConfig &cfg, void *buffer)
@@ -610,13 +616,13 @@ bool generateMusic (AudioConfig &cfg, void *buffer)
     if ( player.updateClock ())
     {
         udword_sidt seconds = player.time();
-        if ( !quietLevel )
+        if ( !player_quietLevel )
         {
             cout << "\b\b\b\b\b" << setw(2) << setfill('0') << ((seconds / 60) % 100)
             << ':' << setw(2) << setfill('0') << (seconds % 60) << flush;
 		}
         // Commented out temporarily for fastforward/rewind support.
-        //if (!seconds)
+        // if (!seconds)
             return false;
     }
 
@@ -631,12 +637,9 @@ void sighandler (int signum)
     case SIGINT:
     case SIGABRT:
     case SIGTERM:
-        {
-        if (audioDrv)
-            audioDrv->reset();
-        cleanup ();
-        exit (EXIT_SUCCESS);
-        }
+        // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
+        player_fastExit = true;
+	break;
     default:
         break;
     }
@@ -714,14 +717,19 @@ void displaySyntax (char* arg0)
         << " -w           create wav file (default: <datafile>.wav)" << endl
 //        << " -w<name>     explicitly defines wav output name" << endl
         << endl
-//        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
         // Rev 1.7 (saw) - Changed to new hompage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
+//        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
 }
 
-void cleanup (void)
+void cleanup (bool fast)
 {
-    if (audioDrv)
-        delete audioDrv;
+    if (player_audioDrv)
+	{   // Rev 1.11 (saw) - We are stoping via Ctrl C so
+		// for speed flush all buffers
+        if (fast)
+            player_audioDrv->reset();
+        delete player_audioDrv;
+	}
     cout << endl;
 }

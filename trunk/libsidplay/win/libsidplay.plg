@@ -1,70 +1,55 @@
 --------------------Configuration: libsidplay - Win32 Release--------------------
-Begining build with project "e:\libsidplay-2.0.3\win\libsidplay.dsp", at root.
+Begining build with project "E:\libsidplay\win\libsidplay.dsp", at root.
 Active configuration is Win32 (x86) Console Application (based on Win32 (x86) Console Application)
 
 Project's tools are:
-			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /ML /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c "
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /ML /W3 /O2 /I "." /I "../include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c "
 			"Win32 Resource Compiler" with flags "/l 0x809 /d "NDEBUG" "
 			"Browser Database Maker" with flags "/nologo /o"Release/libsidplay.bsc" "
 			"COFF Linker for 80x86" with flags "kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib dsound.lib dxguid.lib /nologo /subsystem:console /incremental:no /pdb:"Release/libsidplay.pdb" /machine:I386 /out:"Release/libsidplay.exe" "
 			"Custom Build" with flags ""
 			"<Component 0xa>" with flags ""
 
-Creating temp file "f:\temp\RSP9051.TMP" with contents </nologo /ML /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
-"e:\libsidplay-2.0.3\src\sidtune\IconInfo.cpp"
-"e:\libsidplay-2.0.3\src\sidtune\InfoFile.cpp"
-"e:\libsidplay-2.0.3\src\main.cpp"
-"e:\libsidplay-2.0.3\src\sidtune\MUS.cpp"
-"e:\libsidplay-2.0.3\src\sidtune\PSID.cpp"
-"e:\libsidplay-2.0.3\src\sidmixer.cpp"
-"e:\libsidplay-2.0.3\src\sidplayer.cpp"
-"e:\libsidplay-2.0.3\src\sidtune\SidTune.cpp"
-"e:\libsidplay-2.0.3\src\xsid\xsid.cpp"
+Creating temp file "f:\temp\RSP8004.TMP" with contents </nologo /ML /W3 /O2 /I "." /I "../include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Release/libsidplay.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"E:\libsidplay\src\main.cpp"
 >
-Creating command line "cl.exe @f:\temp\RSP9051.TMP" 
-Creating temp file "f:\temp\RSP9052.TMP" with contents <kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib dsound.lib dxguid.lib /nologo /subsystem:console /incremental:no /pdb:"Release/libsidplay.pdb" /machine:I386 /out:"Release/libsidplay.exe" 
-".\Release\audiodrv.obj"
-".\Release\envelope.obj"
-".\Release\extfilt.obj"
-".\Release\fake6526.obj"
-".\Release\filter.obj"
-".\Release\IconInfo.obj"
-".\Release\InfoFile.obj"
-".\Release\main.obj"
-".\Release\mos6510.obj"
-".\Release\MUS.obj"
-".\Release\pot.obj"
-".\Release\PP20.obj"
-".\Release\PSID.obj"
-".\Release\sid.obj"
-".\Release\sidmixer.obj"
-".\Release\sidplayer.obj"
-".\Release\SidTune.obj"
-".\Release\SidTuneTools.obj"
-".\Release\version.obj"
-".\Release\voice.obj"
-".\Release\wave.obj"
-".\Release\wave6581__ST.obj"
-".\Release\wave6581_P_T.obj"
-".\Release\wave6581_PS_.obj"
-".\Release\wave6581_PST.obj"
-".\Release\wave8580__ST.obj"
-".\Release\wave8580_P_T.obj"
-".\Release\wave8580_PS_.obj"
-".\Release\wave8580_PST.obj"
-".\Release\WavFile.obj"
-".\Release\xsid.obj">
-Creating command line "link.exe @f:\temp\RSP9052.TMP" 
+Creating command line "cl.exe @f:\temp\RSP8004.TMP" 
+Creating temp file "f:\temp\RSP8005.TMP" with contents <kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib winmm.lib dsound.lib dxguid.lib /nologo /subsystem:console /incremental:no /pdb:"Release/libsidplay.pdb" /machine:I386 /out:"Release/libsidplay.exe" 
+.\Release\Directx.obj
+.\Release\envelope.obj
+.\Release\extfilt.obj
+.\Release\fake6526.obj
+.\Release\filter.obj
+.\Release\IconInfo.obj
+.\Release\InfoFile.obj
+.\Release\main.obj
+.\Release\Mmsystem.obj
+.\Release\mos6510.obj
+.\Release\MUS.obj
+.\Release\pot.obj
+.\Release\PP20.obj
+.\Release\PSID.obj
+.\Release\sid.obj
+.\Release\sidmixer.obj
+.\Release\sidplayer.obj
+.\Release\SidTune.obj
+.\Release\SidTuneTools.obj
+.\Release\version.obj
+.\Release\voice.obj
+.\Release\wave.obj
+.\Release\wave6581__ST.obj
+.\Release\wave6581_P_T.obj
+.\Release\wave6581_PS_.obj
+.\Release\wave6581_PST.obj
+.\Release\wave8580__ST.obj
+.\Release\wave8580_P_T.obj
+.\Release\wave8580_PS_.obj
+.\Release\wave8580_PST.obj
+.\Release\WavFile.obj
+.\Release\xsid.obj>
+Creating command line "link.exe @f:\temp\RSP8005.TMP" 
 Compiling...
-IconInfo.cpp
-InfoFile.cpp
 main.cpp
-MUS.cpp
-PSID.cpp
-sidmixer.cpp
-sidplayer.cpp
-SidTune.cpp
-xsid.cpp
 Linking...
 
 
