@@ -77,7 +77,7 @@ public:
     AudioBase      *audioDrv;
     // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
     volatile bool   fastExit;
-    int                quietLevel;
+    int             quietLevel;
     uword_sidt      selectedSong;
     bool            restart;
     playerInfo_sidt info;
@@ -245,7 +245,8 @@ int main(int argc, char *argv[])
                     case 's':
                         if (argv[i][x] == '\0')
                         {   // Select newer sid
-                            player.lib.sidModel (SID_MOS6581);
+                            // Rev 1.18 (MiKiL) - Changed from MOS6581
+                            player.lib.sidModel (SID_MOS8580);
                             break;
                         }
                     break;
@@ -476,6 +477,9 @@ int main(int argc, char *argv[])
     player.lib.environment  (playerMode);
 
 main_restart:
+    // Rev 1.18 (saw) - Keyboard performance update
+    while (_kbhit ())
+        decodeKeys ();    
     player.restart = false;
 
     if (player.lib.loadSong (argv[sidFile], player.selectedSong) == -1)
