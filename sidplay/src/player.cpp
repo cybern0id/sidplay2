@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/01/16 19:28:55  s_a_white
+ *  Now now wraps at 100th minute.
+ *
  *  Revision 1.8  2002/01/10 19:39:46  s_a_white
  *  Fixed default to switch to please solaris compiler.
  *
@@ -406,7 +409,7 @@ bool ConsolePlayer::open (void)
         }
     }
 
-    m_timer.current = m_timer.start - 1;
+    m_timer.current = ~0;
     m_state = playerRunning;
 
     // Update display
@@ -527,7 +530,7 @@ void ConsolePlayer::event (void)
             m_engine.fastForward (100);
             m_engine.debug (true);
         }
-        else if (seconds == m_timer.stop)
+        else if (m_timer.stop && (seconds == m_timer.stop))
         {
             m_state = playerExit;
             if (!m_driver.file)
