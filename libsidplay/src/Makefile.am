@@ -1,7 +1,6 @@
 
-SUBDIRS = mos6510 mos6526 mos656x mos6581 sidtune xsid
-
-INCLUDES = $(RESID_INCLUDES)
+SUBDIRS    = mos6510 mos6526 mos656x mos6581 sidtune xsid
+EXTRA_DIST = player.bin
 
 
 # The library.

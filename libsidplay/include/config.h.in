@@ -73,9 +73,6 @@
 /* The number of bytes in a short int.  */
 #undef SIZEOF_SHORT_INT
 
-/* Define if you have the <dlfcn.h> header file.  */
-#undef HAVE_DLFCN_H
-
 /* Define if you have the <stdbool.h> header file.  */
 #undef HAVE_STDBOOL_H
 

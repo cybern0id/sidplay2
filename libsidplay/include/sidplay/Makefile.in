@@ -63,23 +63,22 @@ AS = @AS@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EXEEXT = @EXEEXT@
+LD = @LD@
 LIBTOOL = @LIBTOOL@
 LIBVERSION = @LIBVERSION@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 OBJDUMP = @OBJDUMP@
-OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RESID_INCLUDES = @RESID_INCLUDES@
 RESID_LDADD = @RESID_LDADD@
-STRIP = @STRIP@
 VERSION = @VERSION@
 
 sidplayincludedir = $(includedir)/sidplay
-sidplayinclude_HEADERS = sidendian.h sidplay2.h sidtypes.h
+sidplayinclude_HEADERS = sidendian.h sidplay2.h sidtypes.h SidTune.h SidTuneCfg.h Buffer.h SmartPtr.h
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = ../../include/config.h
 CONFIG_CLEAN_FILES =  sidconfig.h
@@ -161,7 +160,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
