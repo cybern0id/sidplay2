@@ -3,7 +3,7 @@
 #define _config_h_
 
 #define PACKAGE "libsidplay"
-#define VERSION "2.0.6"
+#define VERSION "2.0.7"
 
 /* Operating System */
 #define HAVE_MSWINDOWS
