@@ -1,15 +1,17 @@
-dnl Process this file with autoconf to produce a configure script.
-AC_INIT(Makefile.am)
-AC_CONFIG_AUX_DIR(unix)
-AM_CONFIG_HEADER(unix/config.h)
-
 dnl Setup library CURRENT, REVISION and AGE
-LIBCUR=1
-LIBREV=0
-LIBAGE=0
-AM_INIT_AUTOMAKE(libsidplay,2.$LIBCUR.$LIBREV)
+m4_define([LIBCUR],1)
+m4_define([LIBREV],0)
+m4_define([LIBAGE],0)
+
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(libsidplay,2.LIBCUR.LIBREV)
+AC_CONFIG_HEADER(unix/config.h)
+AC_CONFIG_SRCDIR(Makefile.am)
+AC_CONFIG_AUX_DIR(unix)
+AM_INIT_AUTOMAKE(no-define)
+
 dnl libtool-style version-info number
-LIBVERSION=$LIBCUR:$LIBREV:$LIBAGE
+LIBVERSION=LIBCUR:LIBREV:LIBAGE
 AC_SUBST(LIBVERSION)
 
 AC_CANONICAL_HOST
@@ -20,7 +22,7 @@ AC_PROG_CXX
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
-MY_CONFIG_LIBTOOL
+AC_PROG_LIBTOOL
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -56,13 +58,15 @@ AC_CHECK_FUNC(strncasecmp,[AC_DEFINE(HAVE_STRNCASECMP,,
   [Define if you have the strncasecmp function.])],[])
 AC_CHECK_FUNC(strcasecmp,[AC_DEFINE(HAVE_STRCASECMP,,
   [Define if you have the strcasecmp function.])],[])
-AC_CHECK_HEADER(strstrea.h,[AC_DEFINE(HAVE_STRSTREA_H,,
-  [Define if you have the <strstrea.h> header file.])],[])
 
 AC_SYS_LONG_FILE_NAMES
 
 dnl Use C++ for other tests.
 AC_LANG_CPLUSPLUS
+
+dnl Checks for C++ library functions.
+AC_CHECK_HEADER(sstream,[AC_DEFINE(HAVE_SSTREAM,,
+  [Define if you have the <sstream> header file.])],[])
 
 dnl Check whether the compiler has bool.
 MY_CHECK_BOOL
@@ -92,6 +96,8 @@ CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay"
 ACLOCAL_AMFLAGS="-I unix"
 AC_SUBST(ACLOCAL_AMFLAGS)
+DEFAULT_INCLUDES=
+AC_SUBST(DEFAULT_INCLUDES)
 
 AC_OUTPUT(
 Makefile \
