@@ -211,14 +211,14 @@ AC_DEFUN(SID_PATH_LIBRESID,
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        resid_incdirs="src/mos6581 src/mos6581/resid/include /usr/include /usr/local/include \
-                       /usr/lib/resid/include /usr/local/lib/resid/include"
+        resid_incdirs="$prefix/include src/mos6581 src/mos6581/resid/include /usr/include \
+                       /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
         SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="src/mos6581/resid src/mos6581/resid/lib /usr/lib /usr/local/lib \
-                       /usr/lib/resid/lib /usr/local/lib/resid/lib"
+        resid_libdirs="$prefix/lib src/mos6581/resid src/mos6581/resid/lib /usr/lib \
+                       /usr/local/lib /usr/lib/resid/lib /usr/local/lib/resid/lib"
         SID_FIND_FILE(libresid.la libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
 
@@ -378,6 +378,10 @@ AC_DEFUN(CONFIG_LIBTOOL,
     CFLAGS=$save_cflags
 ])
     
+
+
+
+
 
 
 # serial 40 AC_PROG_LIBTOOL
