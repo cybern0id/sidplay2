@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/10/28 00:22:52  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.9  2003/10/16 07:46:05  s_a_white
  *  Allow redirection of debug information of file.
  *
@@ -72,15 +75,15 @@ void MOS6510::DumpState (void)
     uint8_t        opcode, data;
     uint_least16_t operand, address;
 
-    printf(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n", eventContext.getTime (m_phase));
-    printf("%04x ",   instrStartPC);
-    printf("%u ",     interrupts.irqs);
-    printf("%02x ",   Register_Accumulator);
-    printf("%02x ",   Register_X);
-    printf("%02x ",   Register_Y);
-    printf("01%02x ", endian_16lo8 (Register_StackPointer));
-    printf("%02x ",   envReadMemDataByte (0));
-    printf("%02x ",   envReadMemDataByte (1));
+    fprintf(m_fdbg, " PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n", eventContext.getTime (m_phase));
+    fprintf(m_fdbg, "%04x ",   instrStartPC);
+    fprintf(m_fdbg, "%u ",     interrupts.irqs);
+    fprintf(m_fdbg, "%02x ",   Register_Accumulator);
+    fprintf(m_fdbg, "%02x ",   Register_X);
+    fprintf(m_fdbg, "%02x ",   Register_Y);
+    fprintf(m_fdbg, "01%02x ", endian_16lo8 (Register_StackPointer));
+    fprintf(m_fdbg, "%02x ",   envReadMemDataByte (0));
+    fprintf(m_fdbg, "%02x ",   envReadMemDataByte (1));
 
     if (getFlagN()) fprintf(m_fdbg, "1"); else fprintf(m_fdbg, "0");
     if (getFlagV()) fprintf(m_fdbg, "1"); else fprintf(m_fdbg, "0");
