@@ -41,7 +41,7 @@ void SidFilter::clear ()
     m_errorString   = "SID Filter: No filter loaded";
 }
 
-void SidFilter::read (char *filename)
+void SidFilter::read (const char *filename)
 {
     ini_fd_t ini = ini_open (filename, "r", ";");
 
@@ -57,7 +57,7 @@ void SidFilter::read (char *filename)
     ini_close (ini);
 }
 
-void SidFilter::read (ini_fd_t ini, char *heading)
+void SidFilter::read (ini_fd_t ini, const char *heading)
 {
     int type = 1;
 

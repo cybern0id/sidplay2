@@ -56,8 +56,8 @@ public:
     SidFilter ();
     ~SidFilter ();
 
-    void                read      (char *filename);
-    void                read      (ini_fd_t ini, char *heading);
+    void                read      (const char *filename);
+    void                read      (ini_fd_t ini, const char *heading);
     void                calcType2 (double fs, double fm, double ft);
     const char*         error     (void) { return m_errorString; }
     const sid_filter_t* provide   () const;
