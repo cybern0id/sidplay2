@@ -24,11 +24,6 @@
 #include <string.h>
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define SID_EXPORT __declspec(dllexport)
-#endif
-
 #include "SidTune.h"
 #include "sidendian.h"
 
@@ -202,6 +197,7 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
     saveAddr[0] = info.loadAddr & 255;
     saveAddr[1] = info.loadAddr >> 8;
     fMyOut.write( (char*)saveAddr, 2 );  // !cast!
+
     // Data starts at: bufferaddr + fileoffset
     // Data length: datafilelen - fileoffset
     fMyOut.write( (const char*)dataBuffer + fileOffset, info.dataFileLen - fileOffset );  // !cast!

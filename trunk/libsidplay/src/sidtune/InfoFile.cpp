@@ -19,11 +19,6 @@
  */
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define SID_EXPORT __declspec(dllexport)
-#endif
-
 #include "SidTune.h"
 #include "SidTuneTools.h"
 #include "sidendian.h"
