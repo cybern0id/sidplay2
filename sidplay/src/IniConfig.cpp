@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/08/20 18:28:55  s_a_white
+ *  MOS8580 fixed so that nothing means correct revision, 0 is 6581 and
+ *  1 is 8580.
+ *
  *  Revision 1.7  2001/07/14 16:52:56  s_a_white
  *  Removed warning.
  *
@@ -409,7 +413,7 @@ void IniConfig::read ()
 #endif
 
     // Opens an existing file or creates a new one
-    ini = ini_new (configPath);
+    ini = ini_open (configPath, "w");
 
     // Unable to open file?
     if (!ini)
