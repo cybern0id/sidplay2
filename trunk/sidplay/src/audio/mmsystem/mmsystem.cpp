@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/11/16 19:32:51  s_a_white
+ *  Removed warning.
+ *
  *  Revision 1.3  2001/09/17 19:08:55  s_a_white
  *  Sample enconding support added.
  *
@@ -82,9 +85,7 @@ void *Audio_MMSystem::open (AudioConfig &cfg, const char *)
     wfm.cbSize          = 0;
 
     // Rev 1.3 (saw) - Calculate buffer to hold 250ms of data
-    bufSize = wfm.nAvgBytesPerSec / 4;
-    if (wfm.nAvgBytesPerSec & 0x3)
-        bufSize++;
+    bufSize = wfm.nSamplesPerSec / 4 * wfm.nBlockAlign;
 
     cfg.bufSize = bufSize;
     waveOutOpen (&waveHandle, WAVE_MAPPER, &wfm, 0, 0, 0);
