@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2004/03/19 22:10:53  s_a_white
+ *  Prevent pending VIC/CIA irqs on entry to sys for PSIDs.  Those tunes do
+ *  not have proper inits and expect us to do some house keeping.
+ *
  *  Revision 1.29  2004/03/19 00:16:40  s_a_white
  *  Removed redundant register clears.  Locations are already 0 on exiting the
  *  delay loop.
@@ -155,16 +159,14 @@ init        jmp (initvec)
             ; cold start
 cold        sei
 
-            ; set CIA Timer A to 60Hz
+            ; setup hardware
+doinit      ldy $02a6
             lda video
-            beq ntsc
-pal         ldx #$25
-            ldy #$40
-            bne timer
-ntsc        ldx #$95
-            ldy #$42
-timer       stx $dc04
-            sty $dc05
+            sta $02a6
+            pha
+            jsr $ff84
+            pla
+            sty $02a6
 
             ; set VICII raster to line 311 for RSIDs
             ldx #$9b
@@ -174,7 +176,7 @@ timer       stx $dc04
             ; the default raster, however if the tune
             ; is playing at the wrong speed (e.g.
             ; PAL at NTSC) use the compatibility
-            ; raster instead to try make it wont work
+            ; raster instead to try make it work
             eor clock
             ora initiomap
             beq vicinit
@@ -185,15 +187,6 @@ timer       stx $dc04
             ldy #$00
 vicinit     stx $d011
             sty $d012
-
-            ; setup TOD clock divider
-doinit      lda video
-            ror
-            ror
-            sta $dd0e
-            ; always enable timer A for random numbers
-            ora #$01
-            sta $dc0e
 
             ; If play address, override default irq vector so
             ; we reach are routine to handle play routine
@@ -224,22 +217,26 @@ wait        dex
             dey
             bne wait
 
-            ; 0 indicates VIC timing, else it's from CIA
-            cpx speed
-            lda #$81
-            bcc ciainit
+            ; 0 indicates VIC timing (PSIDs only)
+            ; else it's from CIA
+            lda speed
+            bne ciaclear
 
-            ; enable VICII raster interrupt (only PSIDs)
-            ; and clear any pending irqs
-            sta $d01a
+            ; disable CIA 1 timer A interrupt but
+            ; leave timer running for random numbers
+            lda #$7f
+            sta $dc0d
+
+            ; clear any pending irqs
             lda $d019
             sta $d019
-            bne setregs
 
-            ; enable CIA 1 timer A interrupt and clear
-            ; any pending irqs
-ciainit     cmp $dc0d
-            sta $dc0d
+            ; enable VICII raster interrupt
+            lda #$81
+            sta $d01a
+
+            ; clear any pending irqs
+ciaclear    lda $dc0d
 
 setregs     lda flags
             pha
