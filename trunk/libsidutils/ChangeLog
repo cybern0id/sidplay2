@@ -1,0 +1,7 @@
+Changes from V1.0.0
+
+Imported new INI file parser code which fixes various bugs.  The INI
+file code itself has been turned into a seperate project and maybe at
+some point later the duplicate code will be removed from this project.
+
+See http://libini.sourceforge.net/
