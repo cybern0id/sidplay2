@@ -88,122 +88,6 @@ LINK32=link.exe
 
 # Name "libsidplay - Win32 Release"
 # Name "libsidplay - Win32 Debug"
-# Begin Group "Source Files"
-
-# PROP Default_Filter "cpp;cc;cxx;c;i"
-# Begin Source File
-
-SOURCE=..\..\src\c64\c64sid.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\config.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\event.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mixer.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\player.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\psiddrv.a65
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\psiddrv.bin
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\psiddrv.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\reloc65.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\sidplay2.cpp
-# End Source File
-# End Group
-# Begin Group "Header Files"
-
-# PROP Default_Filter "h"
-# Begin Source File
-
-SOURCE=..\..\src\c64\c64cia.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\c64env.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\c64\c64sid.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\c64\c64vic.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\c64\c64xsid.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\component.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\config.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\event.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\player.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sid2types.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidbuilder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidconfig.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidendian.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidenv.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidplay.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidplay2.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidplay\sidtypes.h
-# End Source File
-# End Group
 # Begin Group "Components"
 
 # PROP Default_Filter ""
@@ -267,128 +151,16 @@ SOURCE=..\..\src\mos656x\mos656x.cpp
 SOURCE=..\..\src\mos656x\mos656x.h
 # End Source File
 # End Group
-# Begin Group "MOS6581"
+# Begin Group "SID6526"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\mos6581\mos6581.h
-# End Source File
-# End Group
-# Begin Group "ReSID"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\envelope.cpp
+SOURCE=..\..\src\sid6526\sid6526.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\mos6581\resid\envelope.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\extfilt.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\extfilt.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\filter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\filter.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\pot.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\pot.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\sid.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\sid.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\siddefs.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\spline.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\version.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\voice.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\voice.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave6581__ST.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave6581_P_T.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave6581_PS_.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave6581_PST.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave8580__ST.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave8580_P_T.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave8580_PS_.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\mos6581\resid\wave8580_PST.cpp
-# End Source File
-# End Group
-# Begin Group "xSID"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\..\src\xsid\xsid.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\xsid\xsid.h
+SOURCE=..\..\src\sid6526\sid6526.h
 # End Source File
 # End Group
 # Begin Group "SidTune"
@@ -451,18 +223,134 @@ SOURCE=..\..\src\sidtune\SidTuneTools.h
 SOURCE=..\..\include\sidplay\SmartPtr.h
 # End Source File
 # End Group
-# Begin Group "SID6526"
+# Begin Group "xSID"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\src\sid6526\sid6526.cpp
+SOURCE=..\..\src\xsid\xsid.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sid6526\sid6526.h
+SOURCE=..\..\src\xsid\xsid.h
 # End Source File
 # End Group
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h"
+# Begin Source File
+
+SOURCE=..\..\src\c64\c64cia.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\c64env.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\c64\c64vic.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\c64\c64xsid.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\nullsid.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\player.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidenv.h
+# End Source File
+# End Group
+# Begin Group "Header Files (Public)"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\component.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\event.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sid2types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidbuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidconfig.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidendian.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidplay.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidplay2.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidtypes.h
+# End Source File
+# End Group
+# Begin Group "Source Files"
+
+# PROP Default_Filter "cpp;cc;cxx;c;i"
+# Begin Source File
+
+SOURCE=..\..\src\config.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\event.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\mixer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\player.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\psiddrv.a65
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\psiddrv.bin
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\psiddrv.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\reloc65.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sidplay2.cpp
+# End Source File
 # End Group
 # End Target
 # End Project
