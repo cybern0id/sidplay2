@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.48  2002/10/15 18:20:54  s_a_white
+ *  Make all addresses from ea31 to ea7d valid IRQ exit points.  This
+ *  approximates the functionality of a real C64.
+ *
  *  Revision 1.47  2002/10/02 19:43:47  s_a_white
  *  RSID support.
  *
@@ -438,13 +442,15 @@ uint8_t Player::iomap (uint_least16_t addr)
     if (m_info.environment != sid2_envPS)
     {   // Force Real C64 Compatibility
         if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_R64)
-            return 0x37;
+            return 0;     // Special case, converted to 0x37 later
 
+        if (addr == 0)
+            return 0;     // Special case, converted to 0x37 later
         if (addr < 0xa000)
             return 0x37;  // Basic-ROM, Kernal-ROM, I/O
-        else if (addr  < 0xd000)
+        if (addr  < 0xd000)
             return 0x36;  // Kernal-ROM, I/O
-        else if (addr >= 0xe000)
+        if (addr >= 0xe000)
             return 0x35;  // I/O only
     }
     return 0x34;  // RAM only (special I/O in PlaySID mode)
