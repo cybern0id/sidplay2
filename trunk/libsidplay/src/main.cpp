@@ -43,6 +43,11 @@ int _kbhit (void);
 int _getch (void);
 #endif
 
+#define KEY_UP    'H'
+#define KEY_DOWN  'P'
+#define KEY_LEFT  'K'
+#define KEY_RIGHT 'M'
+
 #ifdef SID_HAVE_EXCEPTIONS
 #   include <new>
 #endif
@@ -128,7 +133,7 @@ int main(int argc, char *argv[])
     // (ms) Incomplete...
     // Fastforward/Rewind Patch
     udword_sidt   starttime     = 0;
-
+  
     audioCfg.frequency = SIDPLAYER_DEFAULT_SAMPLING_FREQ;;
     audioCfg.precision = SIDPLAYER_DEFAULT_PRECISION;
     audioCfg.channels  = 1; // Mono
@@ -477,9 +482,6 @@ int main(int argc, char *argv[])
     player.lib.environment  (playerMode);
 
 main_restart:
-    // Rev 1.18 (saw) - Keyboard performance update
-    while (_kbhit ())
-        decodeKeys ();    
     player.restart = false;
 
     if (player.lib.loadSong (argv[sidFile], player.selectedSong) == -1)
@@ -571,43 +573,8 @@ main_restart:
     displayTable (sid_tableMiddle);
     cout << setw(24) << "sidplay V2.0.0," << " "
          << player.info.name << " V" << player.info.version << endl;
-    displayTable (sid_tableSeperator);
- 
-    if (verboseOutput)
-    {
-        displayTable (sid_tableMiddle);
-        cout << "File format  : " << tuneInfo->formatString << endl;
-        displayTable (sid_tableMiddle);
-        cout << "Filename(s)  : " << tuneInfo->dataFileName << endl;
-        // Rev 1.12 (saw).  Visual C++ Fix (Only print second file string if not NULL).
-        if (tuneInfo->dataFileName)
-        {
-            displayTable (sid_tableMiddle);
-            cout << "             : " << tuneInfo->infoFileName << endl;
-        }
-        displayTable (sid_tableMiddle);
-        cout << "Condition    : " << tuneInfo->statusString << endl;
-    }
 
-    displayTable (sid_tableMiddle);
-    cout << "Setting Song : " << tuneInfo->currentSong
-         << " out of "        << tuneInfo->songs
-         << " (default = "    << tuneInfo->startSong << ')' << endl;
-
-    if (verboseOutput)
-    {
-        displayTable (sid_tableMiddle);
-        cout << "Song speed   : " << tuneInfo->speedString << endl;
-    }
-
-    displayTable (sid_tableMiddle);
-    if (runtime)
-        cout << "Song Length  : " << setw(2) << setfill('0') << ((runtime / 60) % 100)
-             << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
-    else
-        cout << "Song Length  : UNKNOWN" << endl;
-
-    displayTable (sid_tableSeperator);
+    displayTable (sid_tableSeperator); 
     if (tuneInfo->numberOfInfoStrings == 3)
     {
         displayTable (sid_tableMiddle);
@@ -625,6 +592,41 @@ main_restart:
             cout << "Description  : " << tuneInfo->infoString[infoi] << endl;
         }
     }
+
+    displayTable (sid_tableSeperator);
+    if (verboseOutput)
+    {
+        displayTable (sid_tableMiddle);
+        cout << "File format  : " << tuneInfo->formatString << endl;
+        displayTable (sid_tableMiddle);
+        cout << "Filename(s)  : " << tuneInfo->dataFileName << endl;
+        // Second file is only sometimes present
+        if (tuneInfo->infoFileName[0])
+        {
+            displayTable (sid_tableMiddle);
+            cout << "             : " << tuneInfo->infoFileName << endl;
+        }
+        displayTable (sid_tableMiddle);
+        cout << "Condition    : " << tuneInfo->statusString << endl;
+    }
+
+    displayTable (sid_tableMiddle);
+    cout << "Setting Song : " << tuneInfo->currentSong
+         << " out of "        << tuneInfo->songs
+         << " (default = "    << tuneInfo->startSong << ')' << endl;
+
+    if (verboseOutput)
+    {
+        displayTable (sid_tableMiddle);
+        cout << "Song Speed   : " << tuneInfo->speedString << endl;
+    }
+
+    displayTable (sid_tableMiddle);
+    if (runtime)
+        cout << "Song Length  : " << setw(2) << setfill('0') << ((runtime / 60) % 100)
+             << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
+    else
+        cout << "Song Length  : UNKNOWN" << endl;
 
     if (verboseOutput)
     {
@@ -705,9 +707,12 @@ main_restart:
         goto main_restart;
     }
 
+#ifndef HAVE_MSWINDOWS
+    cout << endl;
+#endif
+
     // Clean up
     cleanup (player.fastExit);
-
     if (wavOutput && !player.fastExit)
         cout << (char) 7; // Bell
     return EXIT_SUCCESS;
@@ -718,17 +723,20 @@ main_error:
 }
 
 sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
-{   // Fill buffer
+{
+	static udword_sidt currentSecs = (udword_sidt) -1;
+	udword_sidt seconds;
+
+	// Fill buffer
     // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
     if (!player.lib.play (buffer, cfg.bufSize) || player.fastExit)
         return -1;
 
     // Check to see if the clock requires updating
-    if (player.lib.updateClock ())
+	seconds = player.lib.time();
+    if (currentSecs != seconds)
     {
-        udword_sidt seconds;
-        seconds = player.lib.time();
-        if ( !player.quietLevel )
+        if (!player.quietLevel)
         {
             cout << "\b\b\b\b\b" << setw(2) << setfill('0') << ((seconds / 60) % 100)
             << ':' << setw(2) << setfill('0') << (seconds % 60) << flush;
@@ -739,10 +747,13 @@ sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
         {
             decodeKeys ();
             if (player.restart || player.fastExit)
+			{
+				currentSecs = (udword_sidt) -1;
                 return -1;
+			}
         }
 
-        return seconds;
+        return (currentSecs = seconds);
     }
     
     return 0;
@@ -849,11 +860,7 @@ void cleanup (bool fast)
             (void) player.audioDrv->reset();
         delete player.audioDrv;
     }
-
     cout << endl;
-#ifndef HAVE_MSWINDOWS
-    cout << endl;
-#endif
 
 #ifdef HAVE_UNIX
     // Rev 1.13 (saw) - Restore old terminal settings
@@ -893,30 +900,62 @@ void displayTable (table_sidt table)
 void decodeKeys ()
 {
     uword_sidt songs;
-    int ch = _getch ();
-    songs  = player.info.tuneInfo.songs;
+    int ch;
+    songs = player.info.tuneInfo.songs;
 
-    switch (tolower (ch))
-    {
-    case '>':
-    case '.':
-        player.restart = true;
-        player.selectedSong++;
-        if (player.selectedSong > songs)
-            player.selectedSong = 1;
-    break;
-    case '<':
-    case ',':
-        player.restart = true;
-        player.selectedSong--;
-        if (player.selectedSong < 1)
-            player.selectedSong = songs;
-    break;
-    case '\x1b':
-        player.fastExit = true;
-    break;
-    default: break;
-    }
+	do
+	{
+		ch = _getch ();
+		if (!ch)
+		{   // Extended Key
+			ch = _getch ();
+			switch (ch)
+			{
+			case KEY_RIGHT:
+				player.restart = true;
+				player.selectedSong++;
+				if (player.selectedSong > songs)
+					player.selectedSong = 1;
+			break;
+
+			case KEY_LEFT:
+				player.restart = true;
+				player.selectedSong--;
+				if (player.selectedSong < 1)
+					player.selectedSong = songs;
+			break;
+			}
+		}
+		else
+		{   // Normal Key
+			switch (tolower (ch))
+			{
+			case '6':
+			case '>':
+			case '.':
+				player.restart = true;
+				player.selectedSong++;
+				if (player.selectedSong > songs)
+					player.selectedSong = 1;
+			break;
+			case '4':
+			case '<':
+			case ',':
+				player.restart = true;
+				player.selectedSong--;
+				if (player.selectedSong < 1)
+					player.selectedSong = songs;
+			break;
+			case '\x1b':
+				if (!_kbhit ())
+				{   // If more keys then we have an escape sequence
+				    player.fastExit = true;
+				    return;
+				}
+			break;
+			}
+		}
+	} while (_kbhit ());
 }
 
 

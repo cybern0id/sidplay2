@@ -68,7 +68,7 @@ private:
     double        _currentPeriod;
     udword_sidt   _sampleCount;
     udword_sidt   _seconds;
-    bool          _updateClock;
+    udword_sidt   _mileage;
     udword_sidt   _channels;
 
     bool          _filter;
@@ -93,6 +93,12 @@ private:
     int        initialise     (void);
     void       initBankSelect (uword_sidt addr);
     void       nextSequence   (void);
+	void       mileageCorrect (void)
+	{   // If just finished a song, round samples to correct mileage
+        if (_sampleCount >= (_samplingFreq / 2))
+		    _mileage++;
+        _sampleCount = 0;
+    }
 
     ubyte_sidt readMemByte_plain     (uword_sidt addr, bool useCache);
     ubyte_sidt readMemByte_playsid   (uword_sidt addr, bool useCache);
@@ -164,13 +170,8 @@ private:
     }
 
     // Rev 2.0.4 (saw) - Added new timer functions
-    udword_sidt time         (void) { return _seconds; }
-    bool        updateClock  (void)
-    {
-        bool update  = _updateClock;
-        _updateClock = false;
-        return update;
-    }
+    udword_sidt time    (void) { return _seconds; }
+    udword_sidt mileage (void) { return _mileage; }
 
     // Rev 2.0.4 (saw) - Added filter settings
     void filter    (bool enabled)

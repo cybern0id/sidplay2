@@ -1,5 +1,5 @@
 /***************************************************************************
-                          sidplayer_pr.cpp  -  description
+                          sidplayer.cpp  -  Main Library Code
                              -------------------
     begin                : Fri Jun 9 2000
     copyright            : (C) 2000 by Simon White
@@ -15,7 +15,6 @@
  ***************************************************************************/
 #include <string.h>
 
-#define  _sidplayer_pr_cpp_
 #include "sidplayer_pr.h"
 
 #ifdef SID_HAVE_EXCEPTIONS
@@ -47,6 +46,17 @@ static const char SIDPLAYER_ERR_NO_TUNE_LOADED[]        = "SIDPLAYER ERROR: No t
 // Set the ICs environment variable to point to
 // this sidplayer_pr
 sidplayer_pr::sidplayer_pr (void)
+// Set default settings for system
+:myTune (NULL), tune (NULL),
+ ram    (NULL), rom  (NULL),
+ _clockSpeed    (SID_TUNE_CLOCK),
+ _environment   (sid_envBS),
+ _errorString   (SIDPLAYER_TXT_NA),
+ _optimiseLevel (SIDPLAYER_DEFAULT_OPTIMISATION),
+ _sampleCount   (0),
+ _leftVolume    (255),
+ _rightVolume   (255),
+ playerState    (_stopped)
 {   // Set the ICs to use this environment
     cpu.setEnvironment  (this);
     cia.setEnvironment  (this);
@@ -60,33 +70,13 @@ sidplayer_pr::sidplayer_pr (void)
     extFilter (true);
     // Emulation type selectable
     sidModel  (SID_MOS6581);
-
-    //----------------------------------------------
     // Emulation type selectable
     sid2.set_chip_model(MOS6581);
-
-    // Set default settings for system
-    myTune = tune  = NULL;
-    ram    = (rom  = NULL);
-    _environment   = sid_envBS;
-    playerState    = _stopped;
-    _channels      = 1;
+    //----------------------------------------------
 
     // Rev 2.0.4 (saw) - Added
     configure (sid_mono, SIDPLAYER_DEFAULT_SAMPLING_FREQ,
                SIDPLAYER_DEFAULT_PRECISION, false);
-    // Rev 1.7 (saw) - Fixed
-    _optimiseLevel = SIDPLAYER_DEFAULT_OPTIMISATION;
-
-    // Rev 2.0.4 (saw) - Added Force Clock Speed
-    _clockSpeed    = SID_TUNE_CLOCK;
-
-    // Temp @TODO@
-    _leftVolume    = 255;
-    _rightVolume   = 255;
-
-    // Rev 1.6 (saw) - Added variable initialisation
-    _errorString = SIDPLAYER_TXT_NA;
 }
 
 sidplayer_pr::~sidplayer_pr ()
@@ -97,13 +87,13 @@ sidplayer_pr::~sidplayer_pr ()
 
 int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, int precision, bool forceDualSids)
 {
-    if (playerState != _stopped)
+    if (playerState == _playing)
     {   // Rev 1.6 (saw) - Added descriptive error
         _errorString = SIDPLAYER_ERR_CONF_WHILST_ACTIVE;
         return -1;
     }
 
-    // Check for bas sampling frequency
+    // Check for base sampling frequency
     if (!samplingFreq)
     {   // Rev 1.6 (saw) - Added descriptive error
         _errorString = SIDPLAYER_ERR_UNSUPPORTED_FREQ;
@@ -121,7 +111,6 @@ int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, i
             _errorString = SIDPLAYER_ERR_UNSUPPORTED_PRECISION;
             return -1;
         }
-        _precision = precision;
     break;
 
     default:
@@ -130,191 +119,23 @@ int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, i
         return -1;
     }
 
+	// Fix the mileage counter if just finished another song.
+	mileageCorrect ();
+
+    // Do the actual configuration
     _playback       = playback;
     _channels       = 1;
     if (_playback == sid_stereo)
-        _channels   = 2;
+        _channels++;
     _samplingFreq   = samplingFreq;
-    // Added Rev 2.0.3
     _forceDualSids  = forceDualSids;
-    // Rev 2.0.4 (saw) - Added for 16 bit and new timer
-    _scaleBuffer    = (precision / 8);
+    _precision      = precision;
+    _scaleBuffer    = (_precision / 8);
     _samplingPeriod = _cpuFreq / (double) samplingFreq;
-    return 0;
-}
-
-// Stops the emulation routine
-void sidplayer_pr::stop (void)
-{
-    playerState = _stopped;
-}
-
-void sidplayer_pr::pause (void)
-{
-    playerState = _paused;
-}
-
-// Makes the next sequence of notes available.  For sidplay compatibility
-// this function should be called from trigger IRQ event
-void sidplayer_pr::nextSequence ()
-{   // Check to see if the play address has been provided or whether
-    // we should pick it up from an IRQ vector
-    uword_sidt playAddr = tuneInfo.playAddr;
-
-    // We have to reload the new play address
-    if (!playAddr)
-    {
-        if (isKernal)
-        {   // Setup the entry point from hardware IRQ
-            playAddr = ((uword_sidt) ram[0x0315] << 8) | ram[0x0314];
-        }
-        else
-        {   // Setup the entry point from software IRQ
-            playAddr = ((uword_sidt) ram[0xfffe] << 8) | ram[0xffff];
-        }
-    }
-    else
-        evalBankSelect (_initBankReg);
-
-    // Setup the entry point and restart the cpu
-    ram[0xfffc] = (rom[0xfffc] = (ubyte_sidt)  playAddr);
-    ram[0xfffd] = (rom[0xfffd] = (ubyte_sidt) (playAddr >> 8));
-    cpu.reset ();
-}
-
-udword_sidt sidplayer_pr::play (void *buffer, udword_sidt length)
-{
-    udword_sidt count = 0;
-    uword_sidt  clock = 0;
-
-    // Make sure a tune is loaded
-    if (!tune)
-        return 0;
-
-    // Change size from generic units to native units
-    length /= _scaleBuffer;
-
-    // Start the player loop
-    playerState = _playing;
-    while (playerState == _playing)
-    {   // For sidplay compatibility the cpu must be idle
-        // when the play routine exists.  The cpu will stay
-        // idle until an interrupt occurs
-        while (!cpu.SPWrapped)
-        {
-            cpu.clock ();
-            if (_optimiseLevel < 2)
-                break;
-        }
-
-        if (!_optimiseLevel)
-        {   // Sids currently have largest cpu overhead, so have been moved
-            // and are now only clocked when an output it required
-            // Only clock second sid if we want to hear right channel or
-            // stereo.  However having this results in better playback
-            if (_sidEnabled[0])
-                sid.clock ();
-            if (_sidEnabled[1])
-                sid2.clock ();
-            xsid.clock ();
-        }
-
-        cia.clock  ();
-        clock++;
-
-        // Check to see if we need a new sample from reSID
-        _currentPeriod++;
-        if (_currentPeriod < _samplingPeriod)
-            continue;
-
-        // Rev 2.0.3 Changed - Using new mixer routines
-        (this->*output) (clock, buffer, count);
-
-        // Check to see if the buffer is full and if so return
-        // so the samples can be played
-        if (count >= length)
-        {
-            count = length;
-            goto sidplayer_pr_play_updateTimer;
-        }
-
-        _currentPeriod -= _samplingPeriod;
-        clock = 0;
-    }
-
-    if (playerState == _stopped)
-    {
-        initialise ();
-        return 0;
-    }
-
-sidplayer_pr_play_updateTimer:
-    // Calculate the current air time
-    playerState   = _paused;
-    _sampleCount += (count / _channels);
-
-    while (_sampleCount >= _samplingFreq)
-    {   // Calculate play time
-        _updateClock  = true;
-		_sampleCount -= _samplingFreq;
-        _seconds++;
-    }
-    // Change size from native units to generic units
-    return count * _scaleBuffer;
-}
-
-int sidplayer_pr::loadSong (const char * const title, const uword_sidt songNumber)
-{
-    // My tune is a tune which belongs and
-    // is fully controlled be sidplayer_pr
-    // so try to remove it
-    if (myTune != NULL)
-        delete myTune;
-
-    // Create new sid tune object and load song
-#ifdef SID_HAVE_EXCEPTIONS
-    myTune = new(nothrow) SidTune(title);
-#else
-    myTune = new SidTune(title);
-#endif
-    // Make sure the memory was allocated
-    if (!myTune)
-    {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = SIDPLAYER_ERR_MEM_ALLOC;
-        return -1;
-    }
-
-    // Make sure the tune loaded correctly
-    if (!(*myTune))
-    {   // Rev 1.6 (saw) - Allow loop through errors
-        _errorString = (myTune->getInfo ()).statusString;
-        return -1;
-    }
-    myTune->selectSong(songNumber);
-    return loadSong (myTune);
-};
-
-// Rev 1.13 (saw) - Added to change to another subtune
-// without reloading the file from disk
-int sidplayer_pr::loadSong (const uword_sidt songNumber)
-{
-    if (!myTune)
-	{
-        _errorString = SIDPLAYER_ERR_NO_TUNE_LOADED;
-        return -1;
-	}
-    myTune->selectSong(songNumber);
-    return loadSong (myTune);
-}
-
-int sidplayer_pr::loadSong (SidTune *requiredTune)
-{
-    tune = requiredTune;
-    tune->getInfo(tuneInfo);
 
     // Determine if first sid is enabled
     _sidEnabled[0] = true;
-	if (_playback == sid_right)
+    if (_playback == sid_right)
         _sidEnabled[0] = false;
 
     // Disable second sid from read/writes in memory
@@ -391,77 +212,6 @@ int sidplayer_pr::loadSong (SidTune *requiredTune)
         }
     }
 
-    // Check if environment has not initialised or
-    // the user has asked to a different one.
-    // This call we initalise the player
-    if (!ram)
-        return environment (_environment);
-
-    // Initialise the player
-    return initialise ();
-}
-
-void sidplayer_pr::getInfo (playerInfo_sidt *info)
-{
-    info->name        = PACKAGE;
-    info->version     = VERSION;
-    info->filter      = _filter;
-    info->extFilter   = _extFilter;
-    info->tuneInfo    = tuneInfo;
-    info->environment = _environment;
-}
-
-int sidplayer_pr::initialise ()
-{   // Now read the sub tune into memory
-    ubyte_sidt AC = tuneInfo.currentSong - 1;
-    envReset ();
-    if (!tune->placeSidTuneInC64mem (ram))
-    {   // Rev 1.6 (saw) - Allow loop through errors
-        _errorString = tuneInfo.statusString;
-        return -1;
-    }
-
-    // Rev 2.0.4 (saw) - Added for new time ounter
-    _currentPeriod  = 0;
-    _sampleCount    = 0;
-    // Clock speed changing due to loading a new song
-    _samplingPeriod = _cpuFreq / (double) _samplingFreq;
-
-    // Setup the Initial entry point
-    uword_sidt initAddr = tuneInfo.initAddr;
-    initBankSelect (initAddr);
-    ram[0xfffc] = (rom[0xfffc] = (ubyte_sidt)  initAddr);
-    ram[0xfffd] = (rom[0xfffd] = (ubyte_sidt) (initAddr >> 8));
-    cpu.reset (AC, 0, 0);
-
-    // Initialise the song
-    while (!cpu.SPWrapped)
-    {
-        cpu.clock ();
-#ifdef DEBUG
-        cpu.DumpState ();
-#endif // DEBUG
-    }
-
-    // Check to make sure the play address is legal
-    uword_sidt playAddr = tuneInfo.playAddr;
-	// Rev 1.8 (saw) - (playAddr == initAddr) is no longer
-	// treated as an init loop that sets it's own irq
-	// handler
-    //if ((playAddr == 0xffff) || (playAddr == initAddr))
-    if (playAddr == 0xffff)
-        tuneInfo.playAddr = 0;
-    initBankSelect (playAddr);
-    _initBankReg = _bankReg;
-
-    // Get the next sequence of notes
-    nextSequence ();
-    playerState  = _stopped;
-    // Rev 1.12 (ms) - Added to fix timer
-    _seconds     = 0;
-    // Rev 1.11 - Added to cause timer update for 0:00
-    // Performance related issue!
-    _updateClock = true;
     return 0;
 }
 
@@ -551,9 +301,249 @@ int sidplayer_pr::environment (env_sidt env)
     return 0;
 }
 
+void sidplayer_pr::getInfo (playerInfo_sidt *info)
+{
+    info->name        = PACKAGE;
+    info->version     = VERSION;
+    info->filter      = _filter;
+    info->extFilter   = _extFilter;
+    info->tuneInfo    = tuneInfo;
+    info->environment = _environment;
+}
+
+int sidplayer_pr::initialise ()
+{   // Now read the sub tune into memory
+    ubyte_sidt AC = tuneInfo.currentSong - 1;
+    playerState   = _stopped;
+    envReset ();
+    if (!tune->placeSidTuneInC64mem (ram))
+    {   // Rev 1.6 (saw) - Allow loop through errors
+        _errorString = tuneInfo.statusString;
+        return -1;
+    }
+
+	// Fix the mileage counter if just finished another song.
+	mileageCorrect ();
+    _currentPeriod  = 0;
+    // Clock speed changes due to loading a new song
+    _samplingPeriod = _cpuFreq / (double) _samplingFreq;
+    _seconds        = 0;
+
+    // Setup the Initial entry point
+    uword_sidt initAddr = tuneInfo.initAddr;
+    initBankSelect (initAddr);
+    ram[0xfffc] = (rom[0xfffc] = (ubyte_sidt)  initAddr);
+    ram[0xfffd] = (rom[0xfffd] = (ubyte_sidt) (initAddr >> 8));
+    cpu.reset (AC, 0, 0);
+
+    // Initialise the song
+    while (!cpu.SPWrapped)
+    {
+        cpu.clock ();
+#ifdef DEBUG
+        cpu.DumpState ();
+#endif // DEBUG
+    }
+
+    // Check to make sure the play address is legal
+    uword_sidt playAddr = tuneInfo.playAddr;
+    // Rev 1.8 (saw) - (playAddr == initAddr) is no longer
+    // treated as an init loop that sets it's own irq
+    // handler
+    //if ((playAddr == 0xffff) || (playAddr == initAddr))
+    if (playAddr == 0xffff)
+        tuneInfo.playAddr = 0;
+    initBankSelect (playAddr);
+    _initBankReg = _bankReg;
+
+    // Get the next sequence of notes
+    nextSequence ();
+    return 0;
+}
+
+int sidplayer_pr::loadSong (const char * const title, const uword_sidt songNumber)
+{
+    // My tune is a tune which belongs and
+    // is fully controlled be sidplayer_pr
+    // so try to remove it
+    if (myTune != NULL)
+        delete myTune;
+
+    // Create new sid tune object and load song
+#ifdef SID_HAVE_EXCEPTIONS
+    myTune = new(nothrow) SidTune(title);
+#else
+    myTune = new SidTune(title);
+#endif
+    // Make sure the memory was allocated
+    if (!myTune)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_MEM_ALLOC;
+        return -1;
+    }
+
+    // Make sure the tune loaded correctly
+    if (!(*myTune))
+    {   // Rev 1.6 (saw) - Allow loop through errors
+        _errorString = (myTune->getInfo ()).statusString;
+        return -1;
+    }
+    myTune->selectSong(songNumber);
+    return loadSong (myTune);
+};
+
+// Rev 1.13 (saw) - Added to change to another subtune
+// without reloading the file from disk
+int sidplayer_pr::loadSong (const uword_sidt songNumber)
+{
+    if (!myTune)
+    {
+        _errorString = SIDPLAYER_ERR_NO_TUNE_LOADED;
+        return -1;
+    }
+    myTune->selectSong(songNumber);
+    return loadSong (myTune);
+}
+
+int sidplayer_pr::loadSong (SidTune *requiredTune)
+{
+    tune = requiredTune;
+    tune->getInfo(tuneInfo);
+
+    // Check if environment has not initialised or
+    // the user has asked to a different one.
+    // This call we initalise the player
+    if (!ram)
+        return environment (_environment);
+
+    // Initialise the player
+    return initialise ();
+}
+
+// Makes the next sequence of notes available.  For sidplay compatibility
+// this function should be called from trigger IRQ event
+void sidplayer_pr::nextSequence ()
+{   // Check to see if the play address has been provided or whether
+    // we should pick it up from an IRQ vector
+    uword_sidt playAddr = tuneInfo.playAddr;
+
+    // We have to reload the new play address
+    if (!playAddr)
+    {
+        if (isKernal)
+        {   // Setup the entry point from hardware IRQ
+            playAddr = ((uword_sidt) ram[0x0315] << 8) | ram[0x0314];
+        }
+        else
+        {   // Setup the entry point from software IRQ
+            playAddr = ((uword_sidt) ram[0xfffe] << 8) | ram[0xffff];
+        }
+    }
+    else
+        evalBankSelect (_initBankReg);
+
+    // Setup the entry point and restart the cpu
+    ram[0xfffc] = (rom[0xfffc] = (ubyte_sidt)  playAddr);
+    ram[0xfffd] = (rom[0xfffd] = (ubyte_sidt) (playAddr >> 8));
+    cpu.reset ();
+}
+
+void sidplayer_pr::pause (void)
+{
+    if (playerState != _stopped)
+        playerState  = _paused;
+}
+
+udword_sidt sidplayer_pr::play (void *buffer, udword_sidt length)
+{
+    udword_sidt count = 0;
+    uword_sidt  clock = 0;
+
+    // Make sure a tune is loaded
+    if (!tune)
+        return 0;
+
+    // Change size from generic units to native units
+    length /= _scaleBuffer;
+
+    // Start the player loop
+    playerState = _playing;
+    while (playerState == _playing)
+    {   // For sidplay compatibility the cpu must be idle
+        // when the play routine exists.  The cpu will stay
+        // idle until an interrupt occurs
+        while (!cpu.SPWrapped)
+        {
+            cpu.clock ();
+            if (_optimiseLevel < 2)
+                break;
+        }
+
+        if (!_optimiseLevel)
+        {   // Sids currently have largest cpu overhead, so have been moved
+            // and are now only clocked when an output it required
+            // Only clock second sid if we want to hear right channel or
+            // stereo.  However having this results in better playback
+            if (_sidEnabled[0])
+                sid.clock ();
+            if (_sidEnabled[1])
+                sid2.clock ();
+            xsid.clock ();
+        }
+
+        cia.clock  ();
+        clock++;
+
+        // Check to see if we need a new sample from reSID
+        _currentPeriod++;
+        if (_currentPeriod < _samplingPeriod)
+            continue;
+
+        // Rev 2.0.3 Changed - Using new mixer routines
+        (this->*output) (clock, buffer, count);
+
+        // Check to see if the buffer is full and if so return
+        // so the samples can be played
+        if (count >= length)
+        {
+            count = length;
+            goto sidplayer_pr_play_updateTimer;
+        }
+
+        _currentPeriod -= _samplingPeriod;
+        clock = 0;
+    }
+
+    if (playerState == _stopped)
+    {
+        initialise ();
+        return 0;
+    }
+
+sidplayer_pr_play_updateTimer:
+    // Calculate the current air time
+    playerState   = _paused;
+    _sampleCount += (count / _channels);
+
+    while (_sampleCount >= _samplingFreq)
+    {   // Calculate play time
+        _sampleCount -= _samplingFreq;
+        _seconds++;
+		_mileage++;
+    }
+    // Change size from native units to generic units
+    return count * _scaleBuffer;
+}
+
+void sidplayer_pr::stop (void)
+{
+    playerState = _stopped;
+}
+
+
 
 //-------------------------------------------------------------------------
-// Temporary hack till real bank switch code added
+// Temporary hack till real bank switching code added
 
 //  Input: A 16-bit effective address
 // Output: A default bank-select value for $01.
@@ -660,7 +650,7 @@ ubyte_sidt sidplayer_pr::readMemByte_sidplaytp(uword_sidt addr, bool useCache)
         }
     }
 }
-    	
+        
 ubyte_sidt sidplayer_pr::readMemByte_sidplaybs (uword_sidt addr, bool useCache)
 {
     if (addr < 0xA000)
@@ -872,10 +862,10 @@ void sidplayer_pr::envReset (void)
     rom[0xfffd] = 0xfc;
     rom[0xfffe] = 0x48; // IRQ to $FF48
     rom[0xffff] = 0xff;
-	
+    
     if (_environment == sid_envPS)
     {
-	    // (ms) $FFFE: JMP $FF48 -> $FF48: JMP ($0314)
+        // (ms) $FFFE: JMP $FF48 -> $FF48: JMP ($0314)
         rom[0xff48] = 0x6c;
         rom[0xff49] = 0x14;
         rom[0xff4a] = 0x03;
@@ -972,7 +962,7 @@ bool sidplayer_pr::envCheckBankJump (uword_sidt addr)
 
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-// Redirection to private version of sidplayer (This method is called Chesire Cat)
+// Redirection to private version of sidplayer (This method is called Cheshire Cat)
 // [ms: which is J. Carolan's name for a degenerate 'bridge']
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
@@ -1021,8 +1011,8 @@ void sidplayer::optimisation (int level)
 udword_sidt sidplayer::time (void)
 {   return player->time (); }
 
-bool sidplayer::updateClock (void)
-{   return player->updateClock (); }
+udword_sidt sidplayer::mileage (void)
+{   return player->mileage (); }
 
 void sidplayer::filter (bool enabled)
 {   player->filter (enabled); }
