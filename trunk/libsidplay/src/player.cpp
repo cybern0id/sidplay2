@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2001/09/01 11:15:46  s_a_white
+ *  Fixes sidplay1 environment modes.
+ *
  *  Revision 1.26  2001/08/10 20:04:46  s_a_white
  *  Initialise requires rtc reset for correct use with stop operation.
  *
@@ -409,7 +412,7 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
             case 0:
                 return readMemByte_plain (addr);
             case 0xdc: // Sidplay1 CIA
-                return sid6526.read (addr);
+                return sid6526.read (addr&0x0f);
             default:
                 return m_rom[addr];
             }
@@ -527,7 +530,7 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
                 writeMemByte_plain (addr, data);
             return;
             case 0xdc: // Sidplay1 CIA
-                sid6526.write (addr, data);
+                sid6526.write (addr&0x0f, data);
             return;
             default:
                 m_rom[addr] = data;
