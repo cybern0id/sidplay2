@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2002/11/25 21:07:32  s_a_white
+ *  Allow setting of program counter on reset.
+ *
  *  Revision 1.15  2002/11/21 19:52:48  s_a_white
  *  CPU upgraded to be like other components.  Theres nolonger a clock call,
  *  instead events are registered to occur at a specific time.
@@ -79,7 +82,7 @@ private:
     // Sidplay Specials
     bool          m_sleeping;
     sid2_env_t    m_mode;
-    event_clock_t m_delayClk, m_delayCycles;
+    event_clock_t m_delayClk;
     bool          m_framelock;
 
 public:
