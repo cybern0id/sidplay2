@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.3  2000/12/11 19:07:42  s_a_white
  *  AC99 Update.
  *
@@ -46,6 +49,11 @@
 #undef WAV_HAVE_BAD_COMPILER
 #ifdef HAVE_BAD_COMPILER
   #define HAVE_BAD_COMPILER
+#endif
+
+#undef WAV_HAVE_IOS_OPENMODE
+#ifdef HAVE_IOS_OPENMODE
+  #define WAV_HAVE_IOS_OPENMODE
 #endif
 
 /* Whether to revert any changes applied to the endian-ess of the
