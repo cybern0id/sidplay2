@@ -51,9 +51,10 @@ const int SIDTUNE_SIDMODEL_6581    = 0x01; // These are also used in the
 const int SIDTUNE_SIDMODEL_8580    = 0x02; // emulator engine!
 const int SIDTUNE_SIDMODEL_ANY     = (SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580);
 
-const int SIDTUNE_COMPATIBILITY_C64  = 0x00; // File is C64 compatible
-const int SIDTUNE_COMPATIBILITY_PSID = 0x01; // File is PSID specific
-const int SIDTUNE_COMPATIBILITY_R64  = 0x02; // File is Real C64 only
+const int SIDTUNE_COMPATIBILITY_C64   = 0x00; // File is C64 compatible
+const int SIDTUNE_COMPATIBILITY_PSID  = 0x01; // File is PSID specific
+const int SIDTUNE_COMPATIBILITY_R64   = 0x02; // File is Real C64 only
+const int SIDTUNE_COMPATIBILITY_BASIC = 0x03; // File requires C64 Basic
 
 
 // Required to export template
@@ -96,9 +97,6 @@ struct SidTuneInfo
 
     // Available after song initialization.
     //
-    uint_least16_t irqAddr;        // if (playAddr == 0), interrupt handler has been
-                                   // installed and starts calling the C64 player
-                                   // at this address
     uint_least16_t currentSong;    // the one that has been initialized
     uint_least8_t songSpeed;       // intended speed, see top
     uint_least8_t clockSpeed;      // -"-
@@ -130,6 +128,13 @@ struct SidTuneInfo
 
 class SID_EXTERN SidTune
 {
+ private:
+    typedef enum 
+    {
+        LOAD_NOT_MINE = 0,
+        LOAD_OK,
+        LOAD_ERROR
+    } LoadStatus;
     
  public:  // ----------------------------------------------------------------
 
@@ -271,10 +276,8 @@ class SID_EXTERN SidTune
     void convertOldStyleSpeedToTables(uint_least32_t speed,
          int clock = SIDTUNE_CLOCK_PAL);
 
-    // Check SidTuneInfo fields for all real c64 only formats
-    bool checkRealC64Info(uint_least32_t speed);
-    // Check the init address is legal for real C64 only tunes
-    bool checkRealC64Init(void);
+    // Check compatibility details are sensible
+    bool checkCompatibility(void);
     // Check for valid relocation information
     bool checkRelocInfo(void);
     // Common address resolution procedure
@@ -282,25 +285,27 @@ class SID_EXTERN SidTune
 
     // Support for various file formats.
 
-    virtual bool PSID_fileSupport(const void* buffer, const uint_least32_t bufLen);
-    virtual bool PSID_fileSupportSave(std::ofstream& toFile, const uint_least8_t* dataBuffer);
+    virtual LoadStatus PSID_fileSupport    (const void* buffer, const uint_least32_t bufLen);
+    virtual bool       PSID_fileSupportSave(std::ofstream& toFile, const uint_least8_t* dataBuffer);
 
-    virtual bool SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
-                                 const void* sidBuffer, uint_least32_t sidBufLen);
-    virtual bool SID_fileSupportSave(std::ofstream& toFile);
+    virtual LoadStatus SID_fileSupport     (const void* dataBuffer, uint_least32_t dataBufLen,
+                                            const void* sidBuffer, uint_least32_t sidBufLen);
+    virtual bool       SID_fileSupportSave (std::ofstream& toFile);
 
-    virtual bool MUS_fileSupport(Buffer_sidtt<const uint_least8_t>& musBufRef,
-                                 Buffer_sidtt<const uint_least8_t>& strBufRef);
-    virtual bool MUS_detect(const void* buffer, const uint_least32_t bufLen,
-                            uint_least32_t& voice3Index);
-    virtual bool MUS_mergeParts(Buffer_sidtt<const uint_least8_t>& musBufRef,
-                                Buffer_sidtt<const uint_least8_t>& strBufRef);
-    virtual void MUS_setPlayerAddress();
-    virtual void MUS_installPlayer(uint_least8_t *c64buf);
-    virtual int  MUS_decodePetLine(SmartPtr_sidtt<const uint_least8_t>&, char*);
+    virtual LoadStatus MUS_fileSupport     (Buffer_sidtt<const uint_least8_t>& musBufRef,
+                                            Buffer_sidtt<const uint_least8_t>& strBufRef);
+    virtual bool       MUS_detect          (const void* buffer, const uint_least32_t bufLen,
+                                            uint_least32_t& voice3Index);
+    virtual bool       MUS_mergeParts      (Buffer_sidtt<const uint_least8_t>& musBufRef,
+                                            Buffer_sidtt<const uint_least8_t>& strBufRef);
+    virtual void       MUS_setPlayerAddress();
+    virtual void       MUS_installPlayer   (uint_least8_t *c64buf);
+    virtual int        MUS_decodePetLine   (SmartPtr_sidtt<const uint_least8_t>&, char*);
 
-    virtual bool INFO_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
-                                  const void* infoBuffer, uint_least32_t infoBufLen);
+    virtual LoadStatus INFO_fileSupport    (const void* dataBuffer, uint_least32_t dataBufLen,
+                                            const void* infoBuffer, uint_least32_t infoBufLen);
+    virtual LoadStatus PRG_fileSupport     (const char* fileName, const void* buffer,
+                                            const uint_least32_t bufLen);
 
     // Error and status message strings.
     static const char* txt_songNumberExceed;
@@ -320,6 +325,7 @@ class SID_EXTERN SidTune
     static const char* txt_na;
     static const char* txt_badAddr;
     static const char* txt_badReloc;
+    static const char* txt_corrupt;
 
  private:  // ---------------------------------------------------------------
     

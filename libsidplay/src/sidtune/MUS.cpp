@@ -40,8 +40,8 @@ static const uint_least16_t SIDTUNE_MUS_DATA_ADDR = 0x0900;
 static const uint_least16_t SIDTUNE_SID1_BASE_ADDR = 0xd400;
 static const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
 
-bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
-                              Buffer_sidtt<const uint8_t>& strBuf)
+SidTune::LoadStatus SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
+                                             Buffer_sidtt<const uint8_t>& strBuf)
 {
     // Clear info strings.
     for (int i = 0; i < SIDTUNE_MAX_CREDIT_STRINGS; i++)
@@ -49,7 +49,7 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
 
     uint_least32_t voice3Index;
     if ( !MUS_detect(musBuf.get(),musBuf.len(),voice3Index) )
-        return false;
+        return LOAD_NOT_MINE;
 
     // Voice3Index now is offset to text lines (uppercase Pet-strings).
     SmartPtr_sidtt<const uint8_t> spPet(musBuf.get(),musBuf.len());
@@ -77,7 +77,7 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
     if ( !strBuf.isEmpty() )
     {
         if ( !MUS_detect(strBuf.get(),strBuf.len(),voice3Index) )
-            return false;
+            return LOAD_ERROR;
 
         // Voice3Index now is offset to text lines (uppercase Pet-strings).
         SmartPtr_sidtt<const uint8_t> spPet(strBuf.get(),strBuf.len());
@@ -111,7 +111,7 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
         }
     }
     
-    return true;
+    return LOAD_OK;
 }
 
 bool SidTune::MUS_detect(const void* buffer, const uint_least32_t bufLen,
