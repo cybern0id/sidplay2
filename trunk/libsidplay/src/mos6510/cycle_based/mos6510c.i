@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.50  2004/09/18 11:15:01  s_a_white
+ *  Mixer's Iisibiisi.sid showed that we were not delaying long enough
+ *  between receiving an NMI and starting its processing.
+ *
  *  Revision 1.49  2004/06/26 11:11:21  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -2459,10 +2463,10 @@ void MOS6510::Initialise (void)
     // Set PC to some value
     Register_ProgramCounter = 0;
     // IRQs pending check
+    interrupts.pending    = false;
+    interrupts.irqs       = 0;
     interrupts.irqLatch   = false;
     interrupts.irqRequest = false;
-    if (interrupts.irqs)
-        interrupts.irqRequest = true;
 
     // Signals
     aec = true;
@@ -2474,12 +2478,7 @@ void MOS6510::Initialise (void)
 //-------------------------------------------------------------------------//
 // Reset CPU Emulation                                                     //
 void MOS6510::reset (void)
-{
-    // Reset Interrupts
-    interrupts.pending = false;
-    interrupts.irqs    = 0;
-
-    // Internal Stuff
+{   // Internal Stuff
     Initialise ();
 
     // Requires External Bits

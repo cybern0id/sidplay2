@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.42  2004/06/26 10:58:01  s_a_white
+ *  Merged sidplay2/w volume/mute changes.
+ *
  *  Revision 1.41  2004/06/14 20:05:16  s_a_white
  *  Restore optimisation level support
  *
@@ -163,7 +166,7 @@ SIDPLAY2_NAMESPACE_START
 
 int Player::config (const sid2_config_t &cfg)
 {
-    bool monosid = false;
+    bool monosid = true;
 
     if (m_running)
     {
@@ -197,6 +200,11 @@ int Player::config (const sid2_config_t &cfg)
         goto Player_configure_error;
     }
    
+    // Initialise sid mapping table
+    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
+        m_sidmapper[i] = 0;
+    }
+
     // Only do these if we have a loaded tune
     if (m_tune)
     {
@@ -243,31 +251,28 @@ int Player::config (const sid2_config_t &cfg)
                 cia2.clock (cpuFreq / VIC_FREQ_NTSC);
             }
 
+            // Start the real time clock event
+            rtc.clock  (cpuFreq);
+
             // Configure, setup and install C64 environment/events
             if (environment (cfg.environment) < 0)
                 goto Player_configure_restore;
-            // Start the real time clock event
-            rtc.clock  (cpuFreq);
         }
+
+        // Setup sid mapping table
+        // Note this should be based on m_tuneInfo.sidChipBase1
+        // but this is only temporary code anyway
+        if (m_tuneInfo.sidChipBase2)
+        {
+            // Assumed to be in d4xx-d7xx range
+            m_sidmapper[(m_tuneInfo.sidChipBase2 >> 5) &
+                        (SID2_MAPPER_SIZE - 1)] = 1;
+        }
+        monosid = !m_tuneInfo.sidChipBase2;
     }
     sidSamples (cfg.sidSamples);
 
-    // Setup sid mapping table
-    // Note this should be based on m_tuneInfo.sidChipBase1
-    // but this is only temporary code anyway
-    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
-        m_sidmapper[i] = 0;
-    }
-    if (m_tuneInfo.sidChipBase2)
-    {
-        monosid = false;
-        // Assumed to be in d4xx-d7xx range
-        m_sidmapper[(m_tuneInfo.sidChipBase2 >> 5) &
-                    (SID2_MAPPER_SIZE - 1)] = 1;
-    }
-
     // All parameters check out, so configure player.
-    monosid = !m_tuneInfo.sidChipBase2;
     m_info.channels = 1;
     m_emulateStereo = false;
     if (cfg.playback == sid2_stereo)
