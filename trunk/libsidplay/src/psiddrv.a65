@@ -23,10 +23,14 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/07/27 12:12:23  s_a_white
+ *  Initial release.
+ *
  ***************************************************************************/
 
             ; entry address
 coldvec     .word cold
+sidvec      .word sidplay
 
             ; initial user interrupt vectors
 retusr      .word irqret
@@ -135,7 +139,7 @@ run         brk
 brkjob      ldx #$ff
             txs
             cli
-idle        jmp idle
+            brk
 
 irqjob      lda $01
             ldx iomap
@@ -171,5 +175,11 @@ io_on       cmp #$a0
             rts
 bas_on      lda #$37
             rts
+
+            ; sidplay compatibilty irq
+sidplay     jsr irqvec
+            pla
+            rts
+irqvec      jmp ($0314)
 
 .end

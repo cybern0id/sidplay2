@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/27 12:52:12  s_a_white
+ *  Removed warning.
+ *
  *  Revision 1.1  2001/07/27 12:12:23  s_a_white
  *  Initial release.
  *
@@ -56,16 +59,27 @@ int Player::psidDrvInstall ()
         uint8_t *reloc_driver = psid_driver;
         int      reloc_size   = sizeof (psid_driver);
 
-        if (!reloc65 ((char **) &reloc_driver, &reloc_size, relocAddr - 11))
+        if (!reloc65 ((char **) &reloc_driver, &reloc_size, relocAddr - 13))
         {
             m_errorString = ERR_PSIDDRV_RELOC;
             return -1;
         }
 
+        switch (m_cfg.environment)
+        {
+        case sid2_envBS:
+            memcpy (&m_rom[0xfffe], &reloc_driver[2], 2);
+        case sid2_envR:
+            memcpy (&m_rom[0xfffc], &reloc_driver[0], 2);
+            break;
+        case sid2_envTP:
+        case sid2_envPS:
+            memcpy (&m_ram[0xfffc], &reloc_driver[0], 4);
+        }
+
         m_ram[0x310] = JMPw;
-        memcpy (&m_rom[0xfffc],    &reloc_driver[0], 2);
-        memcpy (&m_ram[0x0311],    &reloc_driver[2], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[11], reloc_size - 11);
+        memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
+        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size - 13);
     }
 
     {   // Setup the Initial entry point

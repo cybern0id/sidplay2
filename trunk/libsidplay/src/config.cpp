@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/08/20 18:24:50  s_a_white
+ *  tuneInfo in the info structure now correctly has the sid revision setup.
+ *
  *  Revision 1.3  2001/08/12 18:22:45  s_a_white
  *  Fixed bug in Player::sidEmulation call.
  *
@@ -32,7 +35,7 @@
 // An instance of this structure is used to transport emulator settings
 // to and from the interface class.
 
-int Player::configure (const sid2_config_t &cfg)
+int Player::config (const sid2_config_t &cfg)
 {
     if (m_running)
     {
@@ -79,6 +82,13 @@ int Player::configure (const sid2_config_t &cfg)
         // Determine clock speed
         cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockForced);
         m_samplePeriod = cpuFreq / (float64_t) cfg.frequency;
+        // Setup fake cia
+        sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
+        if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
+            m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
+        {
+            sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_NTSC + 0.5));
+        }
         // Configure, setup and install C64 environment/events
         if (environment (cfg.environment) < 0)
             goto Player_configure_error;
@@ -205,7 +215,7 @@ int Player::configure (const sid2_config_t &cfg)
 return 0;
 
 Player_configure_error:
-    configure (m_cfg);
+    config (m_cfg);
     return -1;
 }
 
@@ -347,6 +357,7 @@ void Player::extFilter (uint fc)
 
 void Player::sidEmulation (sidbuilder *builder)
 {
+    sidemu *sid;
     if (m_builder)
         m_builder->remove ();
 

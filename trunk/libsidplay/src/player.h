@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2001/08/10 21:01:06  s_a_white
+ *  Fixed RTC initialisation order warning.
+ *
  *  Revision 1.16  2001/08/10 20:03:19  s_a_white
  *  Added RTC reset.
  *
@@ -82,6 +85,7 @@
 #include "c64/c64vic.h"
 
 #include "mos6510/mos6510.h"
+#include "sid6526/sid6526.h"
 
 class Player: private C64Environment, c64env
 {
@@ -122,6 +126,7 @@ private:
     c64xsid xsid;
     c64cia1 cia;
     c64cia2 cia2;
+    SID6526 sid6526;
     c64vic  vic;
     sidemu *sid;
     sidemu *sid2;
@@ -302,10 +307,10 @@ private:
 public:
     Player ();
 
-    const sid2_config_t &configure (void) { return m_cfg; }
-    const sid2_info_t   &info      (void) { return m_info; }
+    const sid2_config_t &config (void) { return m_cfg; }
+    const sid2_info_t   &info   (void) { return m_info; }
 
-    int            configure    (const sid2_config_t &cfg);
+    int            config       (const sid2_config_t &cfg);
     int            fastForward  (uint percent);
     int            loadSong     (SidTune *tune);
     uint_least8_t  mileage      (void) { return m_mileage + time(); }
