@@ -1,10 +1,10 @@
 TODO <libsidplay2>:
 
-* hardsid support <Started>
+* hardsid support <Beta testing>
 
 * Song length database support <Started>
 
-*Fix _encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See sidmixer.cpp
+*Fix _encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See mixer.cpp
  and audiodrv.cpp
 
 *Convert MOS6510 Cycle_Data and Register_Accumulator registers to ubyte_sidt.
@@ -20,13 +20,13 @@ TODO <libsidplay2>:
 
 *Implement Real C64 Mode
 
-*Can someone optimise reSID? <Clock, output, read, write, in this order>
+*Optimise reSID? <Clock, output, read, write>
 
-Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
+*Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
 
 *Length detection <Started, based on Mikes>
 
-*What access do you need for other applications <Suggestions please>
+*What functions are required on the interface for other applications <Suggestions please>
 
 *Support for credit access, both from sid and imported components.
 
@@ -34,45 +34,19 @@ Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
            I have these in asm already, but was written in BorlandC.  <Need converting>
            This way a C functon will be used if an asm is not present.
 
-*Fix xSIDs setting of ram addr.  Change to inherit environment <Done, but really xSID should inherit reSID>
+*xSID Should inherit the sid
+
+*Provide and base class for the sid to easier support resid/hardsid.
 
 *Possibly provide a wds sync output for stereoplayer.  These helps external players
 which support this to sync properly to the music, there are some that use
 non-real time.  Needs stereosidplayer v10.3 being ripped
 <Do not implement full wds support in libsidplay, SYNC ONLY>.  If anyone knows
-anything about the C64s stereosidplayers internals could they get contact
+anything about the C64s stereosidplayers internals could they contact
 sidplay2@email.com
 
-*Add 16 bit support. (possibly 24bit) <Done, not 24 yet>
+*Add 24 bit support.
 
 *Quad sids
 
 *Provide a C interface to the library.
-
-
-
-
-TODO: <sidplay2>
-
-*Add configuration file support.
-
-*Add ANSI support <Done in experimnetal, requires configuration file for real
- release>
-
-*Find out why there is a pause after a seconds or so play and try to correct.
- The system seems to start and become heavily loaded and then continue fine.
- Something is happening, not sure what.  Can we make it do whatever it is
- before playback of sound begins.
-
-*Find out why when you step over the Linux sound write function the soundcard
- plays rubbish (bug)?
-
-*Take audiodrvs from sidplay.
- Linux (OSS only) <Done>
- DirectX <Done>
- Windows MMSYSTEM <Done>
- SPARC <Done>
- SGI
- HPUX
-
-*Anyone want to provide support for other music formats? <IFF?>

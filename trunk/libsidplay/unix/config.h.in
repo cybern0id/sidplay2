@@ -42,10 +42,6 @@
 #undef HAVE_LOCAL_RESID
 #undef HAVE_USER_RESID
 
-/* Define if your processor stores words with the least significant
-   byte first (like Intel and VAX).  */
-#undef WORDS_LITTLEENDIAN
-
 /* Define if you support file names longer than 14 characters.  */
 #undef HAVE_LONG_FILE_NAMES
 
@@ -58,12 +54,6 @@
 
 /* Define if the C++ compiler supports BOOL */
 #undef HAVE_BOOL
-
-/* Defines Supported Unix Audio Drivers */
-#undef HAVE_OSS
-#undef HAVE_HPUX
-#undef HAVE_SGI
-#undef HAVE_SUNOS
 
 /* The number of bytes in a char.  */
 #undef SIZEOF_CHAR
@@ -79,6 +69,9 @@
 
 /* Define if you have the <audio.h> header file.  */
 #undef HAVE_AUDIO_H
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
 
 /* Define if you have the <dmedia/audio.h> header file.  */
 #undef HAVE_DMEDIA_AUDIO_H
