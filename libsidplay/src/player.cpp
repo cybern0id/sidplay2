@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.47  2002/10/02 19:43:47  s_a_white
+ *  RSID support.
+ *
  *  Revision 1.46  2002/09/17 17:02:41  s_a_white
  *  Fixed location of kernel IRQ exit code.
  *
@@ -726,9 +729,8 @@ void Player::reset (void)
     if (m_info.environment == sid2_envR)
     {   // Install some basic rom functionality
         /* EA31 IRQ return: jmp($0310). */
-        m_rom[0xea31] = JMPw;
-        m_rom[0xea32] = 0x7e;
-        m_rom[0xea33] = 0xea;
+        for (i = 0xea31; i < 0xea7e; i++)
+            m_rom[i] = NOPn;
 
         // NMI entry
         m_rom[0xFE43] = SEIn;
