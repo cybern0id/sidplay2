@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/27 12:51:40  s_a_white
+ *  Removed warning.
+ *
  *  Revision 1.1  2001/07/27 12:12:23  s_a_white
  *  Initial release.
  *
@@ -341,7 +344,6 @@ void Player::extFilter (uint fc)
 
 void Player::sidEmulation (sidbuilder *builder)
 {
-    sidemu *sid;
     if (m_builder)
         m_builder->remove ();
 
