@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2003/06/27 21:09:37  s_a_white
+ *  Constified some of the interfaces.
+ *
  *  Revision 1.29  2003/02/22 09:41:17  s_a_white
  *  Removed endl, was in wrong location.
  *
@@ -124,9 +127,13 @@ int main(int argc, char *argv[])
     ConsolePlayer player(argv[0]);
     g_player = &player;
 
-    // Decode the command line args
-    if (!player.args (argc - 1, const_cast<const char**>(argv + 1)))
-        goto main_error;
+    {// Decode the command line args
+        int ret = player.args (argc - 1, const_cast<const char**>(argv + 1));
+        if (ret < 0)
+            goto main_error;
+        else if (!ret)
+            goto main_exit;
+    }
 
 main_restart:
     if (!player.open ())
@@ -168,6 +175,7 @@ main_restart:
 
     if ((player.state() & ~playerFast) == playerRestart)
         goto main_restart;
+main_exit:
     player.close ();
     return EXIT_SUCCESS;
 

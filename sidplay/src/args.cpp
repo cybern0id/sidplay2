@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/01/31 17:07:44  s_a_white
+ *  Support of specifing max sids writes forming sid2crc and experimental
+ *  TSID2 library support.
+ *
  *  Revision 1.13  2003/10/28 08:44:44  s_a_white
  *  Force being able to select MOS6581 from command line.
  *
@@ -69,6 +73,7 @@
 #   define DISALLOW_STEREO_SOUND
 #endif
 
+
 // Convert time from integer
 bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
 {
@@ -103,7 +108,7 @@ bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
 }
 
 // Parse command line arguments
-bool ConsolePlayer::args (int argc, const char *argv[])
+int ConsolePlayer::args (int argc, const char *argv[])
 {
     int  infile = 0;
     int  i      = 0;
@@ -112,7 +117,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (argc == 0) // at least one argument required
     {
         displayArgs ();
-        return false;
+        return -1;
     }
 
     // default arg options
@@ -125,7 +130,19 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     {
         if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
         {
-            if (argv[i][1] == 'b')
+            // help options
+            if ((argv[i][1] == 'h') || !strcmp(&argv[i][1], "-help"))
+            {
+                displayArgs ();
+                return 0;
+            }
+            else if (!strcmp(&argv[i][1], "-help-debug"))
+            {
+                displayDebugArgs ();
+                return 0;
+            }
+
+            else if (argv[i][1] == 'b')
             {
                 if (!parseTime (&argv[i][2], m_timer.start))
                     err = true;
@@ -176,7 +193,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
                     if (!m_filter.definition)
                     {
                         displayError (m_filter.definition.error ());
-                        return false;
+                        return -1;
                     }
                 }
             }
@@ -349,16 +366,20 @@ bool ConsolePlayer::args (int argc, const char *argv[])
                 m_driver.output = OUT_NULL;
             }
 #endif // HAVE_HARDSID_BUILDER
-            // These two are for debug
+
+            // These are for debug
             else if (strcmp (&argv[i][1], "-none") == 0)
             {
                 m_driver.sid    = EMU_NONE;
                 m_driver.output = OUT_NULL;
             }
-
             else if (strcmp (&argv[i][1], "-nosid") == 0)
             {
                 m_driver.sid = EMU_NONE;
+            }
+            else if (strcmp (&argv[i][1], "-cpu-debug") == 0)
+            {
+                m_cpudebug = true;
             }
 
             else
@@ -378,7 +399,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
         if (err)
         {
             displayArgs (argv[i]);
-            return false;
+            return -1;
         }
 
         i++;  // next index
@@ -390,7 +411,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (!m_tune)
     {
         displayError ((m_tune.getInfo ()).statusString);
-        return false;
+        return -1;
     }
 
     // If filename specified we can only convert one song
@@ -406,7 +427,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (m_driver.file && (m_driver.sid >= EMU_HARDSID))
     {
         displayError ("ERROR: Cannot generate audio files using hardware emulations");
-        return false;
+        return -1;
     }
     
     // Select the desired track
@@ -428,7 +449,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
         if (m_driver.file && m_timer.valid && !m_timer.length)
         {   // Time of 0 provided for wav generation
             displayError ("ERROR: -t0 invalid in record mode");
-            return false;
+            return -1;
         }
         if (!m_timer.valid)
         {
@@ -441,7 +462,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
                 if (m_database.open (database) < 0)
                 {
                     displayError (m_database.error ());
-                    return false;
+                    return -1;
                 }
             }
         }
@@ -455,7 +476,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (!m_tsid.setBaseDir(true))
     {
         displayError (m_tsid.getError ());
-        return false;
+        return -1;
     }
 #endif
 
@@ -463,9 +484,9 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (m_engine.config (m_engCfg) < 0)
     {   // Config failed
         displayError (m_engine.error ());
-        return false;
+        return -1;
     }
-    return true;
+    return 1;
 }
 
 
@@ -480,18 +501,13 @@ void ConsolePlayer::displayArgs (const char *arg)
 
     out << "Options:" << endl
         << " --help|-h    display this screen" << endl
-
+        << " --help-debug debug help menu" << endl
         << " -b<num>      set start time in [m:]s format (default 0)" << endl
 
         << " -f<num>      set frequency in Hz (default: "
         << SID2_DEFAULT_SAMPLING_FREQ << ")" << endl
         << " -fd          force dual sid environment" << endl
         << " -fs          force samples to a channel (default: uses sid)" << endl
-
-// Old options are hidden
-//        << " -m           PlaySID Compatibility Mode (read the docs!)" << endl
-//        << " -mt          Sidplays Transparent Rom Mode" << endl
-        << " -m<b|r>      mode switch <Bankswitching | Real C64 (default)>" << endl
 
         << " -nf[filter]  no/new SID filter emulation" << endl
         << " -ns[0|1]     (no) MOS 8580 waveforms (default: from tune or cfg)" << endl
@@ -522,4 +538,23 @@ void ConsolePlayer::displayArgs (const char *arg)
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
 //        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
+}
+
+
+void ConsolePlayer::displayDebugArgs ()
+{
+    ostream &out = cout;
+
+    out << "Debug Options:" << endl
+        << " --cpu-debug   display cpu register and assembly dumps" << endl
+        << " --crc[=<num>] generate CRC for [<num>] sid writes (default: 0)" << endl
+        << " --delay=<num> simulate c64 power on delay" << endl
+
+        << " -m            PlaySID compatibility mode (read the docs!)" << endl
+        << " -mt           Sidplays Transparent Rom mode" << endl
+        << " -mb           Sidplays Bankswitching mode" << endl
+        << " -mr           Real C64 mode (default)>" << endl
+
+        << " --none        no audio output device" << endl
+        << " --nosid       no sid emulation" << endl;
 }

@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2004/01/31 17:07:45  s_a_white
+ *  Support of specifing max sids writes forming sid2crc and experimental
+ *  TSID2 library support.
+ *
  *  Revision 1.8  2003/06/27 21:09:37  s_a_white
  *  Constified some of the interfaces.
  *
@@ -135,7 +139,9 @@ private:
     // Display parameters
     uint_least8_t      m_quietLevel;
     uint_least8_t      m_verboseLevel;
+
     uint_least32_t     m_crc;
+    bool               m_cpudebug;
 
     struct m_filter_t
     {
@@ -185,8 +191,9 @@ private:
     void consoleRestore (void);
 
     // Command line args
-    bool parseTime      (const char *str, uint_least32_t &time);
-    void displayArgs    (const char *arg = NULL);
+    bool parseTime        (const char *str, uint_least32_t &time);
+    void displayArgs      (const char *arg = NULL);
+    void displayDebugArgs ();
 
     bool createOutput   (OUTPUTS driver, const SidTuneInfo *tuneInfo);
     bool createSidEmu   (SIDEMUS emu);
@@ -201,7 +208,7 @@ public:
     ConsolePlayer (const char * const name);
     virtual ~ConsolePlayer() {;}
 
-    bool           args  (int argc, const char *argv[]);
+    int            args  (int argc, const char *argv[]);
     bool           open  (void);
     void           close (void);
     bool           play  (void);
