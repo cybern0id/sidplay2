@@ -134,7 +134,7 @@ SUBDIRS = MD5 ini
 # The library.
 lib_LTLIBRARIES = libsidutils.la
 
-libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp SidUsage.h smm0.h
+libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp SidUsage.cpp smm0.h
 
 libsidutils_la_LIBADD = ./MD5/libMD5.la ./ini/libini.la \
 $(LIBSIDPLAY2_LDFLAGS)
@@ -152,13 +152,14 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libsidutils_la_DEPENDENCIES = ./MD5/libMD5.la ./ini/libini.la
-am_libsidutils_la_OBJECTS = SidDatabase.lo SidFilter.lo SidTuneMod.lo
+am_libsidutils_la_OBJECTS = SidDatabase.lo SidFilter.lo SidTuneMod.lo \
+	SidUsage.lo
 libsidutils_la_OBJECTS = $(am_libsidutils_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/unix/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/SidDatabase.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/SidFilter.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/SidTuneMod.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/SidTuneMod.Plo ./$(DEPDIR)/SidUsage.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -234,6 +235,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SidDatabase.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SidFilter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SidTuneMod.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SidUsage.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
