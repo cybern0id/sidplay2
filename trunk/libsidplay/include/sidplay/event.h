@@ -23,7 +23,7 @@
 #include "sidtypes.h"
 
 typedef uint_fast32_t event_clock_t;
-typedef enum {EVENT_CLOCK_PHI1 = 0, EVENT_CLOCK_PHI2} event_phase_t;
+typedef enum {EVENT_CLOCK_PHI1 = 0, EVENT_CLOCK_PHI2 = 1} event_phase_t;
 #define EVENT_CONTEXT_MAX_PENDING_EVENTS 0x100
 
 class SID_EXTERN Event
@@ -66,9 +66,8 @@ public:
 class EventScheduler: public EventContext, public Event
 {
 private:
-    event_clock_t  m_eventClk, m_schedClk;
+    event_clock_t m_absClk;
     uint  m_events;
-    event_phase_t m_phase;
 
     class SID_EXTERN EventTimeWarp: public Event
     {
@@ -77,7 +76,7 @@ private:
 
         void event (void)
         {
-            m_scheduler.timeWarp ();
+            m_scheduler.event ();
         }
 
     public:
@@ -89,8 +88,7 @@ private:
     friend class EventTimeWarp;
 
 private:
-    void event    (void) { ; }
-    void timeWarp (void);
+    void event    (void);
     void dispatch (Event &e)
     {
         cancelPending (e);
@@ -117,18 +115,17 @@ public:
     {
         if (m_events)
         {
-            event_clock_t delta = m_next->m_clk - m_eventClk;
-            m_schedClk += delta;
-            m_eventClk += delta;
-            m_phase     = (event_phase_t) (m_phase ^ (delta & 1));
+            event_clock_t delta = m_next->m_clk - m_clk;
+            m_clk  += delta;
+            //m_phase = (event_phase_t) (m_phase ^ (delta & 1));
             dispatch (*m_next);
         }
     }
 
     event_clock_t getTime (void) const
-    {   return m_schedClk >> 1; }
+    {   return (m_absClk + m_clk) >> 1; }
     event_clock_t getTime (event_clock_t clock) const
-    {   return (m_schedClk - (clock << 1)) >> 1; }
+    {   return ((m_absClk + m_clk) >> 1) - clock; }
 };
 
 #endif // _event_h_
