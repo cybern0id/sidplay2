@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/11/27 19:10:44  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
 #include "config.h"
@@ -27,22 +30,25 @@
 #include "player.h"
 #include "keyboard.h"
 
-#include <sidplay/builders/resid.h>
-#include <sidplay/builders/hardsid.h>
+#ifdef HAVE_RESID_BUILDER
+#   include <sidplay/builders/resid.h>
+const char ConsolePlayer::RESID_ID[]   = "ReSID";
+#endif
+#ifdef HAVE_HARDSID_BUILDER
+#   include <sidplay/builders/hardsid.h>
+const char ConsolePlayer::HARDSID_ID[] = "HardSID";
+#endif
 
-// IDS.....
-const char Player::RESID_ID[]   = "ReSID";
-const char Player::HARDSID_ID[] = "HardSID";
 
-Player::Player (const char * const name)
+ConsolePlayer::ConsolePlayer (const char * const name)
 :Event("External Timer\n"),
  m_name(name),
  m_tune(0),
  m_state(playerStopped),
  m_outfile(NULL),
+ m_context(NULL),
  m_quietLevel(0),
- m_verboseLevel(0),
- m_context(NULL)
+ m_verboseLevel(0)
 {   // Other defaults
     m_filter.enabled = true;
     m_driver.device  = NULL;
@@ -89,7 +95,7 @@ Player::Player (const char * const name)
 
 
 // Create the output object to process sound buffer
-bool Player::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
+bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 {
     char *name = NULL;
     const char *title = m_outfile;
@@ -219,7 +225,7 @@ bool Player::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 
 
 // Create the sid emulation
-bool Player::createSidEmu (SIDEMUS emu)
+bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 {
     // Remove old driver and emulation
     if (m_engCfg.sidEmulation)
@@ -233,6 +239,7 @@ bool Player::createSidEmu (SIDEMUS emu)
     // Now setup the sid emulation
     switch (emu)
     {
+#ifdef HAVE_RESID_BUILDER
     case EMU_RESID:
     {
 #ifdef HAVE_EXCEPTIONS
@@ -258,7 +265,9 @@ bool Player::createSidEmu (SIDEMUS emu)
         }
         break;
     }
+#endif // HAVE_RESID_BUILDER
 
+#ifdef HAVE_HARDSID_BUILDER
     case EMU_HARDSID:
     {
 #ifdef HAVE_EXCEPTIONS
@@ -278,6 +287,7 @@ bool Player::createSidEmu (SIDEMUS emu)
         }
         break;
     }
+#endif // HAVE_HARDSID_BUILDER
 
     default:
         // Emulation Not yet handled
@@ -304,7 +314,7 @@ createSidEmu_error:
 }
 
 
-bool Player::open (void)
+bool ConsolePlayer::open (void)
 {
     const SidTuneInfo *tuneInfo;
 
@@ -374,7 +384,7 @@ bool Player::open (void)
     return true;
 }
 
-void Player::close ()
+void ConsolePlayer::close ()
 {
     m_engine.stop   ();
     if (m_state == playerExit)
@@ -403,13 +413,15 @@ void Player::close ()
 }
 
 // Flush any hardware sid fifos so all music is played
-void Player::emuflush ()
+void ConsolePlayer::emuflush ()
 {
     switch (m_driver.sid)
     {
+#ifdef HAVE_HARDSID_BUIDLER
     case EMU_HARDSID:
         ((HardSIDBuilder *)m_engCfg.sidEmulation)->flush ();
         break;
+#endif // HAVE_HARDSID_BUIDLER
     default:
         break;
     }
@@ -417,7 +429,7 @@ void Player::emuflush ()
 
 
 // Out play loop to be externally called
-bool Player::play ()
+bool ConsolePlayer::play ()
 {
     void *buffer = m_driver.selected->buffer ();
     uint_least32_t length = m_driver.cfg.bufSize;
@@ -456,7 +468,7 @@ bool Player::play ()
 }
 
 
-void Player::stop ()
+void ConsolePlayer::stop ()
 {
     m_state = playerStopped;
     m_engine.stop ();
@@ -464,7 +476,7 @@ void Player::stop ()
 
 
 // External Timer Event
-void Player::event (void)
+void ConsolePlayer::event (void)
 {
     uint_least32_t seconds = m_engine.time() / 10;
     if ( !m_quietLevel )
@@ -513,7 +525,7 @@ void Player::event (void)
 }
 
 
-void Player::displayError (const char *error)
+void ConsolePlayer::displayError (const char *error)
 {
     cerr << m_name << endl;
     cerr << error << endl;
@@ -521,7 +533,7 @@ void Player::displayError (const char *error)
 
 
 // Keyboard handling
-void Player::decodeKeys ()
+void ConsolePlayer::decodeKeys ()
 {
     int action;
 

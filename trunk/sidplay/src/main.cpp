@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2001/11/27 19:10:12  s_a_white
+ *  Restructured
+ *
  *  Revision 1.21  2001/11/21 18:55:25  s_a_white
  *  Sidplay2 0.8 new frontend interface.
  *
@@ -85,22 +88,19 @@
  *
  ***************************************************************************/
 
+#include <stdlib.h>
 #include <signal.h>
 #include "player.h"
+#include "keyboard.h"
 
-#if defined(__amigaos__)
-#   define EXIT_ERROR_STATUS (20)
-#else
-#   define EXIT_ERROR_STATUS (-1)
-#endif
 
 // Function prototypes
 static void sighandler (int signum);
-static Player *g_player;
+static ConsolePlayer *g_player;
 
 int main(int argc, char *argv[])
 {
-    Player player(argv[0]);
+    ConsolePlayer player(argv[0]);
     g_player = &player;
 
     // Decode the command line args
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
 main_restart:
     if (!player.open ())
-        return EXIT_ERROR_STATUS;
+        return EXIT_FAILURE;
 
     // Install signal error handlers
     if ((signal (SIGINT,  &sighandler) == SIG_ERR)
@@ -152,7 +152,7 @@ main_restart:
 
 main_error:
     player.close ();
-    return EXIT_ERROR_STATUS;
+    return EXIT_FAILURE;
 }
 
 

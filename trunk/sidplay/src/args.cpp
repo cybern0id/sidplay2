@@ -16,8 +16,12 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/11/27 19:13:24  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
+#include <stdlib.h>
 #include <string.h>
 #include "player.h"
 
@@ -27,7 +31,7 @@
 #endif
 
 // Convert time from integer
-bool Player::parseTime (char *str, uint_least32_t &time)
+bool ConsolePlayer::parseTime (char *str, uint_least32_t &time)
 {
     char *sep;
     uint_least32_t _time;
@@ -60,7 +64,7 @@ bool Player::parseTime (char *str, uint_least32_t &time)
 }
 
 // Parse command line arguments
-bool Player::args (int argc, char *argv[])
+bool ConsolePlayer::args (int argc, char *argv[])
 {
     int  infile = 0;
     int  i      = 0;
@@ -277,11 +281,13 @@ bool Player::args (int argc, char *argv[])
             }
 
             // Hardware selection
+#ifdef HAVE_HARDSID_BUILDER
             else if (strncmp (&argv[i][1], "-hardsid", 8) == 0)
             {
                 m_driver.sid    = EMU_HARDSID;
                 m_driver.output = OUT_NULL;
             }
+#endif // HAVE_HARDSID_BUILDER
 
             else
             {
@@ -291,7 +297,7 @@ bool Player::args (int argc, char *argv[])
         }
         else
         {   // Reading file name
-            if (infile == NULL)
+            if (infile == 0)
                 infile = i;
             else
                 err = true;
@@ -359,7 +365,7 @@ bool Player::args (int argc, char *argv[])
 }
 
 
-void Player::displayArgs ()
+void ConsolePlayer::displayArgs ()
 {
     cout 
         << "Syntax: " << m_name << " [-<option>...] <datafile>" << endl
@@ -400,7 +406,9 @@ void Player::displayArgs ()
         << "              Use 'f' to force the clock by preventing speed fixing" << endl
 
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl
+#ifdef HAVE_HARDSID_BUILDER
         << " --hardsid    enable hardsid support" << endl
+#endif
         << endl
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
