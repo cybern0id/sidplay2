@@ -30,10 +30,16 @@ extern "C" {
 
 #include <stdio.h>
 
+#define INI_ADD_EXTRAS
 #define INI_ADD_LIST_SUPPORT
-#define INI_ADD_EXTRA_TYPES
 
 typedef void* ini_fd_t;
+
+//#ifdef _WINDOWS
+//#   define INI_LINKAGE __stdcall
+//#else
+#   define INI_LINKAGE 
+//#endif
 
 /* DLL building support on win32 hosts */
 #ifndef INI_EXTERN
@@ -48,6 +54,9 @@ typedef void* ini_fd_t;
 #   endif
 #endif
 
+#ifndef INI_ADD_EXTRAS
+#undef  INI_ADD_LIST_SUPPORT
+#endif
 
 #ifdef SWIG
 %include typemaps.i
@@ -56,13 +65,10 @@ typedef void* ini_fd_t;
 %apply double *BOTH { double *value };
 %name (ini_readString)
     int ini_readFileToBuffer    (ini_fd_t fd, ini_buffer_t *buffer);
-%name (ini_writeString)
-    int ini_writeFileFromBuffer (ini_fd_t fd, ini_buffer_t *buffer);
 
-ini_buffer_t *ini_createBuffer        (unsigned int size);
+ini_buffer_t *ini_createBuffer        (unsigned long size);
 void          ini_deleteBuffer        (ini_buffer_t *buffer);
 char         *ini_getBuffer           (ini_buffer_t *buffer);
-int           ini_setBuffer           (ini_buffer_t *buffer, char *str);
 
 %{
 #include "libini.h"
@@ -111,14 +117,7 @@ int ini_readFileToBuffer (ini_fd_t fd, ini_buffer_t *buffer)
 {
     if (!buffer)
         return -1;
-    return (int) ini_readString (fd, buffer->buffer, buffer->size + 1);
-}
-
-int ini_writeFileFromBuffer (ini_fd_t fd, ini_buffer_t *buffer)
-{
-    if (!buffer)
-        return -1;
-    return (int) ini_writeString (fd, buffer->buffer);
+    return ini_readString (fd, buffer->buffer, buffer->size + 1);
 }
 
 char *ini_getBuffer (ini_buffer_t *buffer)
@@ -128,66 +127,53 @@ char *ini_getBuffer (ini_buffer_t *buffer)
     return buffer->buffer;
 }
 
-int ini_setBuffer (ini_buffer_t *buffer, char *str)
-{
-    size_t len;
-    if (!buffer)
-        return -1;
-    len = strlen (str);
-    if (len > buffer->size)
-        len = buffer->size;
-
-    memcpy (buffer->buffer, str, len);
-    buffer->buffer[len] = '\0';
-    return (int) len;
-}
-
 %}
 
 #endif /* SWIG */
 
 
 /* Rev 1.2 Added new fuction */
-INI_EXTERN ini_fd_t ini_new      (char *name);
-INI_EXTERN ini_fd_t ini_open     (char *name);
-INI_EXTERN int      ini_close    (ini_fd_t fd);
-INI_EXTERN int      ini_flush    (ini_fd_t fd);
+INI_EXTERN ini_fd_t INI_LINKAGE ini_open     (const char *name, const char *mode);
+INI_EXTERN int      INI_LINKAGE ini_close    (ini_fd_t fd);
+INI_EXTERN int      INI_LINKAGE ini_flush    (ini_fd_t fd);
+INI_EXTERN int      INI_LINKAGE ini_delete   (ini_fd_t fd);
 
 /* Rev 1.2 Added these functions to make life a bit easier, can still be implemented
  * through ini_writeString though. */
-INI_EXTERN int ini_locateKey     (ini_fd_t fd, char *key);
-INI_EXTERN int ini_locateHeading (ini_fd_t fd, char *heading);
-INI_EXTERN int ini_deleteKey     (ini_fd_t fd);
-INI_EXTERN int ini_deleteHeading (ini_fd_t fd);
-/* Rev 1.7 List of heading and key names returned */
-INI_EXTERN size_t ini_keyNames     (ini_fd_t fd, char *str, size_t size);
-INI_EXTERN size_t ini_headingNames (ini_fd_t fd, char *str, size_t size);
+INI_EXTERN int INI_LINKAGE ini_locateKey     (ini_fd_t fd, char *key);
+INI_EXTERN int INI_LINKAGE ini_locateHeading (ini_fd_t fd, char *heading);
+INI_EXTERN int INI_LINKAGE ini_deleteKey     (ini_fd_t fd);
+INI_EXTERN int INI_LINKAGE ini_deleteHeading (ini_fd_t fd);
 
 /* Returns the number of bytes required to be able to read the key as a
  * string from the file. (1 should be added to this length to account
- * for a NULL character) */
-INI_EXTERN size_t ini_dataLength (ini_fd_t fd);
+ * for a NULL character).  If delimiters are used, returns the length
+ * of the next data element in the key to be read */
+INI_EXTERN int INI_LINKAGE ini_dataLength (ini_fd_t fd);
 
 /* Default Data Type Operations
  * Arrays implemented to help with reading, for writing you should format the
  * complete array as a string and perform an ini_writeString. */
 #ifndef SWIG
-INI_EXTERN size_t ini_readString  (ini_fd_t fd, char *str, size_t size);
-INI_EXTERN int    ini_writeString (ini_fd_t fd, char *str);
+INI_EXTERN int INI_LINKAGE ini_readString  (ini_fd_t fd, char *str, size_t size);
 #endif /* SWIG */
-INI_EXTERN int    ini_readInt     (ini_fd_t fd, int  *value);
+INI_EXTERN int INI_LINKAGE ini_writeString (ini_fd_t fd, char *str);
+INI_EXTERN int INI_LINKAGE ini_readInt     (ini_fd_t fd, int  *value);
 
 
-#ifdef INI_ADD_EXTRA_TYPES
+#ifdef INI_ADD_EXTRAS
     /* Read Operations */
-    INI_EXTERN int ini_readLong    (ini_fd_t fd, long   *value);
-    INI_EXTERN int ini_readDouble  (ini_fd_t fd, double *value);
+    INI_EXTERN int INI_LINKAGE ini_readLong    (ini_fd_t fd, long   *value);
+    INI_EXTERN int INI_LINKAGE ini_readDouble  (ini_fd_t fd, double *value);
 
     /* Write Operations */
-    INI_EXTERN int ini_writeInt    (ini_fd_t fd, int    value);
-    INI_EXTERN int ini_writeLong   (ini_fd_t fd, long   value);
-    INI_EXTERN int ini_writeDouble (ini_fd_t fd, double value);
-#endif /* INI_ADD_EXTRA_TYPES */
+    INI_EXTERN int INI_LINKAGE ini_writeInt    (ini_fd_t fd, int    value);
+    INI_EXTERN int INI_LINKAGE ini_writeLong   (ini_fd_t fd, long   value);
+    INI_EXTERN int INI_LINKAGE ini_writeDouble (ini_fd_t fd, double value);
+
+	/* Extra Functions */
+	INI_EXTERN int INI_LINKAGE ini_append      (ini_fd_t fddst, ini_fd_t fdsrc);
+#endif /* INI_ADD_EXTRAS */
 
 
 #ifdef INI_ADD_LIST_SUPPORT
@@ -198,14 +184,12 @@ INI_EXTERN int    ini_readInt     (ini_fd_t fd, int  *value);
      * back to NULL.
      */
 
-    /* Change delimiters, default "" */
-    INI_EXTERN int    ini_listDelims      (ini_fd_t fd, char *delims);
-    /* Set index to access in a list.  When read the index will automatically increment */
-    INI_EXTERN int    ini_listIndex       (ini_fd_t fd, unsigned int index);
     /* Returns the number of elements in an list being seperated by the provided delimiters */
-    INI_EXTERN size_t ini_listLength      (ini_fd_t fd);
-    /* Returns the length of an indexed sub string in the list */
-    INI_EXTERN size_t ini_listIndexLength (ini_fd_t fd);
+    INI_EXTERN int INI_LINKAGE ini_listLength      (ini_fd_t fd);
+    /* Change delimiters, default "" */
+    INI_EXTERN int INI_LINKAGE ini_listDelims      (ini_fd_t fd, char *delims);
+    /* Set index to access in a list.  When read the index will automatically increment */
+    INI_EXTERN int INI_LINKAGE ini_listIndex       (ini_fd_t fd, unsigned long index);
 #endif // INI_ADD_LIST_SUPPORT
 
 #ifdef __cplusplus

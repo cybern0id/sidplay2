@@ -20,6 +20,7 @@
 #include <string.h>
 #include "list.h"
 
+#ifdef INI_ADD_LIST_SUPPORT
 
 /********************************************************************************************************************
  * Function          : ini_listEval
@@ -161,7 +162,7 @@ char *__ini_listRead (ini_t *ini)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_listLength (ini_fd_t fd)
+int INI_LINKAGE ini_listLength (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -193,7 +194,7 @@ int ini_listLength (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_listDelims (ini_fd_t fd, char *delims)
+int INI_LINKAGE ini_listDelims (ini_fd_t fd, char *delims)
 {
     ini_t *ini = (ini_t *) fd;
     if (ini->listDelims)
@@ -233,7 +234,7 @@ int ini_listDelims (ini_fd_t fd, char *delims)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_listIndex (ini_fd_t fd, unsigned long index)
+int INI_LINKAGE ini_listIndex (ini_fd_t fd, unsigned long index)
 {
     ini_t *ini = (ini_t *) fd;
     unsigned int count;
@@ -286,22 +287,26 @@ int ini_listIndex (ini_fd_t fd, unsigned long index)
 
 
 /********************************************************************************************************************
- * Function          : ini_listIndexLength
+ * Function          : __ini_listIndexLength
  * Parameters        : ini - pointer to ini file database
  * Returns           : 
  * Globals Used      :
  * Globals Modified  :
- * Description       : Returns the length the indexed sub string length
+ * Description       : Returns the length the indexed sub string
  ********************************************************************************************************************
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_listIndexLength (ini_fd_t fd)
+int __ini_listIndexLength (ini_t *ini)
 {
-    ini_t *ini = (ini_t *) fd;
-    if (!ini->listIndexPtr)
-        return -1;
+    if (!ini->list)
+    {   // No list yet.  So try to get one
+        if (__ini_listEval (ini) < 0)
+            return -1;
+    }
+
     // Now return length
     return strlen (ini->listIndexPtr);
 }
 
+#endif // INI_ADD_LIST_SUPPORT

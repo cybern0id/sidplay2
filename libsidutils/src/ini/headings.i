@@ -162,7 +162,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
             if (pOld) pOld->pPrev_Acc = pNew;
             pNew->pNext_Acc           = pOld;
         }
-#endif INI_USE_HASH_TABLE
+#endif // INI_USE_HASH_TABLE
     }
 
     ini->selected = pNew;
@@ -190,11 +190,17 @@ void __ini_deleteHeading (ini_t *ini)
     // Delete Heading
     current_h = ini->selected;
     if (current_h)
-    {   // Tidy up all users of this heading
-        if (ini->selected == current_h)
-            ini->selected = NULL;
-        if (ini->last     == current_h)
-            ini->last     =  current_h->pPrev;
+    {   // Delete Keys
+        while (current_h->first)
+        {
+            current_h->selected = current_h->first;
+            __ini_deleteKey (ini);
+        }
+    
+        // Tidy up all users of this heading
+        ini->selected =  NULL;
+        if (ini->last == current_h)
+            ini->last =  current_h->pPrev;
 
         // Break heading out of list
         if (!current_h->pPrev)
@@ -207,19 +213,12 @@ void __ini_deleteHeading (ini_t *ini)
 #ifdef INI_USE_HASH_TABLE
         // Rev 1.3 - Take member out of accelerator list
         if (!current_h->pPrev_Acc)
-        ini->sections[(unsigned char) current_h->crc & 0x0FF] = current_h->pNext_Acc;
+            ini->sections[(unsigned char) current_h->crc & 0x0FF] = current_h->pNext_Acc;
         else
             current_h->pPrev_Acc->pNext_Acc = current_h->pNext_Acc;
         if (current_h->pNext_Acc)
             current_h->pNext_Acc->pPrev_Acc = current_h->pPrev_Acc;
 #endif // INI_USE_HASH_TABLE
-
-        // Delete Keys
-        while (current_h->first)
-        {
-            current_h->selected = ini->selected->first;
-            __ini_deleteKey (ini);
-        }
 
         // Delete Heading
         if (*current_h->heading)
@@ -281,7 +280,7 @@ struct section_tag *__ini_locateHeading (ini_t *ini, char *heading)
  * Globals Modified  :
  * Description       : Equivalent Microsoft write string API call where both data & key are set to NULL.
  ********************************************************************************************************************/
-int ini_deleteHeading (ini_fd_t fd)
+int INI_LINKAGE ini_deleteHeading (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     if (!ini->selected)
@@ -302,7 +301,7 @@ int ini_deleteHeading (ini_fd_t fd)
  * Globals Modified  :
  * Description       : Equivalent Microsoft write string API call where both data & key are set to NULL.
  ********************************************************************************************************************/
-int ini_locateHeading (ini_fd_t fd, char *heading)
+int INI_LINKAGE ini_locateHeading (ini_fd_t fd, char *heading)
 {
     ini_t *ini = (ini_t *) fd;
     struct section_tag *section;
@@ -340,7 +339,6 @@ int ini_locateHeading (ini_fd_t fd, char *heading)
         if (!p)
             return -1;
         memcpy (p, heading, length);
-        section = &(ini->tmpSection);
         section->heading = p;
         ini->selected    = section;
     }
