@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.41  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.40  2003/10/16 07:48:32  s_a_white
  *  Allow redirection of debug information of file.
  *
@@ -202,12 +205,14 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 
 // Handle bus access signals
 void MOS6510::aecSignal (bool state)
-{   // If the cpu blocked waiting for the bus
+{
+    event_clock_t clock = eventContext.getTime (m_extPhase);
+
+    // If the cpu blocked waiting for the bus
     // then schedule a retry.
     aec = state;
     if (state && m_blocked)
     {   // Correct IRQs that appeard before the steal
-        event_clock_t clock  = eventContext.getTime (m_phase);
         event_clock_t stolen = clock - m_stealingClk;
         interrupts.nmiClk += stolen;
         interrupts.irqClk += stolen;
@@ -219,8 +224,10 @@ void MOS6510::aecSignal (bool state)
             interrupts.irqClk = clock - 1;
         m_blocked = false;
     }
-    eventContext.schedule (this, 0, m_phase);
+
+    eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
 }
+
 
 // Push P on stack, decrement S
 void MOS6510::PushSR (bool b_flag)
@@ -301,7 +308,7 @@ void MOS6510::triggerRST (void)
 void MOS6510::triggerNMI (void)
 {
     interrupts.pending |= iNMI;
-    interrupts.nmiClk   = eventContext.getTime (m_phase);
+    interrupts.nmiClk   = eventContext.getTime (m_extPhase);
 }
 
 // Level triggered interrupt
@@ -310,7 +317,7 @@ void MOS6510::triggerIRQ (void)
     if (!getFlagI ())
         interrupts.irqRequest = true;
     if (!interrupts.irqs++)
-        interrupts.irqClk = eventContext.getTime (m_phase);
+        interrupts.irqClk = eventContext.getTime (m_extPhase);
 
     if (interrupts.irqs > iIRQSMAX)
     {
@@ -355,8 +362,8 @@ MOS6510_interruptPending_check:
     case oNMI:
     {
         // Try to determine if we should be processing the NMI yet
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
-        if (cycles >= interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
+        if (cycles > interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             break;
@@ -370,8 +377,8 @@ MOS6510_interruptPending_check:
     case oIRQ:
     {
         // Try to determine if we should be processing the IRQ yet
-        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_phase);
-        if (cycles >= interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_extPhase);
+        if (cycles > interrupts.delay)
             break;
 
         // NMI delayed so check for other interrupts
@@ -747,8 +754,8 @@ void MOS6510::brk_instr (void)
     // Check for an NMI, and switch over if pending
     if (interrupts.pending & iNMI)
     {
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
-        if (cycles >= interrupts.delay)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
+        if (cycles > interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
@@ -1526,7 +1533,8 @@ MOS6510::MOS6510 (EventContext *context)
 :eventContext(*context),
  Event("CPU"),
  m_fdbg(stdout),
- m_phase(EVENT_CLOCK_PHI2)
+ m_phase(EVENT_CLOCK_PHI2),
+ m_extPhase(EVENT_CLOCK_PHI1)
 {
     struct ProcessorOperations *instr;
     uint8_t legalMode  = true;

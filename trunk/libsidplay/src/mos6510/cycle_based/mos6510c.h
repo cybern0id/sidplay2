@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.19  2003/10/16 07:48:32  s_a_white
  *  Allow redirection of debug information of file.
  *
@@ -100,7 +103,8 @@ protected:
 
     bool dodump;
     EventContext &eventContext;
-    event_phase_t m_phase;
+    event_phase_t m_phase;    // Clock phase in use by the processor
+    event_phase_t m_extPhase; // Clock phase when external events appear
 
     struct ProcessorCycle
     {

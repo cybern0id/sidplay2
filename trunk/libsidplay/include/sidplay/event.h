@@ -60,6 +60,7 @@ public:
                            event_phase_t phase) = 0;
     virtual event_clock_t getTime (event_phase_t phase) const = 0;
     virtual event_clock_t getTime (event_clock_t clock, event_phase_t phase) const = 0;
+    virtual event_phase_t phase () const = 0;
 };
 
 // Private Event Context Object (The scheduler)
@@ -125,6 +126,7 @@ public:
     {   return (m_absClk + m_clk + (phase ^ 1)) >> 1; }
     event_clock_t getTime (event_clock_t clock, event_phase_t phase) const
     {   return getTime (phase) - clock; }
+    event_phase_t phase () const { return (event_phase_t) ((m_absClk + m_clk) & 1); }
 };
 
 #endif // _event_h_
