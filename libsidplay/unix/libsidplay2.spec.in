@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 4
+%define release 1
 %define major   2
 %define residversion 0.11
 
@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Wed Nov 7 2001 Simon White <s_a_white@email.com> 2.0.7-5
+- Performance fix.
+
 * Mon May 7 2001 Simon White <s_a_white@email.com> 2.0.7-4
 - Fix for endian functions under gcc 2.96.
 
