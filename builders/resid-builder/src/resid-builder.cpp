@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/03/04 19:06:38  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.4  2002/01/29 21:58:28  s_a_white
  *  Moved out sid emulation to a private header file.
  *
@@ -171,11 +174,11 @@ sidemu *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
     for (int i = 0; i < size; i++)
     {
         ReSID *sid = (ReSID *) sidobjs[i];
-        if (sid->lock ())
-            continue;
-        sid->lock  (env);
-        sid->model (model);
-        return sid;
+        if (sid->lock (env))
+		{
+            sid->model (model);
+            return sid;
+		}
     }
     // Unable to locate free SID
     m_status = false;
@@ -191,10 +194,11 @@ void ReSIDBuilder::unlock (sidemu *device)
     for (int i = 0; i < size; i++)
     {
         ReSID *sid = (ReSID *) sidobjs[i];
-        if (sid != device)
-            continue;
-        // Unlock it
-        sid->lock (NULL);
+        if (sid == device)
+		{   // Unlock it
+            sid->lock (NULL);
+			break;
+		}
     }
 }
 
