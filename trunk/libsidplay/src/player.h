@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/02/28 18:52:55  s_a_white
+ *  Removed initBank* related stuff.
+ *
  *  Revision 1.5  2001/02/21 21:41:51  s_a_white
  *  Added seperate ram bank to hold C64 player.
  *
@@ -95,6 +98,7 @@ private:
     // Internal Configuration Settings
     uint_least8_t   _channels;
     float64_t       _currentPeriod;
+    bool            _digiChannel;
     bool            _forceDualSids;
     sid2_playback_t _playback;
     int             _precision;
@@ -111,6 +115,7 @@ private:
     bool            _filter;
     bool            _extFilter;
     sid2_model_t    _sidModel;
+    bool            _sidSamples;
 
     // temp stuff -------------
     bool   isKernal;
@@ -198,6 +203,7 @@ public:
     uint_least32_t play         (void *buffer, uint_least32_t length);
     void           stop         (void);
     uint_least32_t time         (void) { return _seconds; }
+    void           sidSamples   (bool enable);
 
     void           optimisation (uint_least8_t level)
     {

@@ -16,15 +16,15 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/12 22:50:15  s_a_white
+ *  Bug Fix #122033.
+ *
  ***************************************************************************/
 
 #include "player.h"
 #include "sidendian.h"
-#include <stdio.h>
 
 const int_least32_t VOLUME_MAX = 255;
-int_least32_t min        = 0x7FFFFFFFL;
-int_least32_t max        = 0x80000000L;
 
 //-------------------------------------------------------------------------
 // Generic sound output generation routines
@@ -40,13 +40,14 @@ int_least32_t player::monoOutGenericMonoIn (uint_least16_t clock, uint_least32_t
         xsid.clock (clock);
         sid.clock  (clock);
     }
-    sample  = sid.output (bits);
+    sample = sid.output (bits);
 
-#ifndef XSID_USE_SID_VOLUME
-    sample *= 3;
-    sample += xsid.output (bits);
-    sample /= 4;
-#endif
+    if (_digiChannel)
+    {
+        sample *= 3;
+        sample += xsid.output (bits);
+        sample /= 4;
+    }
 
     // Apply volume
     sample *= _leftVolume;
@@ -69,14 +70,15 @@ int_least32_t player::monoOutGenericStereoIn (uint_least16_t clock, uint_least32
     sampleL = sid.output  (bits);
     sampleR = sid2.output (bits);
 
-#ifndef XSID_USE_SID_VOLUME
-    int_least32_t sampleX;
-    sampleL *= 3;
-    sampleR *= 3;
-    sampleX  = xsid.output (bits);
-    sampleL  = (sampleL + sampleX) / 4;
-    sampleR  = (sampleR + sampleX) / 4;
-#endif
+    if (_digiChannel)
+    {
+        int_least32_t sampleX;
+        sampleL *= 3;
+        sampleR *= 3;
+        sampleX  = xsid.output (bits);
+        sampleL  = (sampleL + sampleX) / 4;
+        sampleR  = (sampleR + sampleX) / 4;
+    }
 
     // Apply volume
     sampleL *= _leftVolume;
@@ -92,7 +94,7 @@ int_least32_t player::monoOutGenericStereoRIn (uint_least16_t clock, uint_least3
 {
     int_least32_t sample;
     count++;
-	
+    
     if (_optimiseLevel)
     {
         xsid.clock (clock);
@@ -100,11 +102,12 @@ int_least32_t player::monoOutGenericStereoRIn (uint_least16_t clock, uint_least3
     }
     sample  = sid2.output (bits);
 
-#ifndef XSID_USE_SID_VOLUME
-    sample *= 3;
-    sample += xsid.output (bits);
-    sample /= 4;
-#endif
+    if (_digiChannel)
+    {
+        sample *= 3;
+        sample += xsid.output (bits);
+        sample /= 4;
+    }
 
     // Apply volume
     sample *= _rightVolume;
@@ -125,11 +128,12 @@ int_least32_t player::stereoOutGenericMonoIn (uint_least16_t clock, uint_least32
     }
     sample  = sid.output (bits);
 
-#ifndef XSID_USE_SID_VOLUME
-    sample *= 3;
-    sample += xsid.output (bits);
-    sample /= 4;
-#endif
+    if (_digiChannel)
+    {
+        sample *= 3;
+        sample += xsid.output (bits);
+        sample /= 4;
+    }
 
     // Apply volume
     sample *= _leftVolume;
@@ -153,14 +157,15 @@ int_least32_t player::stereoOutGenericStereoIn (uint_least16_t clock, uint_least
     sampleL = sid.output  (bits);
     sampleR = sid2.output (bits);
 
-#ifndef XSID_USE_SID_VOLUME
-    int_least32_t sampleX;
-    sampleL *= 3;
-    sampleR *= 3;
-    sampleX  = xsid.output (bits);
-    sampleL /= 4;
-    sampleR  = (sampleR + sampleX) / 4;
-#endif
+    if (_digiChannel)
+    {
+        int_least32_t sampleX;
+        sampleL *= 3;
+        sampleR *= 3;
+        sampleX  = xsid.output (bits);
+        sampleL /= 4;
+        sampleR  = (sampleR + sampleX) / 4;
+    }
 
     // Apply volume
     sampleL *= _leftVolume;

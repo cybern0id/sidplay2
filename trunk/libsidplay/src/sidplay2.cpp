@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/02/21 21:49:21  s_a_white
+ *  Now uses new player::getErrorString function.
+ *
  *  Revision 1.4  2001/02/13 21:32:35  s_a_white
  *  Windows DLL export fix.
  *
@@ -110,3 +113,6 @@ const char *sidplay2::getErrorString (void)
 
 int  sidplay2::fastForward  (uint_least8_t percent)
 {   return sidplayer.fastForward (percent); }
+
+void sidplay2::sidSamples  (bool enable)
+{   sidplayer.sidSamples (enable); }
