@@ -575,6 +575,16 @@ void player::nextSequence ()
     endian_little16 (&ram[0xfffc], playAddr);
     endian_little16 (&rom[0xfffc], playAddr);
     cpu.reset ();
+
+    // Paged CPU mode moved to interrupt
+    if (_optimiseLevel > 1)
+    {
+        bool muted = xsid.isMuted ();
+        xsid.mute (true);
+        while (!cpu.SPWrapped)
+            cpu.clock ();
+        xsid.mute (muted);
+    }
 }
 
 void player::pause (void)
@@ -598,16 +608,13 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
 
     // Start the player loop
     playerState = _playing;
+
     while (playerState == _playing)
     {   // For sidplay compatibility the cpu must be idle
         // when the play routine exists.  The cpu will stay
         // idle until an interrupt occurs
-        while (!cpu.SPWrapped)
-        {
+        if (!cpu.SPWrapped)
             cpu.clock ();
-            if (_optimiseLevel < 2)
-                break;
-        }
 
         if (!_optimiseLevel)
         {   // Sids currently have largest cpu overhead, so have been moved
@@ -852,16 +859,23 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
         // Support dual sid
         if ((addr & 0xff00) == _sidAddress[1])
         {
+            sid2.write ((uint8_t) addr, data);
             if (useCache)
                 rom[addr] = data;
-            sid2.write ((uint8_t) addr, data);
             // Support mono to stereo conversion
             if ((_sidAddress[1] != _sidAddress[0]) || !useCache)
                 return;
         }
-        if (useCache)
-            rom[tempAddr] = data;
+
         sid.write ((uint8_t) tempAddr, data);
+        if (useCache)
+		{
+            rom[tempAddr] = data;
+#ifdef XSID_USE_SID_VOLUME
+			if ((tempAddr & 0x00FF) == 0x0018)
+			    xsid.volumeUpdated ();
+#endif // XSID_USE_SID_VOLUME
+		}
     }
 }
 

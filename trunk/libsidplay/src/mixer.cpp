@@ -37,8 +37,8 @@ int_least32_t player::monoOutGenericMonoIn (uint_least16_t clock, uint_least32_t
 
     if (_optimiseLevel)
     {
-        sid.clock  (clock);
         xsid.clock (clock);
+        sid.clock  (clock);
     }
     sample  = sid.output (bits);
 
@@ -62,9 +62,9 @@ int_least32_t player::monoOutGenericStereoIn (uint_least16_t clock, uint_least32
 
     if (_optimiseLevel)
     {
+        xsid.clock (clock);
         sid.clock  (clock);
         sid2.clock (clock);
-        xsid.clock (clock);
     }
     sampleL = sid.output  (bits);
     sampleR = sid2.output (bits);
@@ -95,8 +95,8 @@ int_least32_t player::monoOutGenericStereoRIn (uint_least16_t clock, uint_least3
 	
     if (_optimiseLevel)
     {
-        sid2.clock (clock);
         xsid.clock (clock);
+        sid2.clock (clock);
     }
     sample  = sid2.output (bits);
 
@@ -120,8 +120,8 @@ int_least32_t player::stereoOutGenericMonoIn (uint_least16_t clock, uint_least32
 
     if (_optimiseLevel)
     {
-        sid.clock  (clock);
         xsid.clock (clock);
+        sid.clock  (clock);
     }
     sample  = sid.output (bits);
 
@@ -146,9 +146,9 @@ int_least32_t player::stereoOutGenericStereoIn (uint_least16_t clock, uint_least
 
     if (_optimiseLevel)
     {
+        xsid.clock (clock);
         sid.clock  (clock);
         sid2.clock (clock);
-        xsid.clock (clock);
     }
     sampleL = sid.output  (bits);
     sampleR = sid2.output (bits);
