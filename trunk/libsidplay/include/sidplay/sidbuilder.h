@@ -65,10 +65,11 @@ public:
         : m_name(name), m_status (true) {;}
     virtual ~sidbuilder() {;}
 
-    virtual  sidemu      *lock   (c64env *env, sid2_model_t model) = 0;
-    virtual  void         unlock (sidemu *device) = 0;
-    const    char        *name   (void) const { return m_name; }
-    virtual  const  char *error  (void) const = 0;
+    virtual  sidemu      *lock    (c64env *env, sid2_model_t model) = 0;
+    virtual  void         unlock  (sidemu *device) = 0;
+    const    char        *name    (void) const { return m_name; }
+    virtual  const  char *error   (void) const = 0;
+    virtual const   char *credits (void) = 0;
     operator bool() const { return m_status; }
 };
 

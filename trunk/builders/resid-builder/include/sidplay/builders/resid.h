@@ -96,6 +96,7 @@ public:
     void        unlock  (sidemu *device);
     void        remove  (void);
     const char *error   (void) const { return m_error; }
+    const char *credits (void);
 
 	// Settings that effect all SIDs
     void filter   (bool enable);
