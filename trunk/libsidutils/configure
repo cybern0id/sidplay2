@@ -13141,8 +13141,8 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     do
         for j in sidplay/sidplay2.h;
         do
-	        if test -r "$i/$j"; then
-		        libsidplay2_foundincdir=$i
+            if test -r "$i/$j"; then
+                libsidplay2_foundincdir=$i
                 break 2
             fi
         done
@@ -13164,8 +13164,8 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     do
         for j in libsidplay2.la;
         do
-	        if test -r "$i/$j"; then
-		        libsidplay2_foundlibdir=$i
+            if test -r "$i/$j"; then
+                libsidplay2_foundlibdir=$i
                 break 2
             fi
         done
