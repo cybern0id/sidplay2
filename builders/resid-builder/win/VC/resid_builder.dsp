@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "../../include" /I "../../include/sidplay/builders" /I "../../../../libsidplay/include" /I "../../../../resid" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "HAVE_MSWINDOWS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /TP /I "../../include" /I "../../include/sidplay/builders" /I "../../../../libsidplay/include" /I "../../../../resid" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "HAVE_MSWINDOWS" /YX /FD /c
 # ADD BASE RSC /l 0x407
 # ADD RSC /l 0x407
 BSC32=bscmake.exe
