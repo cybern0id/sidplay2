@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2005/03/20 22:47:39  s_a_white
+ *  Added synchronous stream support for MK4 styles hardware.
+ *
  ***************************************************************************/
 
 #ifndef _hardsid_stream_h_
@@ -28,12 +31,9 @@
 class HardSIDStream
 {
 private:
-#ifdef HAVE_UNIX
-    int m_handle;
-#endif
-
     sidbuilder * const m_builder;
     bool               m_status;
+    int                m_handle;
     event_clock_t      m_accessClk;
     char               m_errorBuffer[100];
     uint               m_devUsed;

@@ -15,15 +15,18 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2005/03/20 22:47:39  s_a_white
+ *  Added synchronous stream support for MK4 styles hardware.
+ *
  ***************************************************************************/
 
-#include <linux/hardsid.h>
 #include "hardsid-stream.h"
 
 
 HardSIDStream::HardSIDStream(sidbuilder *builder)
 :m_builder(builder),
  m_status(false),
+ m_handle(-1),
  m_devUsed(0),
  m_devAvail(0)
 {
@@ -59,7 +62,7 @@ uint HardSIDStream::allocate (uint sids)
         HardSID *sid = new(std::nothrow) HardSID(m_builder, m_devUsed + i,
                                                 m_accessClk, m_handle);
 #   else
-        HardSID *sid = new HardSID(this, m_devUsed + i, m_accessClk, m_handle);
+        HardSID *sid = new HardSID(m_builder, m_devUsed + i, m_accessClk, m_handle);
 #   endif
         if (!sid)
         {
