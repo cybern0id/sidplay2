@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/08/05 15:46:02  s_a_white
+ *  No longer need to check on which cycle an instruction ends or when to print
+ *  debug information.
+ *
  *  Revision 1.9  2001/07/14 13:17:40  s_a_white
  *  Sidplay1 optimisations moved to here.  Stack & PC invalid tests now only
  *  performed on a BRK.
@@ -46,7 +50,8 @@
 
 
 SID6510::SID6510 (EventContext *context)
-:MOS6510(context)
+:MOS6510(context),
+ m_mode(sid2_envR)
 {
     // Added V1.04 (saw) - Support of sidplays break functionality
     // Prevent break from working correctly and locking the player
@@ -87,6 +92,24 @@ SID6510::SID6510 (EventContext *context)
                 procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_jmp);
             }
+            else if (procCycle[n] == &MOS6510::cli_instr)
+            {   // No overlapping IRQs allowed
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_cli);
+            }
+        }
+    }
+
+    // Since no real IRQs, all RTIs mapped to RTS
+    // Required for fix bad tunes in old modes
+    procCycle = instrTable[RTIn].cycle;
+    for (uint n = 0; n < instrTable[i].cycles; n++)
+    {
+        if (procCycle[n] == &MOS6510::PopSR)
+        {
+            procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                (&SID6510::sid_rti);
+            break;
         }
     }
 }
@@ -156,19 +179,34 @@ void SID6510::sid_brk (void)
     Register_ProgramCounter = Register_StackPointer;
     Register_Accumulator    = BRKn;
     pha_instr ();
+    if (m_mode != sid2_envR)
+        Register_ProgramCounter--; // Using RTS not RTI
 
     // Check for outstanding interrupts
-    cli_instr ();
     interrupts.delay = 0;
     if (interrupts.pending)
     {   // Start processing the interrupt
-        interruptPending ();
-        sleeping = false;
+        if (!interrupts.irqs)
+        {
+            interrupts.irqs--;
+            triggerIRQ ();
+        }
+        else
+        {
+            MOS6510::clock ();
+            sleeping = false;
+        }
     }
 }
 
 void SID6510::sid_jmp (void)
 {   // For sidplay compatibility, inherited from environment
+    if (m_mode == sid2_envR)
+    {
+        jmp_instr ();
+        return;
+    }
+
     if (envCheckBankJump (Cycle_EffectiveAddress))
         jmp_instr ();
     else
@@ -184,36 +222,71 @@ void SID6510::sid_rts (void)
     rts_instr();
 }
 
+void SID6510::sid_cli (void)
+{
+    if (m_mode == sid2_envR)
+        cli_instr ();
+}
+
+void SID6510::sid_rti (void)
+{
+    if (m_mode == sid2_envR)
+    {
+        PopSR ();
+        return;
+    }
+
+    // Fake RTS
+    sid_rts ();
+    FetchOpcode ();
+}
+
 
 //**************************************************************************************
 // Sidplay compatibility interrupts.  Basically wakes CPU if it is sleeping
 //**************************************************************************************
 void SID6510::triggerRST (void)
-{
+{   // All modes
     MOS6510::triggerRST ();
     if (sleeping)
     {
-        interruptPending ();
+        MOS6510::clock ();
         sleeping = false;
     }
 }
 
 void SID6510::triggerNMI (void)
-{
-    MOS6510::triggerNMI ();
-    if (sleeping)
+{   // Only in Real C64 mode
+    if (m_mode == sid2_envR)
     {
-        interruptPending ();
-        sleeping = false;
+        MOS6510::triggerNMI ();
+        if (sleeping)
+        {
+            MOS6510::clock ();
+            sleeping = false;
+        }
     }
 }
 
 void SID6510::triggerIRQ (void)
 {
-    MOS6510::triggerIRQ ();
-    if (sleeping)
+    switch (m_mode)
     {
-        interruptPending ();
-        sleeping = false;
+    default:
+        if (interrupts.irqs)
+            return;
+        // Deliberate run on
+    case sid2_envR:
+        MOS6510::triggerIRQ ();
+        if (sleeping)
+        {
+            cli_instr ();
+            MOS6510::clock ();
+            // Can't support overlapped IRQs in older
+            // environment modes and RTIs are RTSs.
+            if (m_mode != sid2_envR)
+                clearIRQ ();
+            sleeping = false;
+        }
     }
 }
