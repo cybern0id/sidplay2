@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2001/09/01 11:48:42  s_a_white
+ *  Help moved from cerr to cout.
+ *
  *  Revision 1.18  2001/09/01 11:24:22  s_a_white
  *  Renamed configure to config.
  *
@@ -190,7 +193,6 @@ static inline int_least32_t generateMusic (AudioConfig &cfg, void *buffer);
 
 int main(int argc, char *argv[])
 {
-    sid2_env_t      playerMode    = sid2_envR;
     bool            wavOutput     = false;
     uint            sidFile       = 0;
     char           *wavName       = NULL;
@@ -198,7 +200,6 @@ int main(int argc, char *argv[])
     uint_least32_t  runtime       = 0;
     bool            timeValid     = false;
     bool            verboseOutput = false;
-    bool            force2SID     = false;
     Audio_Null      nullDrv;
 
     // Rev 1.9 (saw) - Default now obtained from sidplayer.h
@@ -618,7 +619,7 @@ main_restart:
         goto main_error;
     }
 
-    if (player.lib.loadSong (&tune) == -1)
+    if (player.lib.load (&tune) == -1)
     {
         cerr << argv[0] << "\n" << player.lib.error () << endl;
         goto main_error;
