@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2002/09/09 18:01:30  s_a_white
+ *  Prevent m_info driver details getting modified when C64 crashes.
+ *
  *  Revision 1.31  2002/07/21 19:39:41  s_a_white
  *  Proper error handling of reloc info overlapping load image.
  *
@@ -248,6 +251,7 @@ private:
     int_least32_t   m_rightVolume;
     volatile sid2_player_t m_playerState;
     volatile bool   m_running;
+    int             m_rand;
 
     // Mixer settings
     event_clock_t  m_sampleClock;

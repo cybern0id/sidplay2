@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2002/09/09 18:01:30  s_a_white
+ *  Prevent m_info driver details getting modified when C64 crashes.
+ *
  *  Revision 1.16  2002/07/21 19:39:40  s_a_white
  *  Proper error handling of reloc info overlapping load image.
  *
@@ -232,6 +235,13 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         endian_little16 (&m_ram[addr], tuneInfo.initAddr);
         addr += 2;
         endian_little16 (&m_ram[addr], playAddr);
+        addr += 2;
+        // Below we limit the delay to something sensible.  The high
+        // byte is incremented by one because the C64 code always
+        // decrements before checking
+        endian_little16 (&m_ram[addr], ((uint_least16_t) (m_rand >> 3)
+                         & 0x0FFF) + 0x0100);
+        m_rand = m_rand * 13 + 1;
     }
     return 0;
 }
