@@ -34,7 +34,7 @@ const uint_least8_t SID2_MAX_OPTIMISATION = 2;
 
 typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback_t;
 typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
-typedef enum {SID2_MOS6581, SID2_MOS8580} sid2_model_t;
+typedef enum {SID2_MODEL_CORRECT, SID2_MOS6581, SID2_MOS8580} sid2_model_t;
 typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
 
 /* Environment Modes
@@ -46,20 +46,20 @@ sid2_envR  = Sidplay2 - Real C64 Environment
 
 typedef struct
 {
-    char       *name;
-    char       *version;
-    SidTuneInfo tuneInfo;
-    bool        filter;
-    bool        extFilter;
-    sid2_env_t  environment;
+    char        *name;
+    char        *version;
+    SidTuneInfo  tuneInfo;
+    bool         filter;
+    sid2_env_t   environment;
+    sid2_model_t sidModel;
 } sid2_playerInfo_t;
 
 // Private Sidplayer
-class player;
-class SID_EXPORT sidplay2
+class Player;
+class SID_EXTERN sidplay2
 {
 private:
-    player &sidplayer;
+    Player &sidplayer;
 
 public:
     sidplay2 ();
@@ -74,14 +74,15 @@ public:
     int            fastForward  (uint_least8_t percent);
     void           getInfo      (sid2_playerInfo_t *info);
     void           optimisation (uint_least8_t level);
-	int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
+    int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
+    const char   **credits      (void);
+    void           debug        (bool enable);
 
     // Timer functions with respect to 10ths of a second
     uint_least32_t time    (void);
     uint_least32_t mileage (void);
     // Added new filter, model, and clockspeed functions
     void filter     (bool enabled);
-    void extFilter  (bool enabled);
     void sidModel   (sid2_model_t model);
     void clockSpeed (sid2_clock_t clock, bool forced = true);
     void sidSamples (bool enable);
@@ -94,3 +95,4 @@ public:
 };
 
 #endif // _sidplay2_h_
+
