@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.41  2002/03/12 18:43:59  s_a_white
+ *  Tidy up handling of envReset on illegal CPU instructions.
+ *
  *  Revision 1.40  2002/03/11 18:01:30  s_a_white
  *  Prevent lockup if config call fails with existing and old configurations.
  *
@@ -441,7 +444,7 @@ uint8_t Player::readMemByte_plain (uint_least16_t addr)
     return m_ram[addr];
 }
 
-uint8_t Player::readMemByte_playsid (uint_least16_t addr)
+uint8_t Player::readMemByte_io (uint_least16_t addr)
 {
     uint_least16_t tempAddr = (addr & 0xfc1f);
 
@@ -505,7 +508,7 @@ uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
         {
         case 0xd:
             if (isIO)
-                return readMemByte_playsid (addr);
+                return readMemByte_io (addr);
             else
                 return m_ram[addr];
         break;
@@ -538,7 +541,7 @@ uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
         break;
         case 0xd:
             if (isIO)
-                return readMemByte_playsid (addr);
+                return readMemByte_io (addr);
             else
                 return m_ram[addr];
         break;
