@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
 #include "mmsystem.h"
@@ -46,7 +49,7 @@ Audio_MMSystem::~Audio_MMSystem()
     close();
 }
 
-void *Audio_MMSystem::open (AudioConfig &cfg)
+void *Audio_MMSystem::open (AudioConfig &cfg, const char *)
 {
     WAVEFORMATEX  wfm;
 
@@ -56,6 +59,11 @@ void *Audio_MMSystem::open (AudioConfig &cfg)
         return NULL;
     }
     isOpen = true;
+
+    /* Initialise blocks */
+    memset (blockHandles, 0, sizeof (blockHandles));
+    memset (blockHeaders, 0, sizeof (blockHeaders));
+    memset (blockHeaderHandles, 0, sizeof (blockHeaderHandles));
 
     // Format
     memset (&wfm, 0, sizeof(WAVEFORMATEX));
@@ -77,70 +85,72 @@ void *Audio_MMSystem::open (AudioConfig &cfg)
     if ( !waveHandle )
     {
         _errorString = "MMSYSTEM ERROR: Can't open wave out device.";
-        return NULL;
+        goto Audio_MMSystem_openError;
     }
 
     // Update the users settings
-	cfg.encoding = AUDIO_UNSIGNED_PCM; // IS this write?
+    cfg.encoding = AUDIO_UNSIGNED_PCM; // IS this write?
     _settings    = cfg;
 
-    /* Allocate and lock memory for all mixing blocks: */
-    for ( int i = 0; i < MAXBUFBLOCKS; i++ )
     {
-        /* Allocate global memory for mixing block: */
-        if ( (blockHandles[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
-                                            bufSize)) == NULL )
+        /* Allocate and lock memory for all mixing blocks: */
+        int i;
+        for (i = 0; i < MAXBUFBLOCKS; i++ )
         {
-            _errorString = "MMSYSTEM ERROR: Can't allocate global memory.";
-            return NULL;
-        }
+            /* Allocate global memory for mixing block: */
+            if ( (blockHandles[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
+                                                bufSize)) == NULL )
+            {
+                _errorString = "MMSYSTEM ERROR: Can't allocate global memory.";
+                goto Audio_MMSystem_openError;
+            }
 
-        /* Lock mixing block memory: */
-        if ( (blocks[i] = (BYTE*)GlobalLock(blockHandles[i])) == NULL )
-        {
-            _errorString = "MMSYSTEM ERROR: Can't lock global memory.";
-            return NULL;
-        }
+            /* Lock mixing block memory: */
+            if ( (blocks[i] = (BYTE*)GlobalLock(blockHandles[i])) == NULL )
+            {
+                _errorString = "MMSYSTEM ERROR: Can't lock global memory.";
+                goto Audio_MMSystem_openError;
+            }
 
-        /* Allocate global memory for mixing block header: */
-        if ( (blockHeaderHandles[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
-                                                  sizeof(WAVEHDR))) == NULL )
-        {
-            _errorString = "MMSYSTEM ERROR: Can't allocate global memory.";
-            return NULL;
-        }
+            /* Allocate global memory for mixing block header: */
+            if ( (blockHeaderHandles[i] = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE,
+                                                      sizeof(WAVEHDR))) == NULL )
+            {
+                _errorString = "MMSYSTEM ERROR: Can't allocate global memory.";
+                goto Audio_MMSystem_openError;
+            }
 
-        /* Lock mixing block header memory: */
-        WAVEHDR *header;
-        if ( (header = blockHeaders[i] =
-              (WAVEHDR*)GlobalLock(blockHeaderHandles[i])) == NULL )
-        {
-            _errorString = "MMSYSTEM ERROR: Can't lock global memory.";
-            return NULL;
-        }
+            /* Lock mixing block header memory: */
+            WAVEHDR *header;
+            if ( (header = blockHeaders[i] =
+                  (WAVEHDR*)GlobalLock(blockHeaderHandles[i])) == NULL )
+            {
+                _errorString = "MMSYSTEM ERROR: Can't lock global memory.";
+                goto Audio_MMSystem_openError;
+            }
 
-        /* Reset wave header fields: */
-        memset (header, 0, sizeof (WAVEHDR));
-        header->lpData         = (char*)blocks[i];
-        header->dwBufferLength = bufSize;
-        header->dwFlags        = WHDR_DONE; /* mark the block is done */
+            /* Reset wave header fields: */
+            memset (header, 0, sizeof (WAVEHDR));
+            header->lpData         = (char*)blocks[i];
+            header->dwBufferLength = bufSize;
+            header->dwFlags        = WHDR_DONE; /* mark the block is done */
+        }
     }
 
     blockNum = 0;
-    return blocks[blockNum];
+    _sampleBuffer = blocks[blockNum];
+return _sampleBuffer;
+
+Audio_MMSystem_openError:
+    close ();
+    return NULL;
 }
 
 void *Audio_MMSystem::write ()
 {
-    if ( !isOpen || !waveHandle )
+    if (!isOpen)
     {
         _errorString = "MMSYSTEM ERROR: Device not open.";
-        return NULL;
-    }
-
-    if ( !blockHeaders[blockNum] || !blocks[blockNum] )
-    {
-        _errorString = "MMSYSTEM ERROR: Buffers not allocated.";
         return NULL;
     }
 
@@ -177,13 +187,14 @@ void *Audio_MMSystem::write ()
         return NULL;
     }
 
-    return blocks[blockNum];
+    _sampleBuffer = blocks[blockNum];
+    return _sampleBuffer;
 }
 
-// Rev 1.2 (saw) - Changed, see AudioBase.h	
+// Rev 1.2 (saw) - Changed, see AudioBase.h    
 void *Audio_MMSystem::reset (void)
 {
-    if ( !isOpen || !waveHandle )
+    if (!isOpen)
         return NULL;
 
     // Stop play and kill the current music.
@@ -195,7 +206,8 @@ void *Audio_MMSystem::reset (void)
         return NULL;
     }
     blockNum = 0;
-    return blocks[blockNum];
+    _sampleBuffer = blocks[blockNum];
+    return _sampleBuffer;
 }
 
 void Audio_MMSystem::close (void)
@@ -203,7 +215,8 @@ void Audio_MMSystem::close (void)
     if ( !isOpen )
         return;
 
-    isOpen = false;
+    isOpen        = false;
+    _sampleBuffer = NULL;
 
     /* Reset wave output device, stop playback, and mark all blocks done: */
     if ( waveHandle )

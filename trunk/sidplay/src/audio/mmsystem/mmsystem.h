@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 17:50:59  s_a_white
+ *  Removed duplicate #endif.
+ *
  *  Revision 1.2  2001/01/18 18:36:16  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -61,9 +64,9 @@ public:  // --------------------------------------------------------- public
     Audio_MMSystem();
     ~Audio_MMSystem();
 
-    void *open  (AudioConfig &cfg);
+    void *open  (AudioConfig &cfg, const char *name);
     void  close ();
-    // Rev 1.2 (saw) - Changed, see AudioBase.h	
+    // Rev 1.2 (saw) - Changed, see AudioBase.h    
     void *reset ();
     void *write ();
 };

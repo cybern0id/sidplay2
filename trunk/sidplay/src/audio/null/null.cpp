@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/23 21:22:31  s_a_white
+ *  Changed to array delete.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -38,9 +41,9 @@ Audio_Null::~Audio_Null ()
     close();
 }
 
-void *Audio_Null::open (AudioConfig &cfg)
+void *Audio_Null::open (AudioConfig &cfg, const char *)
 { 
-	uint_least32_t bufSize;
+    uint_least32_t bufSize = cfg.bufSize;
 
     if (isOpen)
     {
@@ -48,17 +51,20 @@ void *Audio_Null::open (AudioConfig &cfg)
         return NULL;
     }
 
-    bufSize  = cfg.frequency * cfg.precision / 8 * cfg.channels;
-    bufSize /= 4;
+    if (bufSize)
+    {
+        bufSize  = cfg.frequency * cfg.precision / 8 * cfg.channels;
+        bufSize /= 4;
+    }
 
-	// We need to make a buffer for the user
+    // We need to make a buffer for the user
 #if defined(HAVE_EXCEPTIONS)
-	_sampleBuffer = new(nothrow) uint_least8_t[bufSize];
+    _sampleBuffer = new(nothrow) uint_least8_t[bufSize];
 #else
-	_sampleBuffer = new uint_least8_t[bufSize];
+    _sampleBuffer = new uint_least8_t[bufSize];
 #endif
-	if (!_sampleBuffer)
-		return NULL;
+    if (!_sampleBuffer)
+        return NULL;
 
     isOpen      = true;
     cfg.bufSize = bufSize;
@@ -88,5 +94,6 @@ void Audio_Null::close (void)
     if (!isOpen)
         return;
     delete [] _sampleBuffer;
+    _sampleBuffer = NULL;
     isOpen = false;
 }

@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.5  2000/12/11 19:07:42  s_a_white
  *  AC99 Update.
  *
@@ -31,81 +34,82 @@
 #include <fstream.h>
 #include "../AudioBase.h"
 
-struct wavHeader						// little endian format
+struct wavHeader                        // little endian format
 {
-	char mainChunkID[4];				// 'RIFF' (ASCII)
+    char mainChunkID[4];                // 'RIFF' (ASCII)
 
-	unsigned char length[4];			// file length
+    unsigned char length[4];            // file length
 
-	char chunkID[4];					// 'WAVE' (ASCII)
-	char subChunkID[4];					// 'fmt ' (ASCII)
-	char subChunkLen[4];				// length of subChunk, always 16 bytes
-	char format[2];						// currently always = 1 = PCM-Code
+    char chunkID[4];                    // 'WAVE' (ASCII)
+    char subChunkID[4];                    // 'fmt ' (ASCII)
+    char subChunkLen[4];                // length of subChunk, always 16 bytes
+    char format[2];                        // currently always = 1 = PCM-Code
 
-	unsigned char channels[2];			// 1 = mono, 2 = stereo
-	unsigned char sampleFreq[4];		// sample-frequency
-	unsigned char bytesPerSec[4];		// sampleFreq * blockAlign
-	unsigned char blockAlign[2];		// bytes per sample * channels
-	unsigned char bitsPerSample[2];
-	
-	char dataChunkID[4];				// keyword, begin of data chunk; = 'data' (ASCII)
+    unsigned char channels[2];            // 1 = mono, 2 = stereo
+    unsigned char sampleFreq[4];        // sample-frequency
+    unsigned char bytesPerSec[4];        // sampleFreq * blockAlign
+    unsigned char blockAlign[2];        // bytes per sample * channels
+    unsigned char bitsPerSample[2];
+    
+    char dataChunkID[4];                // keyword, begin of data chunk; = 'data' (ASCII)
 
-	unsigned char dataChunkLen[4];		// length of data
+    unsigned char dataChunkLen[4];        // length of data
 };
 
 class WavFile: public AudioBase
 {
 private:
-	unsigned long int expectedSize;
-	unsigned long int byteCount;
-	unsigned long int bufSize;
-	int	bitsPerSample;   // need this for endian-conversion check
+    unsigned long int byteCount;
+    unsigned long int bufSize;
+    int    bitsPerSample;   // need this for endian-conversion check
 
-	static const wavHeader defaultWavHdr;
-	wavHeader wavHdr;
+    static const wavHeader defaultWavHdr;
+    wavHeader wavHdr;
 
-	fstream file;
-	bool isOpen;		 // whether file has been opened
-	bool headerWritten;  // whether final header has been written
+    fstream file;
+    bool isOpen;         // whether file has been opened
+    bool headerWritten;  // whether final header has been written
 
 public:
 
-	WavFile();
-	
-	// Only unsigned 8-bit, and signed 16-bit, samples are supported.
-	// Endian-ess is adjusted if necessary.
-	//
-	// If number of sample bytes is given, this can speed up the
-	// process of closing a huge file on slow storage media.
+    WavFile();
+    
+    // Only unsigned 8-bit, and signed 16-bit, samples are supported.
+    // Endian-ess is adjusted if necessary.
+    //
+    // If number of sample bytes is given, this can speed up the
+    // process of closing a huge file on slow storage media.
 
-	void *open(AudioConfig &cfg,	 const char *name,
-			   const bool overWrite, const unsigned long size = 0);
-	
-	// Buffer contents may be modified during endian conversion.
-	// Compile with WAV_REVERT_BUFFER_CHANGES if you want buffer
-	// contents to be restored properly.
-	void *write(unsigned long int size);
-	void *write() { return write (bufSize); }
-	
-	void close();
-	~WavFile() { close(); }
-	
-	// Have to be defined to use base audio class
-	virtual void *open  (AudioConfig &cfg) { return 0; }
-	// Rev 1.3 (saw) - Changed, see AudioBase.h
-	virtual void *reset ()
-	{
-		if (isOpen)
-			return _sampleBuffer;
-		return NULL;
-	}
+    void *open(AudioConfig &cfg, const char *name)
+    { return open (cfg, name, true); }
+    void *open(AudioConfig &cfg, const char *name,
+               const bool overWrite);
+    
+    // Buffer contents may be modified during endian conversion.
+    // Compile with WAV_REVERT_BUFFER_CHANGES if you want buffer
+    // contents to be restored properly.
+    void *write(unsigned long int size);
+    void *write() { return write (bufSize); }
+    
+    void close();
+    ~WavFile() { close(); }
+    
+    // Have to be defined to use base audio class
+    virtual void *open  (AudioConfig &cfg) { return 0; }
+    // Rev 1.3 (saw) - Changed, see AudioBase.h
+    virtual void *reset ()
+    {
+        if (isOpen)
+            return _sampleBuffer;
+        return NULL;
+    }
 
-	// Stream state.
-	bool fail() const { return (file.fail() != 0); }
-	bool bad()  const { return (file.bad()  != 0); }
+    // Stream state.
+    bool fail() const { return (file.fail() != 0); }
+    bool bad()  const { return (file.bad()  != 0); }
 
-	operator bool()  const { return (file.good() != 0); }
-	bool operator!() const { return (file.fail() != 0); }
+    operator bool()  const { return (file.good() != 0); }
+    bool operator!() const { return (file.fail() != 0); }
 };
 
 #endif /* WAVE_FILE_HEADER_H */
