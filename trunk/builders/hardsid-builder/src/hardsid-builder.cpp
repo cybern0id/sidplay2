@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2005/01/12 22:11:11  s_a_white
+ *  Updated to support new ioctls so we can find number of installed sid devices.
+ *
  *  Revision 1.9  2004/05/05 23:48:01  s_a_white
  *  Detect available sid devices on Unix system.
  *
@@ -54,7 +57,7 @@
 #endif
 
 #include "hardsid.h"
-#include "hardsid-emu.h"
+#include "hardsid-stream.h"
 
 
 #ifdef HAVE_MSWINDOWS
@@ -102,9 +105,8 @@ HardSIDBuilder::~HardSIDBuilder (void)
 // Create a new sid emulation.  Called by libsidplay2 only
 uint HardSIDBuilder::create (uint sids)
 {
-    uint   count;
-    HardSID *sid = NULL;
-    m_status     = true;
+    uint count;
+    m_status = true;
 
     // Check available devices
     count = devices (false);
@@ -114,42 +116,57 @@ uint HardSIDBuilder::create (uint sids)
         sids = count;
 
     for (count = 0; count < sids; count++)
-    {
+    {   // Can we add sid to existing stream?
+        int i = streams.size();
+        if (i > 0)
+        {
+            int allocated = streams[i-1]->allocate (sids - count);
+            count += allocated;
+            if (count >= sids)
+                break;
+        }
+
+        // Create a new stream as no space in existing ones.
 #   ifdef HAVE_EXCEPTIONS
-        sid = new(std::nothrow) HardSID(this);
+        HardSIDStream *stream = new(std::nothrow) HardSIDStream(this);
 #   else
-        sid = new HardSID(this);
+        HardSIDStream *stream = new HardSIDStream(this);
 #   endif
-
-        // Memory alloc failed?
-        if (!sid)
+        // Memory alloc failed for new stream?
+        if (!stream)
         {
-            sprintf (m_errorBuffer, "%s ERROR: Unable to create HardSID object", name ());
+            sprintf (m_errorBuffer, "%s ERROR: Unable to create HardSID stream", name ());
             goto HardSIDBuilder_create_error;
         }
 
-        // SID init failed?
-        if (!*sid)
+        // stream init or sid alloc failed?
+        if (!*stream || !stream->allocate(1))
         {
-            strcpy (m_errorBuffer, sid->error ());
+            strcpy (m_errorBuffer, stream->error ());
+            delete stream;
             goto HardSIDBuilder_create_error;
         }
-        sidobjs.push_back (sid);
+        streams.push_back (stream);
     }
     return count;
 
 HardSIDBuilder_create_error:
     m_status = false;
-    if (sid)
-        delete sid;
     return count;
 }
 
+// Return the available devices or the used (created) devices.
 uint HardSIDBuilder::devices (bool created)
 {
     m_status = true;
     if (created)
-        return sidobjs.size ();
+    {
+        uint count = 0;
+        int  size  = streams.size ();
+        for (int i = 0; i < size; i++)
+            count += streams[i]->allocated ();
+        return count;
+    }
 
     // Available devices
     // @FIXME@ not yet supported on Linux
@@ -179,37 +196,57 @@ const char *HardSIDBuilder::credits ()
 
 void HardSIDBuilder::flush(void)
 {
-    int size = sidobjs.size ();
+    int size = streams.size ();
     for (int i = 0; i < size; i++)
-        ((HardSID*)sidobjs[i])->flush();
+        streams[i]->flush ();
 }
 
 void HardSIDBuilder::filter (bool enable)
 {
-    int size = sidobjs.size ();
+    int size = streams.size ();
     m_status = true;
     for (int i = 0; i < size; i++)
-    {
-        HardSID *sid = (HardSID *) sidobjs[i];
-        sid->filter (enable);
-    }
+        streams[i]->filter (enable);
 }
 
-// Find a free SID of the required specs
+// Find a free SID of the required type
 sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 {
-    int size = sidobjs.size ();
+    HardSID *def = NULL;
+    int size = streams.size ();
     m_status = true;
 
+    // See if we can lock down an already allocated sid
     for (int i = 0; i < size; i++)
     {
-        HardSID *sid = (HardSID *) sidobjs[i];
-        if (sid->lock (env))
-        {
-            sid->model (model);
+        HardSIDStream *stream = streams[i];
+        HardSID *sid = stream->lock (env, model);
+        if (sid)
             return sid;
+    }
+
+    // See if we can reallocate a sid to the correct model
+    for (int i = 0; i < size; i++)
+    {
+        HardSIDStream *stream = streams[i];
+        HardSID *sid = stream->lock (env);
+        if (sid)
+        {
+            if (stream->reallocate (sid, model))
+                return sid;
+            sid->lock (NULL);
+            if (!def)
+                def = sid;
         }
     }
+
+    // No best match so use first available sid
+    if (def)
+    {
+        def->lock (env);
+        return def;
+    }
+
     // Unable to locate free SID
     m_status = false;
     sprintf (m_errorBuffer, "%s ERROR: No available SIDs to lock", name ());
@@ -219,26 +256,17 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 // Allow something to use this SID
 void HardSIDBuilder::unlock (sidemu *device)
 {
-    int size = sidobjs.size ();
-    // Make sure this is our SID
-    for (int i = 0; i < size; i++)
-    {
-        HardSID *sid = (HardSID *) sidobjs[i];
-        if (sid == device)
-        {   // Unlock it
-            sid->lock (NULL);
-            break;
-        }
-    }
+    HardSID *sid = (HardSID *) device;
+    sid->lock (NULL);
 }
 
 // Remove all SID emulations.
 void HardSIDBuilder::remove ()
 {
-    int size = sidobjs.size ();
+    int size = streams.size ();
     for (int i = 0; i < size; i++)
-        delete sidobjs[i];
-    sidobjs.clear();
+        delete streams[i];
+    streams.clear ();
 }
 
 #ifdef HAVE_MSWINDOWS
@@ -339,47 +367,15 @@ HardSID_init_error:
 
 #elif defined(HAVE_UNIX)
 
-#include <ctype.h>
-#include <dirent.h>
-
 // Find the number of sid devices.  We do not care about
 // stuppid device numbering or drivers not loaded for the
 // available nodes.
 int HardSIDBuilder::init ()
 {
-    DIR    *dir;
-    dirent *entry;
-
-    m_count = HardSID::devices ();
-    if (m_count > 0)
-        return 0;
-
-    m_count = 0;
-    dir = opendir("/dev");
-    if (!dir)
+    int ret = HardSID::devices ();
+    if (ret < 0)
         return -1;
-
-    while ( (entry=readdir(dir)) )
-    {
-        // SID device
-        if (strncmp ("sid", entry->d_name, 3))
-            continue;
-        
-        // if it is truely one of ours then it will be
-        // followed by numerics only
-        const char *p = entry->d_name+3;
-        int index     = 0;
-        while (*p)
-        {
-            if (!isdigit (*p))
-                continue;
-            index = index * 10 + (*p++ - '0');
-        }
-        index++;
-        if (m_count < index)
-            m_count = index;
-    }
-    closedir (dir);
+    m_count = (uint) ret;
     return 0;
 }
 
