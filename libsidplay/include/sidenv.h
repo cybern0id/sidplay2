@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/11 19:10:59  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _environment_h_
@@ -75,7 +78,7 @@ protected:
     { ::readMemDataByte (); }
     */
 
-protected:
+private:
     C64Environment *m_envp;
 
     // Sidplay2 Player Environemnt
@@ -90,10 +93,10 @@ protected:
     // Eniviroment functions
     virtual inline void  envReset   (void)
     { m_envp->envReset (); }
-    virtual inline uint8_t envReadMemByte  (uint_least16_t addr, bool useCache = false)
-    { return m_envp->envReadMemByte (addr, useCache); }
-    virtual inline void    envWriteMemByte (uint_least16_t addr, uint8_t data, bool useCache = true)
-    { m_envp->envWriteMemByte (addr, data, useCache); }
+    virtual inline uint8_t envReadMemByte  (uint_least16_t addr)
+    { return m_envp->envReadMemByte (addr); }
+    virtual inline void    envWriteMemByte (uint_least16_t addr, uint8_t data)
+    { m_envp->envWriteMemByte (addr, data); }
 
     // Interrupts
     virtual inline void  envTriggerIRQ (void)
@@ -108,8 +111,10 @@ protected:
     // Sidplay compatibily funtions
     virtual inline bool    envCheckBankJump   (uint_least16_t addr)
     { return m_envp->envCheckBankJump   (addr); }
-    virtual inline uint8_t envReadMemDataByte (uint_least16_t addr, bool useCache = false)
-    { return m_envp->envReadMemDataByte (addr, useCache); }
+    virtual inline uint8_t envReadMemDataByte (uint_least16_t addr)
+    { return m_envp->envReadMemDataByte (addr); }
+    virtual inline void envLoadFile (char *file)
+    { m_envp->envLoadFile (file); }
 };
 
 #endif // _environment_h_
