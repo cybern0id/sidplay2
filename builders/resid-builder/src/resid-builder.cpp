@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/12/11 19:33:18  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.2  2001/12/09 10:53:50  s_a_white
  *  Added exporting of credits.
  *
@@ -25,12 +28,14 @@
  ***************************************************************************/
 
 #include <stdio.h>
-#include "resid.h"
-#include "config.h"
 
+#include "config.h"
 #ifdef HAVE_EXCEPTIONS
 #   include <new.h>
 #endif
+
+#include "resid.h"
+#include "resid-emu.h"
 
 // Error String(s)
 const char *ReSIDBuilder::ERR_FILTER_DEFINITION = "RESID ERROR: Filter definition is not valid (see docs).";
