@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2004/03/01 00:16:56  s_a_white
+ *  ostream is part of std namespace.
+ *
  *  Revision 1.16  2004/02/26 18:19:22  s_a_white
  *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
  *
@@ -75,6 +78,10 @@ using std::cout;
 using std::cerr;
 using std::endl;
 #include "player.h"
+
+#ifdef HAVE_HARDSID_BUILDER
+#   include <sidplay/builders/hardsid.h>
+#endif
 
 #if defined(HAVE_SGI)
 #   define DISALLOW_16BIT_SOUND
@@ -538,11 +545,15 @@ void ConsolePlayer::displayArgs (const char *arg)
         << " -v[p|n][f]   set VIC PAL/NTSC clock speed (default: defined by song)" << endl
         << "              Use 'f' to force the clock by preventing speed fixing" << endl
 
-        << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl
+        << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl;
 #ifdef HAVE_HARDSID_BUILDER
-        << " --hardsid    enable hardsid support" << endl
+    {
+        HardSIDBuilder hs("");
+        if (hs.devices (false))
+            out << " --hardsid    enable hardsid support" << endl;
+    }
 #endif
-        << endl
+    out << endl
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
 //        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
