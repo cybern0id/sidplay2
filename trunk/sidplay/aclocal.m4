@@ -143,7 +143,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     if test "$sid_libsidplay2_library" != NO; then
         # Help to try and better locate library just from --with-libsidplay2 option
         libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/.libs"
-        SID_FIND_FILE(libsidplay2.a libsidplay2.so,$libsidplay2_libdirs,libsidplay2_foundlibdir)
+        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
     fi
 
@@ -175,7 +175,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
 
         # Search common locations where library might be stored.
         libsidplay2_libdirs="/usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
-        SID_FIND_FILE(libsidplay2.a libsidplay2.so,$libsidplay2_libdirs,libsidplay2_foundlibdir)
+        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
 
         if test "$sid_libsidplay2_includes" = NO || test "$sid_libsidplay2_library" = NO; then
@@ -232,10 +232,12 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
+    sid_cxx_save=$CXX    
 
     CXXFLAGS="$CXXFLAGS $sid_libsidplay2_incadd"
     LDFLAGS="$LDFLAGS $sid_libsidplay2_libadd"
     LIBS="-lsidplay2"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <sidplay/sidplay2.h>],
@@ -247,6 +249,7 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+    CXX="$sid_cxx_save"
 ])
 
 
@@ -293,7 +296,7 @@ AC_DEFUN(SID_PATH_LIBSIDUTILS,
     if test "$sid_libsidutils_library" != NO; then
         # Help to try and better locate library just from --with-libsidutils option
         libsidutils_libdirs="$sid_libsidutils_library $sid_libsidutils_library/lib $sid_libsidutils_library/.libs"
-        SID_FIND_FILE(libsidutils.a libsidutils.so,$libsidutils_libdirs,libsidutils_foundlibdir)
+        SID_FIND_FILE(libsidutils.la,$libsidutils_libdirs,libsidutils_foundlibdir)
         sid_libsidutils_library=$libsidutils_foundlibdir
     fi
 
@@ -325,7 +328,7 @@ AC_DEFUN(SID_PATH_LIBSIDUTILS,
 
         # Search common locations where library might be stored.
         libsidutils_libdirs="/usr/lib /usr/local/lib /usr/lib/sidutils/lib /usr/local/lib/sidutils/lib"
-        SID_FIND_FILE(libsidutils.a libsidutils.so,$libsidutils_libdirs,libsidutils_foundlibdir)
+        SID_FIND_FILE(libsidutils.la,$libsidutils_libdirs,libsidutils_foundlibdir)
         sid_libsidutils_library=$libsidutils_foundlibdir
 
         if test "$sid_libsidutils_includes" = NO || test "$sid_libsidutils_library" = NO; then
@@ -382,10 +385,12 @@ AC_DEFUN(SID_TRY_LIBSIDUTILS,
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
+    sid_cxx_save=$CXX    
 
     CXXFLAGS="$CXXFLAGS $sid_libsidutils_incadd"
     LDFLAGS="$LDFLAGS $sid_libsidplay2_libadd $sid_libsidutils_libadd"
     LIBS="-lsidplay2 -lsidutils"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <sidplay/utils/SidDatabase.h>],
@@ -397,6 +402,7 @@ AC_DEFUN(SID_TRY_LIBSIDUTILS,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+    CXX="$sid_cxx_save"
 ])
 
 

@@ -1,4 +1,8 @@
-Release Notes 2.0.1:
+Release Notes 2.0.7:
+
+This application has now been split, with the other part forming a new library
+called libsidplay.
+
 
 Added:
 

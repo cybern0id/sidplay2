@@ -4,7 +4,7 @@ AC_CONFIG_AUX_DIR(unix)
 AM_CONFIG_HEADER(include/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
-AM_INIT_AUTOMAKE(sidplay,2.0.1)
+AM_INIT_AUTOMAKE(sidplay,2.0.7)
 
 AC_CANONICAL_HOST
 
@@ -17,6 +17,7 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 
 dnl Initialise Libtool.
+AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
 dnl Checks for libraries.
@@ -103,10 +104,11 @@ AUDIO_DRV="$audiodrv_libadd"
 AC_SUBST(AUDIO_DRV)
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -Wall"
+CXXFLAGS="$CXXFLAGS \$(LIBSIDPLAY2_INCLUDES) \$(LIBSIDUTILS_INCLUDES) -Wall"
 
 AC_OUTPUT(
 Makefile \
+sidplay.spec \
 src/Makefile \
 src/audio/Makefile \
 src/audio/alsa/Makefile \
