@@ -464,8 +464,8 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
                                   toolLen - strlen(_sidtune_keyword_reloc) );
             std::istringstream relocIn( sRelocIn );
 #else
-            std::istrstream sRelocIn( cmpBuf + strlen(_sidtune_keyword_reloc),
-                                      toolLen - strlen(_sidtune_keyword_reloc) );
+            std::istrstream relocIn( cmpBuf + strlen(_sidtune_keyword_reloc),
+                                     toolLen - strlen(_sidtune_keyword_reloc) );
 #endif
             info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( relocIn );
             if ( !relocIn )
