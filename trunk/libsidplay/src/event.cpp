@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/07/17 19:20:03  s_a_white
+ *  More efficient event handling code.
+ *
  *  Revision 1.5  2001/10/02 18:24:09  s_a_white
  *  Updated to support safe scheduler interface.
  *
@@ -87,7 +90,7 @@ void EventScheduler::schedule (Event *event, event_clock_t cycles)
 {
     uint clk = m_eventClk + cycles;
     if (event->m_pending)
-        cancel (event);
+        cancelPending (*event);
     event->m_pending = true;
     event->m_clk     = clk;
 
@@ -95,12 +98,8 @@ void EventScheduler::schedule (Event *event, event_clock_t cycles)
         // searching the list later.
         Event *e     = m_pendingEvents.m_next;
         uint   count = m_pendingEventCount;
-        while (count--)
-        {
-            if (e->m_clk > clk)
-                break;
+        while (count-- && (e->m_clk <= clk))
             e = e->m_next;
-        }
         event->m_next     = e;
         event->m_prev     = e->m_prev;
         e->m_prev->m_next = event;

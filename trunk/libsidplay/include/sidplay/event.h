@@ -118,14 +118,13 @@ public:
     void reset     (void);
     void schedule  (Event *event, event_clock_t cycles);
 
-    void clock (event_clock_t delta = 1)
+    void clock (void)
     {
-        m_schedClk  += delta;
-        m_eventClk  += delta;
-        while (m_pendingEventCount)
-        {   // Dispatch events which have fired
-            if (m_eventClk < m_pendingEventClk)
-                break;
+        if (m_pendingEventCount)
+        {
+            event_clock_t delta = m_pendingEventClk - m_eventClk;
+            m_schedClk  += delta;
+            m_eventClk  += delta;
             dispatch ();
         }
     }
