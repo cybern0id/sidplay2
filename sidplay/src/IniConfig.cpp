@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/08/30 21:40:51  s_a_white
+ *  libini-1.1.7 update.
+ *
  *  Revision 1.8  2001/08/20 18:28:55  s_a_white
  *  MOS8580 fixed so that nothing means correct revision, 0 is 6581 and
  *  1 is 8580.
@@ -439,6 +442,6 @@ IniConfig_read_error:
 const sid_filter_t* IniConfig::filter (sid2_model_t model)
 {
     if (model == SID2_MOS8580)
-        return filter8580.definition ();
-    return filter6581.definition ();
+        return filter8580.provide ();
+    return filter6581.provide ();
 }
