@@ -1,4 +1,4 @@
-/* unix/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
 /* config.h (template) */
 #ifndef _config_h_
 #define _config_h_
