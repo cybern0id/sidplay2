@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2003/02/24 19:43:26  s_a_white
+ *  Handle infinite loop timeouts for older sidplay1 modes more gracefully.
+ *
  *  Revision 1.31  2003/02/20 18:59:46  s_a_white
  *  Prevent interrupts waking up the CPU when the I flag is set.
  *
@@ -215,7 +218,6 @@ void SID6510::reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y)
 void SID6510::reset ()
 {
     m_sleeping = false;
-    m_timeout  = false;
     // Call inherited reset
     MOS6510::reset ();
 }
