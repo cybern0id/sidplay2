@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2004/04/13 07:39:31  s_a_white
+ *  Add lightpen support.
+ *
  *  Revision 1.20  2004/03/20 16:17:29  s_a_white
  *  Clear all registers at reset.  Fix port B read bug.
  *
@@ -369,6 +372,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         // Reset the underflow flipflop for the data port
         if ((data & 1) && !(cra & 1))
         {
+            ta = ta_latch;
             ta_underflow = true;
             // Pulse mode
             if ((data & 0x06) == 0x02)
@@ -389,7 +393,6 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
                                     m_phase);
         } else
         {   // Inactive
-            ta = ta_latch;
             event_context.cancel (&event_ta);
         }
     break;
@@ -398,6 +401,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         // Reset the underflow flipflop for the data port
         if ((data & 1) && !(crb & 1))
         {
+            tb = tb_latch;
             tb_underflow = true;
             // Pulse mode
             if ((data & 0x06) == 0x02)
@@ -418,7 +422,6 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
                                     m_phase);
         } else
         {   // Inactive
-            tb = tb_latch;
             event_context.cancel (&event_tb);
         }
     break;
