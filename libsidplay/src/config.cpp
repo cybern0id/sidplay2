@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2002/03/04 19:05:49  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.21  2002/03/03 22:01:58  s_a_white
  *  New clock speed & sid model interface.
  *
@@ -279,7 +282,9 @@ int Player::config (const sid2_config_t &cfg)
 return 0;
 
 Player_configure_restore:
-    config (m_cfg);
+    // Try restoring old configuration
+    if (&m_cfg != &cfg)
+        config (m_cfg);
 Player_configure_error:
     return -1;
 }
@@ -531,7 +536,7 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
 
         // Since song will run correct on any sid model
         // set it to the current emulation
-        if (m_tuneInfo.sidModel == SIDTUNE_CLOCK_ANY)
+        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_ANY)
         {
             if (userModel == SID2_MODEL_CORRECT)
                 userModel  = defaultModel;
@@ -547,7 +552,7 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
             }
         }
 
-        if (userModel == SID2_CLOCK_CORRECT)
+        if (userModel == SID2_MODEL_CORRECT)
         {
             switch (m_tuneInfo.sidModel)
             {
