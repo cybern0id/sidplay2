@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/07/14 13:17:40  s_a_white
+ *  Sidplay1 optimisations moved to here.  Stack & PC invalid tests now only
+ *  performed on a BRK.
+ *
  *  Revision 1.8  2001/03/24 18:09:17  s_a_white
  *  On entry to interrupt routine the first instruction in the handler is now always
  *  executed before pending interrupts are re-checked.
@@ -44,54 +48,46 @@
 SID6510::SID6510 (EventContext *context)
 :MOS6510(context)
 {
-    uint i;
-    int8_t n;
-    int8_t maxCycle = -1;
-
     // Added V1.04 (saw) - Support of sidplays break functionality
     // Prevent break from working correctly and locking the player
-    // @FIXME@: Memory has not been released for cycle 2 and above
-    instrTable[BRKn].lastCycle = 1;
+    // @FIXME@: Memory has not been released unused cycles
     // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-    instrTable[BRKn].cycle[1]  = reinterpret_cast <void (MOS6510::*)()>
+    cycleCount = 1;
+#ifdef MOS6510_DEBUG
+    instrTable[BRKn].cycle[cycleCount++] = &MOS6510::DebugCycle;
+#endif
+    instrTable[BRKn].cycle[cycleCount++] = reinterpret_cast <void (MOS6510::*)()>
         (&SID6510::sid_brk);
+    instrTable[BRKn].cycle[cycleCount++] = &MOS6510::FetchOpcode;
 
     // Ok start all the hacks for sidplay.  This prevents
     // execution of code in roms.  For real c64 emulation
     // create object from base class!  Also stops code
     // rom execution when bad code switches roms in over
     // itself.
-    for (i = 0; i < OPCODE_MAX; i++)
+    for (uint i = 0; i < OPCODE_MAX; i++)
     {
-        if (instrTable[i].cycle == NULL) continue;
-        maxCycle  = instrTable[i].lastCycle + 1;
         procCycle = instrTable[i].cycle;
+        if (procCycle == NULL) continue;
 
-        for (n = 0; n < maxCycle; n++)
+        for (uint n = 0; n < instrTable[i].cycles; n++)
         {
-            if (instrTable[i].cycle[n] == &MOS6510::FetchEffAddrDataByte)
+            if (procCycle[n] == &MOS6510::FetchEffAddrDataByte)
             {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-                instrTable[i].cycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_FetchEffAddrDataByte);
             }
-            else if (instrTable[i].cycle[n] == &MOS6510::illegal_instr)
+            else if (procCycle[n] == &MOS6510::illegal_instr)
             {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-                instrTable[i].cycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_suppressError);
-                // Need to make instruction appear in debug output
-                // By default it is -1, which is debug off.
-                instrTable[i].lastAddrCycle = 0;
+            }
+            else if (procCycle[n] == &MOS6510::jmp_instr)
+            {   // Stop jumps into rom code
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_jmp);
             }
         }
-    }
-
-    {   // Stop jumps into rom code
-        void (MOS6510::*p) ();
-        // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-        p = reinterpret_cast <void (MOS6510::*)()> (&SID6510::sid_jmp);
-        instrTable[JSRw].cycle[4] = p;
-        instrTable[JMPw].cycle[2] = p;
-        instrTable[JMPi].cycle[4] = p;
     }
 }
     
@@ -129,6 +125,7 @@ void SID6510::sid_FetchEffAddrDataByte (void)
 void SID6510::sid_suppressError (void)
 {
     Register_ProgramCounter++;
+    DebugCycle ();
 }
 
 

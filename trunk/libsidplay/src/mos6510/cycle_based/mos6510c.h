@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/07/14 16:48:03  s_a_white
+ *  cycleCount and related must roject.Syn
+ *
  *  Revision 1.8  2001/07/14 13:15:30  s_a_white
  *  Accumulator is now unsigned, which improves code readability.  Emulation
  *  tested with testsuite 2.15.  Various instructions required modification.
@@ -59,9 +62,7 @@ protected:
     struct ProcessorOperations
     {
         void         (MOS6510::**cycle)(void);
-        int_least8_t  lastCycle;
-        bool          overlap;
-        int_least8_t  lastAddrCycle;
+        uint          cycles;
         uint_least8_t opcode;
     };
 
@@ -74,7 +75,6 @@ protected:
     uint_least8_t  instrOpcode;
     void (MOS6510::**procCycle) (void);
     int_least8_t   lastAddrCycle;
-    int_least8_t   lastCycle;
     int_least8_t   cycleCount;
 
     // Pointers to the current instruction cycle
@@ -151,6 +151,7 @@ protected:
     inline void PopHighPC            (void);
     inline void PopSR                (void);
     inline void WasteCycle           (void);
+    inline void DebugCycle           (void);
 
     // Delcare Instruction Operation Routines
     inline void adc_instr     (void);
@@ -258,26 +259,8 @@ public:
 // Emulate One Complete Cycle                                              //
 inline void MOS6510::clock (void)
 {
-MOS6510_clock:
-    {
-        int_least8_t i = cycleCount++;
-        (this->*procCycle[i]) ();
-    }
-
-#ifdef MOS6510_DEBUG
-    if (dodump)
-        DumpState ();
-#endif // MOS6510_DEBUG
-
-    if (cycleCount <= lastCycle)
-        return;
-
-    cycleCount = 0;
-    procCycle  = fetchCycle;
-    // 6510 contains a simple pipe line
-    // which is handled here
-    if (instrCurrent->overlap)
-        goto MOS6510_clock;
+    int_least8_t i = cycleCount++;
+    (this->*procCycle[i]) ();
 }
 
 #endif // _mos6510c_h_
