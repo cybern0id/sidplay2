@@ -20,8 +20,10 @@
 #include "SidTuneMod.h"
 #include "MD5/MD5.h"
 
-void SidTuneMod::createMD5(char *md5)
+const char *SidTuneMod::createMD5(char *md5)
 {
+    if (!md5)
+        md5 = m_md5;
     *md5 = '\0';
 
     if (status)
@@ -64,10 +66,12 @@ void SidTuneMod::createMD5(char *md5)
 
         myMD5.finish();
         // Construct fingerprint.
+        char *m = md5;
         for (int di = 0; di < 16; ++di)
         {
-            sprintf (md5, "%02x", (int) myMD5.getDigest()[di]);
-            md5 += 2;
+            sprintf (m, "%02x", (int) myMD5.getDigest()[di]);
+            m += 2;
         }
     }
+    return md5;
 }
