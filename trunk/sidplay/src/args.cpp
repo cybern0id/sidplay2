@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2003/06/27 21:09:00  s_a_white
+ *  Better error checking on args and now displays invalid arguments.
+ *
  *  Revision 1.11  2003/02/23 08:53:11  s_a_white
  *  Option none nolonger uses the audio hardware (removing realtime delays).
  *  New option nosid allows library profiling without the sid emulation.
@@ -136,7 +139,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
             {
                 if (argv[i][2] == '\0')
                     err = true;
-				m_engCfg.frequency = (uint_least32_t) atoi (argv[i]+2);
+                m_engCfg.frequency = (uint_least32_t) atoi (argv[i]+2);
             }
 
             // Player Mode (Environment) Options ----------
@@ -176,9 +179,21 @@ bool ConsolePlayer::args (int argc, const char *argv[])
             }
 
             // Newer sid (8580)
-            else if (strcmp (&argv[i][1], "ns") == 0)
+            else if (strncmp (&argv[i][1], "ns", 2) == 0)
             {
-                m_engCfg.sidModel = SID2_MOS8580;
+                switch (argv[i][3])
+                {
+                case '\0':
+                case '1':
+                    m_engCfg.sidModel = SID2_MOS8580;
+                    break;
+                // No new sid so use old one (6581)
+                case '0':
+                    m_engCfg.sidModel = SID2_MOS6581;
+                    break;
+                default:
+                    err = true;
+                }
             }
 
             // Track options
@@ -293,6 +308,10 @@ bool ConsolePlayer::args (int argc, const char *argv[])
             {
                 m_crc = true;
                 m_engCfg.powerOnDelay = 0;
+            }
+            else if (strncmp (&argv[i][1], "-delay=", 7) == 0)
+            {
+                m_engCfg.powerOnDelay = (uint_least16_t) atoi(&argv[i][8]);
             }
 
             // File format conversions
@@ -420,7 +439,7 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     if (!m_filter.definition)
         m_filter.definition = m_iniCfg.filter (m_engCfg.sidModel);
 
-#ifdef HAVE_TSID
+#if HAVE_TSID == 1
     // Set TSIDs base directory
     if (!m_tsid.setBaseDir(true))
     {
@@ -464,7 +483,7 @@ void ConsolePlayer::displayArgs (const char *arg)
         << " -m<b|r>      mode switch <Bankswitching | Real C64 (default)>" << endl
 
         << " -nf[filter]  no/new SID filter emulation" << endl
-        << " -ns          MOS 8580 waveforms (default: MOS 6581)" << endl
+        << " -ns[0|1]     (no) MOS 8580 waveforms (default: from tune or cfg)" << endl
 
         << " -o<l|s>      looping and/or single track" << endl
         << " -o<num>      start track (default: preset)" << endl
