@@ -1,0 +1,51 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(Makefile.am)
+AC_CONFIG_AUX_DIR(unix)
+AM_CONFIG_HEADER(include/config.h)
+
+dnl Setup library CURRENT, REVISION and AGE
+LIBCUR=0
+LIBREV=0
+LIBAGE=0
+AM_INIT_AUTOMAKE(libsidplay,0.$LIBCUR.$LIBREV)
+dnl libtool-style version-info number
+LIBVERSION=$LIBCUR:$LIBREV:$LIBAGE
+AC_SUBST(LIBVERSION)
+
+AC_CANONICAL_HOST
+
+dnl Use C++ for tests.
+AC_LANG_CPLUSPLUS
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_RANLIB
+dnl Checks for libraries.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_BIGENDIAN
+
+dnl Check for nothrow allocator.
+CHECK_EXCEPTIONS
+
+dnl Checks for library functions.
+AC_HEADER_STDC
+SID_PATH_LIBSIDPLAY2
+
+dnl Initialize libtool.
+AC_LIBTOOL_WIN32_DLL
+CONFIG_LIBTOOL
+
+dnl Add absolute directory for header files
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/include/sidplay/utils -Wall"
+
+AC_OUTPUT(
+Makefile \
+include/Makefile \
+include/sidplay/Makefile \
+include/sidplay/utils/Makefile \
+src/Makefile \
+src/ini/Makefile \
+src/MD5/Makefile
+)
