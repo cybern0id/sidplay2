@@ -260,13 +260,13 @@ installcheck: installcheck-am
 install-exec-am:
 install-exec: install-exec-am
 
-install-data-am:
+install-data-am: install-data-local
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am:
+uninstall-am: uninstall-local
 uninstall: uninstall-am
 all-am: Makefile $(LIBRARIES)
 all-redirect: all-am
@@ -316,11 +316,24 @@ maintainer-clean-compile tags mostlyclean-tags distclean-tags \
 clean-tags maintainer-clean-tags distdir mostlyclean-depend \
 distclean-depend clean-depend maintainer-clean-depend info-am info \
 dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
+install-exec install-data-local install-data-am install-data install-am \
+install uninstall-local uninstall-am uninstall all-redirect all-am all \
+installdirs mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
+
+install-data-local:
+	$(mkinstalldirs) /usr/local/include/sidplay2/
+	$(INSTALL_DATA) SidTune.h /usr/local/include/sidplay2/SidTune.h
+	$(mkinstalldirs) /usr/local/include/sidplay2/
+	$(INSTALL_DATA) SidTuneCfg.h /usr/local/include/sidplay2/SidTuneCfg.h
+	$(mkinstalldirs) /usr/local/include/sidplay2/
+	$(INSTALL_DATA) SidTuneTypes.h /usr/local/include/sidplay2/SidTuneTypes.h
+
+uninstall-local:
+	-rm -f /usr/local/include/sidplay2/SidTune.h
+	-rm -f /usr/local/include/sidplay2/SidTuneCfg.h
+	-rm -f /usr/local/include/sidplay2/SidTuneTypes.h
 
 ####### kdevelop will overwrite this part!!! (end)############
 
