@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2002/11/01 17:36:02  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.19  2002/10/02 19:42:59  s_a_white
  *  RSID support.
  *
@@ -105,6 +108,7 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
 
     if (m_info.environment != sid2_envR)
     {   // Sidplay1 modes require no psid driver
+        m_info.rnddelay = 0;
         endian_little16 (&m_rom[0xfffc], tuneInfo.initAddr); // RESET
         return 0;
     }
@@ -210,8 +214,8 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         // Below we limit the delay to something sensible.  The high
         // byte is incremented by one because the C64 code always
         // decrements before checking
-        endian_little16 (&m_ram[addr], ((uint_least16_t) (m_rand >> 3)
-                         & 0x0FFF) + 0x0100);
+        m_info.rnddelay = ((uint_least16_t) (m_rand >> 3) & 0x0FFF) + 0x0100;
+        endian_little16 (&m_ram[addr], m_info.rnddelay);
         addr += 2;
         m_rand        = m_rand * 13 + 1;
         m_ram[addr++] = iomap (m_tuneInfo.initAddr);
