@@ -21,6 +21,7 @@ for d in $dirs; do
     exit
   fi
 done
+cd $pwd
 
 echo "Bootstrapping sidplay-libs..."
 aclocal --force
