@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2004/01/13 22:36:07  s_a_white
+ *  Converted some missed printfs to fprintfs
+ *
  *  Revision 1.10  2003/10/28 00:22:52  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -75,7 +78,8 @@ void MOS6510::DumpState (void)
     uint8_t        opcode, data;
     uint_least16_t operand, address;
 
-    fprintf(m_fdbg, " PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n", eventContext.getTime (m_phase));
+    fprintf(m_fdbg, " PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n",
+            eventContext.getTime (m_phase) - (cycleCount - 1));
     fprintf(m_fdbg, "%04x ",   instrStartPC);
     fprintf(m_fdbg, "%u ",     interrupts.irqs);
     fprintf(m_fdbg, "%02x ",   Register_Accumulator);
