@@ -147,6 +147,10 @@ SOURCE=..\..\src\main.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\main.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\audio\mmsystem\mmsystem.cpp
 # End Source File
 # Begin Source File
@@ -160,6 +164,14 @@ SOURCE=..\..\src\audio\null\null.cpp
 # Begin Source File
 
 SOURCE=..\..\src\audio\null\null.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\timer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\timer.h
 # End Source File
 # Begin Source File
 
