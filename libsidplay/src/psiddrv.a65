@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/11/20 21:43:08  s_a_white
+ *  Enable the VIC screen and therefore DMA.
+ *
  *  Revision 1.14  2002/11/19 22:53:23  s_a_white
  *  Sidplay1 modes modified to make them nolonger require the psid driver.
  *
@@ -119,7 +122,7 @@ timer       sta $dc04
             lda speed
             bne ciainit
 
-            ; disable CIA1 timer A interrupt, enable VICII raster interrupt
+            ; enable VICII raster interrupt
             stx $d01a
             beq doinit
 
@@ -130,8 +133,8 @@ ciainit     stx $dc0d
 doinit      lda #$01
             sta $dc0e
 
-            ; If play address, override bankswitching so
-            ; we reach are routine to handle play address
+            ; If play address, override default irq vector so
+            ; we reach are routine to handle play routine
             lda playiomap
             beq noplay
             lda #<irqjob
@@ -140,12 +143,12 @@ doinit      lda #$01
             ; set I/O map and call song init routine
 noplay      lda initiomap
             bne setbank
-            ; Only release interrupt mask providing
-            ; for real C64 tunes (initiomap = 0)
+            ; Only release interrupt mask for real
+            ; C64 tunes (initiomap = 0) thus
             ; providing a more realistic environment
             lda #$37
-            ; Note cli dosen't come into effect
-            ; until after the sta!
+            ; cli dosen't come into effect until
+            ; after the sta!
             cli
 setbank     sta $01
 
@@ -153,6 +156,8 @@ setbank     sta $01
 random      tya
             ldx rndwait
             ldy rndwait+1
+            inx
+            iny
 wait        dex
             bne wait
             dey
@@ -166,13 +171,13 @@ getsong     ldx playnum
             ldx #0
             ldy #0
             jsr init
-setiomap    lda playiomap
+setiomap    lda initiomap
+            beq idle
+            lda playiomap
             beq run
-
-            ; Stop play for c64 only tunes
             lda #$37
             sta $01
-            jmp run
+            bne run
             
 brkjob      ldx #$ff
             txs
@@ -189,7 +194,7 @@ irqjob      lda $01
             sta $01
             inc $d019
 
-            ; IRQ Exit (From Kernel ROM)
+            ; IRQ Exit (code from Kernel ROM)
 irqret      lda $dc0d
             pla
             tay
