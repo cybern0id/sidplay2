@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/02/07 20:56:46  s_a_white
+ *  Samples now delayed until end of simulated frame.
+ *
  *  Revision 1.8  2001/01/23 21:26:28  s_a_white
  *  Only way to load a tune now is by passing in a sidtune object.  This is
  *  required for songlength database support.
@@ -470,10 +473,6 @@ int player::initialise ()
     _seconds  = 0;
 
     envReset ();
-
-    // Must re-configure on fly for stereo support!
-    (void) configure (_playback, _samplingFreq, _precision, _forceDualSids);
-
     if (!_tune->placeSidTuneInC64mem (ram))
     {   // Rev 1.6 (saw) - Allow loop through errors
         _errorString = tuneInfo.statusString;
@@ -515,6 +514,9 @@ int player::loadSong (SidTune *tune)
 {
     _tune = tune;
     _tune->getInfo(tuneInfo);
+
+    // Must re-configure on fly for stereo support!
+    (void) configure (_playback, _samplingFreq, _precision, _forceDualSids);
 
     // Check if environment has not initialised or
     // the user has asked to a different one.
@@ -946,9 +948,11 @@ void player::envReset (void)
         rom[0xff4a] = 0x03;
     }
 
-    // Set Master Output Volume to fix some bad songs
-    sid.write  (0x18, 0x0f);
-    sid2.write (0x18, 0x0f);
+    // Set master volume to fix some bad songs
+    if (_sidEnabled[0])
+        writeMemByte_playsid (_sidAddress[0] + 0x18, 0x0f, true);
+    if (_sidEnabled[1])
+        writeMemByte_playsid (_sidAddress[1] + 0x18, 0x0f, true);
 }
 
 uint8_t player::envReadMemByte (uint_least16_t addr, bool useCache)
