@@ -1,11 +1,39 @@
+/***************************************************************************
+                          IniConfig.cpp  -  Sidplay2 config file reader.
+                             -------------------
+    begin                : Sun Mar 25 2001
+    copyright            : (C) 2000 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #include <stdlib.h>
 #include <string.h>
 #include <sidplay/sidplay2.h>
+#include "config.h"
 #include "IniConfig.h"
+
+#ifdef HAVE_UNIX
+#   include <sys/types.h>
+#   include <sys/stat.h>  /* mkdir */
+#   include <dirent.h>    /* opendir */
+#endif
 
 #define SAFE_FREE(p) { if(p) { free (p); (p)=NULL; } }
 const char *IniConfig::DIR_NAME  = ".sidplay";
 const char *IniConfig::FILE_NAME = "sidplay2.ini";
+
 
 IniConfig::IniConfig ()
 :status(true),
@@ -123,7 +151,7 @@ bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
     if (str[0] == '\'')
     {
         if (str[2] != '\'')
-	    ret = false;
+        ret = false;
         else
             ch = str[1];
     } // Nope is number
@@ -157,22 +185,22 @@ bool IniConfig::readAudio (ini_fd_t ini)
     bool ret = true;
     (void) ini_locateHeading (ini, "Audio");
 
-	{
-		int frequency = (int) audio_s.frequency;
+    {
+        int frequency = (int) audio_s.frequency;
         status &= readInt (ini, "Frequency", frequency);
         audio_s.frequency = (unsigned long) frequency;
-	}
+    }
 
-	{
-		int channels = 0;
+    {
+        int channels = 0;
         status &= readInt (ini, "Channels",  channels);
-		if (channels)
-		{
-			audio_s.playback = sid2_mono;
-			if (channels != 1)
-				audio_s.playback = sid2_stereo;
-		}
-	}
+        if (channels)
+        {
+            audio_s.playback = sid2_mono;
+            if (channels != 1)
+                audio_s.playback = sid2_stereo;
+        }
+    }
 
     status &= readInt (ini, "BitsPerSample", audio_s.precision);
     return ret;
@@ -219,26 +247,26 @@ bool IniConfig::readEmulation (ini_fd_t ini)
     status &= readBool   (ini, "SidSamples", emulation_s.sidSamples);
 
     // These next two change the ini section!
-	if (emulation_s.filter6581)
-	{   // Try to load the filter
+    if (emulation_s.filter6581)
+    {   // Try to load the filter
         filter6581.read (ini, emulation_s.filter6581);
-		if (!filter6581)
-		{
+        if (!filter6581)
+        {
             filter6581.read (emulation_s.filter6581);
-			if (!filter6581)
-				status = false;
-		}
+            if (!filter6581)
+                status = false;
+        }
     }
 
-	if (emulation_s.filter8580)
-	{   // Try to load the filter
+    if (emulation_s.filter8580)
+    {   // Try to load the filter
         filter8580.read (ini, emulation_s.filter8580);
-		if (!filter8580)
-		{
+        if (!filter8580)
+        {
             filter8580.read (emulation_s.filter8580);
-			if (!filter8580)
-				status = false;
-		}
+            if (!filter8580)
+                status = false;
+        }
     }
 
     return ret;
@@ -265,16 +293,25 @@ void IniConfig::read ()
 
     {   // Format path from system
         char *s = path;
-		while (*s != '\0')
-		{
-			if (*s == '\\')
-				*s = '/';
-			s++;
-		}
-	}
+        while (*s != '\0')
+        {
+            if (*s == '\\')
+                *s = '/';
+            s++;
+        }
+    }
 
 #ifdef HAVE_UNIX
-    sprintf (configPath, "%s/%s/%s", path, DIR_NAME, FILE_NAME);
+    sprintf (configPath, "%s/%s", path, DIR_NAME);
+
+    // Make sure the config path exists
+    if (!opendir (configPath))
+    {
+        printf ("Creating\n");
+        mkdir (configPath, 0755);
+    }
+
+    sprintf (configPath, "%s/%s", configPath, FILE_NAME);
 #else
     sprintf (configPath, "%s/%s", path, FILE_NAME);
 #endif
@@ -306,7 +343,7 @@ IniConfig_read_error:
 
 const sid_filter_t* IniConfig::filter (sid2_model_t model)
 {
-	if (model == SID2_MOS8580)
-	    return filter8580.definition ();
-	return filter6581.definition ();
+    if (model == SID2_MOS8580)
+        return filter8580.definition ();
+    return filter6581.definition ();
 }

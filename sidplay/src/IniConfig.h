@@ -1,9 +1,30 @@
+/***************************************************************************
+                          IniConfig.h  -  Sidplay2 config file reader.
+                             -------------------
+    begin                : Sun Mar 25 2001
+    copyright            : (C) 2000 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #ifndef _IniConfig_h_
 #define _IniConfig_h_
 
 #include <sidplay/sidtypes.h>
 #include <sidplay/utils/libini.h>
 #include <sidplay/utils/SidFilter.h>
+
 
 class IniConfig
 {
@@ -50,8 +71,8 @@ protected:
     struct    console_section   console_s;
     struct    audio_section     audio_s;
     struct    emulation_section emulation_s;
-	SidFilter filter6581;
-	SidFilter filter8580;
+    SidFilter filter6581;
+    SidFilter filter8580;
 
 protected:
     void  clear ();
@@ -77,7 +98,7 @@ public:
     const console_section&   console      () { return console_s; }
     const audio_section&     audio        () { return audio_s; }
     const emulation_section& emulation    () { return emulation_s; }
-	const sid_filter_t*      filter       (sid2_model_t model);
+    const sid_filter_t*      filter       (sid2_model_t model);
 };
 
 #endif // _IniConfig_h_
