@@ -2011,7 +2011,7 @@ fi
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
-    CXX="libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
 #line 2018 "configure"
@@ -2053,7 +2053,7 @@ rm -f conftest*
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
-    CXX="libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
 #line 2060 "configure"
@@ -2144,7 +2144,7 @@ rm -f conftest*
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
-    CXX="libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
 #line 2151 "configure"

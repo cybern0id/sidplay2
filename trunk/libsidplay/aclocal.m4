@@ -292,7 +292,7 @@ AC_DEFUN(SID_TRY_LIBRESID,
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
-    CXX="libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include "resid/sid.h"],
@@ -320,7 +320,7 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
-    CXX="libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include "sid.h"],
