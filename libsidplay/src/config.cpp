@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.41  2004/06/14 20:05:16  s_a_white
+ *  Restore optimisation level support
+ *
  *  Revision 1.40  2004/03/18 20:20:29  s_a_white
  *  Added sidmapper (so support more the 2 sids).
  *
@@ -290,9 +293,9 @@ int Player::config (const sid2_config_t &cfg)
     {   // Try Spliting channels across 2 sids
         if (m_emulateStereo)
         {   // Mute Voices
-            sid[0]->voice (0, 0, true);
-            sid[0]->voice (2, 0, true);
-            sid[1]->voice (1, 0, true);
+            sid[0]->mute (0, true);
+            sid[0]->mute (2, true);
+            sid[1]->mute (1, true);
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
             //    m_rightVolume *= 2;
