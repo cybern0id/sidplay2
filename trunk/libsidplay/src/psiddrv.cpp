@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/01/29 21:50:33  s_a_white
+ *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  config.  Initial code added to support more than two sids.
+ *
  *  Revision 1.8  2001/12/21 21:54:14  s_a_white
  *  Improved compatibility if Sidplay1 bankswitching mode.
  *
@@ -119,7 +123,9 @@ int Player::psidDrvInstall ()
             uint_least16_t addr = endian_little16(&reloc_driver[2]);
             // Get the brkjob vector.  Add 3 to get the irqjob vector
             uint_least16_t vec  = endian_little16(&reloc_driver[9]) + 4;
-            endian_little16 (&m_ram[addr + 1], vec);
+            // Bodge, jump past first few instructions of sidplay1
+            // compatibility and modify jsr address.
+            endian_little16 (&m_ram[addr + 5], vec);
         }
     }
 
