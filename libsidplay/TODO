@@ -1,7 +1,7 @@
 TODO <libsidplay2>:
 
 *Remove bit fields in status register flags.  This could lead to compatibilty problems
-on other platforms
+on other platforms (Done)
 
 *Fix _encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See sidmixer.cpp
  and audiodrv.cpp
@@ -19,9 +19,9 @@ on other platforms
 
 *New Bank Switching implementation for remappable componenets <Started>
 
-*Implement Real C64 Mode <Need more info on NMIs, anyone got a real C64>
+*Implement Real C64 Mode <Need more info on NMIs, anyone got a real C64> (Done)
 
-*Find Timing bug in sidplay2 <Either CIA is wrong or output calculation>
+*Find Timing bug in sidplay2 <Either CIA is wrong or output calculation> (Been checked)
 
 *Implement playsid and transp modes <done>
 
@@ -31,11 +31,11 @@ on other platforms
 
 *Can someone optimise reSID? <Clock, output, read, write, in this order>
 
-*Change xSID to use reSIDs/hardsids 0x18 register directly <Patch only?>
+*Change xSID to use reSIDs/hardsids 0x18 register directly <Done>
 
-*Fastforward, Rewind.  Suggestions made by me to Grant about this... <Grant may do this>
+*Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
 
-*Length detection <Mike or Grant?  Grants is more basic>
+*Length detection <Started, based on Mikes>
 
 *What access do you need for other applocations <Suggestions please>
 
@@ -45,7 +45,7 @@ on other platforms
            I have these in asm already, but was written in BorlandC.  <Need converting>
            This way a C functon will be used if an asm is not present.
 
-*Fix xSIDs setting of ram addr.  Change to inherit environment <Another patch?>
+*Fix xSIDs setting of ram addr.  Change to inherit environment <Done, but really xSID should inherit reSID>
 
 *Possibly provide a wds sync output for stereoplayer.  These helps external players
 which support this to sync properly to the music, there are some that use
@@ -54,7 +54,7 @@ non-real time.  Needs stereosidplayer v10.3 being ripped
 anything about the C64s stereosidplayers internals could they get contact
 sidplay2@email.com
 
-*Add 16 bit support. (possibly 24bit)
+*Add 16 bit support. (possibly 24bit) <Done, not 24 yet>
 
 *Quad sids <Probably not>
 
@@ -63,9 +63,9 @@ sidplay2@email.com
 * Anyone with a C64, could they confirm the operation of the sid Game Over
   by Martin Galway. (Specific the Galway Noise beat, section of interest
   starts at 40 secs in on the default song). Maybe someone could record
-  it from a real C64 and send it to me as an mp3 or wav file?
+  it from a real C64 and send it to me as an mp3 or wav file? <Done>
 
-* Need to find more songs which mix Galway Noise and Samples, anyone?
+* Need to find more songs which mix Galway Noise and Samples, anyone? <Done>
 
 *MORE...?
 
@@ -89,8 +89,8 @@ before playback of sound begins.
 *Take audiodrvs from sidplay.
  Linux <Done>
  DirectX <Done>
- Windows MMSYSTEM
- SPARC
+ Windows MMSYSTEM <Done>
+ SPARC <Done>
  SGI
  HPUX
 
@@ -101,34 +101,3 @@ before playback of sound begins.
 *Anyone want to provide support for other music formats? <IFF?>
 
 *MORE...?
-
-
-//-------------------------------------------------------------------------
-// Information on muting
-Hi!
-
-> When a channel is muted, simply write 0 to that channel's waveform
-> register (e.g. register 4 for channel 1) and keep that register clear
-> until the channel is demuted.
-
-The HardSID Stereo mode needs to mute channels too, so I can tell you
-my solution if you're interested:
-
-Keep the gate bit in 0.
-VoiceBase + 4 = IncomingData AND $FE
-
-> This should be sufficient, but probably it's better to
-> clear the frequency registers also (e.g. 0 and 1 for ch.1), thus avoiding
-> that little noise produced by any SID channel having non-zero frequency
-> value, but so you have to manage that registers when the channel will be
-> demuted (i.e. setting the right frequency).
-
-No mate, don't touch the freq. value, because it'll ruin other voices in the
-tune when it's using ring modulation or synchronization !!!
-
-Keeping the gate bit in 0 should be enough, it works pretty well for the
-HardSID Stereo mode.
-
-Regards,
-Téli Sándor, Hard Software
-//-------------------------------------------------------------------------
