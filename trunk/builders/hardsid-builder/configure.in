@@ -42,6 +42,7 @@ AC_MSG_RESULT([${libdir}])
 
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -Wall -DHAVE_UNIX -I\$(top_srcdir)/include \
+-I\$(top_srcdir)/include/sidplay/builders \
 \$(LIBSIDPLAY2_CXXFLAGS)"
 
 ACLOCAL_AMFLAGS="-I unix"
