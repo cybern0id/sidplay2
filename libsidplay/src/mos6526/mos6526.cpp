@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/03/03 22:04:08  s_a_white
+ *  Tidy.
+ *
  *  Revision 1.3  2001/07/14 13:03:33  s_a_white
  *  Now uses new component classes and event generation.
  *
@@ -83,7 +86,7 @@ void MOS6526::reset (void)
     m_accessClk = 0;
 }
 
-uint8_t MOS6526::read (const uint_least8_t addr)
+uint8_t MOS6526::read (uint_least8_t addr)
 {
     event_clock_t cycles;
     if (addr > 0x0f) return 0;
@@ -118,7 +121,7 @@ uint8_t MOS6526::read (const uint_least8_t addr)
     }
 }
 
-void MOS6526::write (const uint_least8_t addr, const uint8_t data)
+void MOS6526::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t cycles;
     if (addr > 0x0f) return;

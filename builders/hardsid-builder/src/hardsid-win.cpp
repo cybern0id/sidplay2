@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/02/17 17:24:51  s_a_white
+ *  Updated for new reset interface.
+ *
  *  Revision 1.3  2002/01/30 00:29:18  s_a_white
  *  Added realtime delays even when there is no accesses to
  *  the sid.  Prevents excessive CPU usage.
@@ -47,8 +50,7 @@ HardSID::HardSID (sidbuilder *builder)
  Event("HardSID Delay"),
  m_eventContext(NULL),
  m_instance(sid++),
- m_status(false),
- m_locked(false)
+ m_status(false)
 {   
     *m_errorBuffer = '\0';
     if (m_instance >= hsid2.Devices ())
@@ -69,7 +71,7 @@ HardSID::~HardSID()
     sid--;
 }
 
-uint8_t HardSID::read (const uint_least8_t addr)
+uint8_t HardSID::read (uint_least8_t addr)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk);
     m_accessClk += cycles;
@@ -84,7 +86,7 @@ uint8_t HardSID::read (const uint_least8_t addr)
                        (BYTE) addr);
 }
 
-void HardSID::write (const uint_least8_t addr, const uint8_t data)
+void HardSID::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk);
     m_accessClk += cycles;
@@ -99,18 +101,18 @@ void HardSID::write (const uint_least8_t addr, const uint8_t data)
                  (BYTE) addr, (BYTE) data);
 }
 
-void HardSID::reset (uint8_t)
+void HardSID::reset (uint8_t volume)
 {   // Ok if no fifo, otherwise need hardware
     // reset to clear out fifo.
     
     m_accessClk = 0;
-    hsid2.Reset ((BYTE) m_instance);
+    hsid2.Reset ((BYTE) m_instance, volume);
     if (m_eventContext != NULL)
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
-void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
-                     const bool mute)
+void HardSID::voice (uint_least8_t num, uint_least8_t volume,
+                     bool mute)
 {
     if (num >= voices)
         return;
@@ -118,20 +120,22 @@ void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
 }
 
 // Set execution environment and lock sid to it
-void HardSID::lock (c64env *env)
+bool HardSID::lock (c64env *env)
 {
     if (env == NULL)
     {
+        hsid2.Unlock (m_instance);
         m_eventContext->cancel (this);
-        m_locked = false;
         m_eventContext = NULL;
     }
     else
     {
-        m_locked = true;
+        if (hsid2.Lock (m_instance) == FALSE)
+            return false;
         m_eventContext = &env->context ();
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
     }
+    return true;
 }
 
 void HardSID::event (void)
@@ -144,7 +148,7 @@ void HardSID::event (void)
 }
 
 // Disable/Enable SID filter
-void HardSID::filter (const bool enable)
+void HardSID::filter (bool enable)
 {
     hsid2.Filter ((BYTE) m_instance, (BOOL) enable);
 }

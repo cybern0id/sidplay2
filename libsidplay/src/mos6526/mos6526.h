@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/10/18 22:35:45  s_a_white
+ *  GCC3 fixes.
+ *
  *  Revision 1.6  2001/07/14 16:46:59  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -127,15 +130,14 @@ protected:
 //    void stateMachineA_event (void);
 
     // Environment Interface
-    virtual void interrupt (const bool state) = 0;
+    virtual void interrupt (bool state) = 0;
     
 public:
     // Component Standard Calls
     void    reset (void);
-    uint8_t read  (const uint_least8_t addr);
-    void    write (const uint_least8_t addr, const uint8_t data);
+    uint8_t read  (uint_least8_t addr);
+    void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
 };
 
 #endif // _mos6526_h_
-

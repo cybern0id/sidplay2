@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/02/17 17:24:51  s_a_white
+ *  Updated for new reset interface.
+ *
  *  Revision 1.5  2002/01/30 01:47:47  jpaana
  *  Read ioctl used wrong parameter type and delay ioctl takes uint, not uint*
  *
@@ -119,7 +122,7 @@ void HardSID::reset (uint8_t volume)
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
-uint8_t HardSID::read (const uint_least8_t addr)
+uint8_t HardSID::read (uint_least8_t addr)
 {
     if (!m_handle)
         return 0;
@@ -141,7 +144,7 @@ uint8_t HardSID::read (const uint_least8_t addr)
     return (uint8_t) (packet & 0xff);
 }
 
-void HardSID::write (const uint_least8_t addr, const uint8_t data)
+void HardSID::write (uint_least8_t addr, uint8_t data)
 {
     if (!m_handle)
         return;
@@ -162,8 +165,8 @@ void HardSID::write (const uint_least8_t addr, const uint8_t data)
     ::write (m_handle, &packet, sizeof (packet));
 }
 
-void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
-                     const bool mute)
+void HardSID::voice (uint_least8_t num, uint_least8_t volume,
+                     bool mute)
 {
     // Only have 3 voices!
     if (num >= voices)

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2002/07/17 21:48:10  s_a_white
+ *  PSIDv2NG reloc exclude region extension.
+ *
  *  Revision 1.28  2002/04/14 21:46:50  s_a_white
  *  PlaySID reads fixed to come from RAM only.
  *
@@ -286,7 +289,7 @@ private:
     void    (Player::*m_writeMemByte)   (uint_least16_t, uint8_t);
     uint8_t (Player::*m_readMemDataByte)(uint_least16_t);
 
-    uint8_t  readMemRamByte (const uint_least16_t addr)
+    uint8_t  readMemRamByte (uint_least16_t addr)
     {   return m_ram[addr]; }
 
     // Environment Function entry Points
@@ -329,7 +332,7 @@ private:
     uint_least32_t stereoOut16MonoIn    (char *buffer);
     uint_least32_t stereoOut16StereoIn  (char *buffer);
 
-    void interruptIRQ (const bool state);
+    void interruptIRQ (bool state);
     void interruptNMI (void);
     void interruptRST (void);
 
@@ -362,7 +365,7 @@ inline void Player::envSleep (void)
     xsid.suppress (true);
 }
 
-inline void Player::interruptIRQ (const bool state)
+inline void Player::interruptIRQ (bool state)
 {
     if (state)
         cpu->triggerIRQ ();

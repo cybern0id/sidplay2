@@ -69,7 +69,7 @@ void MOS656X::chip (mos656x_model_t model)
     raster_cycles = xrasters * yrasters;
 }
 
-uint8_t MOS656X::read (const uint_least8_t addr)
+uint8_t MOS656X::read (uint_least8_t addr)
 {
     uint_least16_t raster_y;
     event_clock_t  cycles;
@@ -97,7 +97,7 @@ uint8_t MOS656X::read (const uint_least8_t addr)
     }
 }
 
-void MOS656X::write (const uint_least8_t addr, const uint8_t data)
+void MOS656X::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t  cycles;
     if (addr > 0x3f) return;

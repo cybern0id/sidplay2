@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/03/04 19:07:07  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.1  2002/01/28 22:35:20  s_a_white
  *  Initial Release.
  *
@@ -24,6 +27,8 @@
 
 #include <stdio.h>
 #include "config.h"
+
+#define HSID_VERSION (WORD) 0x0204
 
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
@@ -178,9 +183,8 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
     for (int i = 0; i < size; i++)
     {
         HardSID *sid = (HardSID *) sidobjs[i];
-        if (sid->lock ())
+        if (!sid->lock (env))
             continue;
-        sid->lock  (env);
         sid->model (model);
         return sid;
     }
@@ -252,10 +256,20 @@ int HardSIDBuilder::init ()
         goto HardSID_init_error;
     }
 
-    if ((hsid2.Version () >> 8) != 2)
     {
-        sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll not V2");
-        goto HardSID_init_error;
+        WORD version = hsid2.Version ();
+        if ((version >> 8) != (HSID_VERSION >> 8))
+        {
+            sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll not V%d", HSID_VERSION >> 8);
+            goto HardSID_init_error;
+        }
+
+        if (version < HSID_VERSION)
+        {
+            sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll must be V%02u.%02u or greater",
+                     HSID_VERSION >> 8, HSID_VERSION & 0xff);
+            goto HardSID_init_error;
+        }
     }
 
     // Export Needed Version 2 Interface
@@ -263,10 +277,12 @@ int HardSIDBuilder::init ()
     hsid2.Devices  = (HsidDLL2_Devices_t) GetProcAddress(dll, "HardSID_Devices");
     hsid2.Filter   = (HsidDLL2_Filter_t)  GetProcAddress(dll, "HardSID_Filter");
     hsid2.Flush    = (HsidDLL2_Flush_t)   GetProcAddress(dll, "HardSID_Flush");
+    hsid2.Lock     = (HsidDLL2_Lock_t)    GetProcAddress(dll, "HardSID_Lock");
+    hsid2.Unlock   = (HsidDLL2_Unlock_t)  GetProcAddress(dll, "HardSID_Unlock");
     hsid2.Mute     = (HsidDLL2_Mute_t)    GetProcAddress(dll, "HardSID_Mute");
     hsid2.MuteAll  = (HsidDLL2_MuteAll_t) GetProcAddress(dll, "HardSID_MuteAll");
     hsid2.Read     = (HsidDLL2_Read_t)    GetProcAddress(dll, "HardSID_Read");
-    hsid2.Reset    = (HsidDLL2_Reset_t)   GetProcAddress(dll, "HardSID_Reset");
+    hsid2.Reset    = (HsidDLL2_Reset_t)   GetProcAddress(dll, "HardSID_Reset2");
     hsid2.Sync     = (HsidDLL2_Sync_t)    GetProcAddress(dll, "HardSID_Sync");
     hsid2.Write    = (HsidDLL2_Write_t)   GetProcAddress(dll, "HardSID_Write");
     hsid2.Instance = dll;

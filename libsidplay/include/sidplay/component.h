@@ -24,8 +24,8 @@ class component
 {
 public:
     virtual void    reset (void) = 0;
-    virtual uint8_t read  (const uint_least8_t addr) = 0;
-    virtual void    write (const uint_least8_t addr, const uint8_t data) = 0;
+    virtual uint8_t read  (uint_least8_t addr) = 0;
+    virtual void    write (uint_least8_t addr, uint8_t data) = 0;
     virtual const   char *credits (void) = 0;
     virtual const   char *error   (void) = 0;
 };

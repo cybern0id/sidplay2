@@ -63,15 +63,15 @@ protected:
     void    trigger     (int irq);
 
     // Environment Interface
-    virtual void interrupt (const bool state) = 0;
+    virtual void interrupt (bool state) = 0;
 
 public:
     void    chip  (mos656x_model_t model);
 
     // Component Standard Calls
     void    reset (void);
-    uint8_t read  (const uint_least8_t addr);
-    void    write (const uint_least8_t addr, const uint8_t data);
+    uint8_t read  (uint_least8_t addr);
+    void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
 };
 
@@ -87,4 +87,3 @@ enum
 };
 
 #endif // _mos656x_h_
-
