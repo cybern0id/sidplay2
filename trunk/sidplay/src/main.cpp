@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/04/21 10:28:22  s_a_white
+ *  Fix -w flag to take an optional filename.
+ *
  *  Revision 1.11  2001/03/27 19:35:33  s_a_white
  *  Moved default record length for wav files from main.cpp to IniConfig.cpp.
  *
@@ -1050,11 +1053,9 @@ void displaySyntax (char* arg0)
 // Old options are hidden
 //        << " -m           PlaySID Compatibility Mode (read the docs!)" << endl
 //        << " -mt          Sidplays Transparent Rom Mode" << endl
-//        << " -mb          Sidplays Bankswitching Mode (default)" << endl
-//        << " -mr          Sidplay2s Real C64 Emulation Mode" << endl
+        << " -m<b|r>      mode switch <Bankswitching | Real C64 (default)>" << endl
 
-        << " -ne          no external SID filter emulation" << endl
-        << " -nf          no SID filter emulation" << endl
+        << " -nf[filter]  no/new SID filter emulation" << endl
         << " -ns          MOS 8580 waveforms (default: MOS 6581)" << endl
 
         << " -o<num>      select track number (default: preset)" << endl
