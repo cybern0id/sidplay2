@@ -74,12 +74,6 @@ AC_CHECK_HEADER(strstrea.h,[AC_DEFINE(HAVE_STRSTREA_H,)],[])
 
 AC_SYS_LONG_FILE_NAMES
 
-dnl Checks what version of Unix we have and souncard support
-
-AC_CHECK_HEADERS(sys/ioctl.h linux/soundcard.h machine/soundcard.h  \
-  soundcard.h sys/audio.h sun/audioio.h sun/dbriio.h sys/audioio.h  \
-  audio.h dmedia/audio.h)
-
 dnl Check for AC99 headers
 AC_CHECK_HEADERS(stdint.h stdbool.h)
 if test "$ac_cv_header_stdint_h" = yes; then
