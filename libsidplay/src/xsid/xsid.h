@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/03/09 22:27:13  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.9  2001/03/01 23:45:58  s_a_white
  *  Combined both through sid and non-through sid modes.  Can be selected
  *  at runtime now.
@@ -82,7 +85,9 @@ programmed with.
 
 // Support global debug option
 #ifdef DEBUG
+#   ifndef XSID_DEBUG
 #   define XSID_DEBUG DEBUG
+#   endif
 #endif
 
 #if XSID_DEBUG
@@ -237,12 +242,12 @@ inline void XSID::clock (uint_least16_t delta_t)
     if (ch4 || ch5)
     {
         if (delta_t == 1)
-	{
-	    ch4.clock ();
-	    ch5.clock ();
+        {
+            ch4.clock ();
+            ch5.clock ();
         }
         else
-	{
+        {
             ch4.clock (delta_t);
             ch5.clock (delta_t);
         }

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/11 19:03:16  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _conf6510_h_
@@ -31,7 +34,9 @@
 
 // Support global debug option
 #ifdef DEBUG
-    #define MOS6510_DEBUG DEBUG
+#   ifndef MOS6510_DEBUG
+#   define MOS6510_DEBUG DEBUG
+#   endif
 #endif
 
 #endif // _conf6510_h_
