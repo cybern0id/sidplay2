@@ -115,8 +115,9 @@ struct Body: public Chunk
     } usage[256];
 
     Body()
-    {   // Don't set length as is variable
+    {
         memset (this, 0, sizeof (Body));
+        length = sizeof(Body) - sizeof(Chunk);
     }
 };
 

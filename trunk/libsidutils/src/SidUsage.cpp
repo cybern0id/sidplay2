@@ -160,8 +160,8 @@ void SidUsage::read (const char *filename, sid_usage_t &usage)
     usage.md5[0] = '\0';
     usage.length = 0;
 
-    if (!readSMM (file, usage, ext)) ;
-    else if (!readMM (file, usage, ext)) ;
+    if (readSMM (file, usage, ext)) ;
+    else if (readMM (file, usage, ext)) ;
     else m_errorString = txt_invalid;
     fclose (file);
 }
@@ -204,7 +204,7 @@ void SidUsage::write (const char *filename, const sid_usage_t &usage)
 bool SidUsage::readMM (FILE *file, sid_usage_t &usage, const char *ext)
 {
     // Need to check extension
-    if (!strcmp (ext, "mm"))
+    if (strcmp (ext, "mm"))
         return false;
 
     {   // Read header
@@ -382,7 +382,7 @@ bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header
         int length;
         usage.start = endian_big16 (smm.info.startAddr);
         usage.end   = endian_big16 (smm.info.stopAddr);
-        length = (int) usage.start - (int) usage.end + 1;
+        length = (int) usage.end - (int) usage.start + 1;
 
         if (length < 0)
         {
