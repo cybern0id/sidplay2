@@ -3,7 +3,7 @@ sidplayinclude_HEADERS = resid.h
 
 # The library.
 
-libdir = $(LIBSIDPLAY2_DIR)/sidplay
+libdir = $(LIBSIDPLAY2_DIR)
 lib_LTLIBRARIES = libresid-builder.la
 
 libresid_builder_la_SOURCES = resid.cpp resid-builder.cpp
