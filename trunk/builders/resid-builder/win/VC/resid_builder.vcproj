@@ -220,28 +220,6 @@
 			RelativePath="..\..\src\resid-emu.h">
 		</File>
 		<File
-			RelativePath="..\..\src\resid-win-cfg.cpp">
-			<FileConfiguration
-				Name="Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\..\src\resid-win-cfg.h">
-		</File>
-		<File
 			RelativePath="..\..\src\resid.cpp">
 			<FileConfiguration
 				Name="Release|Win32">
