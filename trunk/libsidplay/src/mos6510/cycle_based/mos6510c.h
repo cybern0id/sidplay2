@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2003/10/29 22:18:03  s_a_white
+ *  IRQs are now only taken in on phase 1 as previously they could be clocked
+ *  in on both phases of the cycle resulting in them sometimes not being
+ *  delayed long enough.
+ *
  *  Revision 1.20  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -159,7 +164,6 @@ protected:
         uint_least8_t  irqs;
         event_clock_t  nmiClk;
         event_clock_t  irqClk;
-        event_clock_t  delay;
         bool           irqRequest;
         bool           irqLatch;
     } interrupts;
@@ -234,6 +238,7 @@ protected:
     inline void bmi_instr     (void);
     inline void bne_instr     (void);
     inline void branch_instr  (bool condition);
+    inline void branch2_instr (void);
     inline void bpl_instr     (void);
     inline void brk_instr     (void);
     inline void bvc_instr     (void);
