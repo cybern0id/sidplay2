@@ -189,19 +189,11 @@ SOURCE=.\config.h
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\src\resid-builder.cpp"
+SOURCE=..\..\src\resid-builder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\src\resid-emu.h"
-# End Source File
-# Begin Source File
-
-SOURCE="..\..\src\resid-win-cfg.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE="..\..\src\resid-win-cfg.h"
+SOURCE=..\..\src\resid-emu.h
 # End Source File
 # Begin Source File
 
