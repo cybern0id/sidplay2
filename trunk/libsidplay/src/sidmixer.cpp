@@ -189,7 +189,9 @@ void sidplayer_pr::stereoOut8MonoIn (uword_sidt clock, void *buffer, udword_sidt
 {   // Get sample(s)
     sbyte_sidt *buf = (sbyte_sidt *) buffer + count;
     sbyte_sidt sample = (sbyte_sidt) stereoOutGenericMonoIn (clock, count, 8);
-    *buf = sample ^ '\x80';
+    sample ^= '\x80';
+    *buf++ = sample; 
+    *buf = sample; 
 }
 
 void sidplayer_pr::stereoOut8StereoIn (uword_sidt clock, void *buffer, udword_sidt &count)
