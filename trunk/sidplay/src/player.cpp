@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2003/07/16 06:54:06  s_a_white
+ *  Added sid2crc support.
+ *
  *  Revision 1.25  2003/06/27 21:07:40  s_a_white
  *  Fixed problem whereby the audio buffer size was ever only calculated once.
  *
@@ -611,7 +614,7 @@ void ConsolePlayer::event (void)
             memset (m_driver.selected->buffer (), 0, m_driver.cfg.bufSize);
             m_speed.current = 1;
             m_engine.fastForward (100);
-            m_engine.debug (true);
+            m_engine.debug (true, NULL);
         }
         else if (m_timer.stop && (seconds == m_timer.stop))
         {
