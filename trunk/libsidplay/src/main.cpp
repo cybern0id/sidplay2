@@ -711,7 +711,8 @@ main_error:
 
 sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
 {   // Fill buffer
-    if (!player.lib.play (buffer, cfg.bufSize))
+    // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
+    if (!player.lib.play (buffer, cfg.bufSize) || player.fastExit)
         return -1;
 
     // Check to see if the clock requires updating
@@ -729,13 +730,9 @@ sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
         if (_kbhit ())
         {
             decodeKeys ();
-            if (player.restart)
+            if (player.restart || player.fastExit)
                 return -1;
         }
-
-        // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
-        if (player.fastExit)
-            return -1;
 
         return seconds;
     }
