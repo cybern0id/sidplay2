@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2002/11/01 17:35:27  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.23  2002/03/12 18:48:03  s_a_white
  *  Tidied illegal instruction debug print out.
  *
@@ -234,8 +237,6 @@ void MOS6510::triggerIRQ (void)
         interrupts.irqRequest = true;
     if (!interrupts.irqs++)
         interrupts.irqClock = eventContext.getTime ();
-
-   printf ("IRQ receive clock cycle %u - %u\n", cycleCount, interrupts.irqClock);
 
     if (interrupts.irqs > iIRQSMAX)
     {
