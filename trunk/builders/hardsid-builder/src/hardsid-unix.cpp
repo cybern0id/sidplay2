@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/10/17 18:36:43  s_a_white
+ *  Prevent multiple unlocks causing a NULL pointer access.
+ *
  *  Revision 1.8  2002/08/14 16:03:54  jpaana
  *  Fixed to compile with new HardSID::lock method
  *
@@ -125,7 +128,7 @@ void HardSID::reset (uint8_t volume)
     ioctl(m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
     if (m_eventContext != NULL)
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
 }
 
 uint8_t HardSID::read (uint_least8_t addr)
@@ -194,7 +197,7 @@ void HardSID::event (void)
         uint delay = (uint) cycles;
         ioctl(m_handle, HSID_IOCTL_DELAY, delay);
     }
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
 }
 
 void HardSID::filter(bool enable)
@@ -223,7 +226,7 @@ bool HardSID::lock(c64env* env)
 	    return false;
         m_locked = true;
         m_eventContext = &env->context();
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
     }
     return true;
 }

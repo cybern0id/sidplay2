@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2003/01/14 20:37:10  s_a_white
+ *  Updated previous song select timeout to 4 seconds.
+ *
  *  Revision 1.19  2003/01/08 08:45:14  s_a_white
  *  Don't configure an emulation if it failed to be created.
  *
@@ -600,7 +603,7 @@ void ConsolePlayer::event (void)
     }
     
     // Units in C64 clock cycles
-    m_context->schedule (this, 900000);
+    m_context->schedule (this, 900000, EVENT_CLOCK_PHI1);
 }
 
 
