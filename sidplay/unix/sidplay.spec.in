@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 1mdk
+%define release 2
 %define major   2
 
 Summary:        A Commodore 64 music player and SID chip emulator.
@@ -43,6 +43,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/*
 
 %changelog
+* Wed Apr 10 2001 Simon White <s_a_white@email.com> @VERSION@-2
+- Use non Mandrake specific release number.
+
 * Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1mdk
 - First spec file.
 
