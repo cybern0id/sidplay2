@@ -43,38 +43,14 @@ AC_DEFUN(SID_FIND_FILE,
     do
         for j in $1;
         do
-	        if test -r "$i/$j"; then
-		        $3=$i
+            if test -r "$i/$j"; then
+                $3=$i
                 break 2
             fi
         done
     done
     ]
 )
-
-
-dnl -------------------------------------------------------------------------
-dnl Check whether C++ library has member ios::bin instead of ios::binary.
-dnl Will substitute @HAVE_IOS_BIN@ with either a def or undef line.
-dnl -------------------------------------------------------------------------
-
-AC_DEFUN(CHECK_IOS_BIN,
-[
-    AC_MSG_CHECKING([whether standard member ios::binary is available])
-    AC_CACHE_VAL(test_cv_have_ios_binary,
-    [
-        AC_TRY_COMPILE(
-            [#include <fstream.h>],
-		    [ifstream myTest(ios::in|ios::binary);],
-		    [test_cv_have_ios_binary=yes],
-		    [test_cv_have_ios_binary=no]
-	    )
-    ])
-    AC_MSG_RESULT($test_cv_have_ios_binary)
-    if test "$test_cv_have_ios_binary" = yes; then
-        AC_DEFINE(HAVE_IOS_BIN)
-    fi
-])
 
 
 dnl -------------------------------------------------------------------------
@@ -89,10 +65,10 @@ AC_DEFUN(CHECK_EXCEPTIONS,
     [
         AC_TRY_COMPILE(
             [#include <new>],
-		    [char* buf = new(nothrow) char[1024];],
-		    [test_cv_have_exceptions=yes],
-		    [test_cv_have_exceptions=no]
-	    )
+            [char* buf = new(nothrow) char[1024];],
+            [test_cv_have_exceptions=yes],
+            [test_cv_have_exceptions=no]
+        )
     ])
     AC_MSG_RESULT($test_cv_have_exceptions)
     if test "$test_cv_have_exceptions" = yes; then
