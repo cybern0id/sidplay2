@@ -19,9 +19,6 @@
    If not, a user-defined signed integral type will be used.  */
 @SID_HAVE_BOOL@
 
-/* Define if your compiler supports AC99 header "stdint.h" */
-@SID_HAVE_STDINT_H@
-
 /* Define if your compiler supports AC99 header "stdbool.h" */
 @SID_HAVE_STDBOOL_H@
 
