@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/03/19 23:40:19  s_a_white
+ *  Removed repeat definition of state for debug mode.
+ *
  *  Revision 1.11  2001/03/09 22:27:13  s_a_white
  *  Speed optimisation update.
  *
@@ -370,11 +373,56 @@ void channel::silence ()
 
 XSID::XSID ()
 :ch4(this),
- ch5(this)
+ ch5(this),
+ muted(false)
 {
     setSidBaseAddr (0xd400);
     sidSamples (true);
-    muted = false;
+    reset ();
+}
+
+void XSID::reset ()
+{
+    ch4.reset ();
+    ch5.reset ();
+    suppressed = false;
+    wasRunning = false;
+}
+
+void XSID::clock (uint_least16_t delta_t)
+{
+    if (ch4 || ch5)
+    {
+        if (delta_t == 1)
+        {
+            ch4.clock ();
+            ch5.clock ();
+        }
+        else
+        {
+            ch4.clock (delta_t);
+            ch5.clock (delta_t);
+        }
+
+        if (!_sidSamples)
+            return;
+
+        if (ch4.hasChanged () || ch5.hasChanged ())
+            setSidData0x18 ();
+        wasRunning = true;
+    }
+    else if (wasRunning)
+    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
+        // Normally after samples volume should be restored to half volume,
+        // however, Galway Tunes sound horrible and seem to require setting back to
+        // the original volume.  Setting back to the original volume for normal
+        // samples can have nasty pulsing effects
+        if (ch4.isGalway ())
+            envWriteMemByte (sidAddr0x18, sidData0x18);
+        else
+            setSidData0x18 ();
+        wasRunning = false;
+    }
 }
 
 // Use Suppress to delay the samples and start them later
@@ -469,14 +517,6 @@ int_least32_t XSID::output (uint_least8_t bits)
         return 0;
     sample = sampleConvertTable[sampleOutput () + 8];
     return sample << (bits - 8);
-}
-
-void XSID::reset ()
-{
-    ch4.reset ();
-    ch5.reset ();
-    suppressed = false;
-    wasRunning = false;
 }
 
 void XSID::setSidData0x18 (bool cached)
