@@ -42,7 +42,7 @@ protected:
     uint_least16_t first_dma_line, last_dma_line, y_scroll;
     bool           bad_lines_enabled, bad_line;
 
-    event_clock_t m_accessClk;
+    event_clock_t m_rasterClk;
     EventContext &event_context;
 
 protected:
