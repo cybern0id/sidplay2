@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/03/01 23:46:37  s_a_white
+ *  Support for sample mode to be selected at runtime.
+ *
  *  Revision 1.13  2001/02/28 18:55:27  s_a_white
  *  Removed initBank* related stuff.  IRQ terminating ROM jumps at 0xea31,
  *  0xea7e and 0xea81 now handled.
@@ -125,19 +128,13 @@ player::player (void)
                SID2_DEFAULT_PRECISION, false);
 }
 
-player::~player ()
-{   // Mute sids (Important for Hardsid)
-    sid.reset  ();
-    sid2.reset ();
-}
-
 int player::clockSpeed (sid2_clock_t clock, bool forced)
 {
     if (playerState == _playing)
         return -1;
 
-    _clockSpeed  = clock;
-    _forced      = forced;
+    _clockSpeed = clock;
+    _forced     = forced;
     // Other paremters set later
     if (!_tune)
         return 0;
@@ -157,7 +154,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
         if (clock == SID2_CLOCK_NTSC)
-        tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+            tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
     }
 
     // Set clock and select speed description string.
@@ -176,7 +173,14 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
             tuneInfo.speedString = TXT_NTSC_CIA;
     }
 
-    // Set the VBI Timer
+    // Set the Interrupt Timers
+    if (tuneInfo.playAddr == 0xffff)
+    {
+        xsid.mute (true);
+        tuneInfo.speedString = "UNKNOWN";
+        tuneInfo.songSpeed   = SIDTUNE_SPEED_CIA_1A;
+    }
+
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
     {
         if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
@@ -509,17 +513,13 @@ int player::initialise ()
     // init loop that sets it's own irq handler
     //if ((playAddr == 0xffff) || (playAddr == initAddr))
     if (playAddr == 0xffff)
-    {   // Indicates sid requiring real C64 environment
-        // so speed flag.
-        cia.locked = false;
-        xsid.mute (true);
-        playAddr   = 0;
-    }
+        playAddr  = 0;
 
     // Tell C64 about song
     endian_little16 (&psidDrv[0x06], tuneInfo.initAddr);
     endian_little16 (&psidDrv[0x08], playAddr);
     psidDrv[0x0a] = (uint8_t) tuneInfo.currentSong;
+
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
         psidDrv[0x0b] = 0;
     else // SIDTUNE_SPEED_CIA_1A
@@ -542,7 +542,7 @@ int player::loadSong (SidTune *tune)
 
     // Un-mute all voices
     xsid.mute (false);
-    reg8 i = 3;
+    uint_least8_t i = 3;
     while (i--)
     {
         sid.mute  (i, false);
@@ -676,8 +676,8 @@ player_play_updateTimer:
 }
 
 void player::stop (void)
-{
-    playerState = _stopped;
+{   // Re-start song
+    initialise ();
 }
 
 void player::sidSamples (bool enable)
@@ -984,7 +984,6 @@ void player::envReset (void)
     endian_little16 (&ram[0x0314], 0xEA31); // IRQ
     endian_little16 (&ram[0x0316], 0xFE66); // BRK
     endian_little16 (&ram[0x0318], 0xFE47); // NMI
-
 
     // hardware vectors
     endian_little16 (&rom[0xfffa],  0xFE43); // NMI
