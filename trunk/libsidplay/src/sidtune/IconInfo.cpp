@@ -31,12 +31,13 @@
 #include "SidTune.h"
 #include "SmartPtr.h"
 #include "SidTuneTools.h"
+#include "sidendian.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
 #include <string.h>
-#if defined(SID_HAVE_STRSTREA_H)
+#if defined(HAVE_STRSTREA_H)
   #include <strstrea.h>
 #else
   #include <strstream.h>
@@ -46,60 +47,60 @@
 
 struct Border
 {
-	ubyte_sidt LeftEdge[2];			// uword; initial offsets from the origin
-	ubyte_sidt TopEdge[2];			// uword
-	ubyte_sidt FrontPen, BackPen;	// pens numbers for rendering
-	ubyte_sidt DrawMode;			// mode for rendering
-	ubyte_sidt Count;				// number of XY pairs
-	ubyte_sidt pXY[4];				// sword *XY; vector coordinate pairs rel to LeftTop
-	ubyte_sidt pNextBorder[4];		// Border *NextBorder; pointer to any other Border too
+	uint_least8_t LeftEdge[2];			// uint_least16_t; initial offsets from the origin
+	uint_least8_t TopEdge[2];			// uint_least16_t
+        uint_least8_t FrontPen, BackPen;	// pens numbers for rendering
+	uint_least8_t DrawMode;			// mode for rendering
+	uint_least8_t Count;				// number of XY pairs
+	uint_least8_t pXY[4];				// int_least16_t *XY; vector coordinate pairs rel to LeftTop
+        uint_least8_t pNextBorder[4];		// Border *NextBorder; pointer to any other Border too
 };
 
 struct Image
 {
-	ubyte_sidt LeftEdge[2];			// uword; starting offset relative to some origin
-	ubyte_sidt TopEdge[2];			// uword; starting offsets relative to some origin
-	ubyte_sidt Width[2];			// uword; pixel size (though data is word-aligned)
-	ubyte_sidt Height[2];			// uword
-	ubyte_sidt Depth[2];			// uword; >= 0, for images you create
-	ubyte_sidt pImageData[4];		// uword *ImageData; pointer to the actual word-aligned bits
-	ubyte_sidt PlanePick, PlaneOnOff;
-	ubyte_sidt pNextImage[4];		// Image *NextImage;
+	uint_least8_t LeftEdge[2];			// uint_least16_t; starting offset relative to some origin
+	uint_least8_t TopEdge[2];			// uint_least16_t; starting offsets relative to some origin
+	uint_least8_t Width[2];			// uint_least16_t; pixel size (though data is word-aligned)
+	uint_least8_t Height[2];			// uint_least16_t
+	uint_least8_t Depth[2];			// uint_least16_t; >= 0, for images you create
+	uint_least8_t pImageData[4];		// uint_least16_t *ImageData; pointer to the actual word-aligned bits
+	uint_least8_t PlanePick, PlaneOnOff;
+	uint_least8_t pNextImage[4];		// Image *NextImage;
 };
 
 struct Gadget
 {
-	ubyte_sidt pNextGadget[4];		// Gadget *NextGadget; next gadget in the list 
-	ubyte_sidt LeftEdge[2];			// uword; "hit box" of gadget 
-	ubyte_sidt TopEdge[2];			// uword
-	ubyte_sidt Width[2];			// uword; "hit box" of gadget 
-	ubyte_sidt Height[2];			// uword
-	ubyte_sidt Flags[2];			// uword; see below for list of defines 
-	ubyte_sidt Activation[2];		// uword
-	ubyte_sidt GadgetType[2];		// uword; see below for defines 
-	ubyte_sidt pGadgetRender[4];	// Image *GadgetRender;
-	ubyte_sidt pSelectRender[4];	// Image *SelectRender;
-	ubyte_sidt pGadgetText[4];		// void *GadgetText;
-	ubyte_sidt MutualExclude[4];	// udword
-	ubyte_sidt pSpecialInfo[4];		// void *SpecialInfo;
-	ubyte_sidt GadgetID[2];			// uword
-	ubyte_sidt UserData[4];			// udword; ptr to general purpose User data 
+	uint_least8_t pNextGadget[4];		// Gadget *NextGadget; next gadget in the list 
+	uint_least8_t LeftEdge[2];			// uint_least16_t; "hit box" of gadget 
+	uint_least8_t TopEdge[2];			// uint_least16_t
+	uint_least8_t Width[2];			// uint_least16_t; "hit box" of gadget 
+	uint_least8_t Height[2];			// uint_least16_t
+	uint_least8_t Flags[2];			// uint_least16_t; see below for list of defines 
+	uint_least8_t Activation[2];		// uint_least16_t
+	uint_least8_t GadgetType[2];		// uint_least16_t; see below for defines 
+	uint_least8_t pGadgetRender[4];	// Image *GadgetRender;
+	uint_least8_t pSelectRender[4];	// Image *SelectRender;
+	uint_least8_t pGadgetText[4];		// void *GadgetText;
+	uint_least8_t MutualExclude[4];	// udword
+	uint_least8_t pSpecialInfo[4];		// void *SpecialInfo;
+	uint_least8_t GadgetID[2];			// uint_least16_t
+	uint_least8_t UserData[4];			// udword; ptr to general purpose User data 
 };
 
 struct DiskObject
 {
-	ubyte_sidt Magic[2];			// uword; a magic num at the start of the file 
-	ubyte_sidt Version[2];			// uword; a version number, so we can change it 
+	uint_least8_t Magic[2];			// uint_least16_t; a magic num at the start of the file 
+	uint_least8_t Version[2];			// uint_least16_t; a version number, so we can change it 
 	struct Gadget Gadget;			// a copy of in core gadget 
-	ubyte_sidt Type;
-	ubyte_sidt PAD_BYTE;			// Pad it out to the next word boundry 
-	ubyte_sidt pDefaultTool[4];		// char *DefaultTool;
-	ubyte_sidt ppToolTypes[4];		// char **ToolTypes;
-	ubyte_sidt CurrentX[4];			// udword
-	ubyte_sidt CurrentY[4];			// udword
-	ubyte_sidt pDrawerData[4];		// char *DrawerData;
-	ubyte_sidt pToolWindow[4];		// char *ToolWindow; only applies to tools 
-	ubyte_sidt StackSize[4];		// udword; only applies to tools 
+	uint_least8_t Type;
+	uint_least8_t PAD_BYTE;			// Pad it out to the next word boundry 
+	uint_least8_t pDefaultTool[4];		// char *DefaultTool;
+	uint_least8_t ppToolTypes[4];		// char **ToolTypes;
+	uint_least8_t CurrentX[4];			// udword
+	uint_least8_t CurrentY[4];			// udword
+	uint_least8_t pDrawerData[4];		// char *DrawerData;
+	uint_least8_t pToolWindow[4];		// char *ToolWindow; only applies to tools 
+	uint_least8_t StackSize[4];		// udword; only applies to tools 
 };
 
 
@@ -156,40 +157,40 @@ const char _sidtune_txt_dataCorruptError[] = "ERROR: C64 data file is corrupt";
 const char _sidtune_txt_chunkError[] = "ERROR: Invalid tooltype information in icon file";
 #endif
 
-const uword_sidt safeBufferSize = 64;  // for string comparison, stream parsing
+const uint_least16_t safeBufferSize = 64;  // for string comparison, stream parsing
 
 
-bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
-							   const void* infoBuffer, udword_sidt infoLength)
+bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength,
+							   const void* infoBuffer, uint_least32_t infoLength)
 {
 	// Remove any format description or format error string.
 	info.formatString = 0;
 
 	// Require a first minimum safety size.
-	udword_sidt minSize = 1+sizeof(struct DiskObject);
+	uint_least32_t minSize = 1+sizeof(struct DiskObject);
 	if (infoLength < minSize)
 		return( false );
 
 	const DiskObject *dobject = (const DiskObject *)infoBuffer;
 
 	// Require Magic_Id in the first two bytes of the file.
-	if ( readEndian(dobject->Magic[0],dobject->Magic[1]) != WB_DISKMAGIC )
+	if ( endian_16(dobject->Magic[0],dobject->Magic[1]) != WB_DISKMAGIC )
 		return false;
 
 	// Only version 1.x supported.
-	if ( readEndian(dobject->Version[0],dobject->Version[1]) != WB_DISKVERSION )
+	if ( endian_16(dobject->Version[0],dobject->Version[1]) != WB_DISKVERSION )
 		return false;
 
 	// A PlaySID icon must be of type project.
 	if ( dobject->Type != WB_PROJECT )
 		return false;
 
-	int i;  // general purpose index variable
+	uint i;  // general purpose index variable
 
 	// We want to skip a possible Gadget Image item.
 	const char *icon = (const char*)infoBuffer + sizeof(DiskObject);
 
-	if ( (readEndian(dobject->Gadget.Flags[0],dobject->Gadget.Flags[1]) & GFLG_GADGIMAGE) == 0)
+	if ( (endian_16(dobject->Gadget.Flags[0],dobject->Gadget.Flags[1]) & GFLG_GADGIMAGE) == 0)
 	{
 		// Calculate size of gadget borders (vector image).
 		
@@ -205,7 +206,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 
 			const Border *brd = (const Border *)icon;
 			icon += sizeof(Border);
-			icon += brd->Count * (2+2);		   // pair of uword_sidt
+			icon += brd->Count * (2+2);		   // pair of uint_least16_t
 		}
 
 		if (dobject->Gadget.pSelectRender[0] |
@@ -220,7 +221,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 
 			const Border *brd = (const Border *)icon;
 			icon += sizeof(Border);
-			icon += brd->Count * (2+2);		   // pair of uword_sidt
+			icon += brd->Count * (2+2);		   // pair of uint_least16_t
 		}
 	}
 	else
@@ -240,8 +241,8 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 			const Image *img = (const Image *)icon;
 			icon += sizeof(Image);
 
-			udword_sidt imgsize = 0;
-			for(i=0;i<readEndian(img->Depth[0],img->Depth[1]);i++)
+			uint_least32_t imgsize = 0;
+			for(i=0;i<endian_16(img->Depth[0],img->Depth[1]);i++)
 			{
 				if ( (img->PlanePick & (1<<i)) != 0)
 				{
@@ -252,8 +253,8 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 				}
 			}
 
-			imgsize *= ((readEndian(img->Width[0],img->Width[1])+15)/16)*2;  // bytes per line
-			imgsize *= readEndian(img->Height[0],img->Height[1]);			// bytes per plane
+			imgsize *= ((endian_16(img->Width[0],img->Width[1])+15)/16)*2;  // bytes per line
+			imgsize *= endian_16(img->Height[0],img->Height[1]);			// bytes per plane
 
 			icon += imgsize;
 		}
@@ -271,8 +272,8 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 			const Image *img = (const Image *)icon;
 			icon += sizeof(Image);
 
-			udword_sidt imgsize = 0;
-			for(i=0;i<readEndian(img->Depth[0],img->Depth[1]);i++)
+			uint_least32_t imgsize = 0;
+			for(i=0;i<endian_16(img->Depth[0],img->Depth[1]);i++)
 			{
 				if ( (img->PlanePick & (1<<i)) != 0)
 				{
@@ -283,14 +284,14 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 				}
 			}
 
-			imgsize *= ((readEndian(img->Width[0],img->Width[1])+15)/16)*2;  // bytes per line
-			imgsize *= readEndian(img->Height[0],img->Height[1]);			// bytes per plane
+			imgsize *= ((endian_16(img->Width[0],img->Width[1])+15)/16)*2;  // bytes per line
+			imgsize *= endian_16(img->Height[0],img->Height[1]);			// bytes per plane
 			icon += imgsize;
 		}
 	}
 
 	// Here use a smart pointer to prevent access violation errors.
-	SmartPtr_sidtt<const char> spTool((const char*)icon,infoLength-(udword_sidt)(icon-(const char*)infoBuffer));
+	SmartPtr_sidtt<const char> spTool((const char*)icon,infoLength-(uint_least32_t)(icon-(const char*)infoBuffer));
 	if ( !spTool )
 	{
 		info.formatString = _sidtune_txt_corruptError;
@@ -298,7 +299,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 	}
 
 	// A separate safe buffer is used for each tooltype string.
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 	SmartPtr_sidtt<char> spCmpBuf(new(nothrow) char[safeBufferSize],safeBufferSize,true);
 #else
 	SmartPtr_sidtt<char> spCmpBuf(new char[safeBufferSize],safeBufferSize,true);
@@ -318,7 +319,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 #endif
 
 	// Skip default tool.
-	spTool += readEndian(spTool[0],spTool[1],spTool[2],spTool[3]) + 4;
+	spTool += endian_32(spTool[0],spTool[1],spTool[2],spTool[3]) + 4;
 
 	// Defaults.
 	fileOffset = 0;				   // no header in separate data file
@@ -326,7 +327,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 	info.sidChipBase2 = 0;
 	info.musPlayer = false;
 	info.numberOfInfoStrings = 0;
-	udword_sidt oldStyleSpeed = 0;
+	uint_least32_t oldStyleSpeed = 0;
 
 	// Flags for required entries.
 	bool hasAddress = false,
@@ -338,16 +339,16 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 	hasUnknownChunk = false;
 
 	// Calculate number of tooltype strings.
-	i = (readEndian(spTool[0],spTool[1],spTool[2],spTool[3])/4) - 1;
+	i = (endian_32(spTool[0],spTool[1],spTool[2],spTool[3])/4) - 1;
 	spTool += 4;  // skip size info
 
 	while( i-- > 0 )
 	{
 		// Get length of this tool.
-		udword_sidt toolLen = readEndian(spTool[0],spTool[1],spTool[2],spTool[3]);
+		uint_least32_t toolLen = endian_32(spTool[0],spTool[1],spTool[2],spTool[3]);
 		spTool += 4;  // skip tool length
 		// Copy item to safe buffer.
-		for ( udword_sidt ci = 0; ci < toolLen; ci++ )
+		for ( uint_least32_t ci = 0; ci < toolLen; ci++ )
 		{
 #ifndef SID_HAVE_BAD_COMPILER
 			spCmpBuf[ci] = spTool[ci];
@@ -367,9 +368,9 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 		{
 			istrstream addrIn(cmpBuf + strlen(_sidtune_keyword_address),
 							  toolLen - strlen(_sidtune_keyword_address));
-			info.loadAddr = (uword_sidt)SidTuneTools::readHex( addrIn );
-			info.initAddr = (uword_sidt)SidTuneTools::readHex( addrIn );
-			info.playAddr = (uword_sidt)SidTuneTools::readHex( addrIn );
+			info.loadAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
+			info.initAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
+			info.playAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
 			if ( !addrIn )
 			{
 				return false;
@@ -384,8 +385,8 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 			{
 				return false;
 			}
-			info.songs = (uword_sidt)SidTuneTools::readDec( numIn );
-			info.startSong = (uword_sidt)SidTuneTools::readDec( numIn );
+			info.songs = (uint_least16_t)SidTuneTools::readDec( numIn );
+			info.startSong = (uint_least16_t)SidTuneTools::readDec( numIn );
 			hasSongs = true;
 		}
 		else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_speed) == 0 )
@@ -440,9 +441,9 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, udword_sidt dataLength,
 		convertOldStyleSpeedToTables(oldStyleSpeed);
 		if (( info.loadAddr == 0 ) && ( dataLength != 0 ))
 		{
-			SmartPtr_sidtt<const ubyte_sidt> spDataBuf((const ubyte_sidt*)dataBuffer,dataLength);
+			SmartPtr_sidtt<const uint_least8_t> spDataBuf((const uint_least8_t*)dataBuffer,dataLength);
 			spDataBuf += fileOffset;
-			info.loadAddr = readEndian(spDataBuf[1],spDataBuf[0]);
+			info.loadAddr = endian_16(spDataBuf[1],spDataBuf[0]);
 			if ( !spDataBuf )
 			{
 				info.formatString = _sidtune_txt_dataCorruptError;

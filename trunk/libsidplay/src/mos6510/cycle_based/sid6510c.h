@@ -1,6 +1,6 @@
 /***************************************************************************
-                          sidplay.h  -  Special MOS6510 to be fully
-                                        compatible with sidplay
+                          sid6510c.h  -  Special MOS6510 to be fully
+                                         compatible with sidplay
                              -------------------
     begin                : Thu May 11 2000
     copyright            : (C) 2000 by Simon White
@@ -15,6 +15,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #ifndef _sid6510c_h_
 #define _sid6510c_h_
 
@@ -31,7 +35,7 @@ public:
 
     // Standard Functions
     void        reset (void);
-    void        reset (ubyte_sidt a, ubyte_sidt x, ubyte_sidt y);
+    void        reset (uint8_t a, uint8_t x, uint8_t y);
     inline void clock (void);
 
 private:

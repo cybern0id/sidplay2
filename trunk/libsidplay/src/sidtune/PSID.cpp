@@ -23,24 +23,25 @@
 #include <string.h>
 
 #include "SidTune.h"
+#include "sidendian.h"
 
 struct psidHeader			// all values big-endian
 {
 	char id[4];				// 'PSID' (ASCII)
-	ubyte_sidt version[2];	// 0x0001 or 0x0002
-	ubyte_sidt data[2];		// 16-bit offset to binary data in file
-	ubyte_sidt load[2];		// 16-bit C64 address to load file to
-	ubyte_sidt init[2];		// 16-bit C64 address of init subroutine
-	ubyte_sidt play[2];		// 16-bit C64 address of play subroutine
-	ubyte_sidt songs[2];	// number of songs
-	ubyte_sidt start[2];	// start song out of [1..256]
-	ubyte_sidt speed[4];	// 32-bit speed info
+	uint_least8_t version[2];	// 0x0001 or 0x0002
+	uint_least8_t data[2];		// 16-bit offset to binary data in file
+	uint_least8_t load[2];		// 16-bit C64 address to load file to
+	uint_least8_t init[2];		// 16-bit C64 address of init subroutine
+	uint_least8_t play[2];		// 16-bit C64 address of play subroutine
+	uint_least8_t songs[2];	// number of songs
+	uint_least8_t start[2];	// start song out of [1..256]
+	uint_least8_t speed[4];	// 32-bit speed info
 							// bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
 	char name[32];			// ASCII strings, 31 characters long and
 	char author[32];		// terminated by a trailing zero
 	char copyright[32];		//
-	ubyte_sidt flags[2];	// only version 0x0002
-	ubyte_sidt reserved[4];	// only version 0x0002
+	uint_least8_t flags[2];	// only version 0x0002
+	uint_least8_t reserved[4];	// only version 0x0002
 };
 
 const char _sidtune_format[] = "PlaySID one-file format (PSID)";
@@ -50,7 +51,7 @@ const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
 const int _sidtune_psid_maxStrLen = 31;
 
 
-bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
+bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 {
 	// Remove any format description or format error string.
 	info.formatString = 0;
@@ -59,8 +60,8 @@ bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
 	// Require a valid ID and version number.
 	const psidHeader* pHeader = (const psidHeader*)buffer;
 	if ( (bufLen<6) ||
-		 (readBEdword((const ubyte_sidt*)pHeader->id)!=0x50534944) ||
-		 (readBEword(pHeader->version)>=3) )
+		 (endian_big32((const uint_least8_t*)pHeader->id)!=0x50534944) ||
+		 (endian_big16(pHeader->version)>=3) )
 	{
 		info.formatString = _sidtune_unknown;
 		return false;
@@ -74,12 +75,12 @@ bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
 		return false;
 	}
 
-	fileOffset = readBEword(pHeader->data);
-	info.loadAddr = readBEword(pHeader->load);
-	info.initAddr = readBEword(pHeader->init);
-	info.playAddr = readBEword(pHeader->play);
-	info.songs = readBEword(pHeader->songs);
-	info.startSong = readBEword(pHeader->start);
+	fileOffset        = endian_big16(pHeader->data);
+	info.loadAddr     = endian_big16(pHeader->load);
+	info.initAddr     = endian_big16(pHeader->init);
+	info.playAddr     = endian_big16(pHeader->play);
+	info.songs        = endian_big16(pHeader->songs);
+	info.startSong    = endian_big16(pHeader->start);
 	info.sidChipBase1 = 0xd400;
 	info.sidChipBase2 = 0;
 
@@ -89,12 +90,12 @@ bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
 	}
 	
 	// Create the speed/clock setting table.
-	convertOldStyleSpeedToTables(readBEdword(pHeader->speed));
+	convertOldStyleSpeedToTables(endian_big32(pHeader->speed));
 	
 	info.musPlayer = false;
-	if ( readBEword(pHeader->version) >= 2 )
+	if ( endian_big16(pHeader->version) >= 2 )
 	{
-		if (( readBEword(pHeader->flags) & 1 ) == 1 )
+		if (( endian_big16(pHeader->flags) & 1 ) == 1 )
 		{
 			info.musPlayer = true;
 		}
@@ -102,8 +103,8 @@ bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
   
 	if ( info.loadAddr == 0 )
 	{
-		ubyte_sidt* pData = (ubyte_sidt*)buffer + fileOffset;
-		info.loadAddr = readEndian( *(pData+1), *pData );
+		uint_least8_t* pData = (uint_least8_t*)buffer + fileOffset;
+		info.loadAddr = endian_16( *(pData+1), *pData );
 		fileOffset += 2;
 	}
 	if ( info.initAddr == 0 )
@@ -128,19 +129,19 @@ bool SidTune::PSID_fileSupport(const void* buffer, const udword_sidt bufLen)
 }
 
 
-bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte_sidt* dataBuffer)
+bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBuffer)
 {
 	psidHeader myHeader;
-	writeBEdword((ubyte_sidt*)myHeader.id,0x50534944);  // 'PSID'
-	writeBEword(myHeader.version,2);
-	writeBEword(myHeader.data,sizeof(psidHeader));
-	writeBEword(myHeader.load,0);
-	writeBEword(myHeader.init,info.initAddr);
-	writeBEword(myHeader.play,info.playAddr);
-	writeBEword(myHeader.songs,info.songs);
-	writeBEword(myHeader.start,info.startSong);
+	endian_big32((uint_least8_t*)myHeader.id,0x50534944);  // 'PSID'
+	endian_big16(myHeader.version,2);
+	endian_big16(myHeader.data,sizeof(psidHeader));
+	endian_big16(myHeader.load,0);
+	endian_big16(myHeader.init,info.initAddr);
+	endian_big16(myHeader.play,info.playAddr);
+	endian_big16(myHeader.songs,info.songs);
+	endian_big16(myHeader.start,info.startSong);
 
-	udword_sidt speed = 0;
+	uint_least32_t speed = 0;
 	int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
 	for (int s = 0; s < maxBugSongs; s++)
 	{
@@ -149,15 +150,15 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte_sidt* dataBuffe
 			speed |= (1<<s);
 		}
 	}
-	writeBEdword(myHeader.speed,speed);
+	endian_big32(myHeader.speed,speed);
 
-	uword_sidt tmpFlags = 0;
+	uint_least16_t tmpFlags = 0;
 	if ( info.musPlayer )
 	{
 		tmpFlags |= 1;
 	}
-	writeBEword(myHeader.flags,tmpFlags);
-	writeBEdword(myHeader.reserved,0);
+	endian_big16(myHeader.flags,tmpFlags);
+	endian_big32(myHeader.reserved,0);
 	for ( int i = 0; i < 32; i++ )
 	{
 		myHeader.name[i] = 0;
@@ -170,7 +171,7 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte_sidt* dataBuffe
 	fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );
 	
 	// Save C64 lo/hi load address (little-endian).
-	ubyte_sidt saveAddr[2];
+	uint_least8_t saveAddr[2];
 	saveAddr[0] = info.loadAddr & 255;
 	saveAddr[1] = info.loadAddr >> 8;
 	fMyOut.write( (char*)saveAddr, 2 );  // !cast!

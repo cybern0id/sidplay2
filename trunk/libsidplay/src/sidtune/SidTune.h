@@ -21,22 +21,21 @@
 #ifndef SIDTUNE_H
 #define SIDTUNE_H
 
-#include "SidTuneTypes.h"
-#include "SidTuneEndian.h"
+#include "sidtypes.h"
 #include "Buffer.h"
 #include "SmartPtr.h"
 
 class ofstream;  // <fstream.h>
 
-const uword_sidt SIDTUNE_MAX_SONGS = 256;
+const uint_least16_t SIDTUNE_MAX_SONGS = 256;
 // Also PSID file format limit.
 
-const uword_sidt SIDTUNE_MAX_CREDIT_STRINGS = 10;
-const uword_sidt SIDTUNE_MAX_CREDIT_STRLEN = 80+1;
+const uint_least16_t SIDTUNE_MAX_CREDIT_STRINGS = 10;
+const uint_least16_t SIDTUNE_MAX_CREDIT_STRLEN = 80+1;
 // 80 characters plus terminating zero.
 
-const udword_sidt SIDTUNE_MAX_MEMORY = 65536;
-const udword_sidt SIDTUNE_MAX_FILELEN = 65536+2+0x7C;
+const uint_least32_t SIDTUNE_MAX_MEMORY = 65536;
+const uint_least32_t SIDTUNE_MAX_FILELEN = 65536+2+0x7C;
 // C64KB+LOAD+PSID
 
 const int SIDTUNE_SPEED_VBI = 0;		// Vertical-Blanking-Interrupt
@@ -66,40 +65,40 @@ struct SidTuneInfo
 	
 	const char* speedString;	// describing the speed a song is running at
 	
-	uword_sidt loadAddr;
-	uword_sidt initAddr;
-	uword_sidt playAddr;
+	uint_least16_t loadAddr;
+	uint_least16_t initAddr;
+	uint_least16_t playAddr;
 	
-	uword_sidt songs;
-	uword_sidt startSong;
+	uint_least16_t songs;
+	uint_least16_t startSong;
 	
 	// The SID chip base address(es) used by the sidtune.
-	uword_sidt sidChipBase1;	// 0xD400 (normal, 1st SID)
-	uword_sidt sidChipBase2;	// 0xD?00 (2nd SID) or 0 (no 2nd SID)
+	uint_least16_t sidChipBase1;	// 0xD400 (normal, 1st SID)
+	uint_least16_t sidChipBase2;	// 0xD?00 (2nd SID) or 0 (no 2nd SID)
 
 	// Available after song initialization.
 	//
-	uword_sidt irqAddr;			// if (playAddr == 0), interrupt handler has been
+	uint_least16_t irqAddr;			// if (playAddr == 0), interrupt handler has been
 								// installed and starts calling the C64 player
 								// at this address
-	uword_sidt currentSong;		// the one that has been initialized
-	ubyte_sidt songSpeed;		// intended speed, see top
-	ubyte_sidt clockSpeed;		// -"-
+	uint_least16_t currentSong;		// the one that has been initialized
+	uint_least8_t songSpeed;		// intended speed, see top
+	uint_least8_t clockSpeed;		// -"-
 	bool musPlayer;				// whether Sidplayer routine has been installed
 	bool fixLoad;				// whether load address might be duplicate
-	uword_sidt songLength;		// --- not yet supported ---
+	uint_least16_t songLength;		// --- not yet supported ---
 	//
 	// Song title, credits, ...
 	// 0 = Title, 1 = Author, 2 = Copyright/Publisher
 	//
-	ubyte_sidt numberOfInfoStrings;  // the number of available text info lines
+	uint_least8_t numberOfInfoStrings;  // the number of available text info lines
 	char* infoString[SIDTUNE_MAX_CREDIT_STRINGS];
 	//
-	uword_sidt numberOfCommentStrings;	// --- not yet supported ---
+	uint_least16_t numberOfCommentStrings;	// --- not yet supported ---
 	char ** commentString;				// --- not yet supported ---
 	//
-	udword_sidt dataFileLen;	// length of single-file sidtune file
-	udword_sidt c64dataLen;		// length of raw C64 data without load address
+	uint_least32_t dataFileLen;	// length of single-file sidtune file
+	uint_least32_t c64dataLen;		// length of raw C64 data without load address
 	char* path;					// path to sidtune files; "", if cwd
 	char* dataFileName;			// a first file: e.g. "foo.c64"; "", if none
 	char* infoFileName;			// a second file: e.g. "foo.sid"; "", if none
@@ -136,7 +135,7 @@ class SidTune
 
 	// Load a single-file sidtune from a memory buffer.
 	// Currently supported: PSID format
-	SidTune(const ubyte_sidt* oneFileFormatSidtune, const udword_sidt sidtuneLength);
+	SidTune(const uint_least8_t* oneFileFormatSidtune, const uint_least32_t sidtuneLength);
 
 	virtual ~SidTune();
 
@@ -151,15 +150,15 @@ class SidTune
 	bool load(const char* sidTuneFileName, const bool separatorIsSlash = false);
 	
 	// From a buffer.
-	bool read(const ubyte_sidt* sourceBuffer, const udword_sidt bufferLen);
+	bool read(const uint_least8_t* sourceBuffer, const uint_least32_t bufferLen);
 
 	// Select sub-song (0 = default starting song)
 	// and retrieve active song information.
-	const SidTuneInfo& operator[](const uword_sidt songNum);
+	const SidTuneInfo& operator[](const uint_least16_t songNum);
 
 	// Select sub-song (0 = default starting song)
 	// and return active song number out of [1,2,..,SIDTUNE_MAX_SONGS].
-	uword_sidt selectSong(const uword_sidt songNum);
+	uint_least16_t selectSong(const uint_least16_t songNum);
 	
 	// Retrieve sub-song specific information.
 	// Beware! Still member-wise copy!
@@ -182,7 +181,7 @@ class SidTune
 	}
 	
 	// Copy sidtune into C64 memory (64 KB).
-	bool placeSidTuneInC64mem(ubyte_sidt* c64buf);
+	bool placeSidTuneInC64mem(uint_least8_t* c64buf);
 
 	// --- file save & format conversion ---
 
@@ -209,23 +208,23 @@ class SidTune
 	// of 0xE000, but are loaded to 0x0FFE and call the player code at 0x1000.
 	//
 	// Do not forget to save the sidtune file.
-	void fixLoadAddress(const bool force = false, uword_sidt initAddr = 0,
-						uword_sidt playAddr = 0);
+	void fixLoadAddress(const bool force = false, uint_least16_t initAddr = 0,
+						uint_least16_t playAddr = 0);
 
 	// Does not affect status of object, and therefore can be used
 	// to load files. Error string is put into info.statusString, though.
-	bool loadFile(const char* fileName, Buffer_sidtt<const ubyte_sidt>& bufferRef);
+	bool loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& bufferRef);
 	
-	bool saveToOpenFile( ofstream& toFile, const ubyte_sidt* buffer, udword_sidt bufLen );
+	bool saveToOpenFile( ofstream& toFile, const uint_least8_t* buffer, uint_least32_t bufLen );
 	
  protected:  // -------------------------------------------------------------
 
 	SidTuneInfo info;
 	bool status;
 
-	ubyte_sidt songSpeed[SIDTUNE_MAX_SONGS];
-	ubyte_sidt clockSpeed[SIDTUNE_MAX_SONGS];
-	uword_sidt songLength[SIDTUNE_MAX_SONGS];
+	uint_least8_t songSpeed[SIDTUNE_MAX_SONGS];
+	uint_least8_t clockSpeed[SIDTUNE_MAX_SONGS];
+	uint_least16_t songLength[SIDTUNE_MAX_SONGS];
 
 	// holds text info from the format headers etc.
 	char infoString[SIDTUNE_MAX_CREDIT_STRINGS][SIDTUNE_MAX_CREDIT_STRLEN];
@@ -234,12 +233,12 @@ class SidTune
 	bool isSlashedFileName;
 
 	// For files with header: offset to real data
-	udword_sidt fileOffset;
+	uint_least32_t fileOffset;
 
 	// Needed for MUS/STR player installation.
-	uword_sidt musDataLen;
+	uint_least16_t musDataLen;
 	
-	Buffer_sidtt<const ubyte_sidt> cache;
+	Buffer_sidtt<const uint_least8_t> cache;
 
 	// Filename extensions to append for various file types.
 	static const char** fileNameExtensions;
@@ -247,29 +246,29 @@ class SidTune
 	// --- protected member functions ---
 
 	// Convert 32-bit PSID-style speed word to internal tables.
-	void convertOldStyleSpeedToTables(udword_sidt oldStyleSpeed);
+	void convertOldStyleSpeedToTables(uint_least32_t oldStyleSpeed);
 
 	// Support for various file formats.
 
-	virtual bool PSID_fileSupport(const void* buffer, const udword_sidt bufLen);
-	virtual bool PSID_fileSupportSave(ofstream& toFile, const ubyte_sidt* dataBuffer);
+	virtual bool PSID_fileSupport(const void* buffer, const uint_least32_t bufLen);
+	virtual bool PSID_fileSupportSave(ofstream& toFile, const uint_least8_t* dataBuffer);
 
-	virtual bool SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
-								 const void* sidBuffer, udword_sidt sidBufLen);
+	virtual bool SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
+								 const void* sidBuffer, uint_least32_t sidBufLen);
 	virtual bool SID_fileSupportSave(ofstream& toFile);
 
-	virtual bool MUS_fileSupport(Buffer_sidtt<const ubyte_sidt>& musBufRef,
-								 Buffer_sidtt<const ubyte_sidt>& strBufRef);
-	virtual bool MUS_detect(const void* buffer, const udword_sidt bufLen,
-							udword_sidt& voice3Index);
-	virtual bool MUS_mergeParts(Buffer_sidtt<const ubyte_sidt>& musBufRef,
-								Buffer_sidtt<const ubyte_sidt>& strBufRef);
+	virtual bool MUS_fileSupport(Buffer_sidtt<const uint_least8_t>& musBufRef,
+								 Buffer_sidtt<const uint_least8_t>& strBufRef);
+	virtual bool MUS_detect(const void* buffer, const uint_least32_t bufLen,
+							uint_least32_t& voice3Index);
+	virtual bool MUS_mergeParts(Buffer_sidtt<const uint_least8_t>& musBufRef,
+								Buffer_sidtt<const uint_least8_t>& strBufRef);
 	virtual void MUS_setPlayerAddress();
-	virtual void MUS_installPlayer(ubyte_sidt *c64buf);
-	virtual int MUS_decodePetLine(SmartPtr_sidtt<const ubyte_sidt>&, char*);
+	virtual void MUS_installPlayer(uint_least8_t *c64buf);
+	virtual int MUS_decodePetLine(SmartPtr_sidtt<const uint_least8_t>&, char*);
 
-	virtual bool INFO_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
-								  const void* infoBuffer, udword_sidt infoBufLen);
+	virtual bool INFO_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
+								  const void* infoBuffer, uint_least32_t infoBufLen);
 
     // Error and status message strings.
     static const char* txt_songNumberExceed;
@@ -302,12 +301,12 @@ class SidTune
 	void deleteFileNameCopies();
 	
 	// Try to retrieve single-file sidtune from specified buffer.
-	void getFromBuffer(const ubyte_sidt* const buffer, const udword_sidt bufferLen);
+	void getFromBuffer(const uint_least8_t* const buffer, const uint_least32_t bufferLen);
 	
 	// Cache the data of a single-file or two-file sidtune and its
 	// corresponding file names.
 	bool acceptSidTune(const char* dataFileName, const char* infoFileName,
-					   Buffer_sidtt<const ubyte_sidt>& buf);
+					   Buffer_sidtt<const uint_least8_t>& buf);
 
 	bool createNewFileName(Buffer_sidtt<char>& destString,
 						   const char* sourceName, const char* sourceExt);

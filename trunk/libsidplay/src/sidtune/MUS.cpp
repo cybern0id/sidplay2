@@ -22,8 +22,9 @@
 #include <string.h>
 
 #include "SidTune.h"
+#include "sidendian.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
 
@@ -32,14 +33,14 @@ const char _sidtune_txt_format_str[] = "C64 Stereo Sidplayer format (MUS+STR)";
 const char _sidtune_txt_notEnoughMemory[] = "ERROR: Not enough free memory";
 const char _sidtune_txt_sizeExceeded[] = "ERROR: Total file size too large";
 
-const uword_sidt SIDTUNE_MUS_HLT_CMD = 0x14F;
+const uint_least16_t SIDTUNE_MUS_HLT_CMD = 0x14F;
 
-const uword_sidt SIDTUNE_MUS_DATA_ADDR = 0x0900;
-const uword_sidt SIDTUNE_SID1_BASE_ADDR = 0xd400;
-const uword_sidt SIDTUNE_SID2_BASE_ADDR = 0xd500;
+const uint_least16_t SIDTUNE_MUS_DATA_ADDR = 0x0900;
+const uint_least16_t SIDTUNE_SID1_BASE_ADDR = 0xd400;
+const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
 
-bool SidTune::MUS_fileSupport(Buffer_sidtt<const ubyte_sidt>& musBuf,
-							  Buffer_sidtt<const ubyte_sidt>& strBuf)
+bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
+							  Buffer_sidtt<const uint8_t>& strBuf)
 {
 	// Remove any format description or format error string.
 	info.formatString = 0;
@@ -48,12 +49,12 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const ubyte_sidt>& musBuf,
 	for (int i = 0; i < SIDTUNE_MAX_CREDIT_STRINGS; i++)
 		infoString[i][0] = 0;
 
-	udword_sidt voice3Index;
+	uint_least32_t voice3Index;
 	if ( !MUS_detect(musBuf.get(),musBuf.len(),voice3Index) )
 		return false;
 
 	// Voice3Index now is offset to text lines (uppercase Pet-strings).
-	SmartPtr_sidtt<const ubyte_sidt> spPet(musBuf.get(),musBuf.len());
+	SmartPtr_sidtt<const uint8_t> spPet(musBuf.get(),musBuf.len());
 	spPet += voice3Index;
 	{
 		for ( int line = 0; line < 5; line++ )
@@ -78,7 +79,7 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const ubyte_sidt>& musBuf,
 			return false;
 
 		// Voice3Index now is offset to text lines (uppercase Pet-strings).
-		SmartPtr_sidtt<const ubyte_sidt> spPet(strBuf.get(),strBuf.len());
+		SmartPtr_sidtt<const uint8_t> spPet(strBuf.get(),strBuf.len());
 		spPet += voice3Index;
 		for ( int line = 5; line < 10; line++ )
 		{
@@ -112,21 +113,21 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const ubyte_sidt>& musBuf,
 	return true;
 }
 
-bool SidTune::MUS_detect(const void* buffer, const udword_sidt bufLen,
-						 udword_sidt& voice3Index)
+bool SidTune::MUS_detect(const void* buffer, const uint_least32_t bufLen,
+						 uint_least32_t& voice3Index)
 {
-	SmartPtr_sidtt<const ubyte_sidt> spMus((const ubyte_sidt*)buffer,bufLen);
+	SmartPtr_sidtt<const uint8_t> spMus((const uint8_t*)buffer,bufLen);
 	// Skip load address and 3x length entry.
-	udword_sidt voice1Index = (2+3*2);
+	uint_least32_t voice1Index = (2+3*2);
 	// Add length of voice 1 data.
-	voice1Index += readEndian(spMus[3],spMus[2]);
+	voice1Index += endian_16(spMus[3],spMus[2]);
 	// Add length of voice 2 data.
-	udword_sidt voice2Index = voice1Index + readEndian(spMus[5],spMus[4]);
+	uint_least32_t voice2Index = voice1Index + endian_16(spMus[5],spMus[4]);
 	// Add length of voice 3 data.
-	voice3Index = voice2Index + readEndian(spMus[7],spMus[6]);
-	return ((readEndian(spMus[voice1Index-2],spMus[voice1Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
-			&& (readEndian(spMus[voice2Index-2],spMus[voice2Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
-			&& (readEndian(spMus[voice3Index-2],spMus[voice3Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
+	voice3Index = voice2Index + endian_16(spMus[7],spMus[6]);
+	return ((endian_16(spMus[voice1Index-2],spMus[voice1Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
+			&& (endian_16(spMus[voice2Index-2],spMus[voice2Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
+			&& (endian_16(spMus[voice3Index-2],spMus[voice3Index+1-2]) == SIDTUNE_MUS_HLT_CMD)
 			&& spMus);
 }
 
@@ -168,7 +169,7 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
   0x2f,0x2d,0x2d,0x7c,0x7c,0x7c,0x7c,0x2d,0x2d,0x2d,0x2f,0x5c,0x5c,0x2f,0x2f,0x23
 };
 
-int SidTune::MUS_decodePetLine(SmartPtr_sidtt<const ubyte_sidt>& spPet, char* dest)
+int SidTune::MUS_decodePetLine(SmartPtr_sidtt<const uint8_t>& spPet, char* dest)
 {
 	int count = 0;
 	char c;
@@ -190,7 +191,7 @@ int SidTune::MUS_decodePetLine(SmartPtr_sidtt<const ubyte_sidt>& spPet, char* de
 	return count;
 }
 
-const ubyte_sidt _sidtune_sidplayer1[] =
+const uint8_t _sidtune_sidplayer1[] =
 {
 	0x00, 0xe0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -396,7 +397,7 @@ const ubyte_sidt _sidtune_sidplayer1[] =
 	0x60
 };
 
-const ubyte_sidt _sidtune_sidplayer2[] =
+const uint8_t _sidtune_sidplayer2[] =
 {
 	0x00, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -602,17 +603,17 @@ const ubyte_sidt _sidtune_sidplayer2[] =
 	0x60, 0x00, 0x20, 0x60, 0xec, 0x4c, 0x60, 0xfc, 0x20, 0x80, 0xec, 0x4c, 0x80, 0xfc
 };
 
-bool SidTune::MUS_mergeParts(Buffer_sidtt<const ubyte_sidt>& musBuf,
-		 					 Buffer_sidtt<const ubyte_sidt>& strBuf)
+bool SidTune::MUS_mergeParts(Buffer_sidtt<const uint8_t>& musBuf,
+		 					 Buffer_sidtt<const uint8_t>& strBuf)
 {
-	Buffer_sidtt<ubyte_sidt> mergeBuf;
+	Buffer_sidtt<uint8_t> mergeBuf;
 	
-	udword_sidt mergeLen = musBuf.len()+strBuf.len();
+	uint_least32_t mergeLen = musBuf.len()+strBuf.len();
 	
 	musDataLen = musBuf.len()-2;
 	
 	// Sanity check. I do not trust those MUS/STR files around.
-	udword_sidt freeSpace = readEndian(_sidtune_sidplayer1[1],_sidtune_sidplayer1[0])
+	uint_least32_t freeSpace = endian_16(_sidtune_sidplayer1[1],_sidtune_sidplayer1[0])
 							- SIDTUNE_MUS_DATA_ADDR;
 	if ( (musBuf.len()+strBuf.len()-4) > freeSpace)
 	{
@@ -620,10 +621,10 @@ bool SidTune::MUS_mergeParts(Buffer_sidtt<const ubyte_sidt>& musBuf,
 		return false;
 	}
 
-#ifdef SID_HAVE_EXCEPTIONS
-	if ( !mergeBuf.assign(new(nothrow) ubyte_sidt[mergeLen],mergeLen) )
+#ifdef HAVE_EXCEPTIONS
+	if ( !mergeBuf.assign(new(nothrow) uint8_t[mergeLen],mergeLen) )
 #else
-	if ( !mergeBuf.assign(new ubyte_sidt[mergeLen],mergeLen) )
+	if ( !mergeBuf.assign(new uint8_t[mergeLen],mergeLen) )
 #endif
 	{
 		info.statusString = _sidtune_txt_notEnoughMemory;
@@ -653,12 +654,12 @@ bool SidTune::MUS_mergeParts(Buffer_sidtt<const ubyte_sidt>& musBuf,
 	return true;
 }
 
-void SidTune::MUS_installPlayer(ubyte_sidt *c64buf)
+void SidTune::MUS_installPlayer(uint8_t *c64buf)
 {
 	if (status && (c64buf != 0))
 	{
 		// Install MUS player #1.
-		uword_sidt dest = readEndian(_sidtune_sidplayer1[1],
+		uint_least16_t dest = endian_16(_sidtune_sidplayer1[1],
 									 _sidtune_sidplayer1[0]);
 		memcpy(c64buf+dest,_sidtune_sidplayer1+2,sizeof(_sidtune_sidplayer1)-2);
 		// Point player #1 to data #1.
@@ -668,7 +669,7 @@ void SidTune::MUS_installPlayer(ubyte_sidt *c64buf)
 		if (info.sidChipBase2 != 0)
 		{
 			// Install MUS player #2.
-			dest = readEndian(_sidtune_sidplayer2[1],
+			dest = endian_16(_sidtune_sidplayer2[1],
 							 _sidtune_sidplayer2[0]);
 			memcpy(c64buf+dest,_sidtune_sidplayer2+2,sizeof(_sidtune_sidplayer2)-2);
 			// Point player #2 to data #2.

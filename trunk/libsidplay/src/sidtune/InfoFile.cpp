@@ -21,14 +21,15 @@
 
 #include "SidTune.h"
 #include "SidTuneTools.h"
+#include "sidendian.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
 #include <fstream.h>
 #include <iostream.h>
 #include <iomanip.h>
-#if defined(SID_HAVE_STRSTREA_H)
+#if defined(HAVE_STRSTREA_H)
   #include <strstrea.h>
 #else
   #include <strstream.h>
@@ -51,12 +52,12 @@ const char keyword_songs[] = "SONGS=";          // parse most of the header.
 const char keyword_speed[] = "SPEED=";
 const char keyword_musPlayer[] = "SIDSONG=YES";
 
-const uword_sidt sidMinFileSize = 1+sizeof(keyword_id);  // Just to avoid a first segm.fault.
-const uword_sidt parseChunkLen = 80;                     // Enough for all keywords incl. their values.
+const uint_least16_t sidMinFileSize = 1+sizeof(keyword_id);  // Just to avoid a first segm.fault.
+const uint_least16_t parseChunkLen = 80;                     // Enough for all keywords incl. their values.
 
 
-bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
-                              const void* sidBuffer, udword_sidt sidBufLen)
+bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
+                              const void* sidBuffer, uint_least32_t sidBufLen)
 {
 	// Remove any format description or error string.
 	info.formatString = 0;
@@ -85,7 +86,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 		info.sidChipBase2 = 0;
 		info.musPlayer = false;
 		info.numberOfInfoStrings = 0;
-		udword_sidt oldStyleSpeed = 0;
+		uint_least32_t oldStyleSpeed = 0;
 
 		// Flags for required entries.
 		bool hasAddress = false,
@@ -96,7 +97,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 		    hasSpeed = false;
 	
 		// Using a temporary instance of an input string chunk.
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 		char* pParseChunk = new(nothrow) char[parseChunkLen+1];
 #else
 		char* pParseChunk = new char[parseChunkLen+1];
@@ -118,16 +119,16 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 			}
 			// And get a second pointer to the following line.
 			const char* pNextLine = SidTuneTools::returnNextLine( pParseBuf );
-			udword_sidt restLen;
+			uint_least32_t restLen;
 			if ( pNextLine != 0 )
 			{
 				// Calculate number of chars between current pos and next line.
-				restLen = (udword_sidt)(pNextLine - pParseBuf);
+				restLen = (uint_least32_t)(pNextLine - pParseBuf);
 			}
 			else
 			{
 				// Calculate number of chars between current pos and end of buf.
-				restLen = sidBufLen - (udword_sidt)(pParseBuf - (char*)sidBuffer);
+				restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuffer);
 			}
 			// Create whitespace eating (!) input string stream.
 			istrstream parseStream((char *) pParseBuf, restLen );
@@ -138,7 +139,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 				break;
 			}
 			// Now copy the next X characters except white-spaces.
-			for ( uword_sidt i = 0; i < parseChunkLen; i++ )
+			for ( uint_least16_t i = 0; i < parseChunkLen; i++ )
 			{
 				char c;
 				parseCopyStream >> c;
@@ -150,13 +151,13 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 			if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_address ) == 0 )
 			{
 				SidTuneTools::skipToEqu( parseStream );
-				info.loadAddr = (uword_sidt)SidTuneTools::readHex( parseStream );
+				info.loadAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
 				if ( !parseStream )
 				    break;
-				info.initAddr = (uword_sidt)SidTuneTools::readHex( parseStream );
+				info.initAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
 				if ( !parseStream )
 				    break;
-				info.playAddr = (uword_sidt)SidTuneTools::readHex( parseStream );
+				info.playAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
 				hasAddress = true;
 			}
 			// NAME
@@ -184,8 +185,8 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 			else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_songs ) == 0 )
 			{
 				SidTuneTools::skipToEqu( parseStream );
-				info.songs = (uword_sidt)SidTuneTools::readDec( parseStream );
-				info.startSong = (uword_sidt)SidTuneTools::readDec( parseStream );
+				info.songs = (uint_least16_t)SidTuneTools::readDec( parseStream );
+				info.startSong = (uint_least16_t)SidTuneTools::readDec( parseStream );
 				hasSongs = true;
 			}
 			// SPEED
@@ -215,8 +216,8 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 			// If data is present, we access it (here to get the C64 load address).
 			if (info.loadAddr==0 && (dataBufLen>=(fileOffset+2)) && dataBuffer!=0)
 			{
-				const ubyte_sidt* pDataBufCp = (const ubyte_sidt*)dataBuffer + fileOffset;
-				info.loadAddr = readEndian( *(pDataBufCp + 1), *pDataBufCp );
+				const uint8_t* pDataBufCp = (const uint8_t*)dataBuffer + fileOffset;
+				info.loadAddr = endian_16( *(pDataBufCp + 1), *pDataBufCp );
 				fileOffset += 2;  // begin of data
 			}
 			// Keep compatibility to PSID/SID.
@@ -247,7 +248,7 @@ bool SidTune::SID_fileSupportSave( ofstream& fMyOut )
 		<< hex << setw(4) << info.playAddr << endl
 		<< keyword_songs << dec << (int)info.songs << "," << (int)info.startSong << endl;
 
-	udword_sidt oldStyleSpeed = 0;
+	uint_least32_t oldStyleSpeed = 0;
 	int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
 	for (int s = 0; s < maxBugSongs; s++)
 	{

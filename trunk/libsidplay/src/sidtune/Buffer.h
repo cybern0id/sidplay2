@@ -21,7 +21,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include "SidTuneTypes.h"
+#include "sidtypes.h"
 
 template <class T> class Buffer_sidtt
 {
@@ -31,7 +31,7 @@ template <class T> class Buffer_sidtt
 		kill();
 	}
 
-	Buffer_sidtt(T* inBuf, udword_sidt inLen) : dummy(0)
+	Buffer_sidtt(T* inBuf, uint_least32_t inLen) : dummy(0)
 	{
 		kill();
 		if (inBuf!=0 && inLen!=0)
@@ -41,7 +41,7 @@ template <class T> class Buffer_sidtt
 		}
 	}
 	
-	bool assign(T* newBuf, udword_sidt newLen)
+	bool assign(T* newBuf, uint_least32_t newLen)
 	{
 		erase();
 		buf = newBuf;
@@ -50,7 +50,7 @@ template <class T> class Buffer_sidtt
 	}
 	
 	T* get(void) const  { return buf; }
-	const udword_sidt len(void) const  { return bufLen; }
+	const uint_least32_t len(void) const  { return bufLen; }
 	
 	T* xferPtr(void)  
 	{
@@ -59,14 +59,14 @@ template <class T> class Buffer_sidtt
 		return tmpBuf;
 	}
 
-	const udword_sidt xferLen(void)  
+	const uint_least32_t xferLen(void)  
 	{
-		udword_sidt tmpBufLen = bufLen;
+		uint_least32_t tmpBufLen = bufLen;
 		bufLen = 0;
 		return tmpBufLen;
 	}
 
-	T& operator[](udword_sidt index)
+	T& operator[](uint_least32_t index)
 	{
 		if (index < bufLen)
 			return buf[index];
@@ -96,7 +96,7 @@ template <class T> class Buffer_sidtt
 
  private:
 	T* buf;
-	udword_sidt bufLen;
+	uint_least32_t bufLen;
 	T dummy;
         
 	void kill(void)

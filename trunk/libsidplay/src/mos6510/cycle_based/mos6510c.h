@@ -1,5 +1,5 @@
 /***************************************************************************
-                          main.h  -  description
+                          mos6510c.h  -  Cycle Accurate 6510 Emulation
                              -------------------
     begin                : Thu May 11 2000
     copyright            : (C) 2000 by Simon White
@@ -13,6 +13,9 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
  ***************************************************************************/
 
 #ifndef _mos6510c_h_
@@ -29,10 +32,10 @@ public:
     virtual        void DumpState (void);
 
 public: // Non-standard functions
-    inline  void   triggerRST     (void);
-    inline  void   triggerNMI     (void);
-    inline  void   triggerIRQ     (void);
-    inline  void   clearIRQ       (void);
+    inline void triggerRST (void);
+    inline void triggerNMI (void);
+    inline void triggerIRQ (void);
+    inline void clearIRQ   (void);
 
 protected:
     void        Initialise       (void);
@@ -47,30 +50,29 @@ protected:
     inline void interruptPending (void);
 
     // Declare Instrunction Routines
-    inline void FetchOpcode           (void);
-    inline void FetchDataByte         (void);
-    inline void FetchLowAddr          (void);
-    inline void FetchLowAddrX         (void);
-    inline void FetchLowAddrY         (void);
-    inline void FetchHighAddr         (void);
-    inline void FetchHighAddrX        (void);
-    inline void FetchHighAddrY        (void);
-    inline void FetchLowEffAddr       (void);
-    inline void FetchHighEffAddr      (void);
-    inline void FetchHighEffAddrY     (void);
-    inline void FetchLowPointer       (void);
-    inline void FetchLowPointerX      (void);
-    inline void FetchHighPointer      (void);
-
-    inline void FetchEffAddrDataByte  (void);
-    inline void PutEffAddrDataByte    (void);
-    inline void PushLowPC             (void);
-    inline void PushHighPC            (void);
-    inline void PushSR                (void);
-    inline void PopLowPC              (void);
-    inline void PopHighPC             (void);
-    inline void PopSR                 (void);
-    inline void WasteCycle            (void);
+    inline void FetchOpcode          (void);
+    inline void FetchDataByte        (void);
+    inline void FetchLowAddr         (void);
+    inline void FetchLowAddrX        (void);
+    inline void FetchLowAddrY        (void);
+    inline void FetchHighAddr        (void);
+    inline void FetchHighAddrX       (void);
+    inline void FetchHighAddrY       (void);
+    inline void FetchLowEffAddr      (void);
+    inline void FetchHighEffAddr     (void);
+    inline void FetchHighEffAddrY    (void);
+    inline void FetchLowPointer      (void);
+    inline void FetchLowPointerX     (void);
+    inline void FetchHighPointer     (void);
+    inline void FetchEffAddrDataByte (void);
+    inline void PutEffAddrDataByte   (void);
+    inline void PushLowPC            (void);
+    inline void PushHighPC           (void);
+    inline void PushSR               (void);
+    inline void PopLowPC             (void);
+    inline void PopHighPC            (void);
+    inline void PopSR                (void);
+    inline void WasteCycle           (void);
 
     // Delcare Instruction Operation Routines
     inline void adc_instr     (void);
@@ -163,60 +165,53 @@ protected:
     // Declare processor operations
     struct ProcessorOperations
     {
-        void       (MOS6510::**cycle)(void);
-        sbyte_sidt lastCycle;
-        bool       overlap;
-        sbyte_sidt lastAddrCycle;
-        ubyte_sidt opcode;
+        void         (MOS6510::**cycle)(void);
+        int_least8_t  lastCycle;
+        bool          overlap;
+        int_least8_t  lastAddrCycle;
+        uint_least8_t opcode;
     };
 
     struct ProcessorOperations  instrTable[0x100];
     struct ProcessorOperations  interruptTable[3];
     struct ProcessorOperations *instr;
 
-    uword_sidt instrStartPC;
-    ubyte_sidt instrOpcode;
-    void       (MOS6510::**procCycle) (void);
-    sbyte_sidt lastAddrCycle;
-    sbyte_sidt lastCycle ;
-    sbyte_sidt cycleCount;
+    uint_least16_t instrStartPC;
+    uint_least8_t  instrOpcode;
+    void    (MOS6510::**procCycle) (void);
+    int_least8_t   lastAddrCycle;
+    int_least8_t   lastCycle;
+    int_least8_t   cycleCount;
 
     // Pointers to the current instruction cycle
-    uword_sidt  Cycle_EffectiveAddress;
-    sbyte_sidt  Cycle_Data;
-    uword_sidt  Cycle_Pointer;
+    uint_least16_t Cycle_EffectiveAddress;
+    int8_t         Cycle_Data;
+    uint_least16_t Cycle_Pointer;
 
-    sbyte_sidt  Register_Accumulator;
-    ubyte_sidt  Register_X;
-    ubyte_sidt  Register_Y;
-    udword_sidt Register_ProgramCounter;
-    ubyte_sidt  Register_Status;
-    sbyte_sidt  Register_c_Flag;
-    sbyte_sidt  Register_n_Flag;
-    sbyte_sidt  Register_v_Flag;
-    sbyte_sidt  Register_z_Flag;
-    uword_sidt  Register_StackPointer;
-    uword_sidt  instr_Operand;
+    int8_t         Register_Accumulator;
+    uint8_t        Register_X;
+    uint8_t        Register_Y;
+    uint_least32_t Register_ProgramCounter;
+    uint8_t        Register_Status;
+    int_least8_t   Register_c_Flag;
+    int_least8_t   Register_n_Flag;
+    int_least8_t   Register_v_Flag;
+    int_least8_t   Register_z_Flag;
+    uint_least16_t Register_StackPointer;
+    uint_least16_t instr_Operand;
 
     // Interrupts
     struct
     {
-        uword_sidt pending;
-        ubyte_sidt irqs;
+        uint_least16_t pending;
+        uint_least8_t  irqs;
     } interrupts;
 
-    ubyte_sidt Debug_Data;
-    uword_sidt Debug_EffectiveAddress;
-    ubyte_sidt Debug_Opcode;
-    uword_sidt Debug_Operand;
-    uword_sidt Debug_ProgramCounter;
-
-public:
-    // CRC Bits
-    unsigned long crc;
-
-private:
-    unsigned long crcTable[0x100];
+    uint8_t        Debug_Data;
+    uint_least16_t Debug_EffectiveAddress;
+    uint_least8_t  Debug_Opcode;
+    uint_least16_t Debug_Operand;
+    uint_least16_t Debug_ProgramCounter;
 };
 
 #endif // _mos6510c_h_

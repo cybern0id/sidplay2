@@ -14,6 +14,10 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "sidtypes.h"
@@ -22,7 +26,7 @@
 #include "conf6510.h"
 #include "opcodes.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
@@ -47,8 +51,8 @@
 
 void MOS6510::DumpState (void)
 {
-    ubyte_sidt opcode, data;
-    uword_sidt operand, address;
+    uint8_t        opcode, data;
+    uint_least16_t operand, address;
 
     // Only display decode instruction when enough cycles have
     // been read to make sense of the data
@@ -72,10 +76,10 @@ void MOS6510::DumpState (void)
     else
         printf ("0");
 
-    printf(" %02x ",  (ubyte_sidt) Register_Accumulator);
+    printf(" %02x ", (uint8_t) Register_Accumulator);
     printf("%02x ",   Register_X);
     printf("%02x ",   Register_Y);
-    printf("01%02x ", sidlobyte (Register_StackPointer));
+    printf("01%02x ", endian_16lo8 (Register_StackPointer));
 
     printf("%02x ", envReadMemByte (0));
     printf("%02x ", envReadMemByte (1));
@@ -97,7 +101,7 @@ void MOS6510::DumpState (void)
     {
     case BCCr: case BCSr: case BEQr: case BMIr: case BNEr: case BPLr:
     case BVCr: case BVSr:
-        address = (uword_sidt) (Register_ProgramCounter + (sbyte_sidt) operand);
+        address = (uint_least16_t) (Register_ProgramCounter + (int8_t) operand);
     break;
 
     default:
@@ -120,7 +124,7 @@ void MOS6510::DumpState (void)
     case ORAz: case ROLz: case RORz: case SAXz: case SBCz: case SREz:
     case STAz: case STXz: case STYz: case SLOz: case RLAz: case RRAz:
     //ASOz AXSz DCMz INSz LSEz - Optional Opcode Names
-        printf("%02x    ", (ubyte_sidt) operand);
+        printf("%02x    ", (uint8_t) operand);
         break;
     //Zero Page with X Offset Addressing Mode Handler
     case ADCzx:  case ANDzx: case ASLzx: case CMPzx: case DCPzx: case DECzx:
@@ -128,12 +132,12 @@ void MOS6510::DumpState (void)
     case NOPzx_: case ORAzx: case RLAzx: case ROLzx: case RORzx: case RRAzx:
     case SBCzx:  case SLOzx: case SREzx: case STAzx: case STYzx:
     //ASOzx DCMzx INSzx LSEzx - Optional Opcode Names
-        printf("%02x    ", (ubyte_sidt) operand);
+        printf("%02x    ", (uint8_t) operand);
         break;
     //Zero Page with Y Offset Addressing Mode Handler
     case LDXzy: case STXzy: case SAXzy: case LAXzy:
     //AXSzx - Optional Opcode Names
-        printf("%02x    ", sidlobyte (operand));
+        printf("%02x    ", endian_16lo8 (operand));
         break;
     //Absolute Addressing Mode Handler
     case ADCa: case ANDa: case ASLa: case BITa: case CMPa: case CPXa:
@@ -143,7 +147,7 @@ void MOS6510::DumpState (void)
     case SBCa: case SLOa: case SREa: case STAa: case STXa: case STYa:
     case RLAa: case RRAa:
     //ASOa AXSa DCMa INSa LSEa - Optional Opcode Names
-        printf("%02x %02x ", sidlobyte (operand), sidhibyte (operand));
+        printf("%02x %02x ", endian_16lo8 (operand), endian_16hi8 (operand));
         break;
     //Absolute With X Offset Addresing Mode Handler
     case ADCax:  case ANDax: case ASLax: case CMPax: case DCPax: case DECax:
@@ -151,7 +155,7 @@ void MOS6510::DumpState (void)
     case NOPax_: case ORAax: case RLAax: case ROLax: case RORax: case RRAax:
     case SBCax:  case SHYax: case SLOax: case SREax: case STAax:
     //ASOax DCMax INSax LSEax SAYax - Optional Opcode Names
-        printf("%02x %02x ", sidlobyte (operand), sidhibyte (operand));
+        printf("%02x %02x ", endian_16lo8 (operand), endian_16hi8 (operand));
         break;
     //Absolute With Y Offset Addresing Mode Handler
     case ADCay: case ANDay: case CMPay: case DCPay: case EORay: case ISBay:
@@ -159,7 +163,7 @@ void MOS6510::DumpState (void)
     case RRAay: case SBCay: case SHAay: case SHSay: case SHXay: case SLOay:
     case SREay: case STAay:
     //ASOay AXAay DCMay INSax LSEay TASay XASay - Optional Opcode Names
-        printf("%02x %02x ", sidlobyte (operand), sidhibyte (operand));
+        printf("%02x %02x ", endian_16lo8 (operand), endian_16hi8 (operand));
         break;
     //Immediate and Relative Addressing Mode Handler
     case ADCb: case ANDb: case ANCb_: case ANEb: case ASRb:  case ARRb:
@@ -167,29 +171,29 @@ void MOS6510::DumpState (void)
     case CMPb: case CPXb: case CPYb:  case EORb: case LDAb:  case LDXb:
     case LDYb: case LXAb: case NOPb_: case ORAb: case SBCb_: case SBXb:
     //OALb ALRb XAAb - Optional Opcode Names
-        printf("%02x    ", sidlobyte (operand));
+        printf("%02x    ", endian_16lo8 (operand));
         break;
     case BCCr: case BCSr: case BEQr: case BMIr: case BNEr: case BPLr:
     case BVCr: case BVSr:
-        printf("%02x    ", sidlobyte (operand));
+        printf("%02x    ", endian_16lo8 (operand));
         break;
     //Indirect Addressing Mode Handler
     case JMPi:
-        printf("%02x %02x ", sidlobyte (operand), sidhibyte (operand));
+        printf("%02x %02x ", endian_16lo8 (operand), endian_16hi8 (operand));
         break;
     //Indexed with X Preinc Addressing Mode Handler
     case ADCix: case ANDix: case CMPix: case DCPix: case EORix: case ISBix:
     case LAXix: case LDAix: case ORAix: case SAXix: case SBCix: case SLOix:
     case SREix: case STAix: case RLAix: case RRAix:
     //ASOix AXSix DCMix INSix LSEix - Optional Opcode Names
-        printf("%02x    ", sidlobyte (operand));
+        printf("%02x    ", endian_16lo8 (operand));
         break;
     //Indexed with Y Postinc Addressing Mode Handler
     case ADCiy: case ANDiy: case CMPiy: case DCPiy: case EORiy: case ISBiy:
     case LAXiy: case LDAiy: case ORAiy: case RLAiy: case RRAiy: case SBCiy:
     case SHAiy: case SLOiy: case SREiy: case STAiy:
     //AXAiy ASOiy LSEiy DCMiy INSiy - Optional Opcode Names
-        printf("%02x    ", sidlobyte (operand));
+        printf("%02x    ", endian_16lo8 (operand));
         break;
     default:
         printf("      ");
@@ -387,13 +391,13 @@ void MOS6510::DumpState (void)
     case ROLz: case RORz: case SBCz: case SREz: case SLOz: case RLAz:
     case RRAz:
     //ASOz AXSz DCMz INSz LSEz - Optional Opcode Names
-        printf("z  %02x {%02x}", (ubyte_sidt) operand, data);
+        printf("z  %02x {%02x}", (uint8_t) operand, data);
     break;
     case SAXz: case STAz: case STXz: case STYz:
-#ifdef FULL_DEBUG
+#ifdef MOS6510_DEBUG
     case NOPz_:
-#endif // FULL_DEBUG
-        printf("z  %02x", sidlobyte (operand));
+#endif
+        printf("z  %02x", endian_16lo8 (operand));
     break;
 
     //Zero Page with X Offset Addressing Mode Handler
@@ -402,25 +406,25 @@ void MOS6510::DumpState (void)
     case ORAzx: case RLAzx: case ROLzx: case RORzx: case RRAzx: case SBCzx:
     case SLOzx: case SREzx:
     //ASOzx DCMzx INSzx LSEzx - Optional Opcode Names
-        printf("zx %02x,X", sidlobyte (operand));
+        printf("zx %02x,X", endian_16lo8 (operand));
         printf(" [%04x]{%02x}", address, data);
     break;
     case STAzx: case STYzx:
-#ifdef FULL_DEBUG
+#ifdef MOS6510_DEBUG
     case NOPzx_:
-#endif // FULL_DEBUG
-        printf("zx %02x,X", sidlobyte (operand));
+#endif
+        printf("zx %02x,X", endian_16lo8 (operand));
         printf(" [%04x]", address);
     break;
 
     //Zero Page with Y Offset Addressing Mode Handler
     case LAXzy: case LDXzy:
     //AXSzx - Optional Opcode Names
-        printf("zy %02x,Y", sidlobyte (operand));
+        printf("zy %02x,Y", endian_16lo8 (operand));
         printf(" [%04x]{%02x}", address, data);
     break;
     case STXzy: case SAXzy:
-        printf("zy %02x,Y", sidlobyte (operand));
+        printf("zy %02x,Y", endian_16lo8 (operand));
         printf(" [%04x]", address);
     break;
 
@@ -434,9 +438,9 @@ void MOS6510::DumpState (void)
         printf("a  %04x {%02x}", operand, data);
     break;
     case SAXa: case STAa: case STXa: case STYa:
-#ifdef FULL_DEBUG
+#ifdef MOS6510_DEBUG
     case NOPa:
-#endif // FULL_DEBUG
+#endif
         printf("a  %04x", operand);
     break;
     case JMPw: case JSRw:
@@ -453,7 +457,7 @@ void MOS6510::DumpState (void)
         printf(" [%04x]{%02x}", address, data);
     break;
     case SHYax: case STAax:
-#ifdef FULL_DEBUG
+#ifdef MOS6510_DEBUG
     case NOPax_:
 #endif
         printf("ay %04x,Y", operand);
@@ -478,16 +482,16 @@ void MOS6510::DumpState (void)
     case CMPb: case CPXb: case CPYb:  case EORb: case LDAb:  case LDXb:
     case LDYb: case LXAb: case ORAb: case SBCb_: case SBXb:
     //OALb ALRb XAAb - Optional Opcode Names
-#ifdef FULL_DEBUG
+#ifdef MOS6510_DEBUG
     case NOPb_:
-#endif // FULL_DEBUG
-        printf("b  #%02x", sidlobyte (operand));
+#endif
+        printf("b  #%02x", endian_16lo8 (operand));
     break;
 
     //Relative Addressing Mode Handler
     case BCCr: case BCSr: case BEQr: case BMIr: case BNEr: case BPLr:
     case BVCr: case BVSr:
-        printf("r  #%02x", sidlobyte (operand));
+        printf("r  #%02x", endian_16lo8 (operand));
         printf(" [%04x]", address);
     break;
 
@@ -502,11 +506,11 @@ void MOS6510::DumpState (void)
     case LAXix: case LDAix: case ORAix: case SBCix: case SLOix: case SREix:
     case RLAix: case RRAix:
     //ASOix AXSix DCMix INSix LSEix - Optional Opcode Names
-        printf("ix (%02x,X)", sidlobyte (operand));
+        printf("ix (%02x,X)", endian_16lo8 (operand));
         printf(" [%04x]{%02x}", address, data);
     break;
     case SAXix: case STAix:
-        printf("ix (%02x,X)", sidlobyte (operand));
+        printf("ix (%02x,X)", endian_16lo8 (operand));
         printf(" [%04x]", address);
     break;
 
@@ -515,11 +519,11 @@ void MOS6510::DumpState (void)
     case LAXiy: case LDAiy: case ORAiy: case RLAiy: case RRAiy: case SBCiy:
     case SLOiy: case SREiy:
     //AXAiy ASOiy LSEiy DCMiy INSiy - Optional Opcode Names
-        printf("iy (%02x),Y", sidlobyte (operand));
+        printf("iy (%02x),Y", endian_16lo8 (operand));
         printf(" [%04x]{%02x}", address, data);
     break;
     case SHAiy: case STAiy:
-        printf("iy (%02x),Y", sidlobyte (operand));
+        printf("iy (%02x),Y", endian_16lo8 (operand));
         printf(" [%04x]", address);
     break;
 

@@ -20,7 +20,7 @@
 
 #include "SidTuneTools.h"
 
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
 #include <ctype.h>
@@ -30,7 +30,7 @@
 char* SidTuneTools::myStrDup(const char *source)
 {
 	char *dest;
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 	if ( (dest = new(nothrow) char[strlen(source)+1]) != 0)
 #else
 	if ( (dest = new char[strlen(source)+1]) != 0)
@@ -45,7 +45,7 @@ char* SidTuneTools::myStrDup(const char *source)
 char* SidTuneTools::fileNameWithoutPath(char* s)
 {
 	int last_slash_pos = -1;
-	for ( udword_sidt pos = 0; pos < strlen(s); pos++ )
+	for ( uint_least32_t pos = 0; pos < strlen(s); pos++ )
 	{
 #if defined(SID_FS_IS_COLON_AND_BACKSLASH)
 		if ( s[pos] == ':' || s[pos] == '\\' )
@@ -72,7 +72,7 @@ char* SidTuneTools::fileNameWithoutPath(char* s)
 char* SidTuneTools::slashedFileNameWithoutPath(char* s)
 {
 	int last_slash_pos = -1;
-	for ( udword_sidt pos = 0; pos < strlen(s); pos++ )
+	for ( uint_least32_t pos = 0; pos < strlen(s); pos++ )
 	{
         if ( s[pos] == '/' )
 		{
@@ -86,7 +86,7 @@ char* SidTuneTools::slashedFileNameWithoutPath(char* s)
 // The backwards-version.
 char* SidTuneTools::fileExtOfPath(char* s)
 {
-	udword_sidt last_dot_pos = strlen(s);  // assume no dot and append
+	uint_least32_t last_dot_pos = strlen(s);  // assume no dot and append
 	for ( int pos = last_dot_pos; pos >= 0; --pos )
 	{
 		if ( s[pos] == '.' )
@@ -100,9 +100,9 @@ char* SidTuneTools::fileExtOfPath(char* s)
 
 // Parse input string stream. Read and convert a hexa-decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
-udword_sidt SidTuneTools::readHex( istrstream& hexin )
+uint_least32_t SidTuneTools::readHex( istrstream& hexin )
 {
-	udword_sidt hexLong = 0;
+	uint_least32_t hexLong = 0;
 	char c;
 	do
 	{
@@ -115,7 +115,7 @@ udword_sidt SidTuneTools::readHex( istrstream& hexin )
 			c &= 0xdf;
 			( c < 0x3a ) ? ( c &= 0x0f ) : ( c -= ( 0x41 - 0x0a ));
 			hexLong <<= 4;
-			hexLong |= (udword_sidt)c;
+			hexLong |= (uint_least32_t)c;
 		}
 		else
 		{
@@ -129,9 +129,9 @@ udword_sidt SidTuneTools::readHex( istrstream& hexin )
 
 // Parse input string stream. Read and convert a decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
-udword_sidt SidTuneTools::readDec( istrstream& decin )
+uint_least32_t SidTuneTools::readDec( istrstream& decin )
 {
-	udword_sidt hexLong = 0;
+	uint_least32_t hexLong = 0;
 	char c;
 	do
 	{
@@ -142,7 +142,7 @@ udword_sidt SidTuneTools::readDec( istrstream& decin )
 		{
 			c &= 0x0f;
 			hexLong *= 10;
-			hexLong += (udword_sidt)c;
+			hexLong += (uint_least32_t)c;
 		}
 		else
 		{ 
