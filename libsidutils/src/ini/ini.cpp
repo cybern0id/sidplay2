@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.12  2004/02/26 18:02:58  s_a_white
+ * Sync with libini project.
+ *
  * Revision 1.26  2003/04/26 08:45:36  s_a_white
  * parser.first can be 0 for anonymous sections (should be checking against
  * -1 anyway).
@@ -97,7 +100,7 @@
 //*******************************************************************************************************************
 #include <assert.h>
 #include <ctype.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
