@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 #include <sidplay/sidendian.h>
-#include <sidplay/sidusage.h>
 #include <sidplay/SidTune.h>
 #include "SidUsage.h"
 #include "smm0.h"
@@ -322,6 +321,7 @@ bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header
             case MD5_ID:
                 length = readChunk (file, smm.md5);
                 memcpy (usage.md5, smm.md5.key, sizeof (smm.md5.key));
+                usage.md5[32] = '\0'; // SIDTUNE_MD5_LENGTH
                 break;
 
             case TIME_ID:
