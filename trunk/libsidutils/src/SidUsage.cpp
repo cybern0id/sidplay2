@@ -314,7 +314,7 @@ bool SidUsage::readSMM (FILE *file, sid2_usage_t &usage, const char *)
 
 void SidUsage::writeSMM (FILE *file, const sid2_usage_t &usage)
 {
-    struct  Smm_v0 smm(0);
+    Smm_v0 smm(0);
     uint8_t tmp[4] = {0};
     uint_least32_t length = 4;
     fpos_t  pos;
