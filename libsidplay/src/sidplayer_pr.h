@@ -20,7 +20,7 @@
 
 #include "config.h"
 #include "sidplayer.h"
-#include SID_ENVIRONMENT_H
+#include "sidenv.h"
 #include "mos6510/mos6510.h"
 #include "mos6581/mos6581.h"
 #include "xsid/xsid.h"

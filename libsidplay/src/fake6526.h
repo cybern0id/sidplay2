@@ -20,7 +20,7 @@
 
 #include "config.h"
 #include "sidtypes.h"
-#include SID_ENVIRONMENT_H
+#include "sidenv.h"
 
 class fake6526: public C64Environment
 {

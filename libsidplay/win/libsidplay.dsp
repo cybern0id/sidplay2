@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /O2 /I "." /I "../include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /Gm /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /Zi /Od /I "." /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -93,15 +93,7 @@ SOURCE=..\src\audio\AudioConfig.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\audio\directx\audiodrv.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\src\audio\AudioDrv.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\audio\directx\audiodrv.h
 # End Source File
 # Begin Source File
 
@@ -118,6 +110,14 @@ SOURCE=..\src\mos6510\conf6510.h
 # Begin Source File
 
 SOURCE=.\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\audio\directx\Directx.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\audio\directx\directx.h
 # End Source File
 # Begin Source File
 
@@ -162,6 +162,14 @@ SOURCE=..\src\sidtune\InfoFile.cpp
 # Begin Source File
 
 SOURCE=..\src\main.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\audio\mmsystem\Mmsystem.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\audio\mmsystem\mmsystem.h
 # End Source File
 # Begin Source File
 

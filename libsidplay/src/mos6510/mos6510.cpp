@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include "sidtypes.h"
 #include "sidendian.h"
-#include "src/c64env.h"
+#include "sidenv.h"
 #include "conf6510.h"
 #include "opcodes.h"
 

@@ -51,7 +51,7 @@ These effects are however be present in the oringial SID music.
 
 #include "config.h"
 #include "sidtypes.h"
-#include SID_ENVIRONMENT_H
+#include "sidenv.h"
 
 // XSID configuration settings
 #define XSID_USE_SID_VOLUME
