@@ -85,14 +85,14 @@ install_sh = @install_sh@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include src
+SUBDIRS = include src unix
 
-EXTRA_DIST = unix win Makefile.dist acconfig.h libsidplay.spec
+EXTRA_DIST = win acconfig.h
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
-CONFIG_CLEAN_FILES = libsidplay.spec
+CONFIG_CLEAN_FILES =
 DIST_SOURCES =
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
@@ -101,9 +101,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 configure \
-	configure.in libsidplay.spec.in unix/config.guess \
-	unix/config.sub unix/depcomp unix/install-sh unix/ltmain.sh \
-	unix/missing unix/mkinstalldirs
+	configure.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: all-recursive
 
@@ -132,8 +130,6 @@ $(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENC
 
 $(ACLOCAL_M4):  configure.in acinclude.m4
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
-libsidplay.spec: $(top_builddir)/config.status libsidplay.spec.in
-	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 uninstall-info-am:
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -239,7 +235,7 @@ GZIP_ENV = --best
 distdir: $(DISTFILES)
 	-chmod -R a+w $(distdir) >/dev/null 2>&1; rm -rf $(distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/. $(distdir)/include/sidplay $(distdir)/unix
+	$(mkinstalldirs) $(distdir)/include/sidplay $(distdir)/unix
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \

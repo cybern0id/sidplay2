@@ -14,19 +14,28 @@ AC_SUBST(LIBVERSION)
 
 AC_CANONICAL_HOST
 
-dnl Use C++ for tests.
-AC_LANG_CPLUSPLUS
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_RANLIB
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
 dnl Checks for header files.
+AC_HEADER_STDC
+dnl Check for AC99 headers
+AC_CHECK_HEADERS(stdint.h stdbool.h)
+if test "$ac_cv_header_stdint_h" = yes; then
+    SID_SUBST_DEF(SID_HAVE_STDINT_H)
+else
+    SID_SUBST_UNDEF(SID_HAVE_STDINT_H)
+fi
+if test "$ac_cv_header_stdbool_h" = yes; then
+    SID_SUBST_DEF(SID_HAVE_STDBOOL_H)
+else
+    SID_SUBST_UNDEF(SID_HAVE_STDBOOL_H)
+fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -46,6 +55,16 @@ SID_SUBST(SID_SIZEOF_SHORT_INT,$ac_cv_sizeof_short_int)
 SID_SUBST(SID_SIZEOF_INT,$ac_cv_sizeof_int)
 SID_SUBST(SID_SIZEOF_LONG_INT,$ac_cv_sizeof_long_int)
 
+dnl Checks for library functions.
+AC_CHECK_FUNC(strncasecmp,[AC_DEFINE(HAVE_STRNCASECMP,)],[])
+AC_CHECK_FUNC(strcasecmp,[AC_DEFINE(HAVE_STRCASECMP,)],[])
+AC_CHECK_HEADER(strstrea.h,[AC_DEFINE(HAVE_STRSTREA_H,)],[])
+
+AC_SYS_LONG_FILE_NAMES
+
+dnl Use C++ for other tests.
+AC_LANG_CPLUSPLUS
+
 dnl Check whether the compiler has bool.
 CHECK_BOOL
 if test "$test_cv_have_bool" = yes; then
@@ -61,33 +80,10 @@ dnl Check ANSI C++ ios features
 CHECK_IOS_BIN
 CHECK_IOS_OPENMODE
 
-dnl Checks for library functions.
-AC_HEADER_STDC
-
-AC_CHECK_FUNC(strncasecmp,[AC_DEFINE(HAVE_STRNCASECMP,)],[])
-AC_CHECK_FUNC(strcasecmp,[AC_DEFINE(HAVE_STRCASECMP,)],[])
-AC_CHECK_HEADER(strstrea.h,[AC_DEFINE(HAVE_STRSTREA_H,)],[])
-
-AC_SYS_LONG_FILE_NAMES
-
-dnl Check for AC99 headers
-AC_CHECK_HEADERS(stdint.h stdbool.h)
-if test "$ac_cv_header_stdint_h" = yes; then
-    SID_SUBST_DEF(SID_HAVE_STDINT_H)
-else
-    SID_SUBST_UNDEF(SID_HAVE_STDINT_H)
-fi
-if test "$ac_cv_header_stdbool_h" = yes; then
-    SID_SUBST_DEF(SID_HAVE_STDBOOL_H)
-else
-    SID_SUBST_UNDEF(SID_HAVE_STDBOOL_H)
-fi
-
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay -Wall"
 
 AC_OUTPUT(
-libsidplay.spec \
 Makefile \
 include/Makefile \
 include/sidplay/Makefile \
@@ -99,5 +95,8 @@ src/mos6526/Makefile \
 src/mos656x/Makefile \
 src/sid6526/Makefile \
 src/sidtune/Makefile \
-src/xsid/Makefile
+src/xsid/Makefile \
+unix/Makefile \
+unix/libsidplay2.spec \
+unix/libsidplay2.pc \
 )
