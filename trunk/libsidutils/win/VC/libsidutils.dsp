@@ -110,10 +110,6 @@ SOURCE=..\..\src\ini\ini.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\sidplay\utils\iniconfig.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\ini\keys.h
 # End Source File
 # Begin Source File
