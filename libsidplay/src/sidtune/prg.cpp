@@ -49,5 +49,8 @@ SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName, const void* b
     info.infoString[0] = "<?>";
     info.infoString[1] = info.infoString[0];
     info.infoString[2] = info.infoString[0];
+
+    // Create the speed/clock setting table.
+    convertOldStyleSpeedToTables(~0, info.clockSpeed);
     return LOAD_OK;
 }
