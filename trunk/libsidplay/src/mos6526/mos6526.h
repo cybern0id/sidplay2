@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/02/29 14:30:18  s_a_white
+ *  Serial port emulation.
+ *
  *  Revision 1.13  2004/01/06 21:28:27  s_a_white
  *  Initial TOD support (code taken from vice)
  *
@@ -90,11 +93,12 @@ protected:
     // Timer A
     uint8_t cra, cra_latch, dpa;
     uint_least16_t ta, ta_latch;
-    int  ta_state;
+    bool ta_underflow;
 
     // Timer B
     uint8_t crb;
     uint_least16_t tb, tb_latch;
+    bool tb_underflow;
 
     // Serial Data Registers
     uint8_t sdr_out;
