@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.79  2004/05/24 23:11:15  s_a_white
+ *  Fixed email addresses displayed to end user.
+ *
  *  Revision 1.78  2004/05/20 22:37:38  s_a_white
  *  Protect ourselves from sid images that would exceed the top of memory.
  *
@@ -499,7 +502,7 @@ int Player::initialise ()
 
     {
         uint_least32_t page = ((uint_least32_t) m_tuneInfo.loadAddr
-                            + m_tuneInfo.c64dataLen) >> 8;
+                            + m_tuneInfo.c64dataLen - 1) >> 8;
         if (page > 0xff)
         {
             m_errorString = "SIDPLAYER ERROR: Size of music data exceeds C64 memory.";
