@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:53:29  s_a_white
+ *  Added call to get pointer to current music buffer.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -53,6 +56,7 @@ public:
     virtual void *reset () = 0;
     virtual void *write () = 0;
     virtual void  close () = 0;
+    virtual void  pause () = 0;
     void   *buffer () { return _sampleBuffer; }
 
     void getConfig (AudioConfig &cfg) const
