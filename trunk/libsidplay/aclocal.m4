@@ -140,16 +140,25 @@ AC_DEFUN(SID_PATH_LIBRESID,
     dnl Be pessimistic.
     sid_resid_library=NO
     sid_resid_includes=NO
+    sid_resid_installed=yes
+
+    AC_ARG_WITH(resid,
+        [  --with-resid=DIR
+            where the resid is located],
+        [sid_resid_includes="$withval"
+         sid_resid_library="$withval"
+        ]
+    )
 
     AC_ARG_WITH(resid-includes,
         [  --with-resid-includes=DIR
-                          where the resid includes are located],
+            where the resid includes are located],
         [sid_resid_includes="$withval"]
     )
 
     AC_ARG_WITH(resid-library,
         [  --with-resid-library=DIR
-                          where the resid library is installed],
+            where the resid library is installed],
         [sid_resid_library="$withval"]
     )
 
@@ -160,56 +169,51 @@ AC_DEFUN(SID_PATH_LIBRESID,
     # Use library path given by user (if any).
     if test "$sid_resid_library" != NO; then
         sid_resid_libadd="-L$sid_resid_library"
-    fi
+   fi
 
     # Use include path given by user (if any).
     if test "$sid_resid_includes" != NO; then
         sid_resid_incadd="-I$sid_resid_includes"
+        sid_resid_installed=no
+        sid_resid_local=yes
     fi
 
     # Run test compilation.
-    AC_CACHE_VAL(sid_cv_libresid_works,
-    [
-        SID_TRY_LIBRESID
-        sid_cv_libresid_works=$sid_libresid_works
-    ])
+    SID_TRY_LIBRESID
+    if test "$sid_libresid_works" = no; then
+        sid_resid_local=no
+        SID_TRY_USER_LIBRESID
+    fi
 
-    if test "$sid_cv_libresid_works" = no; then
-    
+    if test "$sid_libresid_works" = no; then
         # Test compilation failed.
-        # Need to search for library and headers.
-        AC_CACHE_VAL(sid_cv_have_resid,
-        [
-            # Search common locations where header files might be stored.
-            resid_incdirs="$sid_resid_includes /usr/include /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
-            SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
-            sid_resid_includes=$resid_foundincdir
+        # Need to search for library and headers
+        # Search common locations where header files might be stored.
+        sid_resid_installed=no
+        sid_resid_local=yes
+        resid_incdirs="src/mos6581 /usr/include /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
+        SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
+        sid_resid_includes=$resid_foundincdir
 
-            # Search common locations where library might be stored.
-            resid_libdirs="$sid_resid_library /usr/lib /usr/local/lib /usr/lib/resid /usr/local/lib/resid"
-            SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
-            sid_resid_library=$resid_foundlibdir
+        # Search common locations where library might be stored.
+        resid_libdirs="src/mos6581 /usr/lib /usr/local/lib /usr/lib/resid /usr/local/lib/resid"
+        SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
+        sid_resid_library=$resid_foundlibdir
 
-            if test "$sid_resid_includes" = NO || test "$sid_resid_library" = NO; then
-                sid_cv_have_resid="sid_have_resid=no"
-            else
-                sid_cv_have_resid="sid_have_resid=yes"
-            fi
-        ])
+        if test "$sid_resid_includes" = NO || test "$sid_resid_library" = NO; then
+            sid_have_resid=no
+        else
+            sid_have_resid=yes
+        fi
         
-        eval "$sid_cv_have_resid"
         if test "$sid_have_resid" = yes; then
             sid_resid_libadd="-L$sid_resid_library"
             sid_resid_incadd="-I$sid_resid_includes"
             
             # Test compilation with found paths.
-            AC_CACHE_VAL(sid_cv_found_libresid_works,
-            [
-                SID_TRY_LIBRESID
-                sid_cv_found_libresid_works=$sid_libresid_works
-            ])
-            sid_have_resid=$sid_cv_found_libresid_works
-            
+            SID_TRY_LIBRESID
+
+            sid_have_resid=$sid_libresid_works
             if test "$sid_have_resid" = no; then
                 # Found library does not link without errors.
                 sid_have_resid=no
@@ -220,6 +224,14 @@ AC_DEFUN(SID_PATH_LIBRESID,
         else
             # Either library or headers not found.
             AC_MSG_RESULT([$sid_have_resid]);
+        fi
+
+        if test "$sid_have_resid" = no; then
+            AC_MSG_ERROR(
+[
+reSID library and/or headers found not found.
+Please check your installation!
+]);
         fi
     else
         # Simply print 'yes' without printing the standard path.
@@ -232,9 +244,23 @@ AC_DEFUN(SID_PATH_LIBRESID,
 
     AC_SUBST(RESID_LDADD)
     AC_SUBST(RESID_INCLUDES)
+
+    if test "$sid_resid_installed" = no; then
+        if test "$sid_resid_local" = yes; then
+            SID_SUBST_DEF(SID_HAVE_LOCAL_RESID)
+            SID_SUBST_UNDEF(SID_HAVE_USER_RESID)
+        else
+            SID_SUBST_UNDEF(SID_HAVE_LOCAL_RESID)
+            SID_SUBST_DEF(SID_HAVE_USER_RESID)
+        fi
+    else
+        SID_SUBST_UNDEF(SID_HAVE_LOCAL_RESID)
+        SID_SUBST_UNDEF(SID_HAVE_USER_RESID)
+    fi
 ])
 
 dnl Function used by SID_PATH_LIBRESID.
+dnl This is for local or expected named paths
 
 AC_DEFUN(SID_TRY_LIBRESID,
 [
@@ -248,7 +274,7 @@ AC_DEFUN(SID_TRY_LIBRESID,
 
     AC_TRY_LINK(
         [#include "resid/sid.h"],
-        [SID mySID;],
+        [SID *mySID;],
         [sid_libresid_works=yes],
         [sid_libresid_works=no]
     )
@@ -258,6 +284,30 @@ AC_DEFUN(SID_TRY_LIBRESID,
     LIBS="$sid_libs_save"
 ])
 
+dnl Function used by SID_PATH_LIBRESID.
+dnl This is for custom explict specified paths
+
+AC_DEFUN(SID_TRY_USER_LIBRESID,
+[
+    sid_cxxflags_save=$CXXFLAGS
+    sid_ldflags_save=$LDFLAGS
+    sid_libs_save=$LIBS
+
+    CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
+    LDFLAGS="$LDFLAGS $sid_resid_libadd"
+    LIBS="-lresid"
+
+    AC_TRY_LINK(
+        [#include "sid.h"],
+        [SID *mySID;],
+        [sid_libresid_works=yes],
+        [sid_libresid_works=no]
+    )
+
+    CXXFLAGS="$sid_cxxflags_save"
+    LDFLAGS="$sid_ldflags_save"
+    LIBS="$sid_libs_save"
+])
 
 # Like AC_CONFIG_HEADER, but automatically create stamp file.
 
