@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.57  2002/12/14 10:10:30  s_a_white
+ *  Kernal Mod: Bypass screen clear as we don't have a screen.  Fix setting
+ *  of PAL/NTSC flag for real c64 mode.
+ *
  *  Revision 1.56  2002/12/13 22:01:54  s_a_white
  *  Kernel mods:  Memory now bypassed by upping the start address so the
  *  end or ram is found instantly.  Basic cold/warm start address points to a
@@ -214,6 +218,10 @@ static const uint8_t kernal[] = {
 #include "kernal.bin"
 };
 
+static const uint8_t poweron[] = {
+#include "poweron.bin"
+};
+
 SIDPLAY2_NAMESPACE_START
 
 const double Player::CLOCK_FREQ_NTSC = 1022727.14;
@@ -344,7 +352,7 @@ void Player::fakeIRQ (void)
         }
         else
         {   // Setup the entry point from software IRQ
-            playAddr = endian_little16 (&m_ram[0xFFFF]);
+            playAddr = endian_little16 (&m_ram[0xFFFE]);
         }
     }
 
@@ -788,15 +796,24 @@ void Player::reset (void)
     if (m_info.environment == sid2_envR)
     {
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
-        // Since we don't yet run the kernal power up
-        // routines, set somethings here.
-        endian_little16 (&m_ram[0x028f], 0xEB48); // keyboard poll
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         endian_little16 (&m_rom[0xa000], 0xA004);
         endian_little16 (&m_rom[0xa002], 0xA004);
         m_rom[0xa004] = JMPw;
         endian_little16 (&m_rom[0xa005], 0xA004);
+
+        // Copy in power on settings.  These were created by running
+        // the kernel reset routine and storing the usefull values
+        // from $0000-$03ff.  Format is offset, data pairs.
+        {
+            uint_least16_t addr = 0;
+            for (int i = 0; i < sizeof (poweron); i++)
+            {
+                addr       += poweron[i++];
+                m_ram[addr] = poweron[i];
+            }
+        }
     }
     else // !sid2_envR
     {
