@@ -43,7 +43,8 @@ const char *MOS656X::credit =
 
 MOS656X::MOS656X (EventContext *context)
 :Event("VIC Raster"),
- event_context(*context)
+ event_context(*context),
+ m_phase(EVENT_CLOCK_PHI1)
 {
     chip  (MOS6569);
 }
@@ -56,7 +57,7 @@ void MOS656X::reset ()
     raster_y     = yrasters - 1;
     raster_x     = 0;
     bad_lines_enabled = false;
-    event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
+    event_context.schedule (this, 0, m_phase);
     m_rasterClk  = 0;
 }
 
@@ -97,6 +98,9 @@ uint8_t MOS656X::read (uint_least8_t addr)
     if (addr > 0x3f) return 0;
     if (addr > 0x2e) return 0xff;
  
+    // Sync up timers
+    event ();
+
     switch (addr)
     {
     case 0x11:    // Control register 1 
@@ -117,11 +121,14 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
 
     regs[addr] = data;
 
+    // Sync up timers
+    event ();
+
     switch (addr)
     {
     case 0x11: // Control register 1
     {
-        event_clock_t cycles = event_context.getTime (m_rasterClk);
+        event_clock_t cycles = event_context.getTime (m_rasterClk, m_phase);
 
         // Update x raster
         m_rasterClk += cycles;
@@ -146,7 +153,7 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
                    bad_lines_enabled;
 
         if (bad_line)
-            event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
+            event_context.schedule (this, 0, m_phase);
         break;
     }
 
@@ -192,7 +199,7 @@ void MOS656X::trigger (int irq)
 void MOS656X::event (void)
 {
     event_clock_t delay  = 1;
-    event_clock_t cycles = event_context.getTime (m_rasterClk);
+    event_clock_t cycles = event_context.getTime (m_rasterClk, m_phase);
 
     // Update x raster
     m_rasterClk += cycles;
@@ -256,5 +263,5 @@ void MOS656X::event (void)
         }
     }
 
-    event_context.schedule (this, delay, EVENT_CLOCK_PHI1);
+    event_context.schedule (this, delay, m_phase);
 }

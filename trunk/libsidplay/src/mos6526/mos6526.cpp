@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2003/02/24 19:44:30  s_a_white
+ *  Make sure events are canceled on reset.
+ *
  *  Revision 1.11  2003/01/17 08:39:04  s_a_white
  *  Event scheduler phase support.  Better default handling of keyboard lines.
  *
@@ -90,6 +93,7 @@ const char *MOS6526::credit =
 MOS6526::MOS6526 (EventContext *context)
 :idr(0),
  event_context(*context),
+ m_phase(EVENT_CLOCK_PHI1),
  event_ta(this),
  event_tb(this)
 {
@@ -117,14 +121,22 @@ uint8_t MOS6526::read (uint_least8_t addr)
     event_clock_t cycles;
     if (addr > 0x0f) return 0;
 
-    cycles       = event_context.getTime (m_accessClk);
+    cycles       = event_context.getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     // Sync up timers
     if ((cra & 0x21) == 0x01)
+    {
         ta -= cycles;
+        if (!ta)
+            ta_event ();
+    }
     if ((crb & 0x61) == 0x01)
+    {
         tb -= cycles;
+        if (!tb)
+            tb_event ();
+    }
 
     switch (addr)
     {
@@ -160,14 +172,22 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     if (addr > 0x0f) return;
 
     regs[addr]   = data;
-    cycles       = event_context.getTime (m_accessClk);
+    cycles       = event_context.getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     // Sync up timers
     if ((cra & 0x21) == 0x01)
+    {
         ta -= cycles;
+        if (!ta)
+            ta_event ();
+    }
     if ((crb & 0x61) == 0x01)
+    {
         tb -= cycles;
+        if (!tb)
+            tb_event ();
+    }
 
     switch (addr)
     {
@@ -205,7 +225,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         if ((data & 0x21) == 0x01)
         {   // Active
             event_context.schedule (&event_ta, (event_clock_t) ta + 1,
-                                    EVENT_CLOCK_PHI1);
+                                    m_phase);
         } else
         {   // Inactive
             ta = ta_latch;
@@ -225,7 +245,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         if ((data & 0x61) == 0x01)
         {   // Active
             event_context.schedule (&event_tb, (event_clock_t) tb + 1,
-                                    EVENT_CLOCK_PHI1);
+                                    m_phase);
         } else
         {   // Inactive
             tb = tb_latch;
@@ -270,7 +290,7 @@ void MOS6526::ta_event (void)
             return;
     }
 
-    cycles       = event_context.getTime (m_accessClk);
+    cycles       = event_context.getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     ta = ta_latch;
@@ -280,7 +300,7 @@ void MOS6526::ta_event (void)
     } else if (mode == 0x01)
     {   // Reset event
         event_context.schedule (&event_ta, (event_clock_t) ta + 1,
-                                EVENT_CLOCK_PHI1);
+                                m_phase);
     }
     trigger (INTERRUPT_TA);
     
@@ -320,7 +340,7 @@ void MOS6526::tb_event (void)
         return;
     }
 
-    m_accessClk = event_context.getTime ();
+    m_accessClk = event_context.getTime (m_phase);
     tb = tb_latch;
     if (crb & 0x08)
     {   // one shot, stop timer A
@@ -328,7 +348,7 @@ void MOS6526::tb_event (void)
     } else if (mode == 0x01)
     {   // Reset event
         event_context.schedule (&event_tb, (event_clock_t) tb + 1,
-                                EVENT_CLOCK_PHI1);
+                                m_phase);
     }
     trigger (INTERRUPT_TB);
 }

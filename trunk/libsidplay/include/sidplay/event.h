@@ -58,8 +58,8 @@ public:
     virtual void cancel   (Event *event) = 0;
     virtual void schedule (Event *event, event_clock_t cycles,
                            event_phase_t phase) = 0;
-    virtual event_clock_t getTime (void) const = 0;
-    virtual event_clock_t getTime (event_clock_t clock) const = 0;
+    virtual event_clock_t getTime (event_phase_t phase) const = 0;
+    virtual event_clock_t getTime (event_clock_t clock, event_phase_t phase) const = 0;
 };
 
 // Private Event Context Object (The scheduler)
@@ -120,10 +120,11 @@ public:
         dispatch (*m_next);
     }
 
-    event_clock_t getTime (void) const
-    {   return (m_absClk + m_clk) >> 1; }
-    event_clock_t getTime (event_clock_t clock) const
-    {   return getTime () - clock; }
+    // Get time with respect to a specific clock phase
+    event_clock_t getTime (event_phase_t phase) const
+    {   return (m_absClk + m_clk + (phase ^ 1)) >> 1; }
+    event_clock_t getTime (event_clock_t clock, event_phase_t phase) const
+    {   return getTime (phase) - clock; }
 };
 
 #endif // _event_h_

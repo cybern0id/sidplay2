@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2003/10/16 07:46:05  s_a_white
+ *  Allow redirection of debug information of file.
+ *
  *  Revision 1.8  2001/08/05 15:46:38  s_a_white
  *  No longer need to check on which cycle to print debug information.
  *
@@ -69,7 +72,7 @@ void MOS6510::DumpState (void)
     uint8_t        opcode, data;
     uint_least16_t operand, address;
 
-    printf(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction\n");
+    printf(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%u)\n", eventContext.getTime (m_phase));
     printf("%04x ",   instrStartPC);
     printf("%u ",     interrupts.irqs);
     printf("%02x ",   Register_Accumulator);

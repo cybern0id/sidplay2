@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2003/02/20 18:55:14  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.3  2002/07/20 08:34:52  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -44,6 +47,7 @@ private:
     c64env       &m_env;
     EventContext &m_eventContext;
     event_clock_t m_accessClk;
+    event_phase_t m_phase;
 
     uint8_t regs[0x10];
     uint8_t cra;             // Timer A Control Register

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2003/10/16 07:47:09  s_a_white
+ *  Allow redirection of debug information of file.
+ *
  *  Revision 1.33  2003/02/24 19:51:41  s_a_white
  *  Removed bas m_timeout.
  *
@@ -229,7 +232,7 @@ void SID6510::reset ()
 // interrupt will wake up the processor
 void SID6510::sleep ()
 {   // Simulate a delay for JMPw
-    m_delayClk = m_stealingClk = eventContext.getTime ();
+    m_delayClk = m_stealingClk = eventContext.getTime (m_phase);
     procCycle  = &delayCycle;
     cycleCount = 0;
     m_sleeping = !(interrupts.irqRequest || interrupts.pending);
@@ -359,8 +362,8 @@ void SID6510::sid_illegal (void)
 
 void SID6510::sid_delay (void)
 {
-    event_clock_t stolen  = eventContext.getTime (m_stealingClk);
-    event_clock_t delayed = eventContext.getTime (m_delayClk);
+    event_clock_t stolen  = eventContext.getTime (m_stealingClk, m_phase);
+    event_clock_t delayed = eventContext.getTime (m_delayClk, m_phase);
 
     // Check for stealing.  The relative clock cycle
     // differences are compared here rather than the
@@ -385,7 +388,7 @@ void SID6510::sid_delay (void)
             if (interruptPending ())
                 return;
         }
-        eventContext.schedule (this, 3 - cycle, EVENT_CLOCK_PHI2);
+        eventContext.schedule (this, 3 - cycle, m_phase);
     }
 }
 
@@ -399,7 +402,7 @@ void SID6510::triggerRST (void)
     if (m_sleeping)
     {
         m_sleeping = false;
-        eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+        eventContext.schedule (this, 0, m_phase);
     }
 }
 
@@ -411,7 +414,7 @@ void SID6510::triggerNMI (void)
         if (m_sleeping)
         {
             m_sleeping = false;
-            eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+            eventContext.schedule (this, 0, m_phase);
         }
     }
 }
@@ -436,7 +439,7 @@ void SID6510::triggerIRQ (void)
         {   // Simulate busy loop
             m_sleeping = !(interrupts.irqRequest || interrupts.pending);
             if (!m_sleeping)
-                eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+                eventContext.schedule (this, 0, m_phase);
         }
     }
 }

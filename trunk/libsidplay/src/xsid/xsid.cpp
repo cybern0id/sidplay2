@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2003/02/24 19:45:32  s_a_white
+ *  Make sure events are canceled on reset.
+ *
  *  Revision 1.21  2003/01/17 08:36:37  s_a_white
  *  Event scheduler phase support.
  *
@@ -100,6 +103,7 @@ const char *XSID::credit =
 channel::channel (const char * const name, EventContext *context, XSID *xsid)
 :m_name(name),
  m_context(*context),
+ m_phase(EVENT_CLOCK_PHI1),
  m_xsid(*xsid),
  sampleEvent(this),
  galwayEvent(this)
@@ -229,8 +233,8 @@ void channel::sampleInit ()
 #endif // XSID_DEBUG
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
-    m_context.schedule (&sampleEvent, cycleCount, EVENT_CLOCK_PHI1);
+    m_context.schedule (&m_xsid, 0, m_phase);
+    m_context.schedule (&sampleEvent, cycleCount, m_phase);
 }
 
 void channel::sampleClock ()
@@ -270,8 +274,8 @@ void channel::sampleClock ()
     sample  = sampleCalculate ();
     cycles += cycleCount;
     // Schedule a sample update
-    m_context.schedule (&sampleEvent, cycleCount, EVENT_CLOCK_PHI1);
-    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
+    m_context.schedule (&sampleEvent, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 int8_t channel::sampleCalculate ()
@@ -346,8 +350,8 @@ void channel::galwayInit()
 #endif
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
-    m_context.schedule (&galwayEvent, cycleCount, EVENT_CLOCK_PHI1);
+    m_context.schedule (&m_xsid, 0, m_phase);
+    m_context.schedule (&galwayEvent, cycleCount, m_phase);
 }
 
 void channel::galwayClock ()
@@ -378,8 +382,8 @@ void channel::galwayClock ()
     galVolume &= 0x0f;
     sample     = (int8_t) galVolume - 8;
     cycles    += cycleCount;
-    m_context.schedule (&galwayEvent, cycleCount, EVENT_CLOCK_PHI1);
-    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
+    m_context.schedule (&galwayEvent, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 void channel::galwayTonePeriod ()
@@ -404,7 +408,7 @@ void channel::silence ()
     sample = 0;
     m_context.cancel   (&sampleEvent);
     m_context.cancel   (&galwayEvent);
-    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 
