@@ -26,10 +26,6 @@ dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
-dnl Checks for libraries.
-SID_PATH_LIBRESID
-SID_EXTENDED_LIBRESID
-
 dnl Checks for header files.
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -61,8 +57,9 @@ fi
 dnl Check for nothrow allocator.
 CHECK_EXCEPTIONS
 
-dnl Check whether ios::binary is ios::bin.
+dnl Check ANSI C++ ios features
 CHECK_IOS_BIN
+CHECK_IOS_OPENMODE
 
 dnl Checks for library functions.
 AC_HEADER_STDC
@@ -87,7 +84,7 @@ else
 fi
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay \$(RESID_INCLUDES) -Wall"
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay -Wall"
 
 AC_OUTPUT(
 libsidplay.spec \
