@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 21:23:23  s_a_white
+ *  Replaced SID_HAVE_EXCEPTIONS with HAVE_EXCEPTIONS in new
+ *  drivers.
+ *
  *  Revision 1.2  2001/01/18 18:36:16  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -68,9 +72,10 @@ void Audio_OSS::outOfOrder ()
     _audiofd     = -1;
 }
 
-void *Audio_OSS::open (AudioConfig &cfg)
+void *Audio_OSS::open (AudioConfig &cfg, const char *)
 {
-    int mask, wantedFormat, format;
+    int mask, format;
+    int wantedFormat = 0;
     int temp;
 
     if (_audiofd != -1)
