@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.12  2003/02/24 19:44:30  s_a_white
  *  Make sure events are canceled on reset.
  *
@@ -70,6 +73,7 @@
  *
  ***************************************************************************/
 
+#include <string.h>
 #include "sidendian.h"
 #include "mos6526.h"
 
@@ -83,6 +87,14 @@ enum
     INTERRUPT_REQUEST = 1 << 7
 };
 
+enum
+{
+    TOD_TEN    = 8,
+    TOD_SEC = 9,
+    TOD_MIN = 10,
+    TOD_HR  = 11
+};
+
 const char *MOS6526::credit =
 {   // Optional information
     "*MOS6526 (CIA) Emulation:\0"
@@ -94,10 +106,17 @@ MOS6526::MOS6526 (EventContext *context)
 :idr(0),
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
+ m_todPeriod(~0), // Dummy
  event_ta(this),
- event_tb(this)
+ event_tb(this),
+ event_tod(this)
 {
     reset ();
+}
+
+void MOS6526::clock (float64_t clock)
+{	// Fixed point 25.7
+    m_todPeriod = (event_clock_t) (clock * (float64_t) (1 << 7) / 10.0);
 }
 
 void MOS6526::reset (void)
@@ -111,9 +130,20 @@ void MOS6526::reset (void)
     icr = idr = 0;
     m_accessClk = 0;
     dpa = 0xf0;
+
+    // Reset tod
+    memset(m_todclock, 0, sizeof(m_todclock));
+    memset(m_todalarm, 0, sizeof(m_todalarm));
+    memset(m_todlatch, 0, sizeof(m_todlatch));
+    m_todlatched = false;
+    m_todstopped = true;
+    m_todclock[TOD_HR-TOD_TEN] = 1; // the most common value
+	m_todCycles = 0;
+
     // Remove outstanding events
-    event_context.cancel (&event_ta);
-    event_context.cancel (&event_tb);
+    event_context.cancel   (&event_ta);
+    event_context.cancel   (&event_tb);
+    event_context.schedule (&event_tod, 0, m_phase);
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
@@ -151,6 +181,23 @@ uint8_t MOS6526::read (uint_least8_t addr)
     case 0x5: return endian_16hi8 (ta);
     case 0x6: return endian_16lo8 (tb);
     case 0x7: return endian_16hi8 (tb);
+
+    // TOD implementation taken from Vice
+    // TOD clock is latched by reading Hours, and released
+    // upon reading Tenths of Seconds. The counter itself
+    // keeps ticking all the time.
+    // Also note that this latching is different from the input one.
+    case TOD_TEN: // Time Of Day clock 1/10 s
+    case TOD_SEC: // Time Of Day clock sec
+    case TOD_MIN: // Time Of Day clock min
+    case TOD_HR:  // Time Of Day clock hour
+        if (!m_todlatched)
+            memcpy(m_todlatch, m_todclock, sizeof(m_todlatch));
+        if (addr == TOD_TEN)
+            m_todlatched = false;
+        if (addr == TOD_HR)
+            m_todlatched = true;
+        return m_todlatch[addr - TOD_TEN];
 
     case 0xd:
     {   // Clear IRQs, and return interrupt
@@ -204,6 +251,34 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         if (!(crb & 0x01)) // Reload timer if stopped
             tb = tb_latch;
     break;
+
+    // TOD implementation taken from Vice
+    case TOD_HR:  // Time Of Day clock hour
+        // Flip AM/PM on hour 12
+        //   (Andreas Boose <viceteam@t-online.de> 1997/10/11).
+        // Flip AM/PM only when writing time, not when writing alarm
+        // (Alexander Bluhm <mam96ehy@studserv.uni-leipzig.de> 2000/09/17).
+        data &= 0x9f;
+        if ((data & 0x1f) == 0x12 && !(crb & 0x80))
+            data ^= 0x80;
+        // deliberate run on
+    case TOD_TEN: // Time Of Day clock 1/10 s
+    case TOD_SEC: // Time Of Day clock sec
+    case TOD_MIN: // Time Of Day clock min
+        if (crb & 0x80)
+            m_todalarm[addr - TOD_TEN] = data;
+        else
+        {
+            if (addr == TOD_TEN)
+                m_todstopped = false;
+            if (addr == TOD_HR)
+                m_todstopped = true;
+            m_todclock[addr - TOD_TEN] = data;
+        }
+        // check alarm
+        if (!m_todstopped && !memcmp(m_todalarm, m_todclock, sizeof(m_todalarm)))
+            trigger (INTERRUPT_ALARM);
+        break;
 
     case 0xd:
         if (data & 0x80)
@@ -351,4 +426,49 @@ void MOS6526::tb_event (void)
                                 m_phase);
     }
     trigger (INTERRUPT_TB);
+}
+
+// TOD implementation taken from Vice
+#define byte2bcd(byte) (((((byte) / 10) << 4) + ((byte) % 10)) & 0xff)
+#define bcd2byte(bcd)  (((10*(((bcd) & 0xf0) >> 4)) + ((bcd) & 0xf)) & 0xff)
+
+void MOS6526::tod_event(void)
+{	// Fixed precision 25.7
+    m_todCycles += m_todPeriod;
+    event_context.schedule (&event_tod, m_todCycles >> 7, m_phase);
+    m_todCycles &= 0x7F; // Just keep the decimal part
+
+    if (!m_todstopped)
+    {
+        // inc timer
+        uint8_t *tod = m_todclock;
+        uint8_t t = bcd2byte(*tod) + 1;
+        *tod++ = byte2bcd(t % 10);
+        if (t >= 10)
+        {
+            t = bcd2byte(*tod) + 1;
+            *tod++ = byte2bcd(t % 60);
+            if (t >= 60)
+            {
+                t = bcd2byte(*tod) + 1;
+                *tod++ = byte2bcd(t % 60);
+                if (t >= 60)
+                {
+                    uint8_t pm = *tod & 0x80;
+                    t = *tod & 0x1f;
+                    if (t == 0x11)
+                        pm ^= 0x80; // toggle am/pm on 0:59->1:00 hr
+                    if (t == 0x12)
+                        t = 1;
+                    else if (++t == 10)
+                        t = 0x10;   // increment, adjust bcd
+                    t &= 0x1f;
+                    *tod = t | pm;
+                }
+            }
+        }
+        // check alarm
+        if (!memcmp(m_todalarm, m_todclock, sizeof(m_todalarm)))
+            trigger (INTERRUPT_ALARM);
+    }
 }

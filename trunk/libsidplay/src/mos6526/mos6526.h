@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.11  2002/12/16 22:12:27  s_a_white
  *  Simulate serial input from data port A to prevent kernel lockups.
  *
@@ -95,6 +98,11 @@ protected:
     EventContext &event_context;
     event_phase_t m_phase;
 
+    bool    m_todlatched;
+    bool    m_todstopped;
+    uint8_t m_todclock[4], m_todalarm[4], m_todlatch[4];
+    event_clock_t m_todCycles, m_todPeriod;
+
     class EventTa: public Event
     {
     private:
@@ -132,14 +140,28 @@ protected:
              m_cia(*cia) {}
     } event_tb;
 
+    class EventTod: public Event
+    {
+    private:
+        MOS6526 &m_cia;
+        void event (void) {m_cia.tod_event ();}
+
+    public:
+        EventTod (MOS6526 *cia)
+            :Event("CIA Time of Day"),
+             m_cia(*cia) {}
+    } event_tod;
+
     friend class EventTa;
 //    friend class EventStateMachineA;
     friend class EventTb;
+    friend class EventTod;
 
 protected:
     MOS6526 (EventContext *context);
     void ta_event  (void);
     void tb_event  (void);
+    void tod_event (void);
     void trigger   (int irq);
 //    void stateMachineA_event (void);
 
@@ -152,6 +174,13 @@ public:
     uint8_t read  (uint_least8_t addr);
     void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
+
+    // @FIXME@ This is not correct!  There should be
+    // muliple schedules running at different rates
+    // that are passed into different function calls.
+    // This is the same as have different clock freqs
+    // connected to pins on the IC.
+    void clock (float64_t clock);
 };
 
 #endif // _mos6526_h_
