@@ -61,39 +61,39 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 AUDIO_DRV = @AUDIO_DRV@
-AUDIO_LIB = @AUDIO_LIB@
+AUDIO_LDADD = @AUDIO_LDADD@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EXEEXT = @EXEEXT@
+LD = @LD@
 LIBSIDPLAY2_INCLUDES = @LIBSIDPLAY2_INCLUDES@
 LIBSIDPLAY2_LDADD = @LIBSIDPLAY2_LDADD@
+LIBSIDUTILS_INCLUDES = @LIBSIDUTILS_INCLUDES@
+LIBSIDUTILS_LDADD = @LIBSIDUTILS_LDADD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 OBJDUMP = @OBJDUMP@
-OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-STRIP = @STRIP@
 VERSION = @VERSION@
 
 noinst_LIBRARIES = libirix.a
 
 libirix_a_SOURCES = audiodrv.cpp audiodrv.h
-mkinstalldirs = $(SHELL) $(top_srcdir)/unix/scripts/mkinstalldirs
-CONFIG_HEADER = ../../../unix/config.h
+mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
+CONFIG_HEADER = ../../../include/config.h
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(noinst_LIBRARIES)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) -I../../../unix
+DEFS = @DEFS@ -I. -I$(srcdir) -I../../../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libirix_a_LIBADD = 
-libirix_a_OBJECTS =  audiodrv.$(OBJEXT)
+libirix_a_OBJECTS =  audiodrv.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -118,7 +118,7 @@ OBJECTS = $(libirix_a_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cpp .lo .o .obj .s
+.SUFFIXES: .S .c .cpp .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/audio/irix/Makefile
 
@@ -136,11 +136,6 @@ distclean-noinstLIBRARIES:
 
 maintainer-clean-noinstLIBRARIES:
 
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -149,7 +144,6 @@ maintainer-clean-noinstLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -180,8 +174,6 @@ libirix.a: $(libirix_a_OBJECTS) $(libirix_a_DEPENDENCIES)
 	$(RANLIB) libirix.a
 .cpp.o:
 	$(CXXCOMPILE) -c $<
-.cpp.obj:
-	$(CXXCOMPILE) -c `cygpath -w $<`
 .cpp.lo:
 	$(LTCXXCOMPILE) -c $<
 
@@ -227,7 +219,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
