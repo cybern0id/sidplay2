@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/22 22:40:07  s_a_white
+ *  Replaced tabs characters.
+ *
  *  Revision 1.5  2001/03/21 22:26:13  s_a_white
  *  Fake interrupts now been moved into here from player.cpp.  At anytime it's
  *  now possible to ditch this compatibility class and use the real thing.
@@ -92,7 +95,7 @@ inline void SID6510::clock (void)
     // Check for outstanding interrupts
     if (interrupts.pending)
     {   // Start processing the interrupt
-        FetchOpcode ();
+        interruptPending ();
         sleeping = false;
     }
 }
