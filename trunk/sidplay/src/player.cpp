@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/12/03 20:00:24  s_a_white
+ *  sidSamples no longer forced for hardsid.
+ *
  *  Revision 1.3  2001/12/03 19:17:34  s_a_white
  *  Corrected spelling of BUILDER.
  *
@@ -323,9 +326,11 @@ bool ConsolePlayer::open (void)
 {
     const SidTuneInfo *tuneInfo;
 
-    if (m_state == playerRestart)
+    if (m_state & playerRestart)
     {
         cerr << endl << endl;
+        if (m_state & playerFast)
+            m_driver.selected->reset ();
         m_state == playerStopped;
     }
     
@@ -557,7 +562,7 @@ void ConsolePlayer::decodeKeys ()
         switch (action)
         {
         case A_RIGHT_ARROW:
-            m_state = playerRestart;
+            m_state = playerFastRestart;
             if (!m_track.single)
             {
                 m_track.selected++;
@@ -567,7 +572,7 @@ void ConsolePlayer::decodeKeys ()
         break;
 
         case A_LEFT_ARROW:
-            m_state = playerRestart;
+            m_state = playerFastRestart;
             if (!m_track.single)
             {
                 m_track.selected--;
@@ -589,12 +594,12 @@ void ConsolePlayer::decodeKeys ()
         break;
 
         case A_HOME:
-            m_state = playerRestart;
+            m_state = playerFastRestart;
             m_track.selected = 1;
         break;
 
         case A_END:
-            m_state = playerRestart;
+            m_state = playerFastRestart;
             m_track.selected = m_track.songs;
         break;
 
@@ -616,7 +621,7 @@ void ConsolePlayer::decodeKeys ()
         break;
 
         case A_QUIT:
-            m_state = playerStopped;
+            m_state = playerFastExit;
             return;
         break;
         }
