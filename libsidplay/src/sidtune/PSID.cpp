@@ -231,22 +231,48 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         fileOffset += 2;
     }
 
-    if ( info.initAddr == 0 )
+    if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
     {
-        if ( info.loadAddr == 0x0801 )
+        bool initAddrCheck = true;
+
+        // Check tune is loadable on a real C64
+        if ( info.loadAddr < 0x0801 )
+        {
+            info.formatString = _sidtune_invalid;
+            return false;
+        }
+
+        if ( (info.initAddr == 0) && (info.loadAddr == 0x0801) )
         {   // Scan basic for a sys call
             uint_least8_t* pData = (uint_least8_t*)buffer + fileOffset;
             uint_least16_t addr  = 0x0801;
             uint_least16_t next  = endian_little16(pData);
             uint_least16_t init  = 0;
-            pData += 2;
 
             while (next)
-            {   // Skip line number
-                uint_least8_t *p = &pData[addr - 0x0801 + 2];
+            {   // skip addr & line number
+                uint_least8_t *p = &pData[addr - 0x0801 + 4];
+
+PSID_fileSupport_basic:
+                // Check for SYS
                 if (*p++ != 0x9e)
-                {   // Not a sys so jump to next intruction
+                {   // Check for ':' instruction seperator before
+                    // jumping to next basic line
+                    while (*p != '\0')
+                    {
+                        if (*p++ == ':')
+                        {   // Skip spaces
+                            while (*p == ' ')
+                                p++;                            
+                            // Make sure havent hit end of line
+                            if (*p != '\0')
+                                goto PSID_fileSupport_basic;
+                        }
+                    }
+                    // Not a sys so jump to next intruction
                     addr = next;
+                    // Get addr of next line of basic
+                    next = endian_little16(&pData[addr - 0x0801]);
                     continue;
                 }
                 // Skip spaces
@@ -259,35 +285,40 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
                     init += *p++ - '0';
                 }
                 info.initAddr = init;
+                // Assume address is legal otherwise
+                // a real c64 would crash
+                initAddrCheck = false;
                 break;
             }
         }
 
         if ( info.initAddr == 0 )
             info.initAddr = info.loadAddr;
+
+        if ( initAddrCheck )
+        {
+            if ( info.initAddr < 0x0801 )
+            {
+                info.formatString = _sidtune_invalid;
+                return false;
+            }
+
+            // Check init is not under ROMS/IO
+            switch (info.initAddr >> 12)
+            {
+            case 0x0F:
+            case 0x0E:
+            case 0x0D:
+            case 0x0B:
+            case 0x0A:
+                info.formatString = _sidtune_invalid;
+                return false;
+            }
+        }
     }
 
-    if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
-    {
-        // Check tune is loadable on a real C64
-        if ( info.loadAddr < 0x0801 )
-        {
-            info.formatString = _sidtune_invalid;
-            return false;
-        }
-
-        // Check init is not under ROMS/IO
-        switch (info.initAddr >> 12)
-        {
-        case 0x0F:
-        case 0x0E:
-        case 0x0D:
-        case 0x0B:
-        case 0x0A:
-            info.formatString = _sidtune_invalid;
-            return false;
-        }
-    }
+    if ( info.initAddr == 0 )
+        info.initAddr = info.loadAddr;
 
     // Copy info strings, so they will not get lost.
     info.numberOfInfoStrings = 3;
