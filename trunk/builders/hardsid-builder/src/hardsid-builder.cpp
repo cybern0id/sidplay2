@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2003/06/27 07:07:00  s_a_white
+ *  Use new hardsid.dll muting interface.
+ *
  *  Revision 1.6  2002/10/17 18:37:43  s_a_white
  *  Exit unlock function early once correct sid is found.
  *
@@ -194,10 +197,10 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
     {
         HardSID *sid = (HardSID *) sidobjs[i];
         if (sid->lock (env))
-		{
+        {
             sid->model (model);
             return sid;
-		}
+        }
     }
     // Unable to locate free SID
     m_status = false;
@@ -214,10 +217,10 @@ void HardSIDBuilder::unlock (sidemu *device)
     {
         HardSID *sid = (HardSID *) sidobjs[i];
         if (sid == device)
-		{   // Unlock it
+        {   // Unlock it
             sid->lock (NULL);
-			break;
-		}
+            break;
+        }
     }
 }
 
@@ -244,7 +247,11 @@ int HardSIDBuilder::init ()
     dll = LoadLibrary("HARDSID.DLL");
     if (!dll)
     {
-        sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll not found or failed to initialise!");
+        DWORD err = GetLastError();
+		if (err == ERROR_DLL_INIT_FAILED)
+			sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll init failed!");
+		else
+			sprintf (m_errorBuffer, "HARDSID ERROR: hardsid.dll not found!");
         goto HardSID_init_error;
     }
 
