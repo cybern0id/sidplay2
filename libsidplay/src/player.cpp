@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2001/09/17 19:02:38  s_a_white
+ *  Now uses fixed point maths for sample output and rtc.
+ *
  *  Revision 1.28  2001/09/04 18:50:57  s_a_white
  *  Fake CIA address now masked.
  *
@@ -137,7 +140,7 @@ const char  *Player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported s
 const char  *Player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
 const char  *Player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 const char  *Player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
-const char  *Player::ERR_FILTER_DEFINITION     = "SIDPLAYER ERROR: Filter definition is not valid (see docs).";
+const char  *Player::ERR_REQUIRES_REAL_C64     = "SIDPLAYER ERROR: Song requires Real C64 mode.";
 
 const char  *Player::credit[];
 
@@ -146,19 +149,18 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:sid6510 (&eventContext),
- mos6510 (&eventContext),
- cpu   (&sid6510),
- mos6581_1 (this),
- mos6581_2 (this),
- xsid (this, &mos6581_1),
- cia  (this),
- cia2 (this),
+:m_scheduler ("SIDPlay 2"),
+ c64env  (&m_scheduler),
+ sid6510 (&m_scheduler),
+ mos6510 (&m_scheduler),
+ cpu     (&sid6510),
+ xsid    (this, &nullsid),
+ cia     (this),
+ cia2    (this),
  sid6526 (this),
- vic  (this),
+ vic     (this),
  mixerEvent (this),
- rtc        (&eventContext),
- m_builder  (NULL),
+ rtc        (&m_scheduler),
  m_tune (NULL),
  m_ram  (NULL),
  m_rom  (NULL),
@@ -174,7 +176,7 @@ Player::Player (void)
 
     // SID Initialise
     sid  = &xsid;
-    sid2 = &mos6581_2;
+    sid2 = &nullsid;
 
     // Setup exported info
     m_info.credits         = credit;
@@ -183,7 +185,9 @@ Player::Player (void)
     m_info.name            = PACKAGE;
     m_info.tuneInfo        = NULL;
     m_info.version         = VERSION;
-    m_info.eventContext    = &eventContext;
+    m_info.eventContext    = &m_context;
+    // Number of SIDs support by this library
+    m_info.maxsids         = 2;
 
     // Configure default settings
     m_cfg.clockForced     = false;
@@ -195,8 +199,6 @@ Player::Player (void)
     m_cfg.playback        = sid2_mono;
     m_cfg.precision       = SID2_DEFAULT_PRECISION;
     m_cfg.sidEmulation    = NULL;
-    m_cfg.sidFilter       = true;
-    m_cfg.sidFilterDef    = NULL;
     m_cfg.sidModel        = SID2_MODEL_CORRECT;
     m_cfg.sidSamples      = true;
     m_cfg.leftVolume      = 255;
@@ -205,12 +207,11 @@ Player::Player (void)
 
     // Get component credits
     credit[0] = PACKAGE " V" VERSION " Engine:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
-    credit[1] = mos6581_1.credits ();
-    credit[2] = xsid.credits ();
-    credit[3] = "*MOS6510 (CPU) Emulation:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
-    credit[4] = cia.credits ();
-    credit[5] = vic.credits ();
-    credit[6] = NULL;
+    credit[1] = xsid.credits ();
+    credit[2] = "*MOS6510 (CPU) Emulation:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
+    credit[3] = cia.credits ();
+    credit[4] = vic.credits ();
+    credit[5] = NULL;
 }
 
 int Player::fastForward (uint percent)
@@ -269,7 +270,19 @@ int Player::initialise ()
 int Player::load (SidTune *tune)
 {
     m_tune = tune;
+    if (!tune)
+    {   // Unload tune
+        m_info.tuneInfo = NULL;
+        return 0;
+    }
+
     m_tune->getInfo(m_tuneInfo);
+    if ((m_cfg.environment   != sid2_envR) &&
+        (m_tuneInfo.playAddr == 0xffff))
+    {
+        m_errorString = ERR_REQUIRES_REAL_C64;
+        return -1;
+    }
     m_info.tuneInfo = &m_tuneInfo;
 
     // Un-mute all voices
@@ -320,7 +333,7 @@ uint_least32_t Player::play (void *buffer, uint_least32_t length)
     while (m_running)
     {
         cpu->clock ();
-        eventContext.clock ();
+        m_scheduler.clock ();
     }
 
     if (m_playerState == sid2_stopped)
@@ -608,7 +621,7 @@ void Player::envReset (void)
     if (m_tuneInfo.playAddr == 0xffff)
         cpu = &mos6510;
 
-    eventContext.reset ();
+    m_scheduler.reset ();
     sid->reset  ();
     sid2->reset ();
     if (m_cfg.environment == sid2_envR)
@@ -636,16 +649,6 @@ void Player::envReset (void)
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     evalBankSelect(0x37);
 
-    // software vectors
-    endian_little16 (&m_ram[0x0314], 0xEA31); // IRQ
-    endian_little16 (&m_ram[0x0316], 0xFE66); // BRK
-    endian_little16 (&m_ram[0x0318], 0xFE47); // NMI
-
-    // hardware vectors
-    endian_little16 (&m_rom[0xfffa],  0xFE43); // NMI
-    endian_little16 (&m_rom[0xfffc],  0xFCE2); // RESET
-    endian_little16 (&m_rom[0xfffe],  0xFF48); // IRQ
-
     if (m_cfg.environment == sid2_envR)
     {   // Install some basic rom functionality
         /* EA31 IRQ return: jmp($0310). */
@@ -662,6 +665,10 @@ void Player::envReset (void)
         m_rom[0xFE44] = JMPi;
         m_rom[0xFE45] = 0x18;
         m_rom[0xFE46] = 0x03;
+
+        // hardware vectors
+        endian_little16 (&m_rom[0xfffa], 0xFE43); // NMI
+        endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
 
         {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
             uint8_t prg[] = {PHAn,  TXAn, PHAn, TYAn, PHAn, TSXn,
@@ -680,12 +687,6 @@ void Player::envReset (void)
     else // !sid2_envR
     {   // fake VBI-interrupts that do $D019, BMI ...
         m_rom[0x0d019] = 0xff;
-        if (m_cfg.environment == sid2_envPS)
-        {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
-            m_rom[0xff48] = 0x6c;
-            m_rom[0xff49] = 0x14;
-            m_rom[0xff4a] = 0x03;
-        }
     }
 
     // Will get done later if can't now
