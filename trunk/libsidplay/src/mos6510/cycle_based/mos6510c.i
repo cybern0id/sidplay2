@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.49  2004/06/26 11:11:21  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.48  2004/05/03 22:37:17  s_a_white
  *  Remove debug code.
  *
@@ -395,7 +398,7 @@ MOS6510_interruptPending_check:
     case oNMI:
     {
         // Try to determine if we should be processing the NMI yet
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
         if (cycles >= MOS6510_INTERRUPT_DELAY)
         {
             interrupts.pending &= ~iNMI;
@@ -410,7 +413,7 @@ MOS6510_interruptPending_check:
     case oIRQ:
     {
         // Try to determine if we should be processing the IRQ yet
-        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_extPhase);
+        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_phase);
         if (cycles >= MOS6510_INTERRUPT_DELAY)
             break;
 
@@ -797,8 +800,8 @@ void MOS6510::brk_instr (void)
     // Check for an NMI, and switch over if pending
     if (interrupts.pending & iNMI)
     {
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
-        if (cycles > MOS6510_INTERRUPT_DELAY)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
+        if (cycles >= MOS6510_INTERRUPT_DELAY)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
