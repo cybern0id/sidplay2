@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/03/04 19:28:28  s_a_white
+ *  Displays more details about sidplay2s psid driver.
+ *
  *  Revision 1.5  2002/01/29 21:55:29  s_a_white
  *  Display actual environment mode instead of requested one.
  *
@@ -62,9 +65,11 @@ void ConsolePlayer::menu ()
     cerr << " - Music Player and C64 SID Chip Emulator" << endl;
     consoleTable  (tableMiddle);
     consoleColour (white, false);
-    cerr << setw(19) << "Sidplay" << " V" << VERSION << ", ";
-    cerr << (char) toupper (*info.name);
-    cerr << info.name + 1 << " V" << info.version << endl;
+    {
+        cerr << setw(17) << "Sidplay" << " V" << VERSION << ", ";
+        cerr << (char) toupper (*info.name);
+        cerr << info.name + 1 << " V" << info.version << endl;
+    }
 
     consoleTable (tableSeperator); 
     if (tuneInfo.musPlayer)
@@ -92,7 +97,7 @@ void ConsolePlayer::menu ()
         cerr << tuneInfo.infoString[1] << endl;
         consoleTable  (tableMiddle);
         consoleColour (cyan, true);
-        cerr << " Copyright    : ";
+        cerr << " Released     : ";
         consoleColour (magenta, true);
         cerr << tuneInfo.infoString[2] << endl;
     }
@@ -196,9 +201,16 @@ void ConsolePlayer::menu ()
         cerr << " Addresses    : " << hex;
         cerr.setf(ios::uppercase);
         consoleColour (white, false);
-        cerr << "DRIVER = $" << setw(4) << setfill('0') << info.driverAddr;
-        cerr << "-$"        << setw(4) << setfill('0') << info.driverAddr +
-            (info.driverLength - 1);
+        // Display PSID Driver location
+        cerr << "DRIVER = ";
+        if (info.driverAddr == 0)
+            cerr << "NOT PRESENT";
+        else
+        {
+            cerr << "$"  << setw(4) << setfill('0') << info.driverAddr;
+            cerr << "-$" << setw(4) << setfill('0') << info.driverAddr +
+                (info.driverLength - 1);
+        }
         if (tuneInfo.playAddr == 0xffff)
             cerr << ", SYS = $" << setw(4) << setfill('0') << tuneInfo.initAddr;
         else
@@ -232,18 +244,24 @@ void ConsolePlayer::menu ()
         switch (info.environment)
         {
         case sid2_envPS:
-            cerr << "PlaySID (PlaySID-specific rips)" << endl;
+            cerr << "PlaySID (PlaySID-specific rips)";
         break;
         case sid2_envTP:
-            cerr << "Transparent ROM" << endl;
+            cerr << "Transparent ROM";
         break;
         case sid2_envBS:
-            cerr << "Bank Switching" << endl;
+            cerr << "Bank Switching";
         break;
         case sid2_envR:  // When it happens
-            cerr << "Real C64 (default)" << endl;
+            cerr << "Real C64 (default)";
         break;
+        case sid2_envTR:
+            cerr << "Sidusage Tracker Mode";
+        break;
+        default:
+            cerr << "Unknown";
         }
+        cerr << endl;
     }
     consoleTable (tableEnd);
 
