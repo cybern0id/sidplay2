@@ -240,8 +240,8 @@ class SID_EXTERN SidTune
 
     // Needed for MUS/STR player installation.
     uint_least16_t musDataLen;
-    
-    Buffer_sidtt<const uint_least8_t> cache;
+
+    class SID_EXTERN Buffer_sidtt<const uint_least8_t> cache;
 
     // Filename extensions to append for various file types.
     static const char** fileNameExtensions;
