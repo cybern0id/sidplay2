@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/03/21 22:41:45  s_a_white
+ *  Non faked CIA emulation with NMI support.  Removal of Hacked VIC support
+ *  off CIA timer.
+ *
  *  Revision 1.7  2001/03/09 23:44:30  s_a_white
  *  Integrated more 6526 features.  All timer modes and interrupts correctly
  *  supported.
@@ -45,20 +49,20 @@ protected:
     uint8_t regs[0x10];
 
     // Timer A
-	uint8_t cra;
-	uint_least16_t ta, ta_latch;
+    uint8_t cra;
+    uint_least16_t ta, ta_latch;
 
     // Timer B
-	uint8_t crb;
-	uint_least16_t tb, tb_latch;
+    uint8_t crb;
+    uint_least16_t tb, tb_latch;
 
-	uint8_t icr, idr; // Interrupt Control Register
-	const bool nmi;
+    uint8_t icr, idr; // Interrupt Control Register
+    const bool nmi;
 
 protected:
-	bool ta_clock (void);
-	void tb_clock (bool ta_underflow);
-	void trigger  (int interrupt);
+    bool ta_clock (void);
+    void tb_clock (bool ta_underflow);
+    void trigger  (int interrupt);
 
 public:
     MOS6526  (const bool isnmi);
@@ -76,15 +80,15 @@ public:
 
 inline void MOS6526::clock (void)
 {
-	bool ta_underflow = false;
-	if ((cra & 0x21) == 0x01)
-		(void) ta_clock ();
+    bool ta_underflow = false;
+    if ((cra & 0x21) == 0x01)
+        (void) ta_clock ();
 
-	if (crb & 0x01)
-	{
-		if ((crb & 0x61) != 0x21)
-			tb_clock (ta_underflow);
-	}
+    if (crb & 0x01)
+    {
+        if ((crb & 0x61) != 0x21)
+            tb_clock (ta_underflow);
+    }
 }
 
 #endif // _mos6526_h_
