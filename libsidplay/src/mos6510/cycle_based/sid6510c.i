@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/09/03 22:23:06  s_a_white
+ *  Fixed faked IRQ trigger on BRK for sidplay1 environment modes.
+ *
  *  Revision 1.11  2001/09/01 11:08:06  s_a_white
  *  Fixes for sidplay1 environment modes.
  *
@@ -106,7 +109,7 @@ SID6510::SID6510 (EventContext *context)
     // Since no real IRQs, all RTIs mapped to RTS
     // Required for fix bad tunes in old modes
     procCycle = instrTable[RTIn].cycle;
-    for (uint n = 0; n < instrTable[i].cycles; n++)
+    for (uint n = 0; n < instrTable[RTIn].cycles; n++)
     {
         if (procCycle[n] == &MOS6510::PopSR)
         {
