@@ -157,14 +157,15 @@ uint_least32_t SidTuneTools::readDec( std::istringstream& decin )
 
 // Search terminated string for next newline sequence.
 // Skip it and return pointer to start of next line.
-const char* SidTuneTools::returnNextLine(const char* s)
+const char* SidTuneTools::returnNextLine(const char* s, uint_least32_t len)
 {
     // Unix: LF = 0x0A
     // Windows, DOS: CR,LF = 0x0D,0x0A
     // Mac: CR = 0x0D
     char c;
-    while ((c = *s) != 0)
+    while (len && ((c = *s) != 0))
     {
+        len--;
         s++;                            // skip read character
         if (c == 0x0A)
         {
@@ -172,14 +173,15 @@ const char* SidTuneTools::returnNextLine(const char* s)
         }
         else if (c == 0x0D)
         {
-            if (*s == 0x0A)
+            if (len && (*s == 0x0A))
             {
+                len--;
                 s++;                    // CR,LF found, skip LF
             }
             break;                      // CR or CR,LF found
         }
     }
-    if (*s == 0)                        // end of string ?
+    if ((len == 0) || (*s == 0))        // end of string ?
     {
         return 0;                       // no next line available
     }
