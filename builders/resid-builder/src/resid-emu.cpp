@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-#if HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
