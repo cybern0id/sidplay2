@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Makefile.am)
 AC_CONFIG_AUX_DIR(unix)
-AM_CONFIG_HEADER(include/config.h)
+AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=1
@@ -81,13 +81,13 @@ CHECK_IOS_BIN
 CHECK_IOS_OPENMODE
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay -Wall"
+CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -Wall -I\$(top_srcdir)/include \
+-I\$(top_srcdir)/include/sidplay"
 
 AC_OUTPUT(
 Makefile \
 include/Makefile \
 include/sidplay/Makefile \
-include/sidplay/sidconfig.h \
 src/Makefile \
 src/c64/Makefile \
 src/mos6510/Makefile \
@@ -99,4 +99,5 @@ src/xsid/Makefile \
 unix/Makefile \
 unix/libsidplay2.spec \
 unix/libsidplay2.pc \
+unix/sidconfig.h \
 )

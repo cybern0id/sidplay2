@@ -84,19 +84,18 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 
 sidplayincludedir = $(includedir)/sidplay
-sidplayinclude_HEADERS = sidconfig.h sidendian.h sidplay2.h \
+sidplayinclude_HEADERS = sidendian.h sidplay2.h \
 sidtypes.h sid2types.h SidTune.h Buffer.h SmartPtr.h \
 c64env.h component.h event.h sidbuilder.h
 
 subdir = include/sidplay
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
-CONFIG_CLEAN_FILES = sidconfig.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
+CONFIG_CLEAN_FILES =
 DIST_SOURCES =
 HEADERS = $(sidplayinclude_HEADERS)
 
-DIST_COMMON = $(sidplayinclude_HEADERS) Makefile.am Makefile.in \
-	sidconfig.h.in
+DIST_COMMON = $(sidplayinclude_HEADERS) Makefile.am Makefile.in
 all: all-am
 
 .SUFFIXES:
@@ -116,8 +115,6 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
-sidconfig.h: $(top_builddir)/config.status sidconfig.h.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= CONFIG_LINKS= $(SHELL) ./config.status
 uninstall-info-am:
 install-sidplayincludeHEADERS: $(sidplayinclude_HEADERS)
 	@$(NORMAL_INSTALL)

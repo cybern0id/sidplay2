@@ -20,3 +20,6 @@ libsidplay2_la_LIBADD  = ./c64/libc64.la \
 
 # We substitute the libtool-specific library version in configure.in.
 libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
+
+# Remove bad default includes
+DEFAULT_INCLUDES=
