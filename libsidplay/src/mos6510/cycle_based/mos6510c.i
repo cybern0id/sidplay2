@@ -16,8 +16,12 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2000/12/14 23:55:07  s_a_white
+ *  PushSR optimisation and PopSR code cleanup.
+ *
  ***************************************************************************/
 
+#include "config.h"
 #include "sidendian.h"
 
 // Microsoft Visual C++ Version Number to work around compiler bug
@@ -2020,7 +2024,7 @@ MOS6510::MOS6510 ()
                     typedef void (MOS6510::*ptr2cycle) (void);
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
-#   ifdef SID_HAVE_EXCEPTIONS
+#   ifdef HAVE_EXCEPTIONS
                     instr->cycle = new(nothrow) (void (MOS6510::*[cycleCount]) (void));
 #   else
                     instr->cycle = new (void (MOS6510::*[cycleCount]) (void));
@@ -2109,7 +2113,7 @@ MOS6510::MOS6510 ()
                     typedef void (MOS6510::*ptr2cycle) (void);
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
-#   ifdef SID_HAVE_EXCEPTIONS
+#   ifdef HAVE_EXCEPTIONS
                     instr->cycle = new(nothrow) (void (MOS6510::*[cycleCount]) (void));
 #   else
                     instr->cycle = new (void (MOS6510::*[cycleCount]) (void));
