@@ -1,6 +1,6 @@
 dnl Setup library CURRENT, REVISION and AGE
-m4_define([LIBCUR],2)
-m4_define([LIBREV],0)
+m4_define([LIBCUR],1)
+m4_define([LIBREV],1)
 m4_define([LIBAGE],0)
 
 dnl Process this file with autoconf to produce a configure script.
