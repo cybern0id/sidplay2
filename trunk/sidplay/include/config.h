@@ -1,31 +1,25 @@
-/* Setup for Microsoft Visual C++ Version 5 */
-#ifndef _config_h_
-#define _config_h_
+/***************************************************************************
+                          config.h  -  Redirect to real config.h
+                             -------------------
+    begin                : Tues Dec 4 2001
+    copyright            : (C) 2001 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
 
-/* Operating System */
-#define HAVE_MSWINDOWS
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
-/* Define if your C++ compiler implements exception-handling.  */
-/* #define HAVE_EXCEPTIONS 1 */
-
-/* Define if standard member ``ios::binary'' is called ``ios::bin''. */
-/* #define HAVE_IOS_BIN 1 */
-
-/* Define if you have the ANSI C header files.  */
-#define STDC_HEADERS 1
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-/* #define WORDS_BIGENDIAN */
-
-/* Define sound driver */
-/*#define HAVE_DIRECTX*/
-#define HAVE_MMSYSTEM
-
-/* Name of package */
-#define PACKAGE "sidplay"
-
-/* Version number of package */
-#define VERSION "2.0.8"
-
-#endif // _config_h_
+#if defined(HAVE_UNIX)
+#   include "../unix/config.h"
+#elif defined(HAVE_WINDOWS)
+#   include "../win/VC/config.h"
+#endif
