@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/03/02 19:04:38  s_a_white
+ *  Include structure modified for better compatibility
+ *
  *  Revision 1.5  2001/01/07 16:01:33  s_a_white
  *  sidendian.h is now installed, therefore endian defines updated.
  *
@@ -33,7 +36,6 @@
 #ifndef _endian_h_
 #define _endian_h_
 
-#include "config.h"
 #include "sidtypes.h"
 
 #if defined(SID_WORDS_BIGENDIAN)
