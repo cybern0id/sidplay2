@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2002/10/15 18:14:02  s_a_white
+ *  Removed upper limit frequency limit check to allow for oversampling.
+ *
  *  Revision 1.28  2002/10/02 19:46:36  s_a_white
  *  RSID support & fix sid model forced operation.
  *
@@ -436,7 +439,7 @@ int Player::environment (sid2_env_t env)
         if (m_info.environment == sid2_envPS)
         {   // Playsid has no roms and SID exists in ram space
             m_rom = m_ram;
-            m_readMemByte     = &Player::readMemByte_player;
+            m_readMemByte     = &Player::readMemByte_plain;
             m_writeMemByte    = &Player::writeMemByte_playsid;
             m_readMemDataByte = &Player::readMemByte_plain;
         }
@@ -451,21 +454,21 @@ int Player::environment (sid2_env_t env)
             switch (m_info.environment)
             {
             case sid2_envTP:
-                m_readMemByte     = &Player::readMemByte_player;
+                m_readMemByte     = &Player::readMemByte_plain;
                 m_writeMemByte    = &Player::writeMemByte_sidplay;
                 m_readMemDataByte = &Player::readMemByte_sidplaytp;
             break;
 
             //case sid2_envTR:
             case sid2_envBS:
-                m_readMemByte     = &Player::readMemByte_player;
+                m_readMemByte     = &Player::readMemByte_plain;
                 m_writeMemByte    = &Player::writeMemByte_sidplay;
                 m_readMemDataByte = &Player::readMemByte_sidplaybs;
             break;
 
             case sid2_envR:
             default: // <-- Just to please compiler
-                m_readMemByte     = &Player::readMemByte_player;
+                m_readMemByte     = &Player::readMemByte_sidplaybs;
                 m_writeMemByte    = &Player::writeMemByte_sidplay;
                 m_readMemDataByte = &Player::readMemByte_sidplaybs;
             break;

@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.58  2003/01/17 08:35:26  s_a_white
+ *  Simulate memory state after kernels power on reset code has completed.
+ *
  *  Revision 1.57  2002/12/14 10:10:30  s_a_white
  *  Kernal Mod: Bypass screen clear as we don't have a screen.  Fix setting
  *  of PAL/NTSC flag for real c64 mode.
@@ -526,13 +529,6 @@ void Player::evalBankSelect (uint8_t data)
     m_bankReg = data;
 }
 
-uint8_t Player::readMemByte_player (uint_least16_t addr)
-{
-    if (m_info.environment == sid2_envR)
-        return readMemByte_sidplaybs (addr);
-    return readMemByte_plain (addr);
-}
-
 uint8_t Player::readMemByte_plain (uint_least16_t addr)
 {   // Bank Select Register Value DOES NOT get to ram
     if (addr == 0x0001)
@@ -558,6 +554,9 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
             case 0xdd:
                 return cia2.read (addr&0x0f);
             case 0xd0:
+            case 0xd1:
+            case 0xd2:
+            case 0xd3:
                 return vic.read (addr&0x3f);
             default:
                 return m_rom[addr];
@@ -683,6 +682,9 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
                 cia2.write (addr&0x0f, data);
             return;
             case 0xd0:
+            case 0xd1:
+            case 0xd2:
+            case 0xd3:
                 vic.write (addr&0x3f, data);
             return;
             default:

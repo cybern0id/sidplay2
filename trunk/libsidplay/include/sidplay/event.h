@@ -28,10 +28,10 @@ typedef enum {EVENT_CLOCK_PHI1 = 0, EVENT_CLOCK_PHI2} event_phase_t;
 
 class SID_EXTERN Event
 {
-private:
-    friend  class EventContext;
-    friend  class EventScheduler;
-    const   char * const m_name;
+    friend class EventScheduler;
+
+public:
+    const char * const m_name;
     event_clock_t m_clk;
 
     /* This variable is set by the event context
@@ -48,13 +48,13 @@ public:
           m_pending(false) {}
 
     virtual void event (void) = 0;
+    bool    pending () { return m_pending; }
 };
 
 // Public Event Context
 class EventContext
 {
 public:
-    bool         pending  (Event *event) { return event->m_pending; }
     virtual void cancel   (Event *event) = 0;
     virtual void schedule (Event *event, event_clock_t cycles,
                            event_phase_t phase) = 0;
@@ -63,22 +63,12 @@ public:
 };
 
 // Private Event Context Object (The scheduler)
-class EventScheduler: public EventContext
+class EventScheduler: public EventContext, public Event
 {
 private:
-    const char * const m_name;
     event_clock_t  m_eventClk, m_schedClk;
-    uint  m_pendingEventClk;
-    uint  m_pendingEventCount;
+    uint  m_events;
     event_phase_t m_phase;
-
-    class SID_EXTERN EventDummy: public Event
-    {
-    private:
-        void event (void) {;}
-    public:
-        EventDummy () : Event("Bad Event: Dummy") {;}
-    } m_pendingEvents;
 
     class SID_EXTERN EventTimeWarp: public Event
     {
@@ -99,10 +89,10 @@ private:
     friend class EventTimeWarp;
 
 private:
+    void event    (void) { ; }
     void timeWarp (void);
-    void dispatch (void)
+    void dispatch (Event &e)
     {
-        Event &e = *m_pendingEvents.m_next;
         cancelPending (e);
         //printf ("Event \"%s\"\n", e.m_name);
         e.event ();
@@ -113,8 +103,7 @@ private:
         event.m_pending      = false;
         event.m_prev->m_next = event.m_next;
         event.m_next->m_prev = event.m_prev;
-        m_pendingEventClk    = m_pendingEvents.m_next->m_clk;
-        m_pendingEventCount--;
+        m_events--;
     }
 
 public:
@@ -126,13 +115,13 @@ public:
 
     void clock (void)
     {
-        if (m_pendingEventCount)
+        if (m_events)
         {
-            event_clock_t delta = m_pendingEventClk - m_eventClk;
-            m_schedClk  += delta;
-            m_eventClk  += delta;
-            m_phase      = (event_phase_t) (m_pendingEventClk & 1);
-            dispatch ();
+            event_clock_t delta = m_next->m_clk - m_eventClk;
+            m_schedClk += delta;
+            m_eventClk += delta;
+            m_phase     = (event_phase_t) (m_phase ^ (delta & 1));
+            dispatch (*m_next);
         }
     }
 
