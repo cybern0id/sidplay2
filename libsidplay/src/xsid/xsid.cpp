@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/02/21 21:46:34  s_a_white
+ *  0x1d = 0 now fixed.  Limit checking on sid volume.  This helps us determine
+ *  even better what the sample offset should be (fixes Skate and Die).
+ *
  *  Revision 1.8  2001/02/07 21:02:30  s_a_white
  *  Supported for delaying samples for frame simulation.  New alogarithm to
  *  better guess original tunes volume when playing samples.
@@ -31,26 +35,27 @@
 #include "xsid.h"
 
 
-#ifndef XSID_USE_SID_VOLUME
 // Convert from 4 bit resolution to 8 bits
 /* Rev 2.0.5 (saw) - Removed for a more non-linear equivalent
    which better models the SIDS master volume register
-const int8_t channel::sampleConvertTable[16] =
+const int8_t XSID::sampleConvertTable[16] =
 {
     '\x80', '\x91', '\xa2', '\xb3', '\xc4', '\xd5', '\xe6', '\xf7',
     '\x08', '\x19', '\x2a', '\x3b', '\x4c', '\x5d', '\x6e', '\x7f'
 };
 */
-const int8_t channel::sampleConvertTable[16] =
+const int8_t XSID::sampleConvertTable[16] =
 {
     '\x80', '\x94', '\xa9', '\xbc', '\xce', '\xe1', '\xf2', '\x03',
     '\x1b', '\x2a', '\x3b', '\x49', '\x58', '\x66', '\x73', '\x7f'
 };
-#endif
 
-channel::channel ()
+
+channel::channel (XSID *p)
+:xsid(*p)
 {
     memset (reg, 0, sizeof (reg));
+    active = true;
     reset  ();
 }
 
@@ -58,10 +63,18 @@ void channel::reset ()
 {
     galVolume  = 0; // This is left to free run until reset
     mode       = FM_NONE;
-    lowerLimit = 8;
-    // Set XSID to stopped state
-    reg[convertAddr (0x1d)] = 0xfd;
     free ();
+}
+
+void channel::free ()
+{
+    active      = false;
+    cycleCount  = 0;
+    _clock      = &channel::silence;
+    sampleLimit = 0;
+    // Set XSID to stopped state
+    reg[convertAddr (0x1d)] = 0;
+    silence ();
 }
 
 inline void channel::clock (uint_least16_t delta_t)
@@ -70,9 +83,7 @@ inline void channel::clock (uint_least16_t delta_t)
     if (delta_t == 1)
     {   // Rev 1.4 (saw) - Optimisation to prevent _clock being
         // called un-necessarily.
-#ifdef XSID_DEBUG
         cycles++;
-#endif
         if (!--cycleCount)
             (this->*_clock) ();
         return;
@@ -82,9 +93,7 @@ inline void channel::clock (uint_least16_t delta_t)
     // for clock periods > than 1
     while (cycleCount <= delta_t)
     {   // Rev 1.4 (saw) - Changed to reflect change above
-#ifdef XSID_DEBUG
         cycles  += cycleCount;
-#endif
         delta_t -= cycleCount;
         (this->*_clock) ();
         // Check to see if the sequence finished
@@ -92,30 +101,14 @@ inline void channel::clock (uint_least16_t delta_t)
     }
     
     // Reduce the cycleCount by whats left
-#ifdef XSID_DEBUG
     cycles     += delta_t;
-#endif
     cycleCount -= delta_t;
 }
 
-#ifndef XSID_USE_SID_VOLUME
-inline int_least32_t channel::output ()
-#else
-inline uint8_t channel::output ()
-#endif
+inline int8_t channel::output ()
 {
-#ifdef XSID_DEBUG
     outputs++;
-#endif
     return sample;
-}
-
-void channel::free ()
-{
-    active     = false;
-    cycleCount = 0;
-    _clock     = &channel::silence;
-    silence ();
 }
 
 void channel::checkForInit ()
@@ -123,8 +116,16 @@ void channel::checkForInit ()
     // See xsid documentation
     uint8_t state = reg[convertAddr (0x1d)];
 
+    if (!state)
+        return;
     if (state == 0xfd)
+    {
+        if (!active)
+            return;
         free (); // Stop
+        // Calculate the sample offset
+        xsid.sampleOffsetCalc ();
+    }
     else if (state < 0xfc)
         galwayInit ();
     else // if (state >= 0xfc)
@@ -138,7 +139,6 @@ void channel::sampleInit ()
 
 #ifdef XSID_DEBUG
     printf ("XSID [%lu]: Sample Init\n", (unsigned long) this);
-
     if (active && (mode == FM_HUELS))
         printf ("XSID [%lu]: Stopping Playing Sample\n", (unsigned long) this);
 #endif
@@ -146,7 +146,7 @@ void channel::sampleInit ()
     // Check all important parameters are legal
     _clock        = &channel::silence;
     volShift      = (uint_least8_t) (0 - (int8_t) reg[convertAddr (0x1d)]) >> 1;
-    reg[convertAddr (0x1d)] = 0xfd;
+    reg[convertAddr (0x1d)] = 0;
     address       = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr (0x1e)];
     samEndAddr    = ((uint_least16_t) reg[convertAddr (0x3e)] << 8) | reg[convertAddr (0x3d)];
     if (samEndAddr <= address) return;
@@ -166,29 +166,30 @@ void channel::sampleInit ()
     // Noise sequence begins
     if (mode == FM_NONE)
         mode  = FM_HUELS;
-    active = true;
-    _clock = &channel::sampleClock;
-    sample = sampleCalculate ();
 
-#ifdef XSID_USE_SID_VOLUME
-    lowerLimit = 8 >> volShift;
-    changed    = true;
-#endif
+    _clock  = &channel::sampleClock;
+    active  = true;
+    cycles  = 0;
+    outputs = 0;
 
-#if XSID_DEBUG > 1
+    sampleLimit = 8 >> volShift;
+    sample      = sampleCalculate ();
+    changed     = true;
+
+    // Calculate the sample offset
+    xsid.sampleOffsetCalc ();
+
+#ifdef XSID_DEBUG
+#   if XSID_DEBUG > 1
     printf ("XSID [%lu]: Sample Start Address:  0x%04x\n", (unsigned long) this, address);
     printf ("XSID [%lu]: Sample End Address:    0x%04x\n", (unsigned long) this, samEndAddr);
     printf ("XSID [%lu]: Sample Repeat Address: 0x%04x\n", (unsigned long) this, samRepeatAddr);
     printf ("XSID [%lu]: Sample Period: %u\n", (unsigned long) this, samPeriod);
     printf ("XSID [%lu]: Sample Repeat: %u\n", (unsigned long) this, samRepeat);
     printf ("XSID [%lu]: Sample Order:  %u\n", (unsigned long) this, samOrder);
-#endif
-
-#ifdef XSID_DEBUG
-    cycles  = 0;
-    outputs = 0;
+#   endif
     printf ("XSID [%lu]: Sample Start\n", (unsigned long) this);
-#endif
+#endif // XSID_DEBUG
 }
 
 void channel::sampleClock ()
@@ -206,15 +207,21 @@ void channel::sampleClock ()
 
         address      = samRepeatAddr;
         if (address >= samEndAddr)
-        {
+        {   // The sequence has completed
+            uint8_t *status = &reg[convertAddr (0x1d)];
+            if (!*status)
+                *status  = 0xfd;
+            if (*status != 0xfd)
+                active   = false;
 #ifdef XSID_DEBUG
             printf ("XSID [%lu]: Sample Stop (%lu Cycles, %lu Outputs)\n",
-                (unsigned long) this, cycles, outputs);
+                    (unsigned long) this, cycles, outputs);
+            if (*status != 0xfd)
+            {
+                printf ("XSID [%lu]: Starting Delayed Sequence\n",
+                        (unsigned long) this);
+            }
 #endif
-#ifdef XSID_USE_SID_VOLUME
-            changed = true;
-#endif
-            free ();
             checkForInit ();
             return;
         }
@@ -223,10 +230,7 @@ void channel::sampleClock ()
     // We have reached the required sample
     // So now we need to extract the right nibble
     sample  = sampleCalculate ();
-
-#ifdef XSID_USE_SID_VOLUME
     changed = true;
-#endif
 }
 
 int8_t channel::sampleCalculate ()
@@ -257,11 +261,7 @@ int8_t channel::sampleCalculate ()
     address   += samNibble;
     samNibble ^= 1;
     samNibble &= 1;
-#ifndef XSID_USE_SID_VOLUME
-    return sampleConvertTable[(tempSample & 0x0f) >> volShift];
-#else
     return (int8_t) ((tempSample & 0x0f) - 0x08) >> volShift;
-#endif
 }
 
 void channel::galwayInit()
@@ -280,7 +280,7 @@ void channel::galwayInit()
     // Check all important parameters are legal
     _clock        = &channel::silence;
     galTones      = reg[convertAddr (0x1d)];
-    reg[convertAddr (0x1d)] = 0xfd;
+    reg[convertAddr (0x1d)] = 0;
     galInitLength = reg[convertAddr (0x3d)];
     if (!galInitLength) return;
     galLoopWait   = reg[convertAddr (0x3f)];
@@ -292,22 +292,21 @@ void channel::galwayInit()
     address  = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr(0x1e)];
     volShift = reg[convertAddr (0x3e)] & 0x0f;
     mode     = FM_GALWAY;
+    _clock   = &channel::galwayClock;
     active   = true;
+    cycles   = 0;
+    outputs  = 0;
 
-#ifndef XSID_USE_SID_VOLUME
-    sample     = sampleConvertTable[galVolume];
-#else
-    sample     = (int8_t) galVolume;
-    lowerLimit = 8;
-    changed    = true;
-#endif
+    sampleLimit = 8;
+    sample      = (int8_t) galVolume - 8;
+    changed     = true;
 
     galwayTonePeriod ();
-    _clock  = &channel::galwayClock;
+
+    // Calculate the sample offset
+    xsid.sampleOffsetCalc ();
 
 #ifdef XSID_DEBUG
-    cycles  = 0;
-    outputs = 0;
     printf ("XSID [%lu]: Galway Start\n", (unsigned long) this);
 #endif
 }
@@ -317,15 +316,22 @@ void channel::galwayClock ()
     if (--galLength)
         cycleCount = samPeriod;
     else if (galTones == 0xff)
-    {   // The counter has completed
+    {   // The sequence has completed
+        uint8_t *status = &reg[convertAddr (0x1d)];
+        if (!*status)
+            *status  = 0xfd;
+        if (*status != 0xfd)
+            active   = false;
 #ifdef XSID_DEBUG
         printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
-            (unsigned long) this, cycles, outputs);
-        if (reg[convertAddr (0x1d)] != 0xfd)
+                (unsigned long) this, cycles, outputs);
+        uint8_t status = &reg[convertAddr (0x1d)];
+        if (*status != 0xfd)
+        {
             printf ("XSID [%lu]: Starting Delayed Sequence\n",
-                (unsigned long) this);
+                    (unsigned long) this);
+        }
 #endif
-        free ();
         checkForInit ();
         return;
     }
@@ -335,12 +341,8 @@ void channel::galwayClock ()
     // See Galway Example...
     galVolume += volShift;
     galVolume &= 0x0f;
-#ifndef XSID_USE_SID_VOLUME
-    sample  = sampleConvertTable[galVolume];
-#else
-    sample  = (int8_t) galVolume;
-    changed = true;
-#endif
+    sample     = (int8_t) galVolume - 8;
+    changed    = true;
 }
 
 void channel::galwayTonePeriod ()
@@ -365,6 +367,16 @@ void channel::silence ()
     sample = 0;
 }
 
+
+XSID::XSID ()
+:ch4(this),
+ ch5(this)
+{
+    setSidBaseAddr (0xd400);
+    sidSamples (true);
+    muted = false;
+}
+
 // Use Suppress to delay the samples and start them later
 // Effectivly allows running samples in a frame based mode.
 void XSID::suppress (bool enable)
@@ -373,11 +385,8 @@ void XSID::suppress (bool enable)
     suppressed = enable | muted;
     if (!suppressed)
     {   // Get the channels running
-        if (ch4.read (0x1d) != 0xfd)
-            ch4.checkForInit ();
-        if (ch5.read (0x1d) != 0xfd)
-            ch5.checkForInit ();
-        calcSampleOffset ();
+        ch4.checkForInit ();
+        ch5.checkForInit ();
     }
 }
 
@@ -411,12 +420,6 @@ void XSID::write (uint_least16_t addr, uint8_t data)
 
     if (addr == 0x1d)
     {
-        if (data == 0xfd)
-        {
-            ch->checkForInit ();
-            return;
-        }
-        
         if (suppressed)
         {
 #if XSID_DEBUG
@@ -424,9 +427,6 @@ void XSID::write (uint_least16_t addr, uint8_t data)
 #endif
             return;
         }
-#ifdef XSID_USE_SID_VOLUME
-        calcSampleOffset ();
-#endif
         ch->checkForInit ();
     }
 }
@@ -452,26 +452,23 @@ uint8_t XSID::read (uint_least16_t addr)
     return ch->read (tempAddr);
 }
 
-// This function is a mess but is remapped according
-// to the mode.  It's kept like this so I don't have to
-// keep updating 2 bits of code
-#ifndef XSID_USE_SID_VOLUME
-int_least32_t XSID::output (uint_least8_t bits)
+int8_t XSID::sampleOutput (void)
 {
-    int_least32_t sample = 0;
-#else
-uint8_t XSID::output ()
-{
-    int8_t sample = 0;
-#endif // XSID_USE_SID_VOLUME
-    sample += ch4.output ();
+    int8_t sample;
+    sample  = ch4.output ();
     sample += ch5.output ();
-#ifndef XSID_USE_SID_VOLUME
-    sample <<= (bits - 8);
-#endif
     // Automatically compensated for by C64 code
     //return (sample >> 1);
     return sample;
+}
+
+int_least32_t XSID::output (uint_least8_t bits)
+{
+    int_least32_t sample;
+    if (_sidSamples)
+        return 0;
+    sample = sampleConvertTable[sampleOutput () + 8];
+    return sample << (bits - 8);
 }
 
 void XSID::reset ()
@@ -481,28 +478,28 @@ void XSID::reset ()
     suppressed = false;
 }
 
-#ifdef XSID_USE_SID_VOLUME
-void XSID::setSidVolume (bool cached)
+void XSID::setSidData0x18 (bool cached)
 {
-    if (ch4.changed || ch5.changed)
+    uint8_t data = (sidData0x18 & 0xf0);
+    data |= ((sampleOffset + sampleOutput ()) & 0x0f);
+
+#ifdef XSID_DEBUG
+    if ((sampleOffset + sampleOutput ()) > 0x0f)
     {
-        uint8_t reg = sidReg0x18 | ((sampleOffset + output ()) & 0x0f);
-        ch4.changed = false;
-        ch5.changed = false;
-#if XSID_DEBUG > 1
-        printf ("XSID: Writing Sample to SID Volume [0x%02x]\n", reg);
-#endif
-        envWriteMemByte (sidVolAddr, reg, false);
+        printf ("XSID: Sample Wrapped [offset %u, sample %d]\n",
+                sampleOffset, sampleOutput ());
     }
+#   if XSID_DEBUG > 1
+    printf ("XSID: Writing Sample to SID Volume [0x%02x]\n", data);
+#   endif
+#endif // XSID_DEBUG
+
+    envWriteMemByte (sidAddr0x18, data, false);
 }
-#endif
 
 void XSID::clock (uint_least16_t delta_t)
 {
-#ifdef XSID_USE_SID_VOLUME
-    bool wasRunning;
-    wasRunning = ch4 || ch5;
-#endif
+    bool wasRunning = ch4 || ch5;
 
     // Call optimised clock routine
     // Well it's better then just doing:
@@ -511,9 +508,14 @@ void XSID::clock (uint_least16_t delta_t)
     ch4.clock (delta_t);
     ch5.clock (delta_t);
 
-#ifdef XSID_USE_SID_VOLUME
+    if (!_sidSamples)
+        return;
+
     if (ch4 || ch5)
-        setSidVolume ();
+    {
+        if (ch4.hasChanged () || ch5.hasChanged ())
+            setSidData0x18 ();
+    }
     else if (wasRunning)
     {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
         // Normally after samples volume should be restored to half volume,
@@ -521,36 +523,31 @@ void XSID::clock (uint_least16_t delta_t)
         // the original volume.  Setting back to the original volume for normal
         // samples can have nasty pulsing effects
         if (ch4.isGalway ())
-        {
-            uint8_t sidVolume = envReadMemDataByte (sidVolAddr, true);
-            envWriteMemByte (sidVolAddr, sidVolume);
-        }
+            envWriteMemByte (sidAddr0x18, sidData0x18);
         else
-            setSidVolume ();
+            setSidData0x18 ();
     }
-#endif
 }
 
 void  XSID::setEnvironment (C64Environment *envp)
 {
-#ifdef XSID_USE_SID_VOLUME
     C64Environment::setEnvironment (envp);
-#endif
-
     ch4.setEnvironment (envp);
     ch5.setEnvironment (envp);
 }
 
-#ifdef XSID_USE_SID_VOLUME
-void XSID::calcSampleOffset (void)
+void XSID::sampleOffsetCalc (void)
 {
     // Try to determine a sensible offset between voice
     // and sample volumes.
     uint_least8_t lower = ch4.limit () + ch5.limit ();
     uint_least8_t upper;
-    sidReg0x18   = envReadMemDataByte (sidVolAddr, true);
-    sampleOffset = sidReg0x18 & 0x0f;
-    sidReg0x18  &= 0xf0;
+
+    // Both channels seem to be off.  Keep current offset!
+    if (!lower)
+        return;
+
+    sampleOffset = sidData0x18 & 0x0f;
 
     // Is possible to compensate for both channels
     // set to 4 bits here, but should never happen.
@@ -563,5 +560,28 @@ void XSID::calcSampleOffset (void)
         sampleOffset = lower;
     else if (sampleOffset > upper)
         sampleOffset = upper;
+
+#ifdef XSID_DEBUG
+    printf ("XSID: Sample Offset %d based on channel(s) ", sampleOffset);
+    if (ch4)
+        printf ("4 ");
+    if (ch5)
+        printf ("5");
+    printf ("\n");
+#endif // XSID_DEBUG
 }
-#endif // XSID_USE_SID_VOLUME
+
+bool XSID::updateSidData0x18 (uint8_t data)
+{
+    sidData0x18 = data;
+    if (ch4 || ch5)
+    {   // Force volume to be changed at next clock
+        sampleOffsetCalc ();
+        setSidData0x18   ();
+#if XSID_DEBUG
+        printf ("XSID: SID Volume Changed Externally (Corrected).\n");
+#endif
+        return true;
+    }
+    return false;
+}
