@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.42  2003/01/23 17:32:39  s_a_white
+ *  Redundent code removal.
+ *
  *  Revision 1.41  2003/01/20 18:37:08  s_a_white
  *  Stealing update.  Apparently the cpu does a memory read from any non
  *  write cycle (whether it needs to or not) resulting in those cycles
@@ -155,8 +158,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "sid2types.h"
+#include "SidTune.h"
+#include "sidbuilder.h"
+
 #include "config.h"
-#include "sidplay2.h"
 #include "sidenv.h"
 #include "c64env.h"
 #include "c64/c64xsid.h"
@@ -282,6 +288,7 @@ private:
     volatile sid2_player_t m_playerState;
     volatile bool   m_running;
     int             m_rand;
+    uint_least32_t  m_sid2crc;
 
     // Mixer settings
     event_clock_t  m_sampleClock;
@@ -336,6 +343,9 @@ private:
     uint8_t  readMemRamByte (uint_least16_t addr)
     {   return m_ram[addr]; }
 
+    void sid2crc (uint8_t data)
+    {   updateCrc32 (m_sid2crc, data); }
+
     // Environment Function entry Points
     void           envReset           (bool safe);
     inline void    envReset           (void) { envReset (true); }
@@ -384,6 +394,8 @@ private:
     // PSID driver
     int  psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info);
     void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
+    // SID2CRC support
+    void updateCrc32    (uint_least32_t &crc, uint8_t data);
 
 public:
     Player ();
