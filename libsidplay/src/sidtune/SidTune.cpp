@@ -370,8 +370,10 @@ void SidTune::init()
     info.songSpeed = SIDTUNE_SPEED_VBI;
     info.clockSpeed = SIDTUNE_CLOCK_PAL;
     info.songLength = 0;
-    info.sidRevision = SIDTUNE_SID_6581;
-    
+    info.sidRev8580 = false;
+	info.relocStartPage = 0;
+	info.relocPages = 0;
+
     for ( uint_least16_t si = 0; si < SIDTUNE_MAX_SONGS; si++ )
     {
         songSpeed[si] = SIDTUNE_SPEED_VBI;
@@ -815,16 +817,11 @@ void SidTune::convertOldStyleSpeedToTables(uint_least32_t speed, int clock)
     int toDo = ((info.songs <= SIDTUNE_MAX_SONGS) ? info.songs : SIDTUNE_MAX_SONGS);
     for (int s = 0; s < toDo; s++)
     {
+        clockSpeed[s] = clock;
         if (( (speed>>(s&31)) & 1 ) == 0 )
-        {
-            songSpeed[s]  = SIDTUNE_SPEED_VBI;
-            clockSpeed[s] = clock;
-        }
+            songSpeed[s] = SIDTUNE_SPEED_VBI;
         else
-        {
-            songSpeed[s]  = SIDTUNE_SPEED_CIA_1A;
-            clockSpeed[s] = clock;
-        }
+            songSpeed[s] = SIDTUNE_SPEED_CIA_1A;
     }
 }
 
