@@ -83,7 +83,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 
 SUBDIRS = c64 mos6510 mos6526 mos656x xsid sid6526 sidtune
-EXTRA_DIST = psiddrv.a65 psiddrv.bin
+EXTRA_DIST = psiddrv.bin
 
 
 # The library.
@@ -93,7 +93,7 @@ libsidplay2_la_SOURCES = config.cpp event.cpp \
 player.cpp player.h \
 psiddrv.cpp mixer.cpp \
 reloc65.c sidplay2.cpp \
-nullsid.h
+nullsid.h psiddrv.a65
 
 
 libsidplay2_la_LIBADD = \
@@ -107,6 +107,8 @@ libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
 
 # Remove bad default includes
 DEFAULT_INCLUDES = 
+
+SUFFIXES = .a65
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/unix/config.h
@@ -160,7 +162,7 @@ SOURCES = $(libsidplay2_la_SOURCES)
 all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
+.SUFFIXES: .a65 .c .cpp .lo .o .obj
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -470,6 +472,10 @@ uninstall-info: uninstall-info-recursive
 	uninstall-info-recursive uninstall-libLTLIBRARIES \
 	uninstall-recursive
 
+
+%.bin : %.a65
+	xa -R -G $< -o $(srcdir)/$*.o65
+	od -v -An -w8 -tx1 $(srcdir)/$*.o65 | sed 's/\w\w/0x&,/g' > $(srcdir)/$
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
