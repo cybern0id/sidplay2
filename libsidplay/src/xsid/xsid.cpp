@@ -135,7 +135,7 @@ void channel::sampleInit ()
 #ifdef XSID_DEBUG
     printf ("XSID [%lu]: Sample Init\n", (unsigned long) this);
 
-    if (active && (mode == FM_HEULS))
+    if (active && (mode == FM_HUELS))
         printf ("XSID [%lu]: Stopping Playing Sample\n", (unsigned long) this);
 #endif
 
@@ -270,7 +270,7 @@ sbyte_sidt channel::sampleCalculate ()
 
 void channel::galwayInit()
 {
-    // If mode was HEULS, then it's
+    // If mode was HUELS, then it's
     // gonna become GALWAY and we should
     // not interrupt current sample
     mode = FM_GALWAY;
