@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/03/27 19:35:33  s_a_white
+ *  Moved default record length for wav files from main.cpp to IniConfig.cpp.
+ *
  *  Revision 1.3  2001/03/27 19:00:49  s_a_white
  *  Default record and play lengths can now be set in the sidplay2.ini file.
  *
@@ -59,6 +62,7 @@ IniConfig::~IniConfig ()
 
 void IniConfig::clear ()
 {
+    sidplay2_s.version      = 1;           // INI File Version
     SAFE_FREE (sidplay2_s.database);
     sidplay2_s.playLength   = 0;           // INFINITE
     sidplay2_s.recordLength = 3 * 60 + 30; // 3.5 minutes
@@ -216,9 +220,14 @@ IniCofig_readTime_error:
 bool IniConfig::readSidplay2 (ini_fd_t ini)
 {
     bool ret = true;
-    int  time;
-    ret &= readString (ini, "Songlength Database", sidplay2_s.database);
+    int  time, version = sidplay2_s.version;
 
+    (void) ini_locateHeading (ini, "SIDPlay2");
+    ret &= readInt (ini, "Version", version);
+    if (version > 0)
+        sidplay2_s.version = version;
+
+    ret &= readString (ini, "Songlength Database", sidplay2_s.database);
     if (readTime (ini, "Default Play Length", time))
         sidplay2_s.playLength   = (uint_least32_t) time;
     if (readTime (ini, "Default Record Length", time))
@@ -298,7 +307,6 @@ bool IniConfig::readEmulation (ini_fd_t ini)
     }
 
     ret &= readBool (ini, "UseFilter",    emulation_s.filter);
-    ret &= readBool (ini, "UseExtFilter", emulation_s.extFilter);
 
     {
         int optimiseLevel = -1;
@@ -371,10 +379,7 @@ void IniConfig::read ()
 
     // Make sure the config path exists
     if (!opendir (configPath))
-    {
-        printf ("Creating\n");
         mkdir (configPath, 0755);
-    }
 
     sprintf (configPath, "%s/%s", configPath, FILE_NAME);
 #else
@@ -391,7 +396,6 @@ void IniConfig::read ()
     clear ();
 
     // This may not exist here...
-    (void) ini_locateHeading (ini, "SIDPlay2");
     status &= readSidplay2  (ini);
     status &= readConsole   (ini);
     status &= readAudio     (ini);
