@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2003/01/08 08:45:14  s_a_white
+ *  Don't configure an emulation if it failed to be created.
+ *
  *  Revision 1.18  2002/08/19 17:04:28  s_a_white
  *  Added timeout to decide if previous key should select previous song or
  *  restart current song.
@@ -83,7 +86,7 @@
 #include "keyboard.h"
 
 // Previous song select timeout (3 secs)
-#define SID2_PREV_SONG_TIMEOUT 30
+#define SID2_PREV_SONG_TIMEOUT 40
 
 #ifdef HAVE_RESID_BUILDER
 #   include <sidplay/builders/resid.h>
