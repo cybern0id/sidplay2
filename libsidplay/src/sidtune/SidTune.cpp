@@ -31,6 +31,12 @@
 #include <string.h>
 #include <limits.h>
 
+#if defined(HAVE_IOS_OPENMODE)
+    typedef ios::openmode openmode;
+#else
+    typedef int openmode;
+#endif
+
 const char* SidTune::txt_songNumberExceed = "SIDTUNE WARNING: Selected song number was too high";
 const char* SidTune::txt_empty = "SIDTUNE ERROR: No data to load";
 const char* SidTune::txt_unrecognizedFormat = "SIDTUNE ERROR: Could not determine file format";
@@ -859,15 +865,11 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-#if defined(HAVE_IOS_OPENMODE)
-        ios::openmode createAttr;
-#else
-        int createAttr;
-#endif
+        openmode createAttr = ios::out;
 #if defined(HAVE_IOS_BIN)
-        createAttr = ios::out | ios::bin;
+        createAttr |= ios::bin;
 #else
-        createAttr = ios::out | ios::binary;
+        createAttr |= ios::binary;
 #endif
         if ( overWriteFlag )
             createAttr |= ios::trunc;
@@ -909,12 +911,7 @@ bool SidTune::saveSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open ASCII output file stream.
-#if defined(HAVE_IOS_OPENMODE)
-        ios::openmode createAttr;
-#else
-        int createAttr;
-#endif
-        createAttr = ios::out;
+        openmode createAttr = ios::out;
         if ( overWriteFlag )
             createAttr |= ios::trunc;
         else
@@ -948,15 +945,11 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-#if defined(HAVE_IOS_OPENMODE)
-        ios::openmode createAttr;
-#else
-        int createAttr;
-#endif
+        openmode createAttr = ios::out;
 #if defined(HAVE_IOS_BIN)
-        createAttr = ios::out | ios::bin;
+        createAttr |= ios::bin;
 #else
-        createAttr = ios::out | ios::binary;
+        createAttr |= ios::binary;
 #endif
       if ( overWriteFlag )
             createAttr |= ios::trunc;
