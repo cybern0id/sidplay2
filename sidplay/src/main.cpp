@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 22:54:24  s_a_white
+ *  Prevents timer overwriting paused message.
+ *
  *  Revision 1.2  2001/01/23 21:25:15  s_a_white
  *  Only way to load a tune now is by passing in a sidtune object.  This is
  *  required for songlength database support.
@@ -865,11 +868,11 @@ void displaySyntax (char* arg0)
 
         << " -o<num>      select track number (default: preset)" << endl
         // Rev 1.7 (saw) - Changed max printed optimisation
-        << " -O<num>      optimisation level, max is " << (SID2_MAX_OPTIMISATION - 1)
-        << " (default: " << SID2_DEFAULT_OPTIMISATION << ')' << endl
+        << " -O<num>      optimisation level, max is " << (uint) (SID2_MAX_OPTIMISATION - 1)
+        << " (default: " << (uint) SID2_DEFAULT_OPTIMISATION << ')' << endl
 
         << " -p<num>      set bit precision for samples. "
-        << "(default: " << SID2_DEFAULT_PRECISION << ")" << endl
+        << "(default: " << (uint) SID2_DEFAULT_PRECISION << ")" << endl
 
         << " -q           quiet (= no time display) (EXPERIMENTAL)" << endl
         << " -t<num>      set play length in [m:]s format (0 is endless)" << endl
