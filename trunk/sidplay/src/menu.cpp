@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2003/07/16 06:53:12  s_a_white
+ *  Only display tune description strings if they have been provided.
+ *
  *  Revision 1.8  2003/02/20 18:50:44  s_a_white
  *  sid2crc support.
  *
@@ -256,7 +259,7 @@ void ConsolePlayer::menu ()
         switch (info.environment)
         {
         case sid2_envPS:
-            cerr << "PlaySID (PlaySID-specific rips)";
+            cerr << "PlaySID-specific rips";
         break;
         case sid2_envTP:
             cerr << "Transparent ROM";
@@ -265,7 +268,7 @@ void ConsolePlayer::menu ()
             cerr << "Bank Switching";
         break;
         case sid2_envR:  // When it happens
-            cerr << "Real C64 (default)";
+            cerr << "Real C64";
         break;
         case sid2_envTR:
             cerr << "Sidusage Tracker Mode";
@@ -273,6 +276,9 @@ void ConsolePlayer::menu ()
         default:
             cerr << "Unknown";
         }
+
+        if (m_engCfg.environment != info.environment)
+            cerr << " (forced)";
         cerr << endl;
     }
     consoleTable (tableEnd);
