@@ -391,9 +391,8 @@ bool Body::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
         {
             sid_usage_t::memflags_t flags = data.flags[j];
             usage.memory[addr++] = flags & ~SID_EXTENSION;
-#if SMM_EX_FLAGS > 0
-            data.extended |= (flags & SID_EXTENSION) != 0;
-#endif
+			if (SMM_EX_FLAGS)
+                data.extended |= (flags & SID_EXTENSION) != 0;
         }
     }
 
@@ -437,14 +436,12 @@ bool Body::write (FILE *file, const sid2_usage_t &usage, uint_least32_t &length)
                 // SID_LOAD_IMAGE not saved as is pointless (information
                 // provided by other means) allowing re-use of that bit
                 data.flags[j] = (uint8_t) flags & (0xff & ~SID_LOAD_IMAGE);
-#if SMM_EX_FLAGS > 0
                 // Deal with extended flags
-                if (flags > 0xff)
+                if (SMM_EX_FLAGS && (flags > 0xff))
                 {
                     data.extended  = true;
                     data.flags[j] |= SID_EXTENSION;
                 }
-#endif
             }
 
             data.page = (uint8_t) i;
@@ -491,7 +488,7 @@ bool Body_extended_flags::read (FILE *file, sid2_usage_t &usage, uint_least32_t 
                 continue;
             if (!count)
             {
-                if (!_import (file, count, extension, length))
+                if (!recall (file, count, extension, length))
                     return false;
                 flags = m_flags;
             }
@@ -534,7 +531,7 @@ bool Body_extended_flags::write (FILE *file, const sid2_usage_t &usage, uint_lea
                 continue;
 
             {   // Calculate extension
-                uint8_t tmp[SMM_EX_FLAGS];
+                uint8_t tmp[SMM_EX_FLAGS + 1];
                 sid_usage_t::memflags_t f = usage.memory[((int) data.page << 8) | j];
                 int x;
                 for (x = 0; x < SMM_EX_FLAGS; x++)
@@ -549,7 +546,7 @@ bool Body_extended_flags::write (FILE *file, const sid2_usage_t &usage, uint_lea
                 // Is the extension the same as used last time
                 if ((x != extension) || (count == 0x100))
                 {
-                    if (!_export (file, count, extension, length))
+                    if (!store (file, count, extension, length))
                         return false;
                     flags = m_flags;
                     count = 0;
@@ -563,7 +560,7 @@ bool Body_extended_flags::write (FILE *file, const sid2_usage_t &usage, uint_lea
             count++;
         }
     }
-    if (!_export (file, count, extension, length))
+    if (!store (file, count, extension, length))
         return false;
     return Chunk::write (file, usage, length);
 }
@@ -579,7 +576,7 @@ bool Body_extended_flags::used (const sid2_usage_t &)
 
 // Import the extended flags section from a file.  Note the there maybe more extended
 // flags (or data) than are supported by this reader
-bool Body_extended_flags::_import (FILE *file, int &count, int &extension, uint_least32_t &length)
+bool Body_extended_flags::recall (FILE *file, int &count, int &extension, uint_least32_t &length)
 {
     int offset = 0;
     uint8_t tmp = 0;
@@ -620,8 +617,8 @@ bool Body_extended_flags::_import (FILE *file, int &count, int &extension, uint_
     return true;
 }
 
-// Export the extended flags section from a file.
-bool Body_extended_flags::_export (FILE *file, int count, int extension, uint_least32_t &length)
+// Export the extended flags section to a file.
+bool Body_extended_flags::store (FILE *file, int count, int extension, uint_least32_t &length)
 {
     if (count)
     {
