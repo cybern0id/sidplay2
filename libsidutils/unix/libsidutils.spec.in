@@ -69,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/pkgconfig/*
 
 %changelog
+* Mon Jun 14 2004 Simon White <s_a_white@email.com> 1.0.4-1
+- Merge Windows code base.
+
 * Fri Nov 30 2001 Simon White <s_a_white@email.com> 1.0.2-1
 - Moved filter struct to libsidplay for sidbuilder classes.
   Synced against libini-1.1.8 for bug fixes.
