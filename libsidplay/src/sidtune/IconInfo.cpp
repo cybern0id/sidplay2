@@ -2,7 +2,6 @@
  * /home/ms/files/source/libsidtune/RCS/IconInfo.cpp,v
  *
  * Amiga icon tooltype PlaySID file format (.info) support.
- * Copyright (C) Peter Kunath, Michael Schwendt <mschwendt@yahoo.com>
  *
  * This is a derived work, courtesy of Peter Kunath, who has
  * provided an examplary source code to examine an Amiga icon file.
