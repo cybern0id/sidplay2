@@ -121,7 +121,7 @@ int INI_LINKAGE ini_readString (ini_fd_t fd, char *str, size_t size)
     }
 
     str[size] = '\0';
-    strtrim (str);
+    __ini_strtrim (str);
     return size;
 }
 
@@ -276,7 +276,6 @@ int INI_LINKAGE ini_readDouble (ini_fd_t fd, double *value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
-    float  fval;
 
     // Check to make sure a section has been
     // asked for by the user
@@ -294,7 +293,7 @@ int INI_LINKAGE ini_readDouble (ini_fd_t fd, double *value)
         data = __ini_listRead (ini);
         if (!data)
             return -1;
-        sscanf (data, "%f", &fval);
+        sscanf (data, "%lf", value);
     }
     else
 #endif // INI_ADD_LIST_SUPPORT
@@ -302,13 +301,12 @@ int INI_LINKAGE ini_readDouble (ini_fd_t fd, double *value)
         if (_key->length)
         {   // Locate and read back keys data
             fseek  (ini->ftmp, _key->pos, SEEK_SET);
-            fscanf (ini->ftmp, "%f", &fval);
+            fscanf (ini->ftmp, "%lf", value);
         }
         else if (_key == &ini->tmpKey)
             return -1; // Can't read tmpKey
     }
 
-    *value = (double) fval;
     return 0;
 }
 

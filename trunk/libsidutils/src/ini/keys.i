@@ -43,7 +43,7 @@ struct key_tag *__ini_addKey (ini_t *ini, char *key)
     long   pos;
 
     // Format heading for storing
-    strtrim (key);
+    __ini_strtrim (key);
     if (!*key)
         return NULL;
 
@@ -131,10 +131,10 @@ struct key_tag *__ini_faddKey (ini_t *ini, FILE *file, long pos, size_t length)
 
     length++;
     str = (char *) malloc (sizeof(char) * length);
-    assert  (str);
-    fseek   (file, pos, SEEK_SET);
-    fgets   (str, (int) length, file);
-    strtrim (str);
+    assert (str);
+    fseek  (file, pos, SEEK_SET);
+    fgets  (str, (int) length, file);
+    __ini_strtrim (str);
 
     _key = __ini_createKey (ini, str);
     if (!_key)
