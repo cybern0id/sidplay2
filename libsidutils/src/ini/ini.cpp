@@ -18,17 +18,24 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
- * Revision 1.7  2002/01/15 21:06:52  s_a_white
+ * Revision 1.16  2002/02/18 19:56:35  s_a_white
+ * Faster CRC alogarithm for hash key generation.
+ *
+ * Revision 1.15  2002/01/15 21:08:43  s_a_white
  * crc fix.
  *
- * Revision 1.6  2001/09/30 15:06:10  s_a_white
- * Fixed removal of backup file.
+ * Revision 1.14  2001/11/15 21:19:34  s_a_white
+ * Appended __ini_ to global variables and INI_ to #defines.
  *
- * Revision 1.5  2001/09/18 17:55:48  s_a_white
- * Moved ini_new to ini.cpp.
+ * Revision 1.13  2001/11/15 21:13:13  s_a_white
+ * Appended __ini_ to strtrim and createCrc32.
  *
- * Revision 1.4  2001/08/30 21:36:15  s_a_white
- * Synced ini parser with libini-1.1.7.  Fixes various bugs.
+ * Revision 1.12  2001/09/30 15:15:30  s_a_white
+ * Fixed backup file removal.
+ *
+ * Revision 1.11  2001/09/22 08:56:06  s_a_white
+ * Added mode support.  This is used to determine how the INI file should be
+ * accessed.
  *
  * Revision 1.10  2001/08/23 19:59:18  s_a_white
  * ini_append fix so not freeing wrong buffer.
@@ -71,7 +78,7 @@
 static ini_t              *__ini_open            (const char *name, ini_mode_t mode);
 static int                 __ini_close           (ini_t *ini, bool flush);
 static void                __ini_delete          (ini_t *ini);
-struct key_tag            *__ini_locate          (ini_t *ini, char *heading, char *key);
+static struct key_tag     *__ini_locate          (ini_t *ini, char *heading, char *key);
 static int                 __ini_process         (ini_t *ini, FILE *file);
 static int                 __ini_store           (ini_t *ini, FILE *file);
 
@@ -168,7 +175,7 @@ static unsigned long __ini_createCrc32 (char *pBuf, size_t length)
 
 
 /********************************************************************************************************************
- * Function          : strtrim
+ * Function          : __ini_strtrim
  * Parameters        : str - string to be trimmed
  * Returns           :
  * Globals Used      :
@@ -178,7 +185,7 @@ static unsigned long __ini_createCrc32 (char *pBuf, size_t length)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-void strtrim (char *str)
+void __ini_strtrim (char *str)
 {
     long first, last;
     first = 0;
@@ -449,7 +456,7 @@ int __ini_process (ini_t *ini, FILE *file)
         return -1;
 
     // Get a read buffer
-    buffer = (char *) malloc (1024 * 5 * sizeof(char));
+    buffer = (char *) malloc (INI_BUFFER_SIZE * sizeof(char));
     if (buffer == NULL)
         return -1;
 
@@ -466,14 +473,15 @@ int __ini_process (ini_t *ini, FILE *file)
     for(;;)
     {
         fseek (file, pos, SEEK_SET);
-        count   = fread (buffer, sizeof(char), INI_BUFFER_SIZE, file);
         current = buffer;
+        count   = fread (buffer, sizeof(char),
+                         INI_BUFFER_SIZE, file);
 
         if (count <= 0)
         {
             if (feof (file))
             {
-                count  = 1;
+                count = 1;
                *buffer = '\x1A';
             }
         }
@@ -706,7 +714,8 @@ __ini_storeError:
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode)
+ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode,
+                               const char *)
 {
     ini_mode_t _mode;
     if (!mode)
@@ -912,12 +921,6 @@ ini_appendError:
 }
 
 #endif // INI_ADD_EXTRAS
-
-// Sidplay-2.0.7 backwards compatibilty function
-extern "C" ini_fd_t INI_LINKAGE ini_new (const char *name)
-{
-    return ini_open (name, "w");
-}
 
 
 // Add Code Modules

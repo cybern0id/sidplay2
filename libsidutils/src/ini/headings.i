@@ -40,7 +40,7 @@ struct section_tag *__ini_addHeading (ini_t *ini, char *heading)
     long   pos;
 
     // Format heading for storing
-    strtrim (heading);
+    __ini_strtrim (heading);
 
     /* Create a backup of the file we are about to edit */
     if (ini->write == heading)
@@ -82,10 +82,10 @@ struct section_tag *__ini_faddHeading (ini_t *ini, FILE *file, long pos, size_t 
     {
         length++;
         str = (char *) malloc (sizeof(char) * length);
-        assert  (str);
-        fseek   (file, pos, SEEK_SET);
-        fgets   (str, (int) length, file);
-        strtrim (str);
+        assert (str);
+        fseek  (file, pos, SEEK_SET);
+        fgets  (str, (int) length, file);
+        __ini_strtrim (str);
     }
     else
         str = "";

@@ -60,6 +60,9 @@ typedef struct ini_t
 #endif // INI_ADD_LIST_SUPPORT
 } ini_t;
 
-static void strtrim (char  *str);
+static void                __ini_strtrim         (char *str);
+#ifdef INI_USE_HASH_TABLE
+static unsigned long       __ini_createCrc32     (char *pBuf, size_t length);
+#endif
 
 #endif // _ini_h_
