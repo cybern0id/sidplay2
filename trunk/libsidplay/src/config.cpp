@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/01/29 21:50:33  s_a_white
+ *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  config.  Initial code added to support more than two sids.
+ *
  *  Revision 1.17  2002/01/16 19:11:38  s_a_white
  *  Always release sid emulations now on a call to sidCreate until a better
  *  method is implemented for hardware emulations with locked sids.
@@ -517,11 +521,11 @@ void Player::sidSamples (bool enable)
     xsid.sidSamples (enable);
 
     // Now balance voices
-    sid[0] = xsid.emulation ();
-    if (enable)
+    if (!enable)
         gain = -25;
 
     xsid.gain (-100 - gain);
+    sid[0] = xsid.emulation ();
     for (int i = 0; i < SID2_MAX_SIDS; i++)
         sid[i]->gain (gain);
     sid[0] = &xsid;
