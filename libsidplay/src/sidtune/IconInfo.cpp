@@ -531,7 +531,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
             return LOAD_ERROR;
         }
         // Allow user to provide single address
-        if ( hasAddress )
+        if ( !hasAddress )
             info.loadAddr = 0;
         else if ( info.loadAddr || info.playAddr )
         {
