@@ -18,8 +18,9 @@
 #ifndef _SidUsage_h_
 #define _SidUsage_h_
 
+#include <sidplay/sidusage.h>
+
 struct SidTuneInfo;
-struct sid_usage_t;
 struct IffHeader;
 struct Chunk;
 
@@ -56,6 +57,7 @@ protected:
 public:
     SidUsage ();
 
+    // @FIXME@ add ext to these
     void           read       (const char *filename, sid_usage_t &usage);
     void           write      (const char *filename, const sid_usage_t &usage);
     const char *   error      (void) { return m_errorString; }
