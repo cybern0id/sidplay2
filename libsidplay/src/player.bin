@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/05/11 18:44:11  s_a_white
+ *  Old bank value now stored on stack rather than in a variable on zero page.
+ *
  *  Revision 1.6  2001/05/02 21:14:59  s_a_white
  *  Play address of zero does not expect a full emulation environment and
  *  therefore a sonf can assume the expected interrupt source is automatically
@@ -40,90 +43,100 @@
  *
  ***************************************************************************/
 
-0xE6, 0x00, 0x17, 0x00, 0xAB, 0x00, 0x90, 0x00,
-0xDD, 0x00, 0xC6, 0x00, 0x17, 0x00, 0xE5, 0x00,
-0x00, 0x6C, 0x02, 0x00, 0x6C, 0x04, 0x00, 0x78,
-0xA2, 0xFF, 0x9A, 0xD8, 0xA9, 0x7F, 0x8D, 0x0D,
-0xDC, 0x8D, 0x0D, 0xDD, 0xAD, 0x0D, 0xDC, 0xAD,
-0x0D, 0xDD, 0xA2, 0x00, 0x8E, 0x1A, 0xD0, 0xAE,
-0x19, 0xD0, 0x8E, 0x19, 0xD0, 0xA9, 0x1B, 0x8D,
-0x11, 0xD0, 0x8E, 0x12, 0xD0, 0xAD, 0xA6, 0x02,
-0xF0, 0x06, 0xA9, 0x25, 0xA2, 0x40, 0xD0, 0x04,
-0xA9, 0x95, 0xA2, 0x42, 0x8D, 0x04, 0xDC, 0x8E,
-0x05, 0xDC, 0xA9, 0x0F, 0x8D, 0x18, 0xD4, 0xA5,
-0x07, 0xD0, 0x07, 0xA9, 0x81, 0x8D, 0x1A, 0xD0,
-0xD0, 0x0A, 0xA9, 0x81, 0xA2, 0x01, 0x8D, 0x0D,
-0xDC, 0x8E, 0x0E, 0xDC, 0xA9, 0x2F, 0x85, 0x00,
-0xA5, 0x03, 0x20, 0x93, 0x00, 0x85, 0x01, 0xA5,
-0x05, 0x20, 0x93, 0x00, 0x85, 0x10, 0xA6, 0x06,
-0xCA, 0x8A, 0xA2, 0x00, 0x20, 0x11, 0x00, 0xA5,
-0x05, 0xF0, 0x04, 0xA9, 0x37, 0x85, 0x01, 0x58,
-0x4C, 0x90, 0x00, 0xC9, 0xE0, 0x90, 0x03, 0xA9,
-0x35, 0x60, 0xC9, 0xD0, 0x90, 0x03, 0xA9, 0x34,
-0x60, 0xC9, 0xA0, 0x90, 0x03, 0xA9, 0x36, 0x60,
-0xA9, 0x37, 0x60, 0x48, 0x8A, 0x48, 0x98, 0x48,
-0xBA, 0xE4, 0xFC, 0xB0, 0x0A, 0xBD, 0x04, 0x01,
-0x29, 0x10, 0xF0, 0x03, 0x6C, 0x16, 0x03, 0xA5,
-0x05, 0xD0, 0x07, 0x6C, 0x14, 0x03, 0xA5, 0x05,
-0xF0, 0x0D, 0xA5, 0x01, 0xA6, 0x10, 0x48, 0x86,
-0x01, 0x20, 0x14, 0x00, 0x68, 0x85, 0x01, 0xAD,
+0x00, 0x03, /* Load Address */
+0xD6, 0x03, 0x1A, 0x03, 0xA7, 0x03, 0x6C, 0x06,
+0x00, 0x6C, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x4C, 0xCD, 0x03, 0x00, 0xCD, 0x03, 0xA0, 0x03,
+0xD5, 0x03, 0x78, 0xA2, 0xFF, 0x9A, 0xD8, 0xA9,
+0x7F, 0x8D, 0x0D, 0xDC, 0x8D, 0x0D, 0xDD, 0xAD,
+0x0D, 0xDC, 0xAD, 0x0D, 0xDD, 0xA9, 0x00, 0x8D,
+0x1A, 0xD0, 0xAE, 0x19, 0xD0, 0x8E, 0x19, 0xD0,
+0xA2, 0x1B, 0x8E, 0x11, 0xD0, 0x8D, 0x12, 0xD0,
+0xAD, 0xA6, 0x02, 0xF0, 0x06, 0xA9, 0x25, 0xA2,
+0x40, 0xD0, 0x04, 0xA9, 0x95, 0xA2, 0x42, 0x8D,
+0x04, 0xDC, 0x8E, 0x05, 0xDC, 0xA2, 0x81, 0xA5,
+0x03, 0xD0, 0x05, 0x8E, 0x1A, 0xD0, 0xF0, 0x08,
+0xA9, 0x01, 0x8E, 0x0D, 0xDC, 0x8D, 0x0E, 0xDC,
+0xA9, 0x2F, 0x85, 0x00, 0xA5, 0x05, 0x20, 0xDA,
+0x03, 0x85, 0x01, 0xA5, 0x07, 0x05, 0x06, 0xF0,
+0x0A, 0xA9, 0xBA, 0x8D, 0x14, 0x03, 0xA5, 0x07,
+0x20, 0xDA, 0x03, 0x85, 0x08, 0xA9, 0x0F, 0x8D,
+0x18, 0xD4, 0xA6, 0x02, 0xCA, 0x8A, 0xA2, 0x00,
+0xA0, 0x00, 0x18, 0x20, 0x09, 0x03, 0xA5, 0x08,
+0xF0, 0x04, 0xA9, 0x37, 0x85, 0x01, 0x00, 0xEA,
+0xA2, 0xFF, 0x9A, 0x58, 0x4C, 0xA4, 0x03, 0x48,
+0x8A, 0x48, 0x98, 0x48, 0xBA, 0xBD, 0x04, 0x01,
+0x29, 0x10, 0xF0, 0x03, 0x6C, 0x16, 0x03, 0x6C,
+0x14, 0x03, 0xA5, 0x01, 0xA6, 0x08, 0x48, 0x86,
+0x01, 0x20, 0x06, 0x03, 0x68, 0x85, 0x01, 0xAD,
 0x19, 0xD0, 0x8D, 0x19, 0xD0, 0xAD, 0x0D, 0xDC,
-0x68, 0xA8, 0x68, 0xAA, 0x68, 0x40, 0x6C, 0x18,
-0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+0x68, 0xA8, 0x68, 0xAA, 0x68, 0x40, 0x78, 0x6C,
+0x18, 0x03, 0xC9, 0xE0, 0x90, 0x03, 0xA9, 0x35,
+0x60, 0xC9, 0xD0, 0x90, 0x03, 0xA9, 0x34, 0x60,
+0xC9, 0xA0, 0x90, 0x03, 0xA9, 0x36, 0x60, 0xA9,
+0x37, 0x60, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 
 /***************************************************************************
 
-#define irqusr  $0314
-#define brkusr  (irqusr + 2)
-#define nmiusr  (brkusr + 2)
-
-            *=2
-            ; Parameters, reserve 2 bytes on bank switching regs
-initvec     .word
-playvec     .word
+;-------------------------------------------------
+; Parameters (do not include this in image)
+            *=$0000
+            ; Reserved, bank regs
+            .word
 playnum     .byte
 speed       .byte
+initvec     .word
+playvec     .word
+iomap       .byte
 
-            *=0
+
+;-------------------------------------------------
+; Code (image starts here)
+            *=$02fe
+            ; Load address
+            .word *+2
+
             ; 6510 vectors
 nmivec      .word nmi
 coldvec     .word cold
 irqvec      .word irq
-idlevec     .word idle
-
-            ; initial user interrupt vectors
-retusr      .word irqret
-            .word irqjob
-            .word brkjob
-            .word nmijob
-iomap       .byte
 
             ; init/play PSID
-init        jmp (initvec)
 play        jmp (playvec)
+init        jmp (initvec)
 
+            *=$0310
+            jmp 0
+
+            ; initial user interrupt vectors
+            *=$0311
+retusr      .word irqret
+            .byte
+irqusr      .word irqret
+brkusr      .word brkjob
+nmiusr      .word nmijob
 
             ; cold start
-brkjob
 cold        sei
             ldx #$ff
             txs
             cld
+
             ; turn interrupts off
             lda #$7f
             sta $dc0d
             sta $dd0d
             lda $dc0d
             lda $dd0d
-            ldx #$00
-            stx $d01a
+            lda #$00
+            sta $d01a
             ldx $d019
             stx $d019
 
             ; set VICII raster to line 0
-            lda #$1b
-            sta $d011
-            stx $d012
+            ldx #$1b
+            stx $d011
+            sta $d012
 
             ; set CIA Timer A to 60Hz
             lda $02a6
@@ -136,24 +149,19 @@ ntsc        lda #$95
 timer       sta $dc04
             stx $dc05
 
-            ; SID to full volume
-            lda #$0f
-            sta $d418
-
             ; 0 indicates VIC timing, else it's from CIA
+            ldx #$81
             lda speed
             bne ciainit
 
             ; disable CIA1 timer A interrupt, enable VICII raster interrupt
-            lda #$81
-            sta $d01a
-            bne doinit
+            stx $d01a
+            beq doinit
 
             ; enable CIA 1 timer A interrupt
-ciainit     lda #$81
-            ldx #$01
-            sta $dc0d
-            stx $dc0e
+ciainit     lda #$01
+            stx $dc0d
+            sta $dc0e
 
 doinit      ; set I/O map and call song init routine
             lda #$2f
@@ -161,28 +169,83 @@ doinit      ; set I/O map and call song init routine
             lda initvec+1
             jsr getmap
             sta $01
-            lda playvec+1
-            jsr getmap
-            sta iomap
-
-            ; get song number
-            ldx playnum
-            dex
-            txa
-            ldx #0
-            jsr init
 
             ; If play address, override bankswitching so
             ; we reach are routine to handle play address
             lda playvec+1
+            ora playvec
+            beq noplay
+            lda #(irqjob & $ff)
+            sta irqusr
+            lda playvec+1
+            jsr getmap
+noplay      sta iomap
+
+            ; SID to full volume
+            lda #$0f
+            sta $d418
+
+            ; get song number
+getsong     ldx playnum
+            dex
+            txa
+            ldx #0
+            ldy #0
+            clc
+            jsr init
+            lda iomap
             beq run
             lda #$37
             sta $01
+run         brk
+            ; This is just incase the song has defined BRK
+			; to point to a handler ending in RTI
+            nop 
 
-run         cli
-            ;Sleep CPU (Sidplay specific)
-idle        ; rts
-            jmp idle
+            ; Entry from real C64
+brkjob      ldx #$ff
+            txs
+            cli
+idle        jmp idle
+
+            ; IRQ handler
+            ; Backup Regs (From Kernel ROM)
+irq         pha
+            txa
+            pha
+            tya
+            pha
+            tsx
+
+            ; Check the stacked status register to see if it
+            ; was due to a BRK
+            lda $0104,x
+            and #$10
+            beq irqjmp
+            jmp (brkusr)
+irqjmp      jmp (irqusr)
+
+irqjob      lda $01
+            ldx iomap
+            pha
+            stx $01
+            jsr play
+            pla
+            sta $01
+            lda $d019
+            sta $d019
+
+            ; IRQ Exit (From Kernel ROM)
+irqret      lda $dc0d
+            pla
+            tay
+            pla
+            tax
+            pla
+nmijob      rti
+
+nmi         sei
+            jmp (nmiusr)
 
             ; get required I/O map to reach address
 getmap      cmp #$e0
@@ -200,57 +263,7 @@ io_on       cmp #$a0
 bas_on      lda #$37
             rts
 
-            ; IRQ handler
-            ; Backup Regs (From Kernel ROM)
-irq         pha
-            txa
-            pha
-            tya
-            pha
-            tsx
-
-            ; Must not do BRK test if CPU was asleep
-            ; (Sidplay specific)
-            cpx $fc
-            bcs irqjmp
-
-            ; Check the stacked status register to see if it
-            ; was due to a BRK
-            lda $0104,x
-            and #$10
-            beq irqjmp
-            jmp (brkusr)
-
-            ; If valid play ignore user interrupt!
-            ; (noted in psid specifications)
-irqjmp      lda playvec+1
-            bne irqjmp2
-            jmp (irqusr)
-
-            ; Entry from real C64 0x0314
-irqjob      lda playvec+1
-            beq noplay
-irqjmp2     lda $01
-            ldx iomap
-            pha
-            stx $01
-            jsr play
-            pla
-            sta $01
-noplay      lda $d019
-            sta $d019
-
-            ; IRQ Exit (From Kernel ROM)
-irqret      lda $dc0d
-            pla
-            tay
-            pla
-            tax
-            pla
-nmijob      rti
-
-            ; NMI handler
-nmi         jmp (nmiusr)
+;-------------------------------------------------
 
 .end
 
