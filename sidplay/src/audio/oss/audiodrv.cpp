@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/03/04 19:07:48  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.5  2001/12/11 19:38:13  s_a_white
  *  More GCC3 Fixes.
  *
@@ -82,7 +85,7 @@ void *Audio_OSS::open (AudioConfig &cfg, const char *)
 {
     int mask, format;
     int wantedFormat = 0;
-    int temp;
+    int temp = 0;
 
     if (_audiofd != -1)
     {
@@ -230,7 +233,7 @@ void *Audio_OSS::open (AudioConfig &cfg, const char *)
     }
 
     ioctl (_audiofd, SNDCTL_DSP_GETBLKSIZE, &temp);
-    cfg.bufSize = (unsigned) temp;
+    cfg.bufSize = (uint_least32_t) temp;
 #ifdef HAVE_EXCEPTIONS
     _sampleBuffer = new(std::nothrow) int_least8_t[cfg.bufSize];
 #else
