@@ -73,6 +73,12 @@
     typedef unsigned long int  uint_least32_t;
     #endif /* SID_SIZEOF_INT */
 
+    /* Wanted: Atleast 32-bits but final size is determined
+     * on which register size will provide best program
+     * performance
+     */
+    typedef uint_least32_t     uint_fast32_t;
+
 #endif /* SID_HAVE_STDINT_H */
 
 /* Custom types */
