@@ -19,6 +19,6 @@
    has been provided that includes the resid directory name and therefore
    resids include files are available by calling them directly.
 */
-#define HAVE_LOCAL_RESID
+#define HAVE_USER_RESID
 
 #endif // _config_h_
