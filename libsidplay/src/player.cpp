@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.62  2003/05/28 20:14:54  s_a_white
+ *  Support the psiddrv overlapping unused parts of the tunes load image.
+ *  Fix memory leak whereby m_ram/m_rom weren't being deleted on
+ *  player object destruction.
+ *
  *  Revision 1.60  2003/02/20 19:11:48  s_a_white
  *  sid2crc support.
  *
@@ -284,6 +289,7 @@ Player::Player (void)
  m_playerState       (sid2_stopped),
  m_running           (false),
  m_sid2crc           (0xffffffff),
+ m_emulateStereo     (true),
  m_sampleCount       (0)
 {
     srand ((uint) ::time(NULL));
@@ -319,6 +325,7 @@ Player::Player (void)
     m_cfg.clockSpeed      = SID2_CLOCK_CORRECT;
     m_cfg.environment     = m_info.environment;
     m_cfg.forceDualSids   = false;
+    m_cfg.emulateStereo   = m_emulateStereo;
     m_cfg.frequency       = SID2_DEFAULT_SAMPLING_FREQ;
     m_cfg.optimisation    = SID2_DEFAULT_OPTIMISATION;
     m_cfg.playback        = sid2_mono;
@@ -611,8 +618,8 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
 
     // Read real sid for these
     if ((addr & 0xff00) == m_sidAddress[1])
-        return sid[1]->read ((uint8_t) addr);
-    return sid[0]->read ((uint8_t) tempAddr);
+        return sid[1]->read (addr & 0xff);
+    return sid[0]->read (tempAddr & 0xff);
 }
 
 uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
@@ -745,11 +752,10 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
         if ((addr & 0xff00) == m_sidAddress[1])
         {
             sid[1]->write (addr & 0xff, data);
-            // Prevent sid write accessing other sid
-            // if not doing mono to stereo conversion.
-            if (m_sidAddress[1] != m_sidAddress[0])
-                return;
+            return;
         }
+        else if (m_emulateStereo)
+            sid[1]->write (addr & 0xff, data);
         sid[0]->write (tempAddr & 0xff, data);
     }
 }

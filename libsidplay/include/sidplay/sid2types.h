@@ -69,6 +69,7 @@ struct sid2_config_t
     sid2_clock_t        clockSpeed;    // User requested emulation speed
     sid2_env_t          environment;
     bool                forceDualSids;
+    bool                emulateStereo;
     uint_least32_t      frequency;
     uint_least8_t       optimisation;
     sid2_playback_t     playback;
