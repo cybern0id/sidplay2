@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/02/21 22:07:10  s_a_white
+ *  Prevent re-triggering of interrupt if it's already active.
+ *
  *  Revision 1.5  2001/02/13 21:00:01  s_a_white
  *  Support for real interrupts.
  *
@@ -34,15 +37,26 @@
 
 class fake6526: public C64Environment
 {
-private:
-    uint8_t        regs[0x10];
-    bool           idr;
-    uint8_t        cra;  // Timer A Control Register
-    uint_least16_t ta_latch;
-    uint_least16_t ta;   // Timer A Count (reduces to zero)
-                         // value of -1 means off.
+protected:
+    uint8_t regs[0x10];
+
+    // Timer A
+	uint8_t cra;
+	uint_least16_t ta, ta_latch;
+
+    // Timer B
+	uint8_t crb;
+	uint_least16_t tb, tb_latch;
+
+	uint8_t icr, idr; // Interrupt Control Register
+
 public:
     bool locked; // Prevent code changing CIA.
+
+protected:
+	bool ta_clock (void);
+	void tb_clock (bool ta_underflow);
+	void trigger  (int interrupt);
 
 public:
     fake6526  ();
@@ -59,21 +73,16 @@ public:
 };
 
 inline void fake6526::clock (void)
-{   // Make sure count is running
-    if (!(cra & 0x01)) return;
-    if (!ta--)
-    {
-        ta = ta_latch;
-        if (cra & 0x08)
-        {   // one shot, stop timer A
-            cra &= (~0x01);
-        }
-        if (!idr)
-        {
-            idr = true;
-            envTriggerIRQ ();
-        }
-    }
+{
+	bool ta_underflow = false;
+	if ((cra & 0x21) == 0x01)
+		(void) ta_clock ();
+
+	if (crb & 0x01)
+	{
+		if ((crb & 0x61) != 0x21)
+			tb_clock (ta_underflow);
+	}
 }
 
 #endif // _fake6526_h_
