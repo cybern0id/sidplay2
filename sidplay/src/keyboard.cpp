@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/11/16 19:29:37  s_a_white
+ *  Warning fixes.
+ *
  *  Revision 1.4  2001/07/25 17:10:41  s_a_white
  *  Added 8/2 to speed up/slow down player.
  *
@@ -48,22 +51,25 @@ char _getch (void);
 // Special Extended Key Definitions
 enum
 {
-    KEY_LEFT  = 'K',
-    KEY_RIGHT = 'M',
-    KEY_HOME  = 'G',
-    KEY_END   = 'O'
+    PCK_HOME          = '\107',
+    PCK_UP            = '\110',
+    PCK_LEFT          = '\113',
+    PCK_RIGHT         = '\115',
+    PCK_END           = '\117',
+    PCK_DOWN          = '\120',
+    PCK_EXTENDED      = '\340'
 };
-
-#define EX_KEY '\340'
 
 static char keytable[] =
 {
     // Windows Special Cursors
 #ifdef HAVE_MSWINDOWS
-    EX_KEY, KEY_RIGHT,0,    A_RIGHT_ARROW,
-    EX_KEY, KEY_LEFT,0,     A_LEFT_ARROW,
-    EX_KEY, KEY_HOME,0,     A_HOME,
-    EX_KEY, KEY_END,0,      A_END,
+    PCK_EXTENDED, PCK_RIGHT,0,    A_RIGHT_ARROW,
+    PCK_EXTENDED, PCK_LEFT,0,     A_LEFT_ARROW,
+    PCK_EXTENDED, PCK_UP,0,       A_UP_ARROW,
+    PCK_EXTENDED, PCK_DOWN,0,     A_DOWN_ARROW,
+    PCK_EXTENDED, PCK_HOME,0,     A_HOME,
+    PCK_EXTENDED, PCK_END,0,      A_END,
 #endif
 
 #ifdef HAVE_UNIX
