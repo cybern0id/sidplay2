@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2002/01/30 00:34:15  s_a_white
+ *  Printing builder error message instead of not enough memory.
+ *
  *  Revision 1.12  2002/01/29 08:11:43  s_a_white
  *  TSID filename fix
  *
@@ -57,7 +60,7 @@
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include "player.h"
@@ -107,11 +110,13 @@ ConsolePlayer::ConsolePlayer (const char * const name)
         // INI Configuration Settings
         m_engCfg.clockForced  = emulation.clockForced;
         m_engCfg.clockSpeed   = emulation.clockSpeed;
+        m_engCfg.clockDefault = SID2_CLOCK_PAL;
         m_engCfg.frequency    = audio.frequency;
         m_engCfg.optimisation = emulation.optimiseLevel;
         m_engCfg.playback     = audio.playback;
         m_engCfg.precision    = audio.precision;
         m_engCfg.sidModel     = emulation.sidModel;
+        m_engCfg.sidDefault   = SID2_MOS6581;
         m_engCfg.sidSamples   = emulation.sidSamples;
         m_filter.enabled      = emulation.filter;
     }
@@ -154,7 +159,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 
     case OUT_SOUNDCARD:
 #ifdef HAVE_EXCEPTIONS
-        m_driver.device = new(nothrow) AudioDriver;
+        m_driver.device = new(std::nothrow) AudioDriver;
 #else
         m_driver.device = new AudioDriver;
 #endif
@@ -162,7 +167,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 
     case OUT_WAV:
 #ifdef HAVE_EXCEPTIONS
-        m_driver.device = new(nothrow) WavFile;
+        m_driver.device = new(std::nothrow) WavFile;
 #else
         m_driver.device = new WavFile;
 #endif
@@ -195,7 +200,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
         if (!i) i = length;
     
 #ifdef HAVE_EXCEPTIONS
-        name = new(nothrow) char[i + 10];
+        name = new(std::nothrow) char[i + 10];
 #else
         name = new char[i + 10];
 #endif
@@ -280,7 +285,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_RESID:
     {
 #ifdef HAVE_EXCEPTIONS
-        ReSIDBuilder *rs = new(nothrow) ReSIDBuilder( RESID_ID );
+        ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
 #else
         ReSIDBuilder *rs = new ReSIDBuilder( RESID_ID );
 #endif
@@ -310,7 +315,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_HARDSID:
     {
 #ifdef HAVE_EXCEPTIONS
-        HardSIDBuilder *hs = new(nothrow) HardSIDBuilder( HARDSID_ID );
+        HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
 #else
         HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
 #endif
