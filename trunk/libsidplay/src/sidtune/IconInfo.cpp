@@ -425,22 +425,19 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_name) == 0 )
         {
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_name),
-                                               &infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
+            SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
             info.infoString[0] = &infoString[0][0];
             hasName = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_author) == 0 )
         {
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_author),
-                                               &infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
+            SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
             info.infoString[1] = &infoString[1][0];
             hasAuthor = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_copyright) == 0 )
         {
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_copyright),
-                                               &infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
+            SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
             info.infoString[2] = &infoString[2][0];
             hasReleased = true;
         }
@@ -453,8 +450,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         // New extensions from here on!
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf, _sidtune_keyword_released) == 0 )
         {
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_released),
-                                               &infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
+            SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
             info.infoString[2] = &infoString[2][0];
             hasReleased = true;
         }
@@ -476,8 +472,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_clock) == 0 )
         {
             char clock[8];
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_clock),
-                                               clock,sizeof(clock));
+            SidTuneTools::copyStringValueToEOL(cmpBuf,clock,sizeof(clock));
             if ( SidTuneTools::myStrNcaseCmp( clock, "UNKNOWN" ) == 0 )
                 info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
             else if ( SidTuneTools::myStrNcaseCmp( clock, "PAL" ) == 0 )
@@ -490,8 +485,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_sidModel) == 0 )
         {
             char model[8];
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_sidModel),
-                                               model,sizeof(model));
+            SidTuneTools::copyStringValueToEOL(cmpBuf,model,sizeof(model));
             if ( SidTuneTools::myStrNcaseCmp( model, "UNKNOWN" ) == 0 )
                 info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
             else if ( SidTuneTools::myStrNcaseCmp( model, "6581" ) == 0 )
@@ -504,8 +498,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_compatibility) == 0 )
         {
             char comp[6];
-            SidTuneTools::copyStringValueToEOL(cmpBuf + strlen(_sidtune_keyword_compatibility),
-                                               comp,sizeof(comp));
+            SidTuneTools::copyStringValueToEOL(cmpBuf,comp,sizeof(comp));
             if ( SidTuneTools::myStrNcaseCmp( comp, "C64" ) == 0 )
                 info.compatibility = SIDTUNE_COMPATIBILITY_C64;
             else if ( SidTuneTools::myStrNcaseCmp( comp, "PSID" ) == 0 )
