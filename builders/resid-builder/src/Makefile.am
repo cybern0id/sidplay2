@@ -1,10 +1,9 @@
 # The library.
 
-libdir = $(LIBSIDPLAY2_DIR)
 lib_LTLIBRARIES = libresid-builder.la
 
 libresid_builder_la_SOURCES = resid.cpp resid-builder.cpp
-libresid_builder_la_LIBADD  = $(RESID_LIBRARIES)
+libresid_builder_la_LIBADD  = $(RESID_LDFLAGS)
 
 # We substitute the libtool-specific library version in configure.in.
 libresid_builder_la_LDFLAGS = -version-info $(LIBVERSION)
