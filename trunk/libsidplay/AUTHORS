@@ -7,8 +7,9 @@ contains the following contributed or derived work.  In the order they first
 supplied contributions or code was derived from their work:
 
     Dag Lem           - reSID library
-    Michael Schwendt  - SidTune library, Sid2Wav support
-                        and basis for xSID...
+    Michael Schwendt  - initial implementation of SidTune library,
+                        Sid2Wav support, OSS/Free and SPARC audio
+                        drivers
     Rainer Sinsch     - For help with the DirectX drivers
     Jarno Paananen    - 16 bit mixer code, Windows
                         MMSYSTEM Drivers
