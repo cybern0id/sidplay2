@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2002/01/29 21:50:33  s_a_white
+ *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  config.  Initial code added to support more than two sids.
+ *
  *  Revision 1.34  2002/01/14 23:16:27  s_a_white
  *  Prevent multiple initialisations if already stopped.
  *
@@ -445,8 +449,18 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
             {
             case 0:
                 return readMemByte_plain (addr);
-            case 0xdc: // Sidplay1 CIA
+            // Sidplay1 Random Extension CIA
+            case 0xdc:
                 return sid6526.read (addr&0x0f);
+            // Sidplay1 Random Extension VIC 
+            case 0xd0:
+                switch (addr & 0x3f)
+                {
+                case 0x11:
+                case 0x12:
+                    return sid6526.read ((addr-7)&0x0f);
+                }
+                // Deliberate run on
             default:
                 return m_rom[addr];
             }
