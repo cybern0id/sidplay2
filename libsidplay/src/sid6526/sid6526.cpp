@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/18 02:22:37  jpaana
+ *  Fixed include filename to lowercase
+ *
  *  Revision 1.2  2001/09/03 22:24:09  s_a_white
  *  New counts for timer A are correctly formed.
  *
@@ -36,7 +39,7 @@ const char * const SID6526::credit =
 
 SID6526::SID6526 (c64env *env)
 :m_env(*env),
- m_eventContext(m_env.eventContext),
+ m_eventContext(m_env.context ()),
  m_taEvent(*this)
 {
     clock (0xffff);
