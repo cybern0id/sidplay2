@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/02/20 18:50:44  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.7  2002/11/22 08:35:16  s_a_white
  *  Renamed "Copyright" to "Released".
  *
@@ -77,38 +80,41 @@ void ConsolePlayer::menu ()
         cerr << info.name + 1 << " V" << info.version << endl;
     }
 
-    consoleTable (tableSeperator); 
-    if (tuneInfo.musPlayer)
+    consoleTable (tableSeperator);
+    if (tuneInfo.numberOfInfoStrings > 0)
     {
-        for (int i = 0; i < tuneInfo.numberOfInfoStrings; i++)
+        if (!tuneInfo.musPlayer && (tuneInfo.numberOfInfoStrings == 3))
         {
             consoleTable  (tableMiddle);
             consoleColour (cyan, true);
-            cerr << " Description  : ";
+            cerr << " Title        : ";
             consoleColour (magenta, true);
-            cerr << tuneInfo.infoString[i] << endl;
+            cerr << tuneInfo.infoString[0] << endl;
+            consoleTable  (tableMiddle);
+            consoleColour (cyan, true);
+            cerr << " Author       : ";
+            consoleColour (magenta, true);
+            cerr << tuneInfo.infoString[1] << endl;
+            consoleTable  (tableMiddle);
+            consoleColour (cyan, true);
+            cerr << " Released     : ";
+            consoleColour (magenta, true);
+            cerr << tuneInfo.infoString[2] << endl;
         }
-    }
-    else
-    {
-        consoleTable  (tableMiddle);
-        consoleColour (cyan, true);
-        cerr << " Title        : ";
-        consoleColour (magenta, true);
-        cerr << tuneInfo.infoString[0] << endl;
-        consoleTable  (tableMiddle);
-        consoleColour (cyan, true);
-        cerr << " Author       : ";
-        consoleColour (magenta, true);
-        cerr << tuneInfo.infoString[1] << endl;
-        consoleTable  (tableMiddle);
-        consoleColour (cyan, true);
-        cerr << " Released     : ";
-        consoleColour (magenta, true);
-        cerr << tuneInfo.infoString[2] << endl;
+        else
+        {
+            for (int i = 0; i < tuneInfo.numberOfInfoStrings; i++)
+            {
+                consoleTable  (tableMiddle);
+                consoleColour (cyan, true);
+                cerr << " Description  : ";
+                consoleColour (magenta, true);
+                cerr << tuneInfo.infoString[i] << endl;
+            }
+        }
+        consoleTable (tableSeperator);
     }
 
-    consoleTable (tableSeperator);
     if (m_verboseLevel)
     {
         consoleTable  (tableMiddle);
