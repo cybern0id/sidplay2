@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2002/11/19 22:55:50  s_a_white
+ *  PSIDv2NG/RSID changes to deal with spec updates for recommended
+ *  implementation.
+ *
  *  Revision 1.35  2002/11/01 17:36:01  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -358,6 +362,8 @@ private:
     void interruptIRQ (bool state);
     void interruptNMI (void);
     void interruptRST (void);
+    void signalBA     (bool state) { cpu->rdySignal (state); }
+    void signalAEC    (bool state) { cpu->aecSignal (state); }
 
     // PSID driver
     int  psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,

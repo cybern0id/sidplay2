@@ -19,6 +19,15 @@
 #include "sidendian.h"
 #include "mos656x.h"
 
+#define MOS6567R56A_FIRST_DMA_LINE 0x30
+#define MOS6567R56A_LAST_DMA_LINE  0xf7
+
+#define MOS6567R8_FIRST_DMA_LINE   0x30
+#define MOS6567R8_LAST_DMA_LINE    0xf7
+
+#define MOS6569_FIRST_DMA_LINE     0x30
+#define MOS6569_LAST_DMA_LINE      0xff
+
 const char *MOS656X::credit =
 {   // Optional information
     "*MOS656X (VICII) Emulation:\0"
@@ -31,14 +40,16 @@ MOS656X::MOS656X (EventContext *context)
  event_raster(this)
 {
     chip  (MOS6569);
-    reset ();
 }
 
 void MOS656X::reset ()
 {
-    icr          = idr = 0;
-    raster_cycle = raster_cycles - 1;
+    icr          = idr = ctrl1 = 0;
     raster_irq   = 0;
+    y_scroll     = 0;
+    raster_y     = yrasters - 1;
+    raster_x     = xrasters - 1;
+    bad_lines_enabled = false;
     event_context.schedule (&event_raster, 1);
     m_accessClk  = 0;
 }
@@ -51,38 +62,35 @@ void MOS656X::chip (mos656x_model_t model)
     case MOS6567R56A:
         yrasters = 262;
         xrasters = 64;
+        first_dma_line = MOS6567R56A_FIRST_DMA_LINE;
+        last_dma_line  = MOS6567R56A_LAST_DMA_LINE;
     break;
 
     // NTSC Chip
     case MOS6567R8:
         yrasters = 263;
         xrasters = 65;
+        first_dma_line = MOS6567R8_FIRST_DMA_LINE;
+        last_dma_line  = MOS6567R8_LAST_DMA_LINE;
     break;
 
     // PAL Chip
     case MOS6569:
         yrasters = 312;
         xrasters = 63;
+        first_dma_line = MOS6569_FIRST_DMA_LINE;
+        last_dma_line  = MOS6569_LAST_DMA_LINE;
     break;
     }
 
-    raster_cycles = xrasters * yrasters;
+    reset ();
 }
 
 uint8_t MOS656X::read (uint_least8_t addr)
 {
-    uint_least16_t raster_y;
-    event_clock_t  cycles;
     if (addr > 0x3f) return 0;
     if (addr > 0x2e) return 0xff;
  
-    // Sync up
-    cycles        = event_context.getTime (m_accessClk);
-    m_accessClk  += cycles;
-    raster_cycle += cycles;
-    raster_cycle %= raster_cycles;
-    raster_y      = raster_cycle / xrasters;
-
     switch (addr)
     {
     case 0x11:    // Control register 1 
@@ -99,54 +107,37 @@ uint8_t MOS656X::read (uint_least8_t addr)
 
 void MOS656X::write (uint_least8_t addr, uint8_t data)
 {
-    event_clock_t  cycles;
     if (addr > 0x3f) return;
 
     regs[addr] = data;
-
-    // Sync up
-    cycles        = event_context.getTime (m_accessClk);
-    m_accessClk  += cycles;
-    raster_cycle += cycles;
-    raster_cycle %= raster_cycles;
-    cycles = 0;
 
     switch (addr)
     {
     case 0x11: // Control register 1
         endian_16hi8 (raster_irq, data >> 7);
-        goto MOS656X_write_generateEvent;
+        ctrl1    = data;
+        y_scroll = data & 7;
+        ctrl1    = 0;
+
+		// In line $30, the DEN bit controls if Bad Lines can occur
+		if (raster_y == 0x30 && data & 0x10)
+			bad_lines_enabled = true;
+        break;
 
     case 0x12: // Raster counter
         endian_16lo8 (raster_irq, data);
-
-MOS656X_write_generateEvent:
-        if (raster_irq >= yrasters)
-        {   // Oops, out of range
-            event_context.cancel (&event_raster);
-            break;
-        }
-
-        {   // Calculate cycles to event
-            event_clock_t cyclesToEvent = raster_irq * xrasters;
-            if (cyclesToEvent < raster_cycle)
-                cyclesToEvent += (raster_cycles - raster_cycle);
-            else
-                cyclesToEvent -= raster_cycle;
-            event_context.schedule (&event_raster, cyclesToEvent);
-        }
-    break;
+        break;
 
     case 0x19: // IRQ flags
         idr &= ((~data & 0x0f) | 0x80);
         if (idr == 0x80)
             trigger (0);
-    break;
+        break;
 
     case 0x1a: // IRQ mask 
         icr = data & 0x0f; 
         trigger (icr & idr); 
-    break;
+        break;
     }
 }
 
@@ -174,8 +165,58 @@ void MOS656X::trigger (int irq)
 
 void MOS656X::rasterEvent (void)
 {
-    m_accessClk  = event_context.getTime ();
-    raster_cycle = raster_irq * xrasters;
-    trigger (MOS656X_INTERRUPT_RST);
-    event_context.schedule (&event_raster, raster_cycles);
+    event_clock_t delay = 1;
+
+    switch (raster_x)
+    {
+    case 0:  // IRQ occurred (xraster != 0)
+        if (raster_y != yrasters - 1)
+        {
+            raster_y++;
+            // Trigger raster IRQ if IRQ line reached
+            if (raster_y == raster_irq)
+                trigger (MOS656X_INTERRUPT_RST);
+            delay = 11;
+        }
+        break;
+    case 1:  // Vertical blank (line 0)
+		// Trigger raster IRQ if IRQ in line 0
+        raster_y = 0;
+        trigger (MOS656X_INTERRUPT_RST);
+        delay    = 10;
+        break;
+
+    case 11: // Start bad line
+    {   // In line $30, the DEN bit controls if Bad Lines can occur
+        if ((raster_y == first_dma_line) && (ctrl1 & 0x10))
+	        bad_lines_enabled = true;
+
+        // Test for bad line condition
+        bad_line = (raster_y >= first_dma_line) &&
+                   (raster_y <= last_dma_line)  &&
+                   ((raster_y & 7) == y_scroll) &&
+                   bad_lines_enabled;
+
+        delay = xrasters - 11;
+        if (bad_line)
+        {
+            delay = 3;
+            busaccess (false);
+        }
+        break;
+    }
+    case 14: // Start DMA
+        addrctrl (false);
+        delay = 40;
+        break;
+    case 54: // End DMA
+        busaccess (true);
+        addrctrl  (true);
+        delay = xrasters - 54;
+        break;
+    }
+
+    raster_x += delay;
+    raster_x %= xrasters;
+    event_context.schedule (&event_raster, delay);
 }

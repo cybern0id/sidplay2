@@ -34,6 +34,16 @@ protected:
         m_env.interruptIRQ (state);
     }
 
+    void busaccess (bool state)
+    {
+        m_env.signalBA (state);
+    }
+
+    void addrctrl (bool state)
+    {
+        m_env.signalAEC (state);
+    }
+
 public:
     c64vic (c64env *env)
     :MOS656X(&(env->context ())),
