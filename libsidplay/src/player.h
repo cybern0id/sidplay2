@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/03/21 23:28:12  s_a_white
+ *  Support new component names.
+ *
  *  Revision 1.9  2001/03/21 22:32:55  s_a_white
  *  Filter redefinition support.  VIC & NMI support added.
  *
@@ -77,7 +80,7 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
-	static const char  *ERR_FILTER_DEFINITION;
+    static const char  *ERR_FILTER_DEFINITION;
 
     //SID6510  cpu(6510, "Main CPU");
     SID6510 cpu;
@@ -86,7 +89,7 @@ private:
     XSID    xsid;
     MOS6526 cia;
     MOS6526 cia2;
-	MOS656X vic;
+    MOS656X vic;
 
     // User Configuration Settings
     struct   SidTuneInfo tuneInfo;
@@ -216,7 +219,7 @@ public:
     void           stop         (void);
     uint_least32_t time         (void) { return _seconds; }
     void           sidSamples   (bool enable);
-	int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
+    int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
 
     void           optimisation (uint_least8_t level)
     {
