@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.50  2002/11/01 17:36:01  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.49  2002/10/20 08:58:36  s_a_white
  *  Modify IO map so psiddrv can detect special cases.
  *
@@ -184,6 +187,10 @@
 #   include <new>
 #endif
 
+static const uint8_t kernal[] = {
+#include "kernal.bin"
+};
+
 SIDPLAY2_NAMESPACE_START
 
 const double Player::CLOCK_FREQ_NTSC = 1022727.14;
@@ -303,6 +310,11 @@ void Player::fakeIRQ (void)
     // we should pick it up from an IRQ vector
     uint_least16_t playAddr = m_tuneInfo.playAddr;
 
+    evalBankSelect (0x37);
+    // Setup the entry point and restart the cpu
+    endian_little16 (&m_rom[0xfffc], playAddr);
+    cpu->triggerIRQ ();
+
     // We have to reload the new play address
     if (!playAddr)
     {
@@ -314,14 +326,10 @@ void Player::fakeIRQ (void)
         {   // Setup the entry point from software IRQ
             playAddr = endian_little16 (&m_ram[0xFFFF]);
         }
+        evalBankSelect (m_bankReg);
     }
     else
         evalBankSelect (m_playBank);
-
-    // Setup the entry point and restart the cpu
-    endian_little16 (&m_rom[0xfffc], playAddr);
-    endian_little16 (&m_ram[0xfffc], playAddr);
-    cpu->triggerIRQ ();
 }
 
 int Player::fastForward (uint percent)
@@ -759,63 +767,41 @@ void Player::reset (void)
     // Initalise Memory
     memset (m_ram, 0, 0x10000);
     memset (m_rom, 0, 0x10000);
-    memset (m_rom + 0xE000, RTSn, 0x2000);
     if (m_info.environment != sid2_envPS)
         memset (m_rom + 0xA000, RTSn, 0x2000);
 
     if (m_info.environment == sid2_envR)
-    {   // Install some basic rom functionality
-        /* EA31 IRQ return: jmp($0310). */
-        for (i = 0xea31; i < 0xea7e; i++)
-            m_rom[i] = NOPn;
-
-        // NMI entry
-        m_rom[0xFE43] = SEIn;
-        m_rom[0xFE44] = JMPi;
-        m_rom[0xFE45] = 0x18;
-        m_rom[0xFE46] = 0x03;
-
-        {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
-            uint8_t prg[] = {PHAn,  TXAn, PHAn, TYAn, PHAn, TSXn,
-                             LDAax, 0x04, 0x01, ANDb, 0x10, BEQr,
-                             0x03,  JMPi, 0x16, 0x03, JMPi, 0x14,
-                             0x03};
-            memcpy (&m_rom[0xff48], prg, sizeof (prg));
-        }
-
-        {   // IRQ clean up code
-            uint8_t prg[] = {LDAa, 0x0d, 0xdc, PLAn, TAYn, PLAn,
-                             TAXn, PLAn, RTIn};
-            memcpy (&m_rom[0xea7e], prg, sizeof (prg));
-        }
-    }
+        memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
     else // !sid2_envR
-    {   // fake VBI-interrupts that do $D019, BMI ...
+    {
+        memset (m_rom + 0xE000, RTSn, 0x2000);    
+        // fake VBI-interrupts that do $D019, BMI ...
         m_rom[0x0d019] = 0xff;
         if (m_info.environment == sid2_envPS)
         {
             m_ram[0xff48] = JMPi;
             endian_little16 (&m_ram[0xff49], 0x0314);
         }
+
+        // Software vectors
+        endian_little16 (&m_ram[0x0314], 0xEA31); // IRQ
+        endian_little16 (&m_ram[0x0316], 0xFE66); // BRK
+        endian_little16 (&m_ram[0x0318], 0xFE47); // NMI
+        // Hardware vectors
+        if (m_info.environment == sid2_envPS)
+            endian_little16 (&m_rom[0xfffa], 0xFFFA); // NMI
+        else
+            endian_little16 (&m_rom[0xfffa], 0xFE43); // NMI
+        endian_little16 (&m_rom[0xfffc], 0xFCE2); // RESET
+        endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
+        memcpy (&m_ram[0xfffa], &m_rom[0xfffa], 6);
+
+        // Will get done later if can't now
+        if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+            m_ram[0x02a6] = 1;
+        else // SIDTUNE_CLOCK_NTSC
+            m_ram[0x02a6] = 0;
     }
-
-    // Software vectors
-    endian_little16 (&m_ram[0x0314], 0xEA31); // IRQ
-    endian_little16 (&m_ram[0x0316], 0xFE66); // BRK
-    endian_little16 (&m_ram[0x0318], 0xFE47); // NMI
-    // Hardware vectors
-    if (m_info.environment == sid2_envPS)
-        endian_little16 (&m_rom[0xfffa], 0xFFFA); // NMI
-    else
-        endian_little16 (&m_rom[0xfffa], 0xFE43); // NMI
-    endian_little16 (&m_rom[0xfffc], 0xFCE2); // RESET
-    endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
-
-    // Will get done later if can't now
-    if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
-        m_ram[0x02a6] = 1;
-    else // SIDTUNE_CLOCK_NTSC
-        m_ram[0x02a6] = 0;
 }
 
 // This resets the cpu once the program is loaded to begin
@@ -842,23 +828,20 @@ void Player::envReset (bool safe)
     }
 
     m_ram[0] = 0x2F;
+    evalBankSelect (0x37);
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     if (m_info.environment != sid2_envR)
     {
         uint8_t song = m_tuneInfo.currentSong - 1;
+        sid6510.reset  (song, song, song);
         uint8_t bank = iomap (m_tuneInfo.initAddr);
         if (bank == 0)
             bank = 0x37;
         evalBankSelect (bank);
-        sid6510.reset  (song, song, song);
         m_playBank = iomap (m_tuneInfo.playAddr);
-        memcpy (&m_ram[0xfffa], &m_rom[0xfffa], 6);
     }
     else
-    {
-        evalBankSelect (0x37);
         cpu->reset ();
-    }
 
     mixerReset ();
     xsid.suppress (true);
