@@ -427,7 +427,7 @@ AC_DEFUN(BUILDERS_FIND_RESID,
 
     AC_TRY_LINK(
         [#include <sidplay/builders/resid.h>],
-        [ReSID *sid;],
+        [ReSIDBuilder *sid;],
         [BUILDERS_WORK=YES],
         [BUILDERS_WORK=NO]
     )
@@ -461,7 +461,7 @@ AC_DEFUN(BUILDERS_FIND_HARDSID,
 
     AC_TRY_LINK(
         [#include <sidplay/builders/hardsid.h>],
-        [HardSID *sid;],
+        [HardSIDBuilder *sid;],
         [BUILDERS_WORK=YES],
         [BUILDERS_WORK=NO]
     )
