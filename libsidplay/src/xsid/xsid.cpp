@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2004/06/26 11:05:42  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.24  2004/05/28 15:45:13  s_a_white
  *  Correct credit email address
  *
@@ -115,13 +118,12 @@ channel::channel (const char * const name, EventContext *context, XSID *xsid)
  m_sampleEvent("xSID Sample", *this, &channel::sampleClock),
  m_galwayEvent("xSID Galway", *this, &channel::galwayClock)
 {
-    memset (reg, 0, sizeof (reg));
-    active = true;
     reset  ();
 }
 
 void channel::reset ()
 {
+    memset (reg, 0, sizeof (reg));
     galVolume  = 0; // This is left to free run until reset
     mode       = FM_NONE;
     free ();
