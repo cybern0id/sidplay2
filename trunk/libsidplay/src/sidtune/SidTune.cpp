@@ -379,6 +379,7 @@ void SidTune::init()
     info.clockSpeed = SIDTUNE_CLOCK_PAL;
     info.sidModel = SIDTUNE_SIDMODEL_6581;
 #endif
+    info.psidSpecific = false;
     info.songLength = 0;
     info.relocStartPage = 0;
     info.relocPages = 0;
