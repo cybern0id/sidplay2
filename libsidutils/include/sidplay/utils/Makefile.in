@@ -77,7 +77,7 @@ RANLIB = @RANLIB@
 VERSION = @VERSION@
 
 sidplayincludedir = $(includedir)/sidplay/utils
-sidplayinclude_HEADERS = SidDatabase.h SidFilter.h SidTuneMod.h iniconfig.h libini.h
+sidplayinclude_HEADERS = SidDatabase.h SidFilter.h SidTuneMod.h libini.h
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = ../../../include/config.h
