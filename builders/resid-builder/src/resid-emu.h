@@ -47,6 +47,7 @@ private:
     const  char  *m_error;
     bool          m_status;
     bool          m_locked;
+    uint_least8_t m_optimisation;
 
 public:
     ReSID  (sidbuilder *builder);
@@ -66,6 +67,7 @@ public:
     void          voice   (uint_least8_t num, uint_least8_t volume,
                            bool mute);
     void          gain    (int_least8_t precent);
+    void          optimisation (uint_least8_t level);
 
     operator bool () { return m_status; }
     static   int  devices (char *error);
