@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2003/05/28 22:21:32  s_a_white
+ *  Restored irqret to correct position as speed problems were the result
+ *  of sidtune.
+ *
  *  Revision 1.18  2003/05/04 06:38:37  s_a_white
  *  For RSID tunes handle the presence of a VIC during the random delay
  *  period.
@@ -147,8 +151,13 @@ timer       sta $dc04
             ; enable CIA 1 timer A interrupt
 ciainit     stx $dc0d
 
+            ; setup TOD clock divider
+doinit      lda video
+            ror
+            ror
+            sta $dd0e
             ; always enable timer A for random numbers
-doinit      lda #$01
+            ora #$01
             sta $dc0e
 
             ; If play address, override default irq vector so
