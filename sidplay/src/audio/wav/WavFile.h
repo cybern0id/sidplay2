@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/10/30 23:35:35  s_a_white
+ *  Added pause support.
+ *
  *  Revision 1.2  2001/07/03 17:54:05  s_a_white
  *  Support for new audio interface for better compatibility.
  *
@@ -93,15 +96,13 @@ public:
     // contents to be restored properly.
     void *write(unsigned long int size);
     void *write() { return write (bufSize); }
-    
-    void close();
-    void pause () {;}
+    void  close();
+    void  pause() {;}
+    const char *extension () const { return ".wav"; }
     ~WavFile() { close(); }
     
-    // Have to be defined to use base audio class
-    virtual void *open  (AudioConfig &cfg) { return 0; }
     // Rev 1.3 (saw) - Changed, see AudioBase.h
-    virtual void *reset ()
+    void *reset ()
     {
         if (isOpen)
             return _sampleBuffer;
