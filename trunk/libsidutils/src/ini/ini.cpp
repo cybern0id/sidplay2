@@ -16,7 +16,27 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
-// Rev 1.4 - Replaced use of fgetpos with ftell
+/***************************************************************************
+ * $Log: not supported by cvs2svn $
+ * Revision 1.10  2001/08/23 19:59:18  s_a_white
+ * ini_append fix so not freeing wrong buffer.
+ *
+ * Revision 1.9  2001/08/17 19:23:16  s_a_white
+ * Added ini_append.
+ *
+ * Revision 1.8  2001/08/14 22:21:21  s_a_white
+ * Hash table and list removal fixes.
+ *
+ * Revision 1.7  2001/07/27 11:10:15  s_a_white
+ * Simplified __ini_deleteAll.
+ *
+ * Revision 1.6  2001/07/21 09:47:12  s_a_white
+ * Bug Fixes (thanks Andy):
+ * *) After a flush the key and heading are now remembered.
+ * *) ini_deleteAll then ini_close now correctly deletes the ini file.
+ * *) ini_flush with no changes no longer destroys the ini object.
+ *
+ ***************************************************************************/
 
 //*******************************************************************************************************************
 // Include Files
@@ -44,9 +64,9 @@ char buffer[1024 * 5];
 //*******************************************************************************************************************
 // Function Prototypes
 //*******************************************************************************************************************
-static ini_t              *__ini_open            (char *name, bool allowNew);
-static int                 __ini_close           (ini_t *ini, bool force);
-static void                __ini_deleteAll       (ini_t *ini);
+static ini_t              *__ini_open            (const char *name, ini_mode_t mode);
+static int                 __ini_close           (ini_t *ini, bool flush);
+static void                __ini_delete          (ini_t *ini);
 struct key_tag            *__ini_locate          (ini_t *ini, char *heading, char *key);
 static int                 __ini_process         (ini_t *ini, FILE *file);
 static int                 __ini_store           (ini_t *ini, FILE *file);
@@ -136,7 +156,7 @@ void strtrim (char *str)
 
 
 /********************************************************************************************************************
- * Function          : ini_open
+ * Function          : __ini_open
  * Parameters        : name - ini file to parse
  * Returns           : Pointer to ini database.
  * Globals Used      :
@@ -146,7 +166,7 @@ void strtrim (char *str)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-ini_t *__ini_open (char *name, bool allowNew)
+ini_t *__ini_open (const char *name, ini_mode_t mode)
 {
     ini_t   *ini;
     FILE    *file = NULL;
@@ -172,29 +192,41 @@ ini_t *__ini_open (char *name, bool allowNew)
     strcpy (ini->filename, name);
 
     // Open input file
+    ini->mode = mode;
     file = fopen (ini->filename, "rb");
-    if (!(file || allowNew))
+    if (!file)
     {   // File doesn't exist and we are not allowed
         // to create one
-        goto ini_openError;
+		if (mode != INI_NEW)
+            goto ini_openError;
+
+		// Seems we can make so new one, check and
+		// make sure
+        file = fopen (ini->filename, "wb");
+        if (!file)
+            goto ini_openError;
+        fclose (file);
     }
 
     // Open backup file
-    ini->filename[length - 1] = '~';
-    ini->ftmp = fopen (ini->filename, "w");
-    if (!ini->ftmp)
-        goto ini_openError;
-    fclose (ini->ftmp);
-    ini->ftmp = fopen (ini->filename, "rb+");
-    if (!ini->ftmp)
-        goto ini_openError;
-    ini->filename[length - 1] = name[length - 1];
+    if (ini->mode == INI_READ)
+        ini->ftmp = tmpfile ();
+	else
+	{
+        ini->filename[length - 1] = '~';
+        ini->ftmp = fopen (ini->filename, "wb+");
+        ini->filename[length - 1] = name[length - 1];
+	}
 
-    // Process existing ini file
-    if (__ini_process (ini, file) < 0)
+    if (!ini->ftmp)
         goto ini_openError;
-    fclose (file);
-    file = NULL;
+    if (!file)
+        ini->newfile = true;
+    else
+    {   // Process existing ini file
+        if (__ini_process (ini, file) < 0)
+            goto ini_openError;
+    }
 
     // Rev 1.1 Added - Changed set on open bug fix
     ini->changed = false;
@@ -206,8 +238,11 @@ ini_openError:
         if (ini->ftmp)
         {   // Close and remove backup file
             fclose (ini->ftmp);
-            ini->filename[strlen (ini->filename) - 1] = '~';
-            remove (ini->filename);
+			if (ini->mode != INI_READ)
+			{
+                ini->filename[strlen (ini->filename) - 1] = '~';
+                remove (ini->filename);
+			}
         }
         if (ini->filename)
             free (ini->filename);
@@ -234,7 +269,7 @@ ini_openError:
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int __ini_close (ini_t *ini, bool force)
+int __ini_close (ini_t *ini, bool flush)
 {
     FILE *file;
     int   ret = 0;
@@ -242,47 +277,53 @@ int __ini_close (ini_t *ini, bool force)
     // Open output file
     if (ini->changed)
     {
+        if (!ini->first)
+            remove(ini->filename);
+        else
+        {
 #ifdef INI_ADD_LIST_SUPPORT
-        char *delims;
-        // Rev 1.1 Added - Must remove delims before saving
-        delims = ini->listDelims;
-        ini->listDelims = NULL;
+            char *delims;
+            // Rev 1.1 Added - Must remove delims before saving
+            delims = ini->listDelims;
+            ini->listDelims = NULL;
 #endif // INI_ADD_LIST_SUPPORT
 
-        // Not point writing an unchanged file
-        file = fopen (ini->filename, "w");
-        if (!file)
-            return -1;
+            // Not point writing an unchanged file
+            file = fopen (ini->filename, "w");
+            if (file)
+            {   // Output all new headers and keys
+                ret = __ini_store (ini, file);
+                fflush (file);
+                fclose (file);
+            }
 
-        // Output all new headers and keys
-        ret = __ini_store (ini, file);
-        fflush (file);
-        fclose (file);
-
-        // We may want to give user chance
-        // to do something else
-        if (!force)
-        {
 #ifdef INI_ADD_LIST_SUPPORT
             // Rev 1.1 Added - This was only a flush, so lets restore
             // the old delims
             ini->listDelims = delims;
 #endif // INI_ADD_LIST_SUPPORT
-            return 0;
+            if (!file)
+                return -1;
         }
     }
+
+    // Check if the user dosent want the file closed.
+    if (!flush)
+        return 0;
 
     // Cleanup
     fclose (ini->ftmp);
 
-    // If no mods were made, delete tmp file
-    if (!ini->changed)
-    {
-        ini->filename[strlen (ini->filename) - 1] = '~';
-        remove (ini->filename);
-    }
+	if (ini->mode != INI_READ)
+	{   // If no mods were made, delete tmp file
+        if (!ini->changed || ini->newfile)
+		{
+            ini->filename[strlen (ini->filename) - 1] = '~';
+            remove (ini->filename);
+		}
+	}
 
-    __ini_deleteAll (ini);
+    __ini_delete (ini);
     free (ini->filename);
 
     if (ini->tmpSection.heading)
@@ -302,7 +343,7 @@ int __ini_close (ini_t *ini, bool force)
 
 
 /********************************************************************************************************************
- * Function          : __ini_deleteAll
+ * Function          : __ini_delete
  * Parameters        : ini - pointer to ini file database.
  * Returns           :
  * Globals Used      :
@@ -313,47 +354,28 @@ int __ini_close (ini_t *ini, bool force)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-void __ini_deleteAll (ini_t *ini)
-{
-    struct section_tag *current_h, *last_h;
-    struct key_tag     *current_k, *last_k;
+void __ini_delete (ini_t *ini)
+{   // If already deleted, don't delete it again
+    if (!ini->first)
+        return;
 
-    // Scroll through all sections deleting them
-    current_h = ini->first;
-    while (current_h)
+    // Go through all sections deleting them
+    while (ini->first)
     {
-        last_h    = current_h;
-        current_h = current_h->pNext;
-
-        // Delete Heading
-        current_k = last_h->first;
-        free (last_h->heading);
-        free (last_h);
-
-        // Delete Keys
-        while (current_k)
-        {
-            last_k    = current_k;
-            current_k = current_k->pNext;
-            free (last_k->key);
-            free (last_k);
-        }
-
-        ini->first    = NULL;
-        ini->selected = NULL;
-        ini->last     = NULL;
+         ini->selected = ini->first;
+         __ini_deleteHeading (ini);
     }
 
 #ifdef INI_ADD_LIST_SUPPORT
     // Rev 1.1 - Remove buffered list
     if (ini->list)
-    {   free (ini->list);
+    {
+        free (ini->list);
         ini->list = NULL;
     }
 #endif // INI_ADD_LIST_SUPPORT
 
-    ini->changed = false;
-    return;
+    ini->changed = true;
 }
 
 
@@ -383,7 +405,7 @@ int __ini_process (ini_t *ini, FILE *file)
         return -1;
 
     // Clear out an existing ini structure
-    __ini_deleteAll (ini);
+    __ini_delete (ini);
     pos   =  0;
     first = -1;
     last  = -1;
@@ -399,8 +421,10 @@ int __ini_process (ini_t *ini, FILE *file)
         current = buffer;
 
         if (count <= 0)
-        {   if (feof (file))
-            {   count  = 1;
+        {
+            if (feof (file))
+            {
+                count  = 1;
                *buffer = '\x1A';
             }
         }
@@ -506,7 +530,7 @@ int __ini_process (ini_t *ini, FILE *file)
             if (!pos)
             {
                 printf ("INI file is too large\n");
-                __ini_deleteAll (ini);
+                __ini_delete (ini);
                 return -1;
             }
         }
@@ -515,11 +539,10 @@ int __ini_process (ini_t *ini, FILE *file)
         if (isEOF)
             break;
     }
-
     return 0;
 
 __ini_processError:
-    __ini_deleteAll (ini);
+    __ini_delete (ini);
     return -1;
 }
 
@@ -537,22 +560,27 @@ __ini_processError:
  ********************************************************************************************************************/
 int __ini_store (ini_t *ini, FILE *file)
 {
-    struct section_tag *current_h;
-    struct key_tag     *current_k;
+    struct section_tag *current_h, *selected_h;
+    struct key_tag     *current_k, *selected_k;
     char  *str = NULL;
     size_t length = 0, equal_pos = 0;
+    int    ret    = -1;
 
     if (!ini)
         return -1;
     if (!file)
         return -1;
     
+    // Backup selected heading and key
+    selected_h = ini->selected;
+    selected_k = selected_h->selected;
+
     current_h = ini->first;
     while (current_h)
     {
         // Output section heading
         if (*current_h->heading)
-    {
+        {
             if (fprintf (file, "[%s]\n", current_h->heading) < 0)
                 goto __ini_storeError;
         }
@@ -596,15 +624,15 @@ int __ini_store (ini_t *ini, FILE *file)
         if (fprintf (file, "\n") < 0)
             goto __ini_storeError;
     }
-
-    if (str)
-        free (str);
-    return 0;
+    ret = 0;
 
 __ini_storeError:
     if (str)
         free (str);
-    return -1;
+    // Restore selected heading and key
+    ini->selected           = selected_h;
+    ini->selected->selected = selected_k;
+    return ret;
 }
 
 
@@ -622,31 +650,25 @@ __ini_storeError:
  * Returns           : Pointer to ini database.
  * Globals Used      :
  * Globals Modified  :
- * Description       : Opens a new ini data file
- ********************************************************************************************************************
- *  Rev   |   Date   |  By   | Comment
- * ----------------------------------------------------------------------------------------------------------------
- ********************************************************************************************************************/
-ini_fd_t ini_new (char *name)
-{
-    return (ini_fd_t) __ini_open (name, true);
-}
-
-
-/********************************************************************************************************************
- * Function          : ini_open
- * Parameters        : name - ini file to create
- * Returns           : Pointer to ini database.
- * Globals Used      :
- * Globals Modified  :
  * Description       : Opens an ini data file and reads it's contents into a database
  ********************************************************************************************************************
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-ini_fd_t ini_open (char *name)
+ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode)
 {
-    return (ini_fd_t) __ini_open (name, false);
+	ini_mode_t _mode;
+	if (!mode)
+		return NULL;
+	// Convert mode
+    switch (*mode)
+	{
+	case 'r': _mode = INI_READ;  break;
+	case 'w': _mode = INI_NEW;   break;
+	case 'a': _mode = INI_EXIST; break;
+    default: return NULL;
+	}
+    return (ini_fd_t) __ini_open (name, _mode);
 }
 
 
@@ -661,7 +683,7 @@ ini_fd_t ini_open (char *name)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_close (ini_fd_t fd)
+int INI_LINKAGE ini_close (ini_fd_t fd)
 {
     return __ini_close ((ini_t *) fd, true);
 }
@@ -678,7 +700,7 @@ int ini_close (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_flush (ini_fd_t fd)
+int INI_LINKAGE ini_flush (ini_fd_t fd)
 {
     return __ini_close ((ini_t *) fd, false);
 }
@@ -696,10 +718,13 @@ int ini_flush (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_dataLength (ini_fd_t fd)
+int INI_LINKAGE ini_dataLength (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
+    if (!ini)
+        return -1;
+
     // Check to make sure a section/key has
     // been asked for by the user
     if (!ini->selected)
@@ -708,8 +733,134 @@ int ini_dataLength (ini_fd_t fd)
     if (!_key)
         return -1;
 
+#ifdef INI_ADD_LIST_SUPPORT
+    if (ini->listDelims)
+        return __ini_listIndexLength (ini);
+#endif
     return (int) _key->length;
 }
+
+
+/********************************************************************************************************************
+ * Function          : ini_delete
+ * Parameters        : ini - pointer to ini file database.
+ * Returns           :
+ * Globals Used      :
+ * Globals Modified  :
+ * Description       : Deletes the whole ini database from memory, but leaves the ini stub so the ini_close can be
+ *                   : called.
+ ********************************************************************************************************************
+ *  Rev   |   Date   |  By   | Comment
+ * ----------------------------------------------------------------------------------------------------------------
+ ********************************************************************************************************************/
+extern "C" int INI_LINKAGE ini_delete (ini_fd_t fd)
+{
+    ini_t *ini = (ini_t *) fd;
+    if (!ini)
+      return -1;
+    __ini_delete (ini);
+    return 0;
+}
+
+
+#ifdef INI_ADD_EXTRAS
+
+/********************************************************************************************************************
+ * Function          : ini_append
+ * Parameters        : fdsrc - pointer to src ini file database to copy from.
+ *                   : fddst - pointer to dst ini file database to copy to.
+ * Returns           :
+ * Globals Used      :
+ * Globals Modified  :
+ * Description       : Copies the contents of the src ini to the dst ini.  The resulting ini contains both
+ *                   : headings and keys from each.  Src keys will overwrite dst keys or similar names.
+ ********************************************************************************************************************
+ *  Rev   |   Date   |  By   | Comment
+ * ----------------------------------------------------------------------------------------------------------------
+ ********************************************************************************************************************/
+extern "C" int INI_LINKAGE ini_append (ini_fd_t fddst, ini_fd_t fdsrc)
+{
+    struct section_tag *current_h;
+    struct key_tag     *current_k;
+    struct section_tag *src_h, *dst_h;
+    struct key_tag     *src_k, *dst_k;
+    char  *data   = NULL;
+    int    length = 0, ret = -1;
+
+#ifdef INI_ADD_LIST_SUPPORT
+    char  *delims;
+#endif
+
+    ini_t *src = (ini_t *) fdsrc;
+    ini_t *dst = (ini_t *) fddst;
+    if (!(src && dst))
+      return -1;
+
+    // Backup selected heading and key
+    src_h  = src->selected;
+    src_k  = src_h->selected;
+    dst_h  = dst->selected;
+    dst_k  = dst_h->selected;
+
+#ifdef INI_ADD_LIST_SUPPORT
+    // Remove delims for proper reads
+    delims = src->listDelims;
+    src->listDelims = NULL;
+#endif
+
+    // Go through the src ini headings
+    current_h = src->first;
+    while (current_h)
+    {   // Locate heading in the dst
+        ini_locateHeading (dst, current_h->heading);
+        // Go through the src keys under the heading
+        src->selected = current_h;
+        current_k = current_h->first;
+        while (current_k)
+        {   // Check if data buffer can hold the key
+            int i = current_k->length;
+            current_h->selected = current_k;
+            if (i > length)
+            {   // Make data buffer bigger, with some spare
+                length = i + 10;
+                if (data != NULL)
+                    free (data);
+                data = (char *) malloc (sizeof (char) * length);
+                if (data == NULL)
+                    goto ini_appendError;
+            }
+            // Locate key in dst ini file
+            ini_locateKey (dst, current_k->key);
+            // Copy the key from src to dst ini file
+            if (ini_readString  (src, data, length) != i)
+                goto ini_appendError;
+            if (ini_writeString (dst, data) < 0)
+                goto ini_appendError;
+            // Move to next key
+            current_k = current_k->pNext;
+        }
+        // Move to next heading
+        current_h = current_h->pNext;
+    }
+    ret = 0;
+
+ini_appendError:
+    if (data != NULL)
+        free (data);
+
+#ifdef INI_ADD_LIST_SUPPORT
+    // Restore delims
+    src->listDelims = delims;
+#endif
+    // Restore selected headings and keys
+    src->selected   = src_h;
+    src_h->selected = src_k;
+    dst->selected   = dst_h;
+    dst_h->selected = dst_k;
+    return ret;
+}
+
+#endif // INI_ADD_EXTRAS
 
 
 // Add Code Modules

@@ -20,9 +20,12 @@
 #define _list_h_
 
 #include "ini.h"
+#ifdef INI_ADD_LIST_SUPPORT
 
 struct ini_t;
-int   __ini_listEval (struct ini_t *ini);
-char *__ini_listRead (struct ini_t *ini);
+static int   __ini_listEval        (struct ini_t *ini);
+static char *__ini_listRead        (struct ini_t *ini);
+static int   __ini_listIndexLength (struct ini_t *ini);
 
+#endif // INI_ADD_LIST_SUPPORT
 #endif // _list_h_

@@ -39,6 +39,10 @@ static struct key_tag *__ini_write (ini_t *ini)
     struct section_tag *section;
     struct key_tag     *key;
 
+    // Is file read only?
+    if (ini->mode == INI_READ)
+        return NULL;
+
     // Check to make sure a section/key has
     // been asked for by the user
     section = ini->selected;
@@ -67,7 +71,7 @@ static struct key_tag *__ini_write (ini_t *ini)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_readString (ini_fd_t fd, char *str, size_t size)
+int INI_LINKAGE ini_readString (ini_fd_t fd, char *str, size_t size)
 {
     struct key_tag *_key;
     int    ret;
@@ -125,6 +129,36 @@ int ini_readString (ini_fd_t fd, char *str, size_t size)
 
 
 /********************************************************************************************************************
+ * Function          : ini_writeString
+ * Parameters        : ini - pointer to ini file database.
+ *                   : value - keys data
+ * Returns           : -1 for Error and 0 on success
+ * Globals Used      :
+ * Globals Modified  :
+ * Description       : Writes data part to a key.
+ *                   : Conforms to Microsoft API call.  E.g. use NULLS to remove headings/keys
+ *                   : Headings and keys will be created as necessary
+ ********************************************************************************************************************
+ *  Rev   |   Date   |  By   | Comment
+ * ----------------------------------------------------------------------------------------------------------------
+ ********************************************************************************************************************/
+int INI_LINKAGE ini_writeString (ini_fd_t fd, char *str)
+{
+    ini_t *ini = (ini_t *) fd;
+    struct key_tag *_key;
+
+    _key = __ini_write (ini);
+    if (!_key)    
+        return -1;
+
+    // Write data to bottom of backup file
+    _key->length = strlen (str);
+    fprintf (ini->ftmp, "%s\n", str);
+    return 0;
+}
+
+
+/********************************************************************************************************************
  * Function          : ini_readInt
  * Parameters        : ini - pointer to ini file database.
  *                   : value - keys data
@@ -136,7 +170,7 @@ int ini_readString (ini_fd_t fd, char *str, size_t size)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_readInt (ini_fd_t fd, int *value)
+int INI_LINKAGE ini_readInt (ini_fd_t fd, int *value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -173,6 +207,8 @@ int ini_readInt (ini_fd_t fd, int *value)
 }
 
 
+#ifdef INI_ADD_EXTRAS
+
 /********************************************************************************************************************
  * Function          : ini_readLong
  * Parameters        : ini - pointer to ini file database.
@@ -185,7 +221,7 @@ int ini_readInt (ini_fd_t fd, int *value)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_readLong (ini_fd_t fd, long *value)
+int INI_LINKAGE ini_readLong (ini_fd_t fd, long *value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -234,7 +270,7 @@ int ini_readLong (ini_fd_t fd, long *value)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_readDouble (ini_fd_t fd, double *value)
+int INI_LINKAGE ini_readDouble (ini_fd_t fd, double *value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -274,36 +310,6 @@ int ini_readDouble (ini_fd_t fd, double *value)
 
 
 /********************************************************************************************************************
- * Function          : ini_writeString
- * Parameters        : ini - pointer to ini file database.
- *                   : value - keys data
- * Returns           : -1 for Error and 0 on success
- * Globals Used      :
- * Globals Modified  :
- * Description       : Writes data part to a key.
- *                   : Conforms to Microsoft API call.  E.g. use NULLS to remove headings/keys
- *                   : Headings and keys will be created as necessary
- ********************************************************************************************************************
- *  Rev   |   Date   |  By   | Comment
- * ----------------------------------------------------------------------------------------------------------------
- ********************************************************************************************************************/
-int ini_writeString (ini_fd_t fd, char *str)
-{
-    ini_t *ini = (ini_t *) fd;
-    struct key_tag *_key;
-
-    _key = __ini_write (ini);
-    if (!_key)
-        return -1;
-
-    // Write data to bottom of backup file
-    _key->length = strlen (str);
-    fprintf (ini->ftmp, "%s\n", str);
-    return 0;
-}
-
-
-/********************************************************************************************************************
  * Function          : ini_writeInt
  * Parameters        : ini - pointer to ini file database.
  *                   : value - keys data
@@ -316,7 +322,7 @@ int ini_writeString (ini_fd_t fd, char *str)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_writeInt (ini_fd_t fd, int value)
+int INI_LINKAGE ini_writeInt (ini_fd_t fd, int value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -348,7 +354,7 @@ int ini_writeInt (ini_fd_t fd, int value)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_writeLong (ini_fd_t fd, long value)
+int INI_LINKAGE ini_writeLong (ini_fd_t fd, long value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -380,7 +386,7 @@ int ini_writeLong (ini_fd_t fd, long value)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int ini_writeDouble (ini_fd_t fd, double value)
+int INI_LINKAGE ini_writeDouble (ini_fd_t fd, double value)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key;
@@ -397,3 +403,5 @@ int ini_writeDouble (ini_fd_t fd, double value)
     fprintf (ini->ftmp, "\n");
     return 0;
 }
+
+#endif // INI_ADD_EXTRAS

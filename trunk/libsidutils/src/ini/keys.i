@@ -234,17 +234,15 @@ struct key_tag *__ini_createKey (ini_t *ini, char *key)
 void __ini_deleteKey (ini_t *ini)
 {
     struct key_tag     *current_k;
-    struct section_tag *section;
+    struct section_tag *section = ini->selected;
 
-    current_k = ini->selected->selected;
+    current_k = section->selected;
     if (current_k)
     {
-        section = ini->selected;
         // Tidy up all users of this key
-        if (section->selected == current_k)
-            section->selected = NULL;
-        if (section->last     == current_k)
-            section->last     =  current_k->pPrev;
+        section->selected =  NULL;
+        if (section->last == current_k)
+            section->last =  current_k->pPrev;
 
         // Check to see if all keys were removed
         if (!current_k->pPrev)
@@ -257,7 +255,7 @@ void __ini_deleteKey (ini_t *ini)
 #ifdef INI_USE_HASH_TABLE
         // Rev 1.3 - Take member out of accelerator list
         if (!current_k->pPrev_Acc)
-        section->keys[(unsigned char) current_k->crc & 0x0FF] = current_k->pNext_Acc;
+            section->keys[(unsigned char) current_k->crc & 0x0FF] = current_k->pNext_Acc;
         else
             current_k->pPrev_Acc->pNext_Acc = current_k->pNext_Acc;
         if (current_k->pNext_Acc)
@@ -328,7 +326,7 @@ struct key_tag *__ini_locateKey (ini_t *ini, char *key)
  * Globals Modified  :
  * Description       : Equivalent Microsoft write string API call where data set to NULL
  ********************************************************************************************************************/
-int ini_deleteKey (ini_fd_t fd)
+int INI_LINKAGE ini_deleteKey (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     if (!ini->selected)
@@ -350,16 +348,16 @@ int ini_deleteKey (ini_fd_t fd)
  * Globals Modified  :
  * Description       : 
  ********************************************************************************************************************/
-int ini_locateKey (ini_fd_t fd, char *key)
+int INI_LINKAGE ini_locateKey (ini_fd_t fd, char *key)
 {
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key = NULL;
 
     if (!key)
         return -1;
-
     if (!ini->selected)
         return -1;
+
     // Can't search for a key in a temporary heading
     if (ini->selected != &(ini->tmpSection))
         _key = __ini_locateKey (ini, key);
@@ -382,7 +380,7 @@ int ini_locateKey (ini_fd_t fd, char *key)
         char  *p;
         size_t length;
         // Remove all key
-        _key      = &(ini->tmpKey);
+        _key = &(ini->tmpKey);
        if (_key->key)
             free (_key->key);
 
@@ -392,7 +390,6 @@ int ini_locateKey (ini_fd_t fd, char *key)
         if (!p)
             return -1;
         memcpy (p, key, length);
-        _key      = &(ini->tmpKey);
         _key->key = p;
         ini->selected->selected = _key;
     }

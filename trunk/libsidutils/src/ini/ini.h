@@ -28,12 +28,16 @@
 #   include "list.h"
 #endif
 
+typedef enum {INI_NEW, INI_EXIST, INI_READ} ini_mode_t;
+
 // Database containing all information about an ini file.
 typedef struct ini_t
 {
-    char  *filename;
-    FILE  *ftmp;   // Temporary work file
-    bool   changed;
+    char      *filename;
+    FILE      *ftmp;   // Temporary work file
+    bool       changed;
+    bool       newfile;
+    ini_mode_t mode;   // Access mode
 
     struct section_tag *first;
     struct section_tag *last;
