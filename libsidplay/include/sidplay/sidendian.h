@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/03/25 19:46:12  s_a_white
+ *  _endian_h_ changed to _sidendian_h_.
+ *
  *  Revision 1.2  2001/03/10 19:49:32  s_a_white
  *  Removed bad include.
  *
@@ -38,6 +41,14 @@
 
 #ifndef _sidendian_h_
 #define _sidendian_h_
+
+// NOTE: The optimisations in this file rely on the structure of memory
+// e.g. 2 shorts being contained in 1 long.  Although these sizes are
+// checked to make sure the optimisation is ok, gcc 2.96 (and above)
+// introduced better optimisations.  This results in caching of values
+// in internal registers and therefore writes to ram through the aliases
+// not being reflected in the CPU regs.  The use of the volatile keyword
+// fixes this.
 
 #include "sidtypes.h"
 
@@ -65,10 +76,11 @@ inline void endian_16lo8 (uint_least16_t &word, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint8_t *) &word)[0] = byte;
+    ((volatile uint8_t *) &word)[0] = byte;
 #   else
-    ((uint8_t *) &word)[1] = byte;
+    ((volatile uint8_t *) &word)[1] = byte;
 #   endif
+    word = *((volatile uint_least16_t *) &word);
 #else
     word &= 0xff00;
     word |= byte;
@@ -86,10 +98,11 @@ inline void endian_16hi8 (uint_least16_t &word, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint8_t *) &word)[1] = byte;
+    ((volatile uint8_t *) &word)[1] = byte;
 #   else
-    ((uint8_t *) &word)[0] = byte;
+    ((volatile uint8_t *) &word)[0] = byte;
 #   endif
+    word = *((volatile uint_least16_t *) &word);
 #else
     word &= 0x00ff;
     word |= (uint_least16_t) byte << 8;
@@ -199,10 +212,11 @@ inline void endian_32lo16 (uint_least32_t &dword, uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint_least16_t *) &dword)[0] = word;
+    ((volatile uint_least16_t *) &dword)[0] = word;
 #   else
-    ((uint_least16_t *) &dword)[1] = word;
+    ((volatile uint_least16_t *) &dword)[1] = word;
 #   endif
+    dword = *((volatile uint_least32_t *) &dword);
 #else
     dword &= (uint_least32_t) 0xffff0000;
     dword |= word;
@@ -220,10 +234,11 @@ inline void endian_32hi16 (uint_least32_t &dword, uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint_least16_t *) &dword)[1] = word;
+    ((volatile uint_least16_t *) &dword)[1] = word;
 #   else
-    ((uint_least16_t *) &dword)[0] = word;
+    ((volatile uint_least16_t *) &dword)[0] = word;
 #   endif
+    dword = *((volatile uint_least32_t *) &dword);
 #else
     dword &= (uint_least32_t) 0x0000ffff;
     dword |= (uint_least32_t) word << 16;
@@ -249,10 +264,11 @@ inline void endian_32lo8 (uint_least32_t &dword, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint8_t *) &dword)[0] = byte;
+    ((volatile uint8_t *) &dword)[0] = byte;
 #   else
-    ((uint8_t *) &dword)[3] = byte;
+    ((volatile uint8_t *) &dword)[3] = byte;
 #   endif
+    dword = *((volatile uint_least32_t *) &dword);
 #else
     dword &= (uint_least32_t) 0xffffff00;
     dword |= (uint_least32_t) byte;
@@ -270,10 +286,11 @@ inline void endian_32hi8 (uint_least32_t &dword, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
 #   if defined(SID_WORDS_LITTLEENDIAN)
-    ((uint8_t *) &dword)[1] = byte;
+    ((volatile uint8_t *) &dword)[1] = byte;
 #   else
-    ((uint8_t *) &dword)[2] = byte;
+    ((volatile uint8_t *) &dword)[2] = byte;
 #   endif
+    dword = *((volatile uint_least32_t *) &dword);
 #else
     dword &= (uint_least32_t) 0xffff00ff;
     dword |= (uint_least32_t) byte << 8;
@@ -383,3 +400,5 @@ inline void endian_big32 (uint8_t ptr[4], uint_least32_t dword)
 }
 
 #endif // _sidendian_h_
+
+
