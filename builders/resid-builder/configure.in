@@ -5,9 +5,9 @@ AM_CONFIG_HEADER(src/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=1
+LIBREV=0
 LIBAGE=0
-AM_INIT_AUTOMAKE(libresid-builder,1.$LIBCUR.$LIBREV)
+AM_INIT_AUTOMAKE(resid-builder,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
 LIBVERSION=$LIBCUR:$LIBREV:$LIBAGE
 AC_SUBST(LIBVERSION)
@@ -38,12 +38,17 @@ SID_PATH_LIBRESID
 SID_EXTENDED_LIBRESID
 SID_FIND_LIBSIDPLAY2
 
-AC_MSG_CHECKING([install directory])
-if test "$test_cv_libsidplay2" = yes; then
+AC_MSG_CHECKING([sidbuilders directory])
+LIBSIDPLAY2_DIR="$libdir"
+if test "$LIBSIDPLAY2_DIR" = NONE; then
     LIBSIDPLAY2_DIR="$sid_prefix/lib"
-else
-    LIBSIDPLAY2_DIR="$test_cv_libsidplay2/lib"
 fi
+AC_ARG_WITH(builders,
+    [  --with-builders=DIR
+        where the sidbuilders are located],
+    [LIBSIDPLAY2_DIR=$withval]
+)
+LIBSIDPLAY2_DIR="$LIBSIDPLAY2_DIR/sidplay/builders"
 AC_MSG_RESULT([$LIBSIDPLAY2_DIR])
 AC_SUBST(LIBSIDPLAY2_DIR)
 
