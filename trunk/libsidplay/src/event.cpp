@@ -17,11 +17,23 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/15 13:03:50  s_a_white
+ *  timeWarp now zeros m_eventClk instead of m_pendingEventClk which
+ *  fixes a inifinite loop problem when driving libsidplay1.
+ *
  ***************************************************************************/
 
 
 #include "event.h"
 #define EVENT_TIMEWARP_COUNT 0x0FFFFF
+
+EventContext::EventContext (const char * const name)
+:m_name(name),
+ m_pendingEvents(NULL),
+ m_timeWarp(this)
+{
+    reset ();
+}
 
 // Usefull to prevent clock overflowing
 void EventContext::timeWarp ()
