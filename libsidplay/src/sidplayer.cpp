@@ -972,7 +972,8 @@ bool sidplayer_pr::envCheckBankJump (uword_sidt addr)
 
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-// Redirection to private version of sidplayer (This method is called Cheshire Cat)
+// Redirection to private version of sidplayer (This method is called Chesire Cat)
+// [ms: which is J. Carolan's name for a degenerate 'bridge']
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 sidplayer::sidplayer ()
