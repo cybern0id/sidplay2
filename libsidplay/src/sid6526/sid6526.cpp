@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/10/02 18:01:36  s_a_white
+ *  Support for cleaned c64env.
+ *
  *  Revision 1.3  2001/09/18 02:22:37  jpaana
  *  Fixed include filename to lowercase
  *
@@ -115,7 +118,7 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
 
 void SID6526::event (void)
 {   // Timer Modes
-    m_accessClk += m_eventContext.getTime (m_accessClk);
+    m_accessClk = m_eventContext.getTime ();
     ta = ta_latch;
     m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1);
     m_env.interruptIRQ (true);

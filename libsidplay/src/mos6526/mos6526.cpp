@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/07/14 13:03:33  s_a_white
+ *  Now uses new component classes and event generation.
+ *
  *  Revision 1.2  2001/03/23 23:21:38  s_a_white
  *  Removed redundant reset funtion.  Timer b now gets initialised properly.
  *  Switch case now allows write/read from timer b.
@@ -238,8 +241,7 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        event_clock_t cycles = ta + 1;
-        event_context.schedule (&event_ta, cycles);
+        event_context.schedule (&event_ta, (event_clock_t) ta + 1);
     }
     trigger (INTERRUPT_TA);
     
@@ -255,7 +257,6 @@ void MOS6526::ta_event (void)
     
 void MOS6526::tb_event (void)
 {   // Timer Modes
-    event_clock_t cycles;
     uint8_t mode = crb & 0x61;
     switch (mode)
     {
@@ -280,17 +281,14 @@ void MOS6526::tb_event (void)
         return;
     }
 
-    cycles       = event_context.getTime (m_accessClk);
-    m_accessClk += cycles;
-
+    m_accessClk = event_context.getTime ();
     tb = tb_latch;
     if (crb & 0x08)
     {   // one shot, stop timer A
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        cycles = tb + 1;
-        event_context.schedule (&event_tb, cycles);
+        event_context.schedule (&event_tb, (event_clock_t) tb + 1);
     }
     trigger (INTERRUPT_TB);
 }

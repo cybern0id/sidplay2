@@ -113,7 +113,7 @@ struct TuneInfo
     uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
     int  sidModel;                 // Sid Model required for this sid
-    bool psidSpecific;             // PSID specific samples present
+    bool psidSpecific;             // PlaySID specific extensions (samples, random, etc)
     bool fixLoad;                  // whether load address might be duplicate
     uint_least16_t songLength;     // --- not yet supported ---
     //
