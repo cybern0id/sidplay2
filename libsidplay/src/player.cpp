@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2001/09/04 18:50:57  s_a_white
+ *  Fake CIA address now masked.
+ *
  *  Revision 1.27  2001/09/01 11:15:46  s_a_white
  *  Fixes sidplay1 environment modes.
  *
@@ -217,7 +220,14 @@ int Player::fastForward (uint percent)
         m_errorString = "SIDPLAYER ERROR: Percentage value out of range";
         return -1;
     }
-    m_fastForwardFactor = (float64_t) percent / 100.0;
+    {
+        float64_t fastForwardFactor;
+        fastForwardFactor   = (float64_t) percent / 100.0;
+        // Conversion to fixed point 8.24
+        m_samplePeriod      = (event_clock_t) ((float64_t) m_samplePeriod /
+                              m_fastForwardFactor * fastForwardFactor);
+        m_fastForwardFactor = fastForwardFactor;
+    }
     return 0;
 }
 
@@ -256,7 +266,7 @@ int Player::initialise ()
     return 0;
 }
 
-int Player::loadSong (SidTune *tune)
+int Player::load (SidTune *tune)
 {
     m_tune = tune;
     m_tune->getInfo(m_tuneInfo);
@@ -599,7 +609,6 @@ void Player::envReset (void)
         cpu = &mos6510;
 
     eventContext.reset ();
-    cpu->reset  ();
     sid->reset  ();
     sid2->reset ();
     if (m_cfg.environment == sid2_envR)

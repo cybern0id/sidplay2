@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/07/25 17:02:37  s_a_white
+ *  Support for new configuration interface.
+ *
  *  Revision 1.4  2001/07/14 12:47:39  s_a_white
  *  Mixer routines simplified.  Added new and more efficient method of
  *  determining when an output samples is required.
@@ -34,23 +37,20 @@
 const int_least32_t VOLUME_MAX = 255;
 
 void Player::mixerReset (void)
-{
-    event_clock_t cycles;
-    m_sampleClock  = m_samplePeriod;
-    cycles = (event_clock_t) m_sampleClock;
-    m_sampleClock -= (event_clock_t) cycles;
-
+{   // Fixed point 8.24
+    m_sampleClock  = m_samplePeriod & 0x0FFFFFF;
     // Schedule next sample event
-    eventContext.schedule (&mixerEvent, cycles);
+    eventContext.schedule (&mixerEvent,
+        m_samplePeriod >> 24);
 }
 
 void Player::mixer (void)
-{
+{   // Fixed point 8.24
     event_clock_t cycles;
     char   *buf    = m_sampleBuffer + m_sampleIndex;
-    m_sampleClock += (m_samplePeriod * m_fastForwardFactor);
-    cycles = (event_clock_t) m_sampleClock;
-    m_sampleClock -= (event_clock_t) cycles;
+    m_sampleClock += m_samplePeriod;
+    cycles         = m_sampleClock >> 24;
+    m_sampleClock &= 0x0FFFFFF;
     m_sampleIndex += (this->*output) (buf);
  
     // Schedule next sample event
