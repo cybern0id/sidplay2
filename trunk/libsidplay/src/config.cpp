@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/09/01 11:13:56  s_a_white
+ *  Fixes sidplay1 environment modes.
+ *
  *  Revision 1.4  2001/08/20 18:24:50  s_a_white
  *  tuneInfo in the info structure now correctly has the sid revision setup.
  *
@@ -81,7 +84,10 @@ int Player::config (const sid2_config_t &cfg)
         // Must be this order:
         // Determine clock speed
         cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockForced);
-        m_samplePeriod = cpuFreq / (float64_t) cfg.frequency;
+        // Fixed point conversion 8.24
+        m_samplePeriod = (event_clock_t) (cpuFreq /
+                         (float64_t) cfg.frequency *
+                         (1 << 24) * m_fastForwardFactor);
         // Setup fake cia
         sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
         if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||

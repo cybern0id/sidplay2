@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2001/09/01 11:15:46  s_a_white
+ *  Fixes sidplay1 environment modes.
+ *
  *  Revision 1.17  2001/08/10 21:01:06  s_a_white
  *  Fixed RTC initialisation order warning.
  *
@@ -149,16 +152,16 @@ private:
     private:
         EventContext &m_eventContext;
         event_clock_t m_seconds;
-        float64_t     m_period;
-        float64_t     m_fclk;
+        event_clock_t m_period;
+        event_clock_t m_clk;
 
         void event (void)
-        {
+        {   // Fixed point 25.7 (approx 2 dp)
             event_clock_t cycles;
+            m_clk += m_period;
+            cycles = m_clk >> 7;
+            m_clk &= 0x7F;
             m_seconds++;
-            m_fclk += m_period;
-            cycles  = (event_clock_t) (m_fclk);
-            m_fclk -= cycles;
             m_eventContext.schedule (this, cycles);
         }
 
@@ -169,19 +172,18 @@ private:
          m_seconds(0)
         {;}
 
-        event_clock_t getTime () {return m_seconds;}
+        event_clock_t getTime () const {return m_seconds;}
 
         void reset (void)
-        {
-            event_clock_t cycles = (event_clock_t) m_period;
+        {   // Fixed point 25.7
             m_seconds = 0;
-            m_fclk    = m_period - cycles;
-            m_eventContext.schedule (this, cycles);
+            m_clk     = m_period & 0x7F;
+            m_eventContext.schedule (this, m_period >> 7);
         }
 
         void clock (float64_t period)
-        {
-            m_period = period;
+        {   // Fixed point 25.7
+            m_period = (event_clock_t) (period * (float64_t) (1 << 7));
             reset ();
         }   
     } rtc;
@@ -194,7 +196,6 @@ private:
     sid2_info_t   m_info;
     sid2_config_t m_cfg;
 
-
     sid2_env_t      m_environment;
     const char     *m_errorString;
     float64_t       m_fastForwardFactor;
@@ -205,13 +206,11 @@ private:
     volatile bool   m_running;
 
     // Mixer settings
-    float64_t      m_sampleClock;
-    float64_t      m_samplePeriod;
+    event_clock_t  m_sampleClock;
+    event_clock_t  m_samplePeriod;
     uint_least32_t m_sampleCount;
     uint_least32_t m_sampleIndex;
     char          *m_sampleBuffer;
-
-    // Internal Configuration Settings
 
     // C64 environment settings
     uint8_t        m_bankReg;
@@ -307,20 +306,20 @@ private:
 public:
     Player ();
 
-    const sid2_config_t &config (void) { return m_cfg; }
-    const sid2_info_t   &info   (void) { return m_info; }
+    const sid2_config_t &config (void) const { return m_cfg; }
+    const sid2_info_t   &info   (void) const { return m_info; }
 
     int            config       (const sid2_config_t &cfg);
     int            fastForward  (uint percent);
-    int            loadSong     (SidTune *tune);
-    uint_least8_t  mileage      (void) { return m_mileage + time(); }
+    int            load         (SidTune *tune);
+    uint_least8_t  mileage      (void) const { return m_mileage + time(); }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
-    sid2_player_t  state        (void) { return m_playerState; }
+    sid2_player_t  state        (void) const { return m_playerState; }
     void           stop         (void);
-    uint_least32_t time         (void) {return rtc.getTime (); }
+    uint_least32_t time         (void) const {return rtc.getTime (); }
     void           debug        (bool enable) { cpu->debug (enable); }
-    const char    *error        (void) { return m_errorString; }
+    const char    *error        (void) const { return m_errorString; }
 };
 
 inline void Player::interruptIRQ (const bool state)
