@@ -9,7 +9,7 @@ bin_PROGRAMS = sidplay2
 
 sidplay2_SOURCES = keyboard.cpp main.cpp
 sidplay2_LDADD = ./audio/oss/liboss.a ./audio/sunos/libsunos.a \
-./audio/wav/libwav.a ./.libs/libsidplay2.so.0
+./audio/wav/libwav.a -L.libs -lsidplay2
 
 
 # The library.
