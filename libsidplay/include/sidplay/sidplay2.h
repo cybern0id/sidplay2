@@ -51,9 +51,10 @@ public:
     void           stop         (void);
     void           debug        (bool enable, FILE *out);
 
-    // Timer functions with respect to 10ths of a second
-    uint_least32_t time    (void) const;
-    uint_least32_t mileage (void) const;
+    // Timer functions with respect to resolution returned by timebase
+    uint_least32_t timebase (void) const;
+    uint_least32_t time     (void) const;
+    uint_least32_t mileage  (void) const;
 
     operator bool()  const { return (&sidplayer ? true: false); }
     bool operator!() const { return (&sidplayer ? false: true); }
