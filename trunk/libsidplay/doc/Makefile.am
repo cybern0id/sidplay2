@@ -2,8 +2,6 @@
 
 SUBDIRS = en 
 
-man_MANS = sidplay2.1
-
-EXTRA_DIST = Makefile.am $(man_MANS)
+EXTRA_DIST = Makefile.am 
 
 ####### kdevelop will overwrite this part!!! (end)############

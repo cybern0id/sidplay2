@@ -1,3 +1,8 @@
+
+/* Operating System */
+#define HAVE_UNIX
+@TOP@
+
 /* Define if the C++ compiler supports BOOL */
 #undef HAVE_BOOL
 
