@@ -1,9 +1,9 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = unix src 
+SUBDIRS = src 
 
-EXTRA_DIST = win Makefile.dist
+EXTRA_DIST = include unix win Makefile.dist
 
 
 # Remove CVS directories from any subdirs that get

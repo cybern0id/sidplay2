@@ -20,6 +20,27 @@ AC_DEFUN(SID_SUBST,
 
 
 dnl -------------------------------------------------------------------------
+dnl Try to find a file (or one of more files in a list of dirs).
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(SID_FIND_FILE,
+    [
+    $3=NO
+    for i in $2;
+    do
+        for j in $1;
+        do
+	        if test -r "$i/$j"; then
+		        $3=$i
+                break 2
+            fi
+        done
+    done
+    ]
+)
+
+
+dnl -------------------------------------------------------------------------
 dnl Check whether C++ library has member ios::bin instead of ios::binary.
 dnl Will substitute @HAVE_IOS_BIN@ with either a def or undef line.
 dnl -------------------------------------------------------------------------
@@ -121,7 +142,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     # Use include path given by user (if any).
     if test "$sid_libsidplay2_includes" != NO; then
         libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
-        SID_FIND_FILE(sidplay2.h sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
+        SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
     fi
 
@@ -209,6 +230,156 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
         [sidplay2 *player;],
         [sid_libsidplay2_works=yes],
         [sid_libsidplay2_works=no]
+    )
+
+    CXXFLAGS="$sid_cxxflags_save"
+    LDFLAGS="$sid_ldflags_save"
+    LIBS="$sid_libs_save"
+])
+
+
+dnl -------------------------------------------------------------------------
+dnl Try to find SIDUtils includes and library.
+dnl $sid_have_libsidutils will be "yes" or "no"
+dnl @LIBSIDUTILS_LDADD@ will be substituted with -L$libsidutils_libdir
+dnl @LIBSIDUTILS_INCLUDES@ will be substituted with -I$libsidutils_incdir
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(SID_PATH_LIBSIDUTILS,
+[
+    AC_MSG_CHECKING([for working SIDUtils library and headers])
+    
+    dnl Be pessimistic.
+    sid_libsidutils_library=NO
+    sid_libsidutils_includes=NO
+
+    AC_ARG_WITH(sidutils,
+        [  --with-libsidutils=DIR
+            where the sidutils library is located],
+        [sid_libsidutils_includes="$withval"
+         sid_libsidutils_library="$withval"
+        ]
+    )
+
+    AC_ARG_WITH(libsidutils-includes,
+        [  --with-libsidutils-includes=DIR
+            where the libsidutils includes are located],
+        [sid_libsidutils_includes="$withval"]
+    )
+
+    AC_ARG_WITH(libsidutils-library,
+        [  --with-libsidutils-library=DIR
+            where the libsidutils library is installed],
+        [sid_libsidutils_library="$withval"]
+    )
+
+    # Test compilation with library and headers in standard path.
+    sid_libsidutils_libadd=""
+    sid_libsidutils_incadd=""
+
+    # Use library path given by user (if any).
+    if test "$sid_libsidutils_library" != NO; then
+        # Help to try and better locate library just from --with-libsidutils option
+        libsidutils_libdirs="$sid_libsidutils_library $sid_libsidutils_library/lib $sid_libsidutils_library/.libs"
+        SID_FIND_FILE(libsidutils.a libsidutils.so,$libsidutils_libdirs,libsidutils_foundlibdir)
+        sid_libsidutils_library=$libsidutils_foundlibdir
+    fi
+
+    if test "$sid_libsidutils_library" != NO; then
+        sid_libsidutils_libadd="-L$sid_libsidutils_library"
+    fi
+
+    # Use include path given by user (if any).
+    if test "$sid_libsidutils_includes" != NO; then
+        libsidutils_incdirs="$sid_libsidutils_includes $sid_libsidutils_includes/include"
+        SID_FIND_FILE(sidplay/utils/SidDatabase.h,$libsidutils_incdirs,libsidutils_foundincdir)
+        sid_libsidutils_includes=$libsidutils_foundincdir
+    fi
+
+    if test "$sid_libsidutils_includes" != NO; then
+        sid_libsidutils_incadd="-I$sid_libsidutils_includes"
+    fi
+
+    # Run test compilation.
+    SID_TRY_LIBSIDUTILS
+
+    if test "$sid_libsidutils_works" = no; then
+        # Test compilation failed.
+        # Need to search for library and headers
+        # Search common locations where header files might be stored.
+        libsidutils_incdirs="/usr/include /usr/local/include /usr/lib/sidutils/include /usr/local/lib/sidutils/include"
+        SID_FIND_FILE(sidplay/utils/SidDatabase.h,$libsidutils_incdirs,libsidutils_foundincdir)
+        sid_libsidutils_includes=$libsidutils_foundincdir
+
+        # Search common locations where library might be stored.
+        libsidutils_libdirs="/usr/lib /usr/local/lib /usr/lib/sidutils/lib /usr/local/lib/sidutils/lib"
+        SID_FIND_FILE(libsidutils.a libsidutils.so,$libsidutils_libdirs,libsidutils_foundlibdir)
+        sid_libsidutils_library=$libsidutils_foundlibdir
+
+        if test "$sid_libsidutils_includes" = NO || test "$sid_libsidutils_library" = NO; then
+            sid_have_libsidutils=no
+        else
+            sid_have_libsidutils=yes
+        fi
+        
+        if test "$sid_have_libsidutils" = yes; then
+            sid_libsidutils_libadd="-L$sid_libsidutils_library"
+            sid_libsidutils_incadd="-I$sid_libsidutils_includes"
+            
+            # Test compilation with found paths.
+            SID_TRY_LIBSIDUTILS
+
+            sid_have_libsidutils=$sid_libsidutils_works
+            if test "$sid_have_libsidutils" = no; then
+                # Found library does not link without errors.
+                sid_have_libsidutils=no
+                AC_MSG_RESULT([$sid_have_libsidutils]);
+            else
+                AC_MSG_RESULT([library $sid_libsidutils_library, headers $sid_libsidutils_includes])
+            fi
+        else
+            # Either library or headers not found.
+            AC_MSG_RESULT([$sid_have_libsidutils]);
+        fi
+
+        if test "$sid_have_libsidutils" = no; then
+            AC_MSG_ERROR(
+[
+libsidutils library and/or header files not found.
+Please check your installation!
+]);
+        fi
+    else
+        # Simply print 'yes' without printing the standard path.
+        sid_have_libsidutils=yes
+        AC_MSG_RESULT([$sid_have_libsidutils]);
+    fi
+
+    LIBSIDUTILS_LDADD="$sid_libsidutils_libadd"
+    LIBSIDUTILS_INCLUDES="$sid_libsidutils_incadd"
+
+    AC_SUBST(LIBSIDUTILS_LDADD)
+    AC_SUBST(LIBSIDUTILS_INCLUDES)
+])
+
+
+dnl Function used by SID_PATH_LIBSIDUTILS.
+
+AC_DEFUN(SID_TRY_LIBSIDUTILS,
+[
+    sid_cxxflags_save=$CXXFLAGS
+    sid_ldflags_save=$LDFLAGS
+    sid_libs_save=$LIBS
+
+    CXXFLAGS="$CXXFLAGS $sid_libsidutils_incadd"
+    LDFLAGS="$LDFLAGS $sid_libsidplay2_libadd $sid_libsidutils_libadd"
+    LIBS="-lsidplay2 -lsidutils"
+
+    AC_TRY_LINK(
+        [#include <sidplay/utils/SidDatabase.h>],
+        [SidDatabase *d;],
+        [sid_libsidutils_works=yes],
+        [sid_libsidutils_works=no]
     )
 
     CXXFLAGS="$sid_cxxflags_save"
