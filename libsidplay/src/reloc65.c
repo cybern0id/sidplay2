@@ -52,7 +52,7 @@ unsigned char *reloc_globals(unsigned char *, file65 *fp);
 file65 file;
 unsigned char cmp[] = { 1, 0, 'o', '6', '5' };
 
-int reloc65(char** buf, int* fsize, int addr)
+int reloc65(unsigned char** buf, int* fsize, int addr)
 {
 	int mode, hlen;
 
