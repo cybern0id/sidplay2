@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2001/03/22 22:45:20  s_a_white
+ *  Re-ordered initialisations to match defintions.
+ *
  *  Revision 1.17  2001/03/21 22:32:34  s_a_white
  *  Filter redefinition support.  VIC & NMI support added.  Moved fake interrupts
  *  to sid6510 class.
@@ -1014,6 +1017,7 @@ void player::envReset (void)
     cpu.reset  ();
     sid.reset  ();
     sid2.reset ();
+    xsid.reset ();
     cia.reset  ();
     cia2.reset ();
     vic.reset  ();
