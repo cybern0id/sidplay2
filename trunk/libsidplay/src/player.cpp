@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.76  2004/03/20 23:07:45  s_a_white
+ *  Don't initialise the lower memory areas as applying the poweron settings does
+ *  that and they are optimised to assume all that memory is 0.
+ *
  *  Revision 1.75  2004/03/20 22:56:34  s_a_white
  *  Use correct memory initialisation pattern in real c64 mode.
  *
@@ -285,6 +289,10 @@ SIDPLAY2_NAMESPACE_START
 
 static const uint8_t kernal[] = {
 #include "kernal.bin"
+};
+
+static const uint8_t character[] = {
+#include "char.bin"
 };
 
 static const uint8_t basic[] = {
@@ -624,17 +632,23 @@ uint8_t Player::iomap (uint_least16_t addr)
 
 void Player::evalBankSelect (uint8_t data)
 {   // Determine new memory configuration.
+    m_port.pr_out = data;
+    m_port.pr_in  = (data & m_port.ddr) | (~m_port.ddr & (m_port.pr_in | 0x17) & 0xdf);
+    data     |= ~m_port.ddr;
+    data     &= 7;
     isBasic   = ((data & 3) == 3);
-    isIO      = ((data & 7) >  4);
+    isIO      = (data >  4);
     isKernal  = ((data & 2) != 0);
-    m_bankReg = data;
+    isChar    = ((data ^ 4) > 4);
 }
 
 uint8_t Player::readMemByte_plain (uint_least16_t addr)
 {   // Bank Select Register Value DOES NOT get to ram
-    if (addr == 0x0001)
-        return m_bankReg;
-    return m_ram[addr];
+    if (addr > 1)
+        return m_ram[addr];
+    else if (addr)
+        return m_port.pr_in;
+    return m_port.ddr;
 }
 
 uint8_t Player::readMemByte_io (uint_least16_t addr)
@@ -649,6 +663,7 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
             switch (endian_16hi8 (addr))
             {
             case 0:
+            case 1:
                 return readMemByte_plain (addr);
             case 0xdc:
                 return cia.read (addr&0x0f);
@@ -668,6 +683,7 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
             switch (endian_16hi8 (addr))
             {
             case 0:
+            case 1:
                 return readMemByte_plain (addr);
             // Sidplay1 Random Extension CIA
             case 0xdc:
@@ -738,28 +754,35 @@ uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
         case 0xd:
             if (isIO)
                 return readMemByte_io (addr);
+            else if (isChar)
+                return m_rom[addr];
             else
                 return m_ram[addr];
         break;
         case 0xe:
         case 0xf:
         default:  // <-- just to please the compiler
-          if (isKernal)
-              return m_rom[addr];
-          else
-              return m_ram[addr];
+            if (isKernal)
+                return m_rom[addr];
+            else
+                return m_ram[addr];
         }
     }
 }
 
 void Player::writeMemByte_plain (uint_least16_t addr, uint8_t data)
 {
-    if (addr == 0x0001)
+    if (addr > 1)
+        m_ram[addr] = data;
+    else if (addr)
     {   // Determine new memory configuration.
         evalBankSelect (data);
-        return;
     }
-    m_ram[addr] = data;
+    else
+    {
+        m_port.ddr = data;
+        evalBankSelect (m_port.pr_out);
+    }
 }
 
 void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
@@ -774,6 +797,7 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
             switch (endian_16hi8 (addr))
             {
             case 0:
+            case 1:
                 writeMemByte_plain (addr, data);
             return;
             case 0xdc:
@@ -798,6 +822,7 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
             switch (endian_16hi8 (addr))
             {
             case 0:
+            case 1:
                 writeMemByte_plain (addr, data);
             return;
             case 0xdc: // Sidplay1 CIA
@@ -901,6 +926,7 @@ void Player::reset (void)
     }
 
     // Initalise Memory
+    m_port.pr_in = 0;
     memset (m_ram, 0, 0x10000);
     switch (m_info.environment)
     {
@@ -921,6 +947,7 @@ void Player::reset (void)
     if (m_info.environment == sid2_envR)
     {
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
+        memcpy (&m_rom[0xd000], character, sizeof (character));
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         m_rom[0xfdc4] = 0xea; // Ingore sid volume reset to avoid DC
@@ -1041,7 +1068,8 @@ void Player::envReset (bool safe)
             sid[i]->reset (0);
     }
 
-    m_ram[0] = 0x2F;
+    m_port.ddr = 0x2F;
+
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     if (m_info.environment != sid2_envR)
     {

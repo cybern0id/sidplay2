@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.50  2004/04/13 07:40:47  s_a_white
+ *  Add lightpen support.
+ *
  *  Revision 1.49  2004/03/18 20:15:15  s_a_white
  *  Added sidmapper (so support more the 2 sids).
  *
@@ -326,13 +329,20 @@ private:
     char          *m_sampleBuffer;
 
     // C64 environment settings
-    uint8_t        m_bankReg;
-    uint8_t        m_playBank;
+    struct
+    {
+        uint8_t pr_out;
+        uint8_t ddr;
+        uint8_t pr_in;
+    } m_port;
+
+    uint8_t m_playBank;
 
     // temp stuff -------------
     bool   isKernal;
     bool   isBasic;
     bool   isIO;
+    bool   isChar;
     void   evalBankSelect (uint8_t data);
     void   c64_initialise (void);
     // ------------------------
@@ -382,9 +392,9 @@ private:
 
     void   envLoadFile (char *file)
     {
-        char name[0x100] = "e:/emulators/c64/games/prgs/";
+        char name[0x100] = "E:/testsuite/";
         strcat (name, file);
-        strcat (name, ".sid");
+        strcat (name, ".prg");
         m_tune->load (name);
         stop ();
     }
