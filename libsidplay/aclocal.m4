@@ -5455,7 +5455,7 @@ dnl Remember, if the system already had a valid <stdint.h>, the generated
 dnl file will include it directly. No need for fuzzy HAVE_STDINT_H things...
 dnl
 dnl (this file is part of the http://ac-archive.sf.net/gstdint project)
-dnl @version $Id: aclocal.m4,v 1.21 2002-01-03 20:14:55 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.22 2002-02-17 16:29:27 s_a_white Exp $
 dnl @author  Guido Draheim <guidod@gmx.de>       STATUS: used on new platforms
 
 AC_DEFUN([AC_CREATE_STDINT_H],
@@ -5545,6 +5545,12 @@ elif  test "$ac_cv_header_stdint_u" != "no-file" ; then
 else
    ac_cv_header_stdint="stddef.h"
 fi
+
+# ----------------- See if int_least and int_fast types are present
+unset ac_cv_type_int_least32_t
+unset ac_cv_type_int_fast32_t
+AC_CHECK_TYPE(int_least32_t,,,[#include <$ac_cv_header_stdint>])
+AC_CHECK_TYPE(int_fast32_t,,,[#include<$ac_cv_header_stdint>])
 
 if test "$ac_cv_header_stdint" != "stddef.h" ; then
 if test "$ac_cv_header_stdint" != "stdint.h" ; then
@@ -5844,19 +5850,53 @@ AC_MSG_RESULT(..adding typedef $a intptr_t)
 fi
 
 # ------------- DONE intptr types START int_least types ------------
-if test "$ac_cv_header_stdint_x" = "no-file" ; then
+if test "$ac_cv_type_int_least32_t" = "no"; then
 AC_MSG_RESULT(..adding generic int_least-types)
      cat >>$ac_stdint_h <<EOF
 
-/* --------------GENERIC INT_LEAST / INTMAX SECTION ------------------ */
+/* --------------GENERIC INT_LEAST ------------------ */
 
 typedef  int8_t    int_least8_t;
 typedef  int16_t   int_least16_t;
 typedef  int32_t   int_least32_t;
+#ifdef _HAVE_INT64_T
+typedef  int64_t   int_least64_t;
+#endif
 
 typedef uint8_t   uint_least8_t;
 typedef uint16_t  uint_least16_t;
 typedef uint32_t  uint_least32_t;
+#ifdef _HAVE_INT64_T
+typedef uint64_t  uint_least64_t;
+#endif
+EOF
+fi
+
+# ------------- DONE intptr types START int_least types ------------
+if test "$ac_cv_type_int_fast32_t" = "no"; then
+AC_MSG_RESULT(..adding generic int_fast-types)
+     cat >>$ac_stdint_h <<EOF
+
+/* --------------GENERIC INT_FAST ------------------ */
+
+typedef  int8_t    int_fast8_t; 
+typedef  int32_t   int_fast16_t;
+typedef  int32_t   int_fast32_t;
+#ifdef _HAVE_INT64_T
+typedef  int64_t   int_fast64_t;
+#endif
+
+typedef uint8_t   uint_fast8_t; 
+typedef uint32_t  uint_fast16_t;
+typedef uint32_t  uint_fast32_t;
+#ifdef _HAVE_INT64_T
+typedef uint64_t  uint_fast64_t;
+#endif
+EOF
+fi
+
+if test "$ac_cv_header_stdint_x" = "no-file" ; then
+     cat >>$ac_stdint_h <<EOF
 
 #ifdef _HAVE_INT64_T
 typedef int64_t        intmax_t;
@@ -5934,7 +5974,7 @@ dnl      AC_COMPILE_CHECK_SIZEOF(ptrdiff_t, $headers)
 dnl      AC_COMPILE_CHECK_SIZEOF(off_t, $headers)
 dnl
 dnl @author Kaveh Ghazi <ghazi@caip.rutgers.edu>
-dnl @version $Id: aclocal.m4,v 1.21 2002-01-03 20:14:55 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.22 2002-02-17 16:29:27 s_a_white Exp $
 dnl
 AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 [changequote(<<, >>)dnl
