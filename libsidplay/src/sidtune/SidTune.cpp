@@ -251,7 +251,7 @@ bool SidTune::placeSidTuneInC64mem(uint_least8_t* c64buf)
 
 bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& bufferRef)
 {
-    Buffer_sidtt<uint_least8_t> fileBuf;
+    Buffer_sidtt<const uint_least8_t> fileBuf;
     uint_least32_t fileLen = 0;
 
     // This sucks big time
@@ -323,28 +323,11 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
         info.statusString = SidTune::txt_empty;
         return false;
     }
-    
-    // Check for PowerPacker compression: load and decompress, if PP20 file.
-    PP20 myPP;
-    if ( myPP.isCompressed(fileBuf.get(),fileBuf.len()) )
-    {
-        uint_least8_t* destBufRef = 0;
-        if ( 0 == (fileLen = myPP.decompress(fileBuf.get(),fileBuf.len(),
-                                             &destBufRef)) )
-        {
-            info.statusString = myPP.getStatusString();
-            return false;
-        }
-        else
-        {
-            info.statusString = myPP.getStatusString();
-            // Replace compressed buffer with uncompressed buffer.
-            fileBuf.assign(destBufRef,fileLen);
-        }
-    }
+
+    if ( decompressPP20(fileBuf) < 0 )
+        return false;
 
     bufferRef.assign(fileBuf.xferPtr(),fileBuf.xferLen());
-
     return true;
 }
 
@@ -505,10 +488,13 @@ void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least3
     Buffer_sidtt<const uint_least8_t> buf1(tmpBuf,bufferLen);
     Buffer_sidtt<const uint_least8_t> buf2;  // empty
 
+    if ( decompressPP20(buf1) < 0 )
+        return;
+
     bool foundFormat = false;
     LoadStatus ret;
     // Here test for the possible single file formats. --------------
-    ret = PSID_fileSupport( buffer, bufferLen ); 
+    ret = PSID_fileSupport( buf1.get(), buf1.len() ); 
     if ( ret != LOAD_NOT_MINE )
     {
         if ( ret == LOAD_ERROR )
@@ -1130,13 +1116,13 @@ bool SidTune::checkCompatibility (void)
         case 0x0D:
         case 0x0B:
         case 0x0A:
-	        info.statusString = txt_badAddr;
+            info.statusString = txt_badAddr;
             return false;
         default:
             if ( (info.initAddr < info.loadAddr) ||
                  (info.initAddr > (info.loadAddr + info.c64dataLen - 1)) )
             {
-    	        info.statusString = txt_badAddr;
+                info.statusString = txt_badAddr;
                 return false;
             }
         }
@@ -1152,4 +1138,30 @@ bool SidTune::checkCompatibility (void)
         break;
     }
     return true;
+}
+
+// returns 0 for no decompression (buf unchanged), 1 for decompression and -1 for error
+int SidTune::decompressPP20(Buffer_sidtt<const uint_least8_t>& buf)
+{
+    // Check for PowerPacker compression: load and decompress, if PP20 file.
+    PP20 myPP;
+    uint_least32_t fileLen;
+    if ( myPP.isCompressed(buf.get(),buf.len()) )
+    {
+        uint_least8_t* destBufRef = 0;
+        if ( 0 == (fileLen = myPP.decompress(buf.get(),buf.len(),
+                                             &destBufRef)) )
+        {
+            info.statusString = myPP.getStatusString();
+            return -1;
+        }
+        else
+        {
+            info.statusString = myPP.getStatusString();
+            // Replace compressed buffer with uncompressed buffer.
+            buf.assign(destBufRef,fileLen);
+        }
+        return 1;
+    }
+    return 0;
 }

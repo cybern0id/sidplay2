@@ -7,6 +7,7 @@ MUS.cpp \
 PP20.cpp \
 PP20.h \
 PP20_Defs.h \
+prg.cpp \
 PSID.cpp \
 SidTune.cpp \
 SidTuneCfg.h \
