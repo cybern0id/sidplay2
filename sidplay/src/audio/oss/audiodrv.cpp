@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/14 16:53:29  s_a_white
+ *  Updated to use new audio base class.
+ *
  *  Revision 1.3  2001/01/23 21:23:23  s_a_white
  *  Replaced SID_HAVE_EXCEPTIONS with HAVE_EXCEPTIONS in new
  *  drivers.
@@ -44,7 +47,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 #if defined(HAVE_NETBSD)

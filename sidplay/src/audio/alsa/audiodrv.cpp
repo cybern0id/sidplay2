@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/01/29 01:17:30  jpaana
+ *  Use int_least8_t instead of ubyte_sidt which is obsolete now
+ *
  *  Revision 1.3  2001/01/23 21:23:23  s_a_white
  *  Replaced SID_HAVE_EXCEPTIONS with HAVE_EXCEPTIONS in new
  *  drivers.
@@ -21,7 +24,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 Audio_ALSA::Audio_ALSA()

@@ -20,7 +20,7 @@
 #include "config.h"
 
 #if HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 // Allow resid to be in more than one location

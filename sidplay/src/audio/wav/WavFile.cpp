@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/11/22 08:55:29  s_a_white
+ *  Bugfix
+ *
  *  Revision 1.6  2001/11/22 08:43:48  s_a_white
  *  Added WAV_ to HAVE_IOS_OPENMODE
  *
@@ -47,7 +50,7 @@
 #include "WavFileDefs.h"
 
 #ifdef WAV_HAVE_EXCEPTIONS
-#include <new>
+#include <new.h>
 #endif
 
 #if defined(WAV_HAVE_IOS_OPENMODE)

@@ -103,10 +103,10 @@ AC_DEFUN(CHECK_IOS_BIN,
     [
         AC_TRY_COMPILE(
             [#include <fstream.h>],
-		    [ifstream myTest(ios::in|ios::binary);],
-		    [test_cv_have_ios_binary=yes],
-		    [test_cv_have_ios_binary=no]
-	    )
+            [ifstream myTest(ios::in|ios::binary);],
+            [test_cv_have_ios_binary=yes],
+            [test_cv_have_ios_binary=no]
+        )
     ])
     AC_MSG_RESULT($test_cv_have_ios_binary)
     if test "$test_cv_have_ios_binary" = yes; then
@@ -149,11 +149,11 @@ AC_DEFUN(CHECK_EXCEPTIONS,
     AC_CACHE_VAL(test_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
-            [#include <new>],
-		    [char* buf = new(nothrow) char[1024];],
-		    [test_cv_have_exceptions=yes],
-		    [test_cv_have_exceptions=no]
-	    )
+            [#include <new.h>],
+            [char* buf = new(nothrow) char[1024];],
+            [test_cv_have_exceptions=yes],
+            [test_cv_have_exceptions=no]
+        )
     ])
     AC_MSG_RESULT($test_cv_have_exceptions)
     if test "$test_cv_have_exceptions" = yes; then

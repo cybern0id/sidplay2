@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/12/09 10:53:50  s_a_white
+ *  Added exporting of credits.
+ *
  *  Revision 1.1.1.1  2001/11/25 15:03:20  s_a_white
  *  Initial Release
  *
@@ -26,7 +29,7 @@
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 // Error String(s)
