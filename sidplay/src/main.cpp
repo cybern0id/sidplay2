@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2001/12/01 20:15:49  s_a_white
+ *  Player changed to ConsolePlayer.
+ *
  *  Revision 1.22  2001/11/27 19:10:12  s_a_white
  *  Restructured
  *
@@ -145,7 +148,7 @@ main_restart:
         goto main_error;
     }
 
-    if (player.restart())
+    if (player.state() & playerRestart)
         goto main_restart;
     player.close ();
     return EXIT_SUCCESS;

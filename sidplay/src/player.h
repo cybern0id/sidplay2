@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/12/03 19:17:34  s_a_white
+ *  Corrected spelling of BUILDER.
+ *
  *  Revision 1.2  2001/12/01 20:16:23  s_a_white
  *  Player changed to ConsolePlayer.
  *
@@ -44,8 +47,12 @@ typedef enum {black, red, green, yellow, blue, magenta, cyan, white}
     player_colour_t;
 typedef enum {tableStart, tableMiddle, tableSeperator, tableEnd}
     player_table_t;
-typedef enum {playerError, playerRunning, playerPaused,
-              playerRestart, playerStopped, playerExit} player_state_t;
+typedef enum {
+    playerError = 0, playerRunning, playerPaused, playerStopped,
+    playerRestart, playerExit, playerFast = 128,
+    playerFastRestart = playerRestart | playerFast,
+    playerFastExit = playerExit | playerFast
+} player_state_t;
 
 typedef enum {/* Same as EMU_DEFAULT except no soundcard.
                  Still allows wav generation */
@@ -165,12 +172,12 @@ public:
     ConsolePlayer (const char * const name);
     virtual ~ConsolePlayer() {;}
 
-    bool args    (int argc, char *argv[]);
-    bool open    (void);
-    void close   (void);
-    bool play    (void);
-    void stop    (void);
-    bool restart (void) { return m_state == playerRestart; }
+    bool           args  (int argc, char *argv[]);
+    bool           open  (void);
+    void           close (void);
+    bool           play  (void);
+    void           stop  (void);
+    player_state_t state (void) { return m_state; }
 };
 
 #endif // _player_h_
