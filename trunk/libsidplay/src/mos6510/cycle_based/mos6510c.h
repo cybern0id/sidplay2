@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/11/28 20:35:06  s_a_white
+ *  Reduced number of thrown exceptions when dma occurs.
+ *
  *  Revision 1.14  2002/11/25 20:10:55  s_a_white
  *  A bus access failure should stop the CPU dead like the cycle never started.
  *  This is currently simulated using throw (execption handling) for now.
@@ -72,13 +75,13 @@
 
 class MOS6510: public C64Environment, public Event
 {
-private:
+protected:
     // External signals
     bool aec; /* Address Controller, blocks all */
     bool rdy; /* Bus Access, blocks reads */
     bool m_blocked;
+    event_clock_t m_stealingClk;
 
-protected:
     bool dodump;
     EventContext &eventContext;
    
@@ -123,8 +126,8 @@ protected:
     {
         uint_least8_t  pending;
         uint_least8_t  irqs;
-        event_clock_t  nmiClock;
-        event_clock_t  irqClock;
+        event_clock_t  nmiClk;
+        event_clock_t  irqClk;
         event_clock_t  delay;
         bool           irqRequest;
         bool           irqLatch;
@@ -149,6 +152,8 @@ protected:
     inline void IRQ1Request      (void);
     inline void IRQ2Request      (void);
     bool        interruptPending (void);
+    void        stealCycle       (bool condition)
+    { if (condition) throw((int_least8_t) -1); }
 
     // Declare Instruction Routines
     virtual void FetchOpcode         (void);
@@ -295,13 +300,14 @@ inline void MOS6510::clock (void)
     } catch (int_least8_t delta) {
         cycleCount += delta;
         m_blocked   = true;
+        m_stealingClk = eventContext.getTime ();
         eventContext.cancel (this);
     }
 }
 
 inline void MOS6510::event (void)
 {
-    eventContext.schedule (this, 1);
+    eventContext.schedule (this, 1, EVENT_CLOCK_PHI2);
     clock ();
 }
 
