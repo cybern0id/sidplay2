@@ -25,11 +25,10 @@
 typedef uint_fast32_t event_clock_t;
 #define EVENT_CONTEXT_MAX_PENDING_EVENTS 0x100
 
-class EventContext;
 class SID_EXTERN Event
 {
 private:
-    friend  EventContext;
+    friend  class EventScheduler;
     const   char * const m_name;
     event_clock_t m_clk;
 
@@ -49,8 +48,18 @@ public:
     virtual void event (void) = 0;
 };
 
+// Public Event Context
+class EventContext
+{
+public:
+    virtual void cancel   (Event *event) = 0;
+    virtual void schedule (Event *event, event_clock_t cycles) = 0;
+    virtual event_clock_t getTime (void) const = 0;
+    virtual event_clock_t getTime (event_clock_t clock) const = 0;
+};
 
-class SID_EXTERN EventContext
+// Private Event Context Object (The scheduler)
+class EventScheduler: public EventContext
 {
 private:
     const   char * const m_name;
@@ -61,17 +70,17 @@ private:
     class SID_EXTERN EventTimeWarp: public Event
     {
     private:
-        EventContext &m_eventContext;
+        EventScheduler &m_scheduler;
 
         void event (void)
         {
-            m_eventContext.timeWarp ();
+            m_scheduler.timeWarp ();
         }
 
     public:
-        EventTimeWarp (EventContext *context)
+        EventTimeWarp (EventScheduler *context)
         :Event("Time Warp"),
-         m_eventContext(*context)
+         m_scheduler(*context)
         {;}
     } m_timeWarp;
     friend EventTimeWarp;
@@ -97,10 +106,10 @@ private:
     }
 
 public:
-    EventContext  (const char * const name);
-    void cancel   (Event *event);
-    void reset    (void);
-    void schedule (Event *event, event_clock_t cycles);
+    EventScheduler (const char * const name);
+    void cancel    (Event *event);
+    void reset     (void);
+    void schedule  (Event *event, event_clock_t cycles);
 
     void clock (event_clock_t delta = 1)
     {
