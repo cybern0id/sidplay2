@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2002/04/14 21:46:50  s_a_white
+ *  PlaySID reads fixed to come from RAM only.
+ *
  *  Revision 1.23  2002/03/11 18:01:30  s_a_white
  *  Prevent lockup if config call fails with existing and old configurations.
  *
@@ -142,6 +145,7 @@ int Player::config (const sid2_config_t &cfg)
         float64_t cpuFreq;
         // Reset tune info
         m_tune->getInfo(m_tuneInfo);
+
         // External Setups
         if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
         {
@@ -467,11 +471,11 @@ int Player::environment (sid2_env_t env)
         }
     }
 
-    // Check if tune is invalid
+    // Check if tune is invalid in the memory mode
     if ((m_info.environment != sid2_envR) &&
         (m_tuneInfo.playAddr == 0xffff))
-    {   // Unload song.
-        load (NULL);
+    {
+        return -1;
     }
 
     {   // Have to reload the song into memory as
@@ -491,7 +495,9 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                        sid2_model_t defaultModel)
 {
     sid[0] = xsid.emulation ();
-    
+   /* @FIXME@ Removed as prevents SID
+    * Model being updated
+    ****************************************
     // If we are already using the emulation
     // then don't change
     if (builder == sid[0]->builder ())
@@ -499,6 +505,7 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
         sid[0] = &xsid;
         return 0;
     }
+    ****************************************/
 
     // Make xsid forget it's emulation
     xsid.emulation (&nullsid);
