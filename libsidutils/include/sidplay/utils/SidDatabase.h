@@ -1,3 +1,23 @@
+/***************************************************************************
+                          SidDatabase.h  -  songlength database support
+                             -------------------
+    begin                : Sun Mar 11 2001
+    copyright            : (C) 2001 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifndef _siddatabase_h_
+#define _siddatabase_h_
+
 #include "SidTuneMod.h"
 #include "libini.h"
 
@@ -25,3 +45,5 @@ public:
     int_least32_t length (SidTuneMod &tune);
     const char *  error  (void) { return errorString; }
 };
+
+#endif // _siddatabase_h_
