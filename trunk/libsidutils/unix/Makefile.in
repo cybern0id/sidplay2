@@ -130,7 +130,7 @@ target_alias = @target_alias@
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libsidutils.pc
 
-EXTRA_DIST = libsidutils.spec
+EXTRA_DIST = libsidutils.spec my_macros.m4 sidplay2.m4
 subdir = unix
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = config.h
