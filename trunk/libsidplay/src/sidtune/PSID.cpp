@@ -297,12 +297,6 @@ PSID_fileSupport_basic:
 
         if ( initAddrCheck )
         {
-            if ( info.initAddr < 0x0801 )
-            {
-                info.formatString = _sidtune_invalid;
-                return false;
-            }
-
             // Check init is not under ROMS/IO
             switch (info.initAddr >> 12)
             {
@@ -313,11 +307,16 @@ PSID_fileSupport_basic:
             case 0x0A:
                 info.formatString = _sidtune_invalid;
                 return false;
+            default:
+                if ( info.initAddr < 0x0801 )
+                {
+                    info.formatString = _sidtune_invalid;
+                    return false;
+                }
             }
         }
     }
-
-    if ( info.initAddr == 0 )
+    else if ( info.initAddr == 0 )
         info.initAddr = info.loadAddr;
 
     // Copy info strings, so they will not get lost.
