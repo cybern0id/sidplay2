@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/03/21 22:32:55  s_a_white
+ *  Filter redefinition support.  VIC & NMI support added.
+ *
  *  Revision 1.8  2001/03/08 22:48:33  s_a_white
  *  Sid reset on player destruction removed.  Now handled locally by the sids.
  *
@@ -50,10 +53,10 @@
 #include "sidplay2.h"
 #include "sidenv.h"
 #include "mos6510/mos6510.h"
+#include "mos6526/mos6526.h"
+#include "mos656x/mos656x.h"
 #include "mos6581/mos6581.h"
-#include "mos656x.h"
 #include "xsid/xsid.h"
-#include "fake6526.h"
 
 class player: private C64Environment
 {
@@ -77,13 +80,13 @@ private:
 	static const char  *ERR_FILTER_DEFINITION;
 
     //SID6510  cpu(6510, "Main CPU");
-    SID6510  cpu;
-    SID      sid;
-    SID      sid2;
-    XSID     xsid;
-    fake6526 cia;
-    fake6526 cia2;
-	MOS656X  vic;
+    SID6510 cpu;
+    SID     sid;
+    SID     sid2;
+    XSID    xsid;
+    MOS6526 cia;
+    MOS6526 cia2;
+	MOS656X vic;
 
     // User Configuration Settings
     struct   SidTuneInfo tuneInfo;
