@@ -16,7 +16,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_MSWINDOWS
+#include "config.h"
+#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
 // Support for DLLs
 #   define SID_EXPORT __declspec(dllexport)
 #endif

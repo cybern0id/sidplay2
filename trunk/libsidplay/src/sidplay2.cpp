@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/02/07 20:57:08  s_a_white
+ *  New SID_EXPORT define.  Supports SidTune now.
+ *
  *  Revision 1.2  2001/01/23 21:26:28  s_a_white
  *  Only way to load a tune now is by passing in a sidtune object.  This is
  *  required for songlength database support.
@@ -33,12 +36,12 @@
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 
-//#ifdef HAVE_MSWINDOWS
+#include "config.h"
+#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
 // Support for DLLs
 #   define SID_EXPORT __declspec(dllexport)
-//#endif
+#endif
 
-#include "config.h"
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
