@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2002/11/19 22:53:23  s_a_white
+ *  Sidplay1 modes modified to make them nolonger require the psid driver.
+ *
  *  Revision 1.21  2002/11/01 19:11:21  s_a_white
  *  Export random delay used in song.
  *
@@ -111,7 +114,6 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
     if (m_info.environment != sid2_envR)
     {   // Sidplay1 modes require no psid driver
         m_info.rnddelay = 0;
-        endian_little16 (&m_rom[0xfffc], tuneInfo.initAddr); // RESET
         return 0;
     }
 

@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.53  2002/11/21 19:53:58  s_a_white
+ *  CPU nolonger a special case.  It now uses the event scheduler like all the
+ *  other components.
+ *
  *  Revision 1.52  2002/11/20 21:44:03  s_a_white
  *  Fix fake IRQ to properly obtain next address.
  *
@@ -316,14 +320,11 @@ void Player::fakeIRQ (void)
 {   // Check to see if the play address has been provided or whether
     // we should pick it up from an IRQ vector
     uint_least16_t playAddr = m_tuneInfo.playAddr;
-    uint8_t        bankreg  = m_playBank;
-
-    // Always make sure kernal is switched in
-    // for fake irq trigger
-    isKernal = true;
 
     // We have to reload the new play address
-    if (!playAddr)
+    if (playAddr)
+        evalBankSelect (m_playBank);
+    else
     {
         if (isKernal)
         {   // Setup the entry point from hardware IRQ
@@ -333,13 +334,11 @@ void Player::fakeIRQ (void)
         {   // Setup the entry point from software IRQ
             playAddr = endian_little16 (&m_ram[0xFFFF]);
         }
-        bankreg = m_bankReg;
     }
 
     // Setup the entry point and restart the cpu
-    endian_little16 (&m_rom[0xfffc], playAddr);
     cpu->triggerIRQ ();
-    evalBankSelect  (bankreg);
+    sid6510.reset   (playAddr, 0, 0, 0);
 }
 
 int Player::fastForward (uint percent)
@@ -845,12 +844,15 @@ void Player::envReset (bool safe)
     if (m_info.environment != sid2_envR)
     {
         uint8_t song = m_tuneInfo.currentSong - 1;
-        sid6510.reset  (song, song, song);
         uint8_t bank = iomap (m_tuneInfo.initAddr);
         if (bank == 0)
             bank = 0x37;
         evalBankSelect (bank);
         m_playBank = iomap (m_tuneInfo.playAddr);
+        if (m_info.environment != sid2_envPS)
+            sid6510.reset (m_tuneInfo.initAddr, song, 0, 0);
+        else
+            sid6510.reset (m_tuneInfo.initAddr, song, song, song);
     }
     else
         cpu->reset ();
