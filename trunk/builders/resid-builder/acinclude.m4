@@ -166,14 +166,14 @@ AC_DEFUN(SID_PATH_LIBRESID,
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        resid_incdirs="$includedir $sid_prefix/include src/mos6581 src/mos6581/resid/include \
+        resid_incdirs="$includedir $prefix/include src/mos6581 src/mos6581/resid/include \
                        /usr/include /usr/local/include /usr/lib/resid/include \
                        /usr/local/lib/resid/include"
         SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="$libdir $sid_prefix/lib src/mos6581/resid src/mos6581/resid/lib \
+        resid_libdirs="$libdir $prefix/lib src/mos6581/resid src/mos6581/resid/lib \
                        /usr/lib /usr/local/lib /usr/lib/resid/lib /usr/local/lib/resid/lib"
         SID_FIND_FILE(libresid.la,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
@@ -217,11 +217,11 @@ Please check your installation!
         AC_MSG_RESULT([$sid_have_resid]);
     fi
 
-    RESID_LDADD="$sid_resid_libadd"
-    RESID_INCLUDES="$sid_resid_incadd"
+    RESID_LDFLAGS="$sid_resid_libadd"
+    RESID_CXXFLAGS="$sid_resid_incadd"
 
-    AC_SUBST(RESID_LDADD)
-    AC_SUBST(RESID_INCLUDES)
+    AC_SUBST(RESID_LDFLAGS)
+    AC_SUBST(RESID_CXXFLAGS)
 
     if test "$sid_resid_install" != system; then
         if test "$sid_resid_install" = local; then
@@ -347,39 +347,26 @@ dnl -------------------------------------------------------------------------
 dnl Find libsidplay2.  Don't bother to check if it works as we only require
 dnl the header files.
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID_FIND_LIBSIDPLAY2,
+AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
 [
-    AC_CACHE_VAL(test_cv_libsidplay2,
-    [
-        test_cv_libsidplay2=no
-        AC_ARG_WITH(libsidplay2,
-            [  --with-sidplay2=DIR
-                where libsidplay2 is located],
-            [test_cv_libsidplay2="$withval"]
-        )
+    sid_cxxflags_save=$CXXFLAGS
+    sid_ldflags_save=$LDFLAGS
+    sid_cxx_save=$CXX
 
-        if test "$test_cv_libsidplay2" = no; then
-            AC_CHECK_HEADER(sidplay/sidplay2.h,test_cv_libsidplay2=yes)
-        else
-            AC_TRY_COMPILE([$sid_libsidplay2_includes/include/sidplay/sidplay2.h],,
-                test_cv_libsidplay2=$sid_libsidplay2_includes
-            )
-        fi
-        if test "$test_cv_libsidplay2" = no; then
-            AC_MSG_CHECKING([for libsidplay2])
-            AC_MSG_ERROR(
-[
-libsidplay2 files not found. Please check your installation!
-])
-        fi
-    ])
-    AC_MSG_CHECKING([for libsidplay2])
-    AC_MSG_RESULT([$test_cv_libsidplay2])
-    LIBSIDPLAY2_INCLUDES=""
-    if test "$test_cv_libsidplay2" != yes; then
-        LIBSIDPLAY2_INCLUDES="-I$test_cv_libsidplay2/include"
-    fi
-    AC_SUBST(LIBSIDPLAY2_INCLUDES)
+    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS"
+    LDFLAGS="$LDFLAGS $LIBSIDPLAY2_LDFLAGS"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+
+    AC_TRY_LINK(
+        [#include <sidplay/sidplay2.h>],
+        [sidplay2 *myEngine;],
+        [LIBSIDPLAY2_WORKS=yes],
+        [LIBSIDPLAY2_WORKS=no]
+    )
+
+    CXXFLAGS="$sid_cxxflags_save"
+    LDFLAGS="$sid_ldflags_save"
+    CXX="$sid_cxx_save"
 ])
 
 
