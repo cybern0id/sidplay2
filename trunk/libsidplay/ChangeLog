@@ -1,3 +1,106 @@
+Release Notes 2.0.7:
+
+This version sees a fully compliant C64 cycle based emulation.  The emulation
+only covers those parts which are necessary.  Things like CIA and VIC are not
+complete because it's not deemed usefull to play the tunes better.  The
+VIC emulation can still be improved a little to support bad cycles and perhaps
+the light pen interrupt.  The CIA emulation is also incomplete but now
+supports both Timer A and B and all timer modes except those which use
+external signals.  The CIA emulation will probably be fully completed in a
+near future release since I have the code pretty much written.  It's not
+been added because the rest of the player requires a design concept change to
+use the C++ "observer model".
+
+Please note this version has a totally different concept design to the last.
+The previous version is the last "SIDPlay Compatible" version.  Since this
+is the case SIDPlay specific songs which are possibly bad may no longer
+work.  If such songs are found please report them as they will be fixed.
+
+Lastly this version can run original tunes and even prgs taken from a real C64
+without any modifications.  In most cases it's just a simple case of locating
+the tunes INIT address, making a sid info header and then rename the *.prg to
+*.dat.  SIDPlay2 can then run the tune, it's even possible to create a PSID
+all in one file using a conversion tool.  One thing to note is that these
+real tunes will mostly not play (correctly) in other SID Players apart from
+VSID (Vice SIDPlayer).  However, VICE is not pretending to be fully or even
+mostly SIDPlay compatible.  It therefore wont run as many tunes or play
+extended samples like those found all the HSVC sample tunes.
+
+For those wishing to do the above you must set the play address to 0xffff.
+This is an illegal address like 0 and behaves similiar, but it tells the
+player to turn off extended sample support, ignore the CIA/VIC speed flag
+and enable NMI support.
+
+	
+Changes:
+
+Partial VIC emulation which models both the NTSC and PAL chips.  Full raster
+interrupts supported and therefore VIC multispeed tunes.
+
+Partial CIA emulation with full interrupt capability for Timer A and B.  NMI
+interrupts are also supported for "real C64 samples".
+
+MOS6510s interrupts are now used.  Interrupt/BRK now fixed to always run the
+first instruction in the interrupt handler.  This means the an IRQ cannot
+interrupt an NMI should the first instruction in the handler be SEI.
+
+SID6510.  SID specialisation of the processor now improved and those bits from
+the player enviroment which should have been here now are.  This module
+provides most of the SIDPlay1 compatibility, but not everything can now be
+supported as in version 2.0.6 due to other environment changes.
+
+XSID now is pretty much fixed for HardSID usage.  It correctly determines
+legal SID volume offsets and traps volume changes to the SID made by the
+C64 program.  This prevents song clicks, quiet main voices and even allows
+the main voices to change there volume correctly whilst samples are playing.
+The user now has the ability to select whether they would like samples through
+SID or samples on there own idependent channel.  The default is samples
+through SID.  Note that real Samples cannot be taken off the SID.
+
+Due to the Interrupt support the C64 now allows code execution overlaping.
+E.g. the play routine might trigger before the INIT has completed and multiple
+play calls may overlap each other.  This also happens on a real C64 and as to
+whether it works depends on if the ripped code still has the capability to
+deal with it.  Since it seems that some tune DO NOT do this properly, nor do
+they acknowledge interrupts correctly, C64 code has been provided by Dag Lem
+to deal with this issue.  This code is the PSIDDRV from the Vice project.
+The version available here has been modified by me to support almost
+all tunes and deals with some of the SIDPlay compatibility issues better.
+
+
+Problems:
+
+There are known problems with this version, but the benefits are far greater.
+
+Some tunes currently will just not play.  These are tunes which install code
+across the interrupt handlers and therefore don't behave correctly when an
+interrupt occurs.  These tunes are probably missing things which were setup
+by the original game code.   The methods used by SIDPlay1 and 2 to determine
+the initial bank register state does not accomadate this fact.  SIDPlay1
+like release 2.0.6 does not have this problem because interrupts are not
+emulated.
+
+There are performance issues with this version and specifications have increased
+due to the extra/modified component emulations :(.  I hope to fix/improve on
+this in a next release.
+
+Either the NMI or VIC interrupts seem to have jitter on them.  For tunes in
+HVSC this dosen't occur.  For some real sample tunes the music can sound a little
+distorted.  This should be fixed for the next release.
+
+The PSIDDRV has to sit in RAM and therefore can be trashed by the tune.  To stop
+this the zero page has been reserved to store the PSIDDRV and some special non
+standard C64 bankswitching added to flip in and out the driver.  This means that
+the tune cannot put any code on the zero page but it can store data on this page.
+Since benefits of using this page are only available when storing data on it there
+is no tune currently in HSVC that causes a problem.  It is possible to put this
+driver into roms, some code must still go in RAM do deal the calls to play/init
+routines that may lie under the ROMS.  However, this would break some of the older
+modes e.g. playsid mode does not have ROMS, sidplay1 combatibilty modes prevent
+code execution in ROMS.
+
+
+
 Changes since 2.0.6 (Note this version is intended mainly
 for developers):
 
@@ -27,7 +130,7 @@ Problems:
 
 For OSS left and right channels are reversed.  According to OSS docs,
 left channel in writing before right which is the order it's currently
-being done.  Both Windows drivers are correct.
+being done (oss driver bug).  Both Windows drivers are correct.
 	
 
 Bug Fixes:
