@@ -57,25 +57,22 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+ACLOCAL_AMFLAGS = @ACLOCAL_AMFLAGS@
 AMTAR = @AMTAR@
 AS = @AS@
 AUDIO_DRV = @AUDIO_DRV@
 AUDIO_LDADD = @AUDIO_LDADD@
 AUDIO_LDFLAGS = @AUDIO_LDFLAGS@
 AWK = @AWK@
-BUILDERS_CXXFLAGS = @BUILDERS_CXXFLAGS@
 BUILDERS_LDFLAGS = @BUILDERS_LDFLAGS@
 CC = @CC@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
-HARDSID_LDFLAGS = @HARDSID_LDFLAGS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBSIDPLAY2_BUILDERS = @LIBSIDPLAY2_BUILDERS@
 LIBSIDPLAY2_CXXFLAGS = @LIBSIDPLAY2_CXXFLAGS@
 LIBSIDPLAY2_LDFLAGS = @LIBSIDPLAY2_LDFLAGS@
 LIBSIDUTILS_CXXFLAGS = @LIBSIDUTILS_CXXFLAGS@
@@ -87,7 +84,6 @@ OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
-RESID_LDFLAGS = @RESID_LDFLAGS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 am__include = @am__include@
@@ -96,7 +92,7 @@ install_sh = @install_sh@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = doc src unix
+SUBDIRS = doc unix src
 
 EXTRA_DIST = include win acconfig.h
 subdir = .
@@ -111,8 +107,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 configure \
-	configure.in
+	Makefile.in TODO acconfig.h aclocal.m4 configure configure.in
 DIST_SUBDIRS = $(SUBDIRS)
 all: all-recursive
 
@@ -139,7 +134,7 @@ $(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
-$(ACLOCAL_M4):  configure.in acinclude.m4
+$(ACLOCAL_M4):  configure.in 
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 uninstall-info-am:
 

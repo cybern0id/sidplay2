@@ -18,11 +18,9 @@
 /* Define if ``ios::openmode'' is supported. */
 #undef HAVE_IOS_OPENMODE
 
-/* Define if the C++ compiler supports BOOL */
-#undef HAVE_BOOL
-
-/* Define if you need the GNU extensions to compile */
-#undef _GNU_SOURCE
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#undef WORDS_BIGENDIAN
 
 /* Define supported audio driver */
 #undef HAVE_HARDSID
@@ -35,37 +33,37 @@
 #undef HAVE_SUNOS
 #undef HAVE_WAV_ONLY
 
-/* Define if you have the <audio.h> header file. */
+/* Define if you have the <audio.h> header file.  */
 #undef HAVE_AUDIO_H
 
-/* Define if you have the <dlfcn.h> header file. */
+/* Define if you have the <dlfcn.h> header file.  */
 #undef HAVE_DLFCN_H
 
-/* Define if you have the <dmedia/audio.h> header file. */
+/* Define if you have the <dmedia/audio.h> header file.  */
 #undef HAVE_DMEDIA_AUDIO_H
 
-/* Define if you have the <linux/soundcard.h> header file. */
+/* Define if you have the <linux/soundcard.h> header file.  */
 #undef HAVE_LINUX_SOUNDCARD_H
 
-/* Define if you have the <machine/soundcard.h> header file. */
+/* Define if you have the <machine/soundcard.h> header file.  */
 #undef HAVE_MACHINE_SOUNDCARD_H
 
-/* Define if you have the <soundcard.h> header file. */
+/* Define if you have the <soundcard.h> header file.  */
 #undef HAVE_SOUNDCARD_H
 
-/* Define if you have the <sun/audioio.h> header file. */
+/* Define if you have the <sun/audioio.h> header file.  */
 #undef HAVE_SUN_AUDIOIO_H
 
-/* Define if you have the <sun/dbriio.h> header file. */
+/* Define if you have the <sun/dbriio.h> header file.  */
 #undef HAVE_SUN_DBRIIO_H
 
-/* Define if you have the <sys/audio.h> header file. */
+/* Define if you have the <sys/audio.h> header file.  */
 #undef HAVE_SYS_AUDIO_H
 
-/* Define if you have the <sys/audioio.h> header file. */
+/* Define if you have the <sys/audioio.h> header file.  */
 #undef HAVE_SYS_AUDIOIO_H
 
-/* Define if you have the <sys/ioctl.h> header file. */
+/* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
 /* Name of package */
@@ -74,8 +72,5 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define if your processor stores words with the most significant byte first
-   (like Motorola and SPARC, unlike Intel and VAX). */
-#undef WORDS_BIGENDIAN
 
 #endif /* _config_h_ */
