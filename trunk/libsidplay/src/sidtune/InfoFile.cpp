@@ -18,11 +18,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "config.h"
-#include "SidTune.h"
-#include "SidTuneTools.h"
-#include "sidendian.h"
-
 #ifdef HAVE_EXCEPTIONS
 #include <new>
 #endif
@@ -36,6 +31,12 @@
 #endif
 #include <ctype.h>
 #include <string.h>
+
+#include "config.h"
+#include "SidTune.h"
+#include "SidTuneTools.h"
+#include "sidendian.h"
+
 
 const char text_format[] = "Raw plus SIDPLAY ASCII text file (SID)";
 
@@ -240,9 +241,9 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 }
 
 
-bool SidTune::SID_fileSupportSave( ofstream& fMyOut )
+bool SidTune::SID_fileSupportSave( ofstream& toFile )
 {
-	fMyOut << keyword_id << endl
+	toFile << keyword_id << endl
 		<< keyword_address << hex << setw(4) << setfill('0') << 0 << ','
 		<< hex << setw(4) << info.initAddr << ","
 		<< hex << setw(4) << info.playAddr << endl
@@ -258,16 +259,16 @@ bool SidTune::SID_fileSupportSave( ofstream& fMyOut )
 		}
 	}
 
-	fMyOut
+	toFile
 		<< keyword_speed << hex << setw(8) << oldStyleSpeed << endl
 		<< keyword_name << info.infoString[0] << endl
 		<< keyword_author << info.infoString[1] << endl
 		<< keyword_copyright << info.infoString[2] << endl;
 	if ( info.musPlayer )
 	{
-		fMyOut << keyword_musPlayer << endl;
+		toFile << keyword_musPlayer << endl;
 	}
-	if ( !fMyOut )
+	if ( !toFile )
 	{
 		return false;
 	}
