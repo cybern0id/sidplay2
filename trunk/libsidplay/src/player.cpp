@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.32  2001/11/16 19:25:33  s_a_white
  *  Removed m_context as where getting mixed with parent class.
  *
@@ -354,7 +357,7 @@ uint_least32_t Player::play (void *buffer, uint_least32_t length)
 
 void Player::stop (void)
 {   // Re-start song
-    if (m_tune)
+    if (m_tune && (m_playerState != sid2_stopped))
     {
         if (!m_running)
             initialise ();
