@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.5  2001/09/18 17:55:48  s_a_white
+ * Moved ini_new to ini.cpp.
+ *
  * Revision 1.4  2001/08/30 21:36:15  s_a_white
  * Synced ini parser with libini-1.1.7.  Fixes various bugs.
  *
@@ -208,6 +211,7 @@ ini_t *__ini_open (const char *name, ini_mode_t mode)
         file = fopen (ini->filename, "wb");
         if (!file)
             goto ini_openError;
+        ini->newfile = true;
         fclose (file);
     }
 
@@ -223,9 +227,7 @@ ini_t *__ini_open (const char *name, ini_mode_t mode)
 
     if (!ini->ftmp)
         goto ini_openError;
-    if (!file)
-        ini->newfile = true;
-    else
+    if (file)
     {   // Process existing ini file
         if (__ini_process (ini, file) < 0)
             goto ini_openError;
