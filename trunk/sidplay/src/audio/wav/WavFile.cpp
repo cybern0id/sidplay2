@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.7  2001/11/22 08:55:29  s_a_white
  *  Bugfix
  *
@@ -80,6 +83,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     unsigned long  int freq;
     unsigned short int channels, bits;
     unsigned short int blockAlign;
+    unsigned long  int bufSize;
 
     bits        = cfg.precision;
     channels    = cfg.channels;
@@ -136,36 +140,28 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     return _sampleBuffer;
 }
 
-void* WavFile::write(unsigned long int bytes)
+void* WavFile::write()
 {
     if (isOpen && !file.fail())
     {
+        unsigned long int bytes = _settings.bufSize;
         if (!headerWritten)
         {
             file.write((char*)&wavHdr,sizeof(wavHeader));
             headerWritten = true;
         }
-        
-        // This should never happen
-        if (bytes > bufSize)
-            bytes = bufSize;
 
         byteCount += bytes;
+
 #if defined(WAV_WORDS_BIGENDIAN)
-        if (bitsPerSample == 16)
+        if (_settings.precision == 16)
         {
-            _sampleBuffer = bytes;
-                    endian_32swap (_sampleBuffer);
+            int_least8_t *pBuffer = (int_least8_t *) _sampleBuffer;
+            for (uint_least32_t n = 0; n < _settings.bufSize; n += 2)
+                SWAP (pBuffer[n + 0], pBuffer[n + 1]);
         }
 #endif
         file.write((char*)_sampleBuffer,bytes);
-#if defined(WAV_WORDS_BIGENDIAN) && defined(WAV_REVERT_BUFFER_CHANGES)
-        if (bitsPerSample == 16)
-        {
-            _sampleBuffer = bytes;
-                    endian_32swap (_sampleBuffer);
-        }
-#endif
     }
     return _sampleBuffer;
 }

@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/11/16 19:33:27  s_a_white
+ *  Removed old compatibility open.
+ *
  *  Revision 1.3  2001/10/30 23:35:35  s_a_white
  *  Added pause support.
  *
@@ -66,8 +69,6 @@ class WavFile: public AudioBase
 {
 private:
     unsigned long int byteCount;
-    unsigned long int bufSize;
-    int    bitsPerSample;   // need this for endian-conversion check
 
     static const wavHeader defaultWavHdr;
     wavHeader wavHdr;
@@ -91,11 +92,9 @@ public:
     void *open(AudioConfig &cfg, const char *name,
                const bool overWrite);
     
-    // Buffer contents may be modified during endian conversion.
-    // Compile with WAV_REVERT_BUFFER_CHANGES if you want buffer
-    // contents to be restored properly.
-    void *write(unsigned long int size);
-    void *write() { return write (bufSize); }
+    // After write call old buffer is invalid and you should
+    // use the new buffer provided instead.
+    void *write();
     void  close();
     void  pause() {;}
     const char *extension () const { return ".wav"; }
