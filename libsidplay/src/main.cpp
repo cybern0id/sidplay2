@@ -520,10 +520,13 @@ main_restart:
         }
 
         strcpy (wavName, argv[sidFile]);
+        // Rev 1.16 (saw) - BugFix to prevent extension ".sid.wav"
+        wavName[i] = '\0';
+
         // Rev 1.12 (saw) - Modified to change wav name based on subtune
         // Now we have a name
         if (tuneInfo->songs > 1)
-        sprintf (&wavName[i], "[%u]", (unsigned int) tuneInfo->currentSong);
+            sprintf (&wavName[i], "[%u]", (unsigned int) tuneInfo->currentSong);
         strcat (&wavName[i], ".wav");
         // lets create the wav object
 #ifdef SID_HAVE_EXCEPTIONS
