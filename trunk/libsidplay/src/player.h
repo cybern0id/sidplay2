@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/02/21 21:41:51  s_a_white
+ *  Added seperate ram bank to hold C64 player.
+ *
  *  Revision 1.4  2001/02/07 20:56:46  s_a_white
  *  Samples now delayed until end of simulated frame.
  *
@@ -103,7 +106,6 @@ private:
     // C64 environment settings
     float64_t       _cpuFreq;
     uint8_t         _bankReg;
-    uint8_t         _initBankReg;
     uint_least16_t  _sidAddress[2];
     bool            _sidEnabled[2];
     bool            _filter;
@@ -121,7 +123,6 @@ private:
 private:
     void clock          (void);
     int  initialise     (void);
-    void initBankSelect (uint_least16_t addr);
     void nextSequence   (void);
     void mileageCorrect (void)
     {   // If just finished a song, round samples to correct mileage
