@@ -1,3 +1,37 @@
+Release Notes 2.1.0:
+
+Changes:
+
+Introduction of sidbuilder classes.  These classes can be used to create new sid
+emulations for libsidplay2.  The front end player owns these emulations and passes
+them into libsidplay2 at runtime.  Such emulations could be a revised SID emulation,
+HardSID driver, Sidstation driver, etc...  This feature will be used by sidplay/w
+and sidplay2 in future.
+
+Implemetation of the component library classes.  These classes provide a standard
+way to create new components (e.g. VIC, CPU, etc).  Note that the sidbuilder
+classes use these.  The current implementation is a half measure which sees
+all components being seperated fully from the running environment.  However,
+due to the current design the components are static.  A second version of these
+classes will be released to allow dynamic allocation and linkage.  This actually
+means this project become a generic IC emulation test bed.  Given the right
+component emulations, this project could be a C64, BBC, etc.  Components can be
+effectively wired together, and added at runtime.
+
+Support for exporting credits.
+
+
+Fixes:
+
+The library has sufficient emulation to run PRGs.  As such I managed to run the
+C64 Emulator Testsuite 2.15 by Wolfram Roemhild.
+
+All CPU instructions (including extended ones) now run correctly with the correct
+number of cycles.  Results from other C64 environment tests are still being
+worked on (nothing serious).
+
+
+
 Release Notes 2.0.7-3:
 
 Linux RPM fixes

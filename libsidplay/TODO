@@ -1,13 +1,9 @@
 TODO <libsidplay2>:
 
-*Hardsid support <In Progress, non realtime drivers available, realtime drivers
- in progress.  Windows drivers will begin after this release>
+*Hardsid support <Beta versions available>
 
 *Fix encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See mixer.cpp
  and audiodrv.cpp
-
-*Convert MOS6510 Cycle_Data and Register_Accumulator registers to ubyte_sidt.
- Upon changing these the code will need a serious debugging setion.
 
 *New Bank Switching implementation for remappable componenets <Delayed>
 
@@ -20,15 +16,9 @@ TODO <libsidplay2>:
 
 *What functions are required on the interface for other applications <Suggestions please>
 
-*Support for credit access, both from sid and imported components <Next release>.
-
 *MOS6510:  Remove opcodes to individual files to support optimised versions.
            I have these in asm already, but was written in BorlandC.  <Needs converting>
            This way a C functon will be used if an asm is not present.
-
-*xSID Should inherit the sid <Next release>
-
-*Provide and base class for the sid to easier support resid/hardsid <Next release>.
 
 *Possibly provide a wds sync output for stereoplayer.  These helps external players
 which support this to sync properly to the music, there are some that use
