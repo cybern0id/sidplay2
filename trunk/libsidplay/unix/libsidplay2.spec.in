@@ -85,6 +85,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.la
 %{_libdir}/*.a
 %{_libdir}/*.so
+%{_libdir}/pkgconfig/*
 %{builders}/*.la
 %{builders}/*.a
 
