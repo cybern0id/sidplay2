@@ -20,17 +20,7 @@ AC_PROG_CXX
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
-CONFIG_LIBTOOL
-
-dnl Find pkg-config
-AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-if test "$PKG_CONFIG" = no; then
-  AC_MSG_ERROR([*** pkg-config not found. See http://pkgconfig.sourceforge.net])
-fi
-
-if ! pkg-config --atleast-pkgconfig-version 0.5 ; then
-  AC_MSG_ERROR([*** pkg-config too old; version 0.5 or better required.])
-fi
+MY_CONFIG_LIBTOOL
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -39,15 +29,17 @@ dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
 
 dnl Check for nothrow allocator.
-CHECK_EXCEPTIONS
+MY_CHECK_EXCEPTIONS
 
 dnl Find libsidplay2 libraries
-LIBSIDPLAY2_REQUIRED_VERSION=2.1.0
-LIBSIDPLAY2_FIND
+SID2_FIND_LIBSIDPLAY2
 
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -Wall -I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay/utils \$(LIBSIDPLAY2_CXXFLAGS)"
+
+ACLOCAL_AMFLAGS="-I unix"
+AC_SUBST(ACLOCAL_AMFLAGS)
 
 AC_OUTPUT(
 Makefile \
