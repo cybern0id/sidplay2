@@ -19,6 +19,7 @@
 #ifndef SIDTUNE_H
 #define SIDTUNE_H
 
+
 #include "sidtypes.h"
 #include "Buffer.h"
 #include "SmartPtr.h"
@@ -104,7 +105,7 @@ struct SidTuneInfo
 };
 
 
-class SidTune
+class SID_EXPORT SidTune
 {
 	
  public:  // ----------------------------------------------------------------
