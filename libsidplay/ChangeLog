@@ -1,5 +1,9 @@
 Changes since 2.0.6:
 
+(ms) Fixed fake6526.cpp to unlock timer upon reset. When playing
+sub-tunes and switching from CIA to VBI speed and vice versa, the
+speed is now correct.
+
 (ms) Fixed clock to [re]start at 0:00 upon [song] initialization.
 
 (ms) Converted complete source tree from kdevelop to native Automake
