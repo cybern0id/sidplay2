@@ -4787,6 +4787,71 @@ Please check your installation!
     fi
 ])
 
+
+dnl -------------------------------------------------------------------------
+dnl Find library on the system.  This is used to find libraries that are not
+dnl built/installed.  The include, lib path must be provided individually and it
+dnl is not possible to validate the library path.
+dnl $1 - library
+dnl $2 - library header
+dnl [$3 - used header]
+dnl -------------------------------------------------------------------------
+AC_DEFUN(MY_FIND_LIB_NO_CHECK,
+[
+    AC_MSG_CHECKING([for $1 library and headers])
+
+    my_libdir=""
+    my_includedir=""
+    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+
+    AC_ARG_WITH($1-includes,
+        [  --with-$1-includes=DIR
+            where the $1 includes are located],
+        [my_includedir="$withval"]
+    )
+
+    AC_ARG_WITH($1-library,
+        [  --with-$1-library=DIR
+            where the $1 library is installed],
+        [my_libdir="$withval"]
+    )
+
+    dnl Both paths must be provided
+    if test "$my_libdir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 library path not supplied!
+        ])
+    fi
+
+    if test "$my_includedir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 include path not supplied!
+        ])
+    fi
+
+    dnl Check the include path
+    my_dirs="$my_includedir"
+    MY_FIND_FILE($2,$my_dirs,my_includedir,my_header)
+
+    if test "$my_includedir" = NO; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 headers not found!
+        ])
+    fi
+
+    AC_MSG_RESULT(yes)
+    eval ${my_uname}_CXXFLAGS=\"-I$my_includedir\"
+    eval ${my_uname}_LDFLAGS=\"$my_libdir/lib$1.la\"
+
+    dnl Optional parameter - return used header
+    if test "$3" != ""; then
+        $3=$my_header
+    fi
+])
+
 dnl -------------------------------------------------------------------------
 dnl Test for working build
 dnl $1 - builder library name (lower case)
@@ -4873,13 +4938,33 @@ install dir.  Please check your installation!
 
 
 dnl -------------------------------------------------------------------------
+dnl Disable library build checks
+dnl -------------------------------------------------------------------------
+AC_DEFUN(SID2_LIB_CHECKS,
+[
+    AC_ARG_ENABLE(library-checks,
+    [  --disable-library-checks  do not check for working libraries])
+    if test x"${enable_library_checks+set}" = xset; then
+        SID2_LIB_CHECK=0
+    fi
+])
+
+
+dnl -------------------------------------------------------------------------
 dnl Find libsidplay2 library
 dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDPLAY2,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
-                           sidplay2 *myEngine)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
+                               sidplay2 *myEngine)
+    else
+        MY_FIND_LIB_NO_CHECK(sidplay2,sidplay/sidplay2.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+        LIBSIDPLAY2_PREFIX=NONE
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDPLAY2_CXXFLAGS)
     AC_SUBST(LIBSIDPLAY2_LDFLAGS)
@@ -4892,8 +4977,14 @@ dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDUTILS,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
-                           SidDatabase *d)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
+                               SidDatabase *d)
+    else
+        MY_FIND_LIB_NO_CHECK(sidutils,sidplay/utils/SidDatabase.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDUTILS_CXXFLAGS)
     AC_SUBST(LIBSIDUTILS_LDFLAGS)

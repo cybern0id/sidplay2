@@ -84,13 +84,33 @@ install dir.  Please check your installation!
 
 
 dnl -------------------------------------------------------------------------
+dnl Disable library build checks
+dnl -------------------------------------------------------------------------
+AC_DEFUN(SID2_LIB_CHECKS,
+[
+    AC_ARG_ENABLE(library-checks,
+    [  --disable-library-checks  do not check for working libraries])
+    if test x"${enable_library_checks+set}" = xset; then
+        SID2_LIB_CHECK=0
+    fi
+])
+
+
+dnl -------------------------------------------------------------------------
 dnl Find libsidplay2 library
 dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDPLAY2,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
-                           sidplay2 *myEngine)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
+                               sidplay2 *myEngine)
+    else
+        MY_FIND_LIB_NO_CHECK(sidplay2,sidplay/sidplay2.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+        LIBSIDPLAY2_PREFIX=NONE
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDPLAY2_CXXFLAGS)
     AC_SUBST(LIBSIDPLAY2_LDFLAGS)
@@ -103,8 +123,14 @@ dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_FIND_LIBSIDUTILS,
 [
-    MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
-                           SidDatabase *d)
+    if test "$SID2_LIB_CHECK" != "0"; then
+        MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
+                               SidDatabase *d)
+    else
+        MY_FIND_LIB_NO_CHECK(sidutils,sidplay/utils/SidDatabase.h)
+        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+    fi
+
     dnl list exported variables here so end up in makefile
     AC_SUBST(LIBSIDUTILS_CXXFLAGS)
     AC_SUBST(LIBSIDUTILS_LDFLAGS)

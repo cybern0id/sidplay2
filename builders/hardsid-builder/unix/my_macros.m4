@@ -483,3 +483,68 @@ Please check your installation!
         $6=$my_header
     fi
 ])
+
+
+dnl -------------------------------------------------------------------------
+dnl Find library on the system.  This is used to find libraries that are not
+dnl built/installed.  The include, lib path must be provided individually and it
+dnl is not possible to validate the library path.
+dnl $1 - library
+dnl $2 - library header
+dnl [$3 - used header]
+dnl -------------------------------------------------------------------------
+AC_DEFUN(MY_FIND_LIB_NO_CHECK,
+[
+    AC_MSG_CHECKING([for $1 library and headers])
+
+    my_libdir=""
+    my_includedir=""
+    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+
+    AC_ARG_WITH($1-includes,
+        [  --with-$1-includes=DIR
+            where the $1 includes are located],
+        [my_includedir="$withval"]
+    )
+
+    AC_ARG_WITH($1-library,
+        [  --with-$1-library=DIR
+            where the $1 library is installed],
+        [my_libdir="$withval"]
+    )
+
+    dnl Both paths must be provided
+    if test "$my_libdir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 library path not supplied!
+        ])
+    fi
+
+    if test "$my_includedir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 include path not supplied!
+        ])
+    fi
+
+    dnl Check the include path
+    my_dirs="$my_includedir"
+    MY_FIND_FILE($2,$my_dirs,my_includedir,my_header)
+
+    if test "$my_includedir" = NO; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 headers not found!
+        ])
+    fi
+
+    AC_MSG_RESULT(yes)
+    eval ${my_uname}_CXXFLAGS=\"-I$my_includedir\"
+    eval ${my_uname}_LDFLAGS=\"$my_libdir/lib$1.la\"
+
+    dnl Optional parameter - return used header
+    if test "$3" != ""; then
+        $3=$my_header
+    fi
+])
