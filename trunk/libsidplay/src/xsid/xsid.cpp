@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2003/01/17 08:36:37  s_a_white
+ *  Event scheduler phase support.
+ *
  *  Revision 1.20  2002/07/17 21:19:54  s_a_white
  *  Minor non sid sample mode fixes.
  *
@@ -111,6 +114,10 @@ void channel::reset ()
     galVolume  = 0; // This is left to free run until reset
     mode       = FM_NONE;
     free ();
+    // Remove outstanding events
+    m_context.cancel (&m_xsid);
+    m_context.cancel (&sampleEvent);
+    m_context.cancel (&galwayEvent);
 }
 
 void channel::free ()

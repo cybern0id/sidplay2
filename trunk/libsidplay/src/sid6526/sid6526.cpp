@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2003/02/20 18:55:14  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.8  2003/01/17 08:37:12  s_a_white
  *  Event scheduler phase support.
  *
@@ -73,6 +76,8 @@ void SID6526::reset (bool seed)
     else
         rnd += time(NULL) & 0xff;
     m_accessClk = 0;
+    // Remove outstanding events
+    m_eventContext.cancel (&m_taEvent);
 }
 
 uint8_t SID6526::read (uint_least8_t addr)
