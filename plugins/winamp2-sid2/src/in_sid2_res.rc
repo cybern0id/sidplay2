@@ -26,23 +26,23 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // Dialog
 //
 
-IDD_DIALOG_ABOUT DIALOGEX 0, 0, 252, 165
+IDD_DIALOG_ABOUT DIALOGEX 0, 0, 292, 175
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About the in_sid2 Winamp Plugin"
 FONT 8, "Tahoma"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,101,147,50,14
-    LTEXT           "in_sid Winamp Plugin beta 1",IDC_STATIC,4,4,90,8
+    DEFPUSHBUTTON   "OK",IDOK,121,157,50,14
+    LTEXT           "in_sid Winamp Plugin beta 2",IDC_STATIC,4,4,284,8
     LTEXT           "The in_sid2 Winamp Plugin plays back C64 SID files (extension: .sid).\nTo select a different sub-tune, move the seek-bar slider.\nPlease read the file ""in_sid2.txt"" for more information.",
-                    IDC_STATIC,4,18,244,25
-    CTEXT           "in_sid2 uses libsidplay 2.1.0a3 and resid 0.14p1",
-                    IDC_STATIC_VERSIONS,4,48,244,8
-    LTEXT           "The in_sid2 Winamp Plugin is Copyright (c) 2003 Michael Fink",
-                    IDC_STATIC,28,61,194,8
-    LTEXT           "It is licensed under the GNU General Public License (GPL)",
-                    IDC_STATIC,35,70,181,8
-    GROUPBOX        "libsidplay2 credits",IDC_STATIC,4,83,244,59
-    EDITTEXT        IDC_EDIT_SIDCREDITS,10,93,232,43,ES_MULTILINE | 
+                    IDC_STATIC,4,18,284,25
+    CTEXT           "in_sid2 uses libsidplay 2.1.1 and resid 0.14p1",
+                    IDC_STATIC_VERSIONS,4,48,284,8
+    CTEXT           "The in_sid2 Winamp Plugin is Copyright (c) 2003,2004 Michael Fink",
+                    IDC_STATIC,4,61,284,8
+    CTEXT           "It is licensed under the GNU General Public License (GPL)",
+                    IDC_STATIC,4,70,284,8
+    GROUPBOX        "libsidplay2 credits",IDC_STATIC,4,83,284,69
+    EDITTEXT        IDC_EDIT_SIDCREDITS,10,93,272,53,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | NOT 
                     WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
 END
@@ -59,11 +59,11 @@ BEGIN
     IDD_DIALOG_ABOUT, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 248
+        RIGHTMARGIN, 288
         VERTGUIDE, 10
-        VERTGUIDE, 242
+        VERTGUIDE, 282
         TOPMARGIN, 4
-        BOTTOMMARGIN, 161
+        BOTTOMMARGIN, 171
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -112,17 +112,17 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_DIALOG_INFO DIALOGEX 0, 0, 148, 175
+IDD_DIALOG_INFO DIALOGEX 0, 0, 168, 175
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sid File Information"
-FONT 8, "Tahoma", 0, 0, 0x1
+FONT 8, "Tahoma"
 BEGIN
-    DEFPUSHBUTTON   "&Ok",IDOK,94,157,50,14
-    GROUPBOX        "Song Info",IDC_STATIC,4,1,140,46
-    EDITTEXT        IDC_EDIT_INFOSTR,10,11,128,29,ES_MULTILINE | ES_READONLY | 
+    DEFPUSHBUTTON   "OK",IDOK,59,157,50,14
+    GROUPBOX        "Song Info",IDC_STATIC,4,1,160,46
+    EDITTEXT        IDC_EDIT_INFOSTR,10,11,148,29,ES_MULTILINE | ES_READONLY | 
                     NOT WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
-    GROUPBOX        "Detailed Info",IDC_STATIC,4,49,140,102
-    EDITTEXT        IDC_EDIT_DETAILS,10,60,128,85,ES_MULTILINE | 
+    GROUPBOX        "Detailed Info",IDC_STATIC,4,49,160,102
+    EDITTEXT        IDC_EDIT_DETAILS,10,60,148,85,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | 
                     WS_VSCROLL,WS_EX_STATICEDGE
 END
@@ -133,29 +133,29 @@ CAPTION "in_sid2 Winamp Plugin Configuration"
 FONT 8, "Tahoma"
 BEGIN
     GROUPBOX        "libsidplay2 Settings",IDC_STATIC,4,1,285,74,WS_GROUP
-    LTEXT           "Samplerate",IDC_STATIC,11,14,37,8
+    LTEXT           "&Samplerate",IDC_STATIC,11,14,58,8
     COMBOBOX        IDC_COMBO_SAMPLERATE,11,25,41,50,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "Hz",IDC_STATIC,55,29,9,8
-    LTEXT           "SID Model",IDC_STATIC,75,15,33,8
+    LTEXT           "SID &Model",IDC_STATIC,75,15,94,8
     COMBOBOX        IDC_COMBO_SIDMODEL,74,25,95,50,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Optimization",IDC_STATIC,180,14,40,8
+    LTEXT           "&Optimization",IDC_STATIC,180,14,64,8
     CONTROL         "Level 1",IDC_RADIO_OPT_LEVEL1,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,180,25,39,10
+                    BS_AUTORADIOBUTTON | WS_GROUP,180,25,64,10
     CONTROL         "Level 2",IDC_RADIO_OPT_LEVEL2,"Button",
-                    BS_AUTORADIOBUTTON,180,35,39,10
-    CONTROL         "use SID Filter",IDC_CHECK_SIDFILTER,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,45,59,10
-    CONTROL         "Stereo (uses 2 SIDs)",IDC_CHECK_STEREO,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,11,57,82,10
+                    BS_AUTORADIOBUTTON,180,35,64,10
+    CONTROL         "use SID &Filter",IDC_CHECK_SIDFILTER,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,45,94,10
+    CONTROL         "Stereo (uses &2 SIDs)",IDC_CHECK_STEREO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,57,94,10
     GROUPBOX        "in_sid2 Winamp Plugin Settings",IDC_STATIC,4,77,285,68,
                     WS_GROUP
-    LTEXT           "Title Format (%t: title, %a: artist, %c: current song, %n: num. of songs, %y: year)",
+    LTEXT           "&Title Format (%t: title, %a: artist, %c: current song, %n: num. of songs, %y: year)",
                     IDC_STATIC,10,89,272,8
     EDITTEXT        IDC_EDIT_TITLE_FMT,11,100,93,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "uninstall Plugin",IDC_BUTTON1,225,126,58,14,NOT 
-                    WS_VISIBLE
+    PUSHBUTTON      "&uninstall Plugin",IDC_BUTTON_UNINSTALL,225,126,58,14,
+                    NOT WS_VISIBLE
     PUSHBUTTON      "Cancel",IDCANCEL,182,151,50,14,WS_GROUP
     DEFPUSHBUTTON   "OK",IDOK,239,151,50,14
 END
@@ -172,9 +172,9 @@ BEGIN
     IDD_DIALOG_INFO, DIALOG
     BEGIN
         LEFTMARGIN, 4
-        RIGHTMARGIN, 144
+        RIGHTMARGIN, 164
         VERTGUIDE, 10
-        VERTGUIDE, 138
+        VERTGUIDE, 158
         TOPMARGIN, 4
         BOTTOMMARGIN, 171
     END
@@ -184,7 +184,11 @@ BEGIN
         LEFTMARGIN, 4
         RIGHTMARGIN, 289
         VERTGUIDE, 11
+        VERTGUIDE, 69
+        VERTGUIDE, 105
+        VERTGUIDE, 169
         VERTGUIDE, 180
+        VERTGUIDE, 244
         TOPMARGIN, 4
         BOTTOMMARGIN, 165
         HORZGUIDE, 22
