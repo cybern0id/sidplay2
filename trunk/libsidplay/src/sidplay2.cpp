@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/01 23:46:37  s_a_white
+ *  Support for sample mode to be selected at runtime.
+ *
  *  Revision 1.5  2001/02/21 21:49:21  s_a_white
  *  Now uses new player::getErrorString function.
  *
@@ -114,5 +117,8 @@ const char *sidplay2::getErrorString (void)
 int  sidplay2::fastForward  (uint_least8_t percent)
 {   return sidplayer.fastForward (percent); }
 
-void sidplay2::sidSamples  (bool enable)
+void sidplay2::sidSamples (bool enable)
 {   sidplayer.sidSamples (enable); }
+
+int sidplay2::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
+{   return sidplayer.loadFilter (cutoffs, points); }
