@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/10/02 18:27:55  s_a_white
+ *  Updated to use new sidbuilder classes.
+ *
  *  Revision 1.8  2001/09/20 20:33:54  s_a_white
  *  sid2 now gets correctly set to nullsid for a bad create call.
  *
@@ -43,6 +46,10 @@
 
 #include "sid2types.h"
 #include "player.h"
+
+#ifdef HAVE_EXCEPTIONS
+#   include <new>
+#endif
 
 // An instance of this structure is used to transport emulator settings
 // to and from the interface class.
