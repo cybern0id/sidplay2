@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/17 19:08:55  s_a_white
+ *  Sample enconding support added.
+ *
  *  Revision 1.2  2001/07/03 17:54:23  s_a_white
  *  Support for new audio interface for better compatibility.
  *
@@ -235,7 +238,7 @@ void Audio_MMSystem::close (void)
         int allDone;
         int i;
 
-        while ( 1 )
+        FOREVER
         {
             allDone = 1;
             for ( i = 0; i < MAXBUFBLOCKS; i++ )
