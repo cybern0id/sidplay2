@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2004/03/09 20:52:30  s_a_white
+ *  Added missing header.
+ *
  *  Revision 1.17  2004/03/09 20:44:34  s_a_white
  *  Full serial and I/O port implementation.  No keyboard/joystick support as we
  *  are not that kind of emulator.
@@ -352,7 +355,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         {
             ta_underflow = true;
             // Pulse mode
-            if (data & 0x06 == 0x02)
+            if ((data & 0x06) == 0x02)
                 ta_underflow = false;
         }
         cra = data;
@@ -381,7 +384,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         {
             tb_underflow = true;
             // Pulse mode
-            if (data & 0x06 == 0x02)
+            if ((data & 0x06) == 0x02)
                 tb_underflow = false;
         }
 
