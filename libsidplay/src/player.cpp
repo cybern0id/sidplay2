@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2000/12/21 22:48:27  s_a_white
+ *  Re-order voices for mono to stereo conversion to match sidplay1.
+ *
  *  Revision 1.5  2000/12/14 23:53:36  s_a_white
  *  Small optimisation update, and comment revision.
  *
@@ -98,7 +101,11 @@ player::player (void)
 }
 
 player::~player ()
-{   // Remove the loaded song
+{   // Mute sids (Important for Hardsid)
+    sid.reset  ();
+    sid2.reset ();
+
+    // Remove the loaded song
     if (myTune != NULL)
         delete myTune;
 }
