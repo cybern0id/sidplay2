@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/09/01 11:16:12  s_a_white
+ *  Renamed configure to config.
+ *
  *  Revision 1.10  2001/07/25 17:01:13  s_a_white
  *  Support for new configuration interface.
  *
@@ -79,7 +82,7 @@ sidplay2::~sidplay2 ()
 int sidplay2::config (const sid2_config_t &cfg)
 {   return sidplayer.config (cfg); }
 
-const sid2_config_t &sidplay2::config (void)
+const sid2_config_t &sidplay2::config (void) const
 {   return sidplayer.config (); }
 
 void sidplay2::stop (void)
@@ -91,19 +94,19 @@ void sidplay2::pause (void)
 uint_least32_t sidplay2::play (void *buffer, uint_least32_t length)
 {   return sidplayer.play (buffer, length); }
 
-int sidplay2::loadSong (SidTune *tune)
-{   return sidplayer.loadSong (tune); }
+int sidplay2::load (SidTune *tune)
+{   return sidplayer.load (tune); }
 
-const sid2_info_t &sidplay2::info ()
+const sid2_info_t &sidplay2::info () const
 {   return sidplayer.info (); }
 
-uint_least32_t sidplay2::time (void)
+uint_least32_t sidplay2::time (void) const
 {   return sidplayer.time (); }
 
-uint_least32_t sidplay2::mileage (void)
+uint_least32_t sidplay2::mileage (void) const
 {   return sidplayer.mileage (); }
 
-const char *sidplay2::error (void)
+const char *sidplay2::error (void) const
 {   return sidplayer.error (); }
 
 int  sidplay2::fastForward  (uint percent)
@@ -112,5 +115,5 @@ int  sidplay2::fastForward  (uint percent)
 void sidplay2::debug (bool enable)
 {   sidplayer.debug (enable); }
 
-sid2_player_t sidplay2::state (void)
+sid2_player_t sidplay2::state (void) const
 {   return sidplayer.state (); }
