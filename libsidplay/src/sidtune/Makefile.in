@@ -84,7 +84,7 @@ noinst_LTLIBRARIES = libsidtune.la
 
 libsidtune_la_SOURCES = Buffer.h IconInfo.cpp InfoFile.cpp MUS.cpp PP20.cpp PP20.h PP20_Defs.h PSID.cpp SidTune.cpp SidTune.h SidTuneCfg.h SidTuneEndian.h SidTuneTools.cpp SidTuneTools.h SidTuneTypes.h SmartPtr.h
 
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(noinst_LTLIBRARIES)

@@ -78,7 +78,7 @@ VERSION = @VERSION@
 sidplayincludedir = $(includedir)/sidplay2
 
 sidplayinclude_HEADERS = sidendian.h sidenv.h sidtypes.h 
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
 HEADERS =  $(sidplayinclude_HEADERS)
