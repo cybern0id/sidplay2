@@ -23,7 +23,7 @@ ac_help="$ac_help
   --disable-libtool-lock  avoid locking (might break parallel builds)"
 ac_help="$ac_help
   --with-libsidplay2=DIR
-            where the sidplay2 library is located"
+            where the libsidplay2 library is located"
 ac_help="$ac_help
   --with-libsidplay2-includes=DIR
             where the libsidplay2 includes are located"
@@ -1853,10 +1853,11 @@ echo "configure:1853: checking for working SIDPlay2 library and headers" >&5
     
         sid_libsidplay2_library=NO
     sid_libsidplay2_includes=NO
+    sid_libsidplay2_works=no
 
-    # Check whether --with-sidplay2 or --without-sidplay2 was given.
-if test "${with_sidplay2+set}" = set; then
-  withval="$with_sidplay2"
+    # Check whether --with-libsidplay2 or --without-libsidplay2 was given.
+if test "${with_libsidplay2+set}" = set; then
+  withval="$with_libsidplay2"
   sid_libsidplay2_includes="$withval"
          sid_libsidplay2_library="$withval"
         
@@ -1881,60 +1882,13 @@ fi
 
 
     # Test compilation with library and headers in standard path.
-    sid_libsidplay2_libadd=""
     sid_libsidplay2_incadd=""
+    sid_libsidplay2_libadd=""
 
-    # Use library path given by user (if any).
-    if test "$sid_libsidplay2_library" != NO; then
-        # Help to try and better locate library just from --with-libsidplay2 option
-        libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/.libs"
+    # Run compilation test on standard path if user hasn't asked us
+    # to use another location.
+    if test $sid_libsidplay2_includes = NO && test $sid_libsidplay2_library = NO; then
         
-    libsidplay2_foundlibdir=NO
-    for i in $libsidplay2_libdirs;
-    do
-        for j in libsidplay2.la;
-        do
-	        if test -r "$i/$j"; then
-		        libsidplay2_foundlibdir=$i
-                break 2
-            fi
-        done
-    done
-    
-
-        sid_libsidplay2_library=$libsidplay2_foundlibdir
-    fi
-
-    if test "$sid_libsidplay2_library" != NO; then
-        sid_libsidplay2_libadd="-L$sid_libsidplay2_library"
-    fi
-
-    # Use include path given by user (if any).
-    if test "$sid_libsidplay2_includes" != NO; then
-        libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
-        
-    libsidplay2_foundincdir=NO
-    for i in $libsidplay2_incdirs;
-    do
-        for j in sidplay/sidplay2.h;
-        do
-	        if test -r "$i/$j"; then
-		        libsidplay2_foundincdir=$i
-                break 2
-            fi
-        done
-    done
-    
-
-        sid_libsidplay2_includes=$libsidplay2_foundincdir
-    fi
-
-    if test "$sid_libsidplay2_includes" != NO; then
-        sid_libsidplay2_incadd="-I$sid_libsidplay2_includes"
-    fi
-
-    # Run test compilation.
-    
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
@@ -1946,14 +1900,14 @@ fi
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 1950 "configure"
+#line 1904 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int main() {
 sidplay2 *player;
 ; return 0; }
 EOF
-if { (eval echo configure:1957: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1911: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidplay2_works=yes
 else
@@ -1970,13 +1924,18 @@ rm -f conftest*
     LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
 
+    fi
 
     if test "$sid_libsidplay2_works" = no; then
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidplay2_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidplay2/include \
-                             /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs=""
+        if test "$sid_libsidplay2_includes" != NO; then
+            libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
+        fi
+        libsidplay2_incdirs="$libsidplay2_incdirs $prefix/include /usr/include /usr/local/include \
+                             /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
         
     libsidplay2_foundincdir=NO
     for i in $libsidplay2_incdirs;
@@ -1994,7 +1953,12 @@ rm -f conftest*
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
-        libsidplay2_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs=""
+        if test "$sid_libsidplay2_library" != NO; then
+            libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/src"
+        fi
+        libsidplay2_libdirs="$libsidplay2_libdirs $prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib \
+                             /usr/local/lib/sidplay2/lib"
         
     libsidplay2_foundlibdir=NO
     for i in $libsidplay2_libdirs;
@@ -2034,14 +1998,14 @@ rm -f conftest*
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 2038 "configure"
+#line 2002 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int main() {
 sidplay2 *player;
 ; return 0; }
 EOF
-if { (eval echo configure:2045: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2009: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidplay2_works=yes
 else
@@ -2059,22 +2023,20 @@ rm -f conftest*
     CXX="$sid_cxx_save"
 
 
-            sid_have_libsidplay2=$sid_libsidplay2_works
-            if test "$sid_have_libsidplay2" = no; then
-                # Found library does not link without errors.
-                sid_have_libsidplay2=no
-                echo "$ac_t""$sid_have_libsidplay2" 1>&6;
-            else
-                echo "$ac_t""library $sid_libsidplay2_library, headers $sid_libsidplay2_includes" 1>&6
+            if test $sid_libsidplay2_works = tes; then
+                $sid_have_libsidplay2=yes
             fi
-        else
-            # Either library or headers not found.
-            echo "$ac_t""$sid_have_libsidplay2" 1>&6;
         fi
 
+        echo "$ac_t""library $sid_libsidplay2_library, headers $sid_libsidplay2_includes" 1>&6
         if test "$sid_have_libsidplay2" = no; then
             { echo "configure: error: 
 libsidplay2 library and/or header files not found.
+Please check your installation!
+" 1>&2; exit 1; };
+        elif test "$sid_libsidplay2_works" = no; then
+            { echo "configure: error: 
+libsidplay2 build test failed with found library and header files.
 Please check your installation!
 " 1>&2; exit 1; };
         fi
@@ -2092,14 +2054,14 @@ Please check your installation!
 
 
 echo $ac_n "checking whether byte ordering is bigendian""... $ac_c" 1>&6
-echo "configure:2096: checking whether byte ordering is bigendian" >&5
+echo "configure:2058: checking whether byte ordering is bigendian" >&5
 if eval "test \"`echo '$''{'ac_cv_c_bigendian'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat > conftest.$ac_ext <<EOF
-#line 2103 "configure"
+#line 2065 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2110,11 +2072,11 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2114: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2076: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat > conftest.$ac_ext <<EOF
-#line 2118 "configure"
+#line 2080 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2125,7 +2087,7 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2129: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2091: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_c_bigendian=yes
 else
@@ -2145,7 +2107,7 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 2149 "configure"
+#line 2111 "configure"
 #include "confdefs.h"
 #ifdef __cplusplus
 extern "C" void exit(int);
@@ -2161,7 +2123,7 @@ main () {
   exit (u.c[sizeof (long) - 1] == 1);
 }
 EOF
-if { (eval echo configure:2165: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2127: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_c_bigendian=no
 else
@@ -2187,20 +2149,20 @@ fi
 
 
     echo $ac_n "checking whether nothrow allocator is available""... $ac_c" 1>&6
-echo "configure:2191: checking whether nothrow allocator is available" >&5
+echo "configure:2153: checking whether nothrow allocator is available" >&5
     if eval "test \"`echo '$''{'test_cv_have_exceptions'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
         cat > conftest.$ac_ext <<EOF
-#line 2197 "configure"
+#line 2159 "configure"
 #include "confdefs.h"
 #include <new>
 int main() {
 char* buf = new(nothrow) char[1024];
 ; return 0; }
 EOF
-if { (eval echo configure:2204: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2166: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   test_cv_have_exceptions=yes
 else

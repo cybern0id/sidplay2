@@ -114,10 +114,11 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     dnl Be pessimistic.
     sid_libsidplay2_library=NO
     sid_libsidplay2_includes=NO
+    sid_libsidplay2_works=no
 
-    AC_ARG_WITH(sidplay2,
+    AC_ARG_WITH(libsidplay2,
         [  --with-libsidplay2=DIR
-            where the sidplay2 library is located],
+            where the libsidplay2 library is located],
         [sid_libsidplay2_includes="$withval"
          sid_libsidplay2_library="$withval"
         ]
@@ -136,46 +137,35 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     )
 
     # Test compilation with library and headers in standard path.
-    sid_libsidplay2_libadd=""
     sid_libsidplay2_incadd=""
+    sid_libsidplay2_libadd=""
 
-    # Use library path given by user (if any).
-    if test "$sid_libsidplay2_library" != NO; then
-        # Help to try and better locate library just from --with-libsidplay2 option
-        libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/.libs"
-        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
-        sid_libsidplay2_library=$libsidplay2_foundlibdir
+    # Run compilation test on standard path if user hasn't asked us
+    # to use another location.
+    if test $sid_libsidplay2_includes = NO && test $sid_libsidplay2_library = NO; then
+        SID_TRY_LIBSIDPLAY2
     fi
-
-    if test "$sid_libsidplay2_library" != NO; then
-        sid_libsidplay2_libadd="-L$sid_libsidplay2_library"
-    fi
-
-    # Use include path given by user (if any).
-    if test "$sid_libsidplay2_includes" != NO; then
-        libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
-        SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
-        sid_libsidplay2_includes=$libsidplay2_foundincdir
-    fi
-
-    if test "$sid_libsidplay2_includes" != NO; then
-        sid_libsidplay2_incadd="-I$sid_libsidplay2_includes"
-    fi
-
-    # Run test compilation.
-    SID_TRY_LIBSIDPLAY2
 
     if test "$sid_libsidplay2_works" = no; then
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidplay2_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidplay2/include \
-                             /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs=""
+        if test "$sid_libsidplay2_includes" != NO; then
+            libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
+        fi
+        libsidplay2_incdirs="$libsidplay2_incdirs $prefix/include /usr/include /usr/local/include \
+                             /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
         SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
-        libsidplay2_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs=""
+        if test "$sid_libsidplay2_library" != NO; then
+            libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/src"
+        fi
+        libsidplay2_libdirs="$libsidplay2_libdirs $prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib \
+                             /usr/local/lib/sidplay2/lib"
         SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
 
@@ -192,23 +182,22 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
             # Test compilation with found paths.
             SID_TRY_LIBSIDPLAY2
 
-            sid_have_libsidplay2=$sid_libsidplay2_works
-            if test "$sid_have_libsidplay2" = no; then
-                # Found library does not link without errors.
-                sid_have_libsidplay2=no
-                AC_MSG_RESULT([$sid_have_libsidplay2]);
-            else
-                AC_MSG_RESULT([library $sid_libsidplay2_library, headers $sid_libsidplay2_includes])
+            if test $sid_libsidplay2_works = tes; then
+                $sid_have_libsidplay2=yes
             fi
-        else
-            # Either library or headers not found.
-            AC_MSG_RESULT([$sid_have_libsidplay2]);
         fi
 
+        AC_MSG_RESULT([library $sid_libsidplay2_library, headers $sid_libsidplay2_includes])
         if test "$sid_have_libsidplay2" = no; then
             AC_MSG_ERROR(
 [
 libsidplay2 library and/or header files not found.
+Please check your installation!
+]);
+        elif test "$sid_libsidplay2_works" = no; then
+            AC_MSG_ERROR(
+[
+libsidplay2 build test failed with found library and header files.
 Please check your installation!
 ]);
         fi
