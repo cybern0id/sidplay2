@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/11/16 19:30:45  s_a_white
+ *  Libsidutils support update.
+ *
  *  Revision 1.9  2001/08/30 21:40:51  s_a_white
  *  libini-1.1.7 update.
  *
@@ -416,7 +419,7 @@ void IniConfig::read ()
 #endif
 
     // Opens an existing file or creates a new one
-    ini = ini_open (configPath, "w");
+    ini = ini_open (configPath, "w", ";");
 
     // Unable to open file?
     if (!ini)
