@@ -1,6 +1,6 @@
 
 SUBDIRS    = c64 mos6510 mos6526 mos656x xsid sid6526 sidtune
-EXTRA_DIST = psiddrv.bin
+EXTRA_DIST = psiddrv.bin kernal.bin poweron.bin
 
 
 # The library.
