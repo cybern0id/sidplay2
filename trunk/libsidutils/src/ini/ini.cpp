@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.6  2001/09/30 15:06:10  s_a_white
+ * Fixed removal of backup file.
+ *
  * Revision 1.5  2001/09/18 17:55:48  s_a_white
  * Moved ini_new to ini.cpp.
  *
@@ -96,7 +99,7 @@ static unsigned long createCrc32 (unsigned long init, char *pBuf, size_t length)
    unsigned long crc;
    bool     msb;
    size_t   l;
-   unsigned char data;
+   char     data;
    int      bits;
 
    // Init CRC register
@@ -119,11 +122,6 @@ static unsigned long createCrc32 (unsigned long init, char *pBuf, size_t length)
                crc ^= POLY32;
        }
    }
-
-   // return result which will be calculated
-   // to a 32 bit boundary.  This is nessary
-   // as transmission to DSPs is 32bits on
-   // which means 0 padding may be required.
    return (crc&MASK32);
 }
 #endif // INI_USE_HASH_TABLE
