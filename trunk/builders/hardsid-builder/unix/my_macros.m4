@@ -63,11 +63,10 @@ AC_DEFUN(MY_CHECK_BOOL,
             [test_cv_have_bool=no]
         )
     ])
-    if test "$test_cv_have_bool" = yes; then
-        test_cv_have_bool=yes
-        AC_DEFINE(HAVE_BOOL)
-    fi
     AC_MSG_RESULT($test_cv_have_bool)
+    if test "$test_cv_have_bool" = yes; then
+        AC_DEFINE(HAVE_BOOL,,[Define if the C++ compiler supports BOOL])
+    fi
 ])
 
 dnl -------------------------------------------------------------------------
@@ -89,7 +88,9 @@ AC_DEFUN(MY_CHECK_IOS_BIN,
     ])
     AC_MSG_RESULT($test_cv_have_ios_binary)
     if test "$test_cv_have_ios_binary" = yes; then
-        AC_DEFINE(HAVE_IOS_BIN)
+        AC_DEFINE(HAVE_IOS_BIN,,
+            [Define if standard member ``ios::binary'' is called ``ios::bin''.]
+        )
     fi
 ])
 
@@ -113,7 +114,9 @@ AC_DEFUN(MY_CHECK_IOS_OPENMODE,
     ])
     AC_MSG_RESULT($test_cv_have_ios_openmode)
     if test "$test_cv_have_ios_openmode" = yes; then
-        AC_DEFINE(HAVE_IOS_OPENMODE)
+        AC_DEFINE(HAVE_IOS_OPENMODE,,
+            [Define if ``ios::openmode'' is supported.]
+        )
     fi
 ])
 
@@ -136,7 +139,9 @@ AC_DEFUN(MY_CHECK_EXCEPTIONS,
     ])
     AC_MSG_RESULT($test_cv_have_exceptions)
     if test "$test_cv_have_exceptions" = yes; then
-        AC_DEFINE(HAVE_EXCEPTIONS)
+        AC_DEFINE(HAVE_EXCEPTIONS,,
+            [Define if your C++ compiler implements exception-handling.]
+        )
     fi
 ])
 
@@ -217,8 +222,8 @@ dnl -------------------------------------------------------------------------
 AC_DEFUN(MY_CONFIG_PKG_CONFIG,
 [
     dnl Find pkg-config
-    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-    if test "$PKG_CONFIG" = no; then
+    AC_PATH_PROG(PKG_CONFIG, pkg-config, NO)
+    if test "$PKG_CONFIG" = NO; then
         AC_MSG_ERROR([
 pkg-config not found. See http://www.freedesktop.org/software/pkgconfig/
         ])
@@ -342,7 +347,7 @@ Please check your installation!
 
     dnl Check if found library works
     MY_TRY_COMPILE($my_cxxflags,$my_ldflags,$my_header,$5,my_works)
-    if test "$my_works" = "NO"; then
+    if test "$my_works" = NO; then
         AC_MSG_ERROR([
 $1 build test failed with found library and header files.
 Please check your installation!
@@ -379,8 +384,8 @@ AC_DEFUN(MY_FIND_LIB,
     fi
 
     dnl Be pessimistic.
-    my_libdir=NO
-    my_includedir=NO
+    my_libdir=""
+    my_includedir=""
     my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
 
     AC_ARG_WITH($1,
@@ -404,52 +409,55 @@ AC_DEFUN(MY_FIND_LIB,
     )
 
     # Test compilation with library and headers in standard path.
-    my_ldflags=""
+    my_ldflags="-l$1"
     my_cxxflags=""
+    my_works=NO
 
     # Use library path given by user (if any).
-    if test "$my_libdir" != NO; then
-        my_dirs="$my_libdir $my_libdir/lib"
+    if test "$my_libdir" != ""; then
+        my_dirs="$my_libdir $my_libdir/lib $my_libdir/src"
         MY_FIND_FILE(lib$1.la,$my_dirs,my_libdir)
-        my_ldflags="-L$my_libdir -l$1"
-    else
-        my_ldflags="-l$1"
+        my_ldflags="$my_libdir/lib$1.la"
     fi
 
-    # Use include path given by user (if any).
-    if test "$my_includedir" != NO; then
-        my_dirs="$my_includedir $my_includedir/include"
-        MY_FIND_FILE($4,$my_dirs,my_includedir,my_header)
-        my_cxxflags="-I$my_includedir"
-        # Run test compilation.
-        MY_TRY_COMPILE($my_cxxflags,$my_ldflags,$my_header,$5,my_works)
-    else
-        # Header files are on the system so run compile tests until
-        # we find the correct one
-        for i in $4; do
-            MY_TRY_COMPILE($my_cxxflags,$my_ldflags,$i,$5,my_works)
-            if test "$my_works"; then
-                my_header="$i"
-                break
+    if test "$my_libdir" != NO; then
+        # Use include path given by user (if any).
+        if test "$my_includedir" != ""; then
+            my_dirs="$my_includedir $my_includedir/include"
+            MY_FIND_FILE($4,$my_dirs,my_includedir,my_header)
+            if test "$my_includedir" != NO; then
+                my_cxxflags="-I$my_includedir"
+                # Run test compilation.
+                MY_TRY_COMPILE($my_cxxflags,$my_ldflags,$my_header,$5,my_works)
             fi
-        done
+        else
+            # Header files are on the system so run compile tests until
+            # we find the correct one
+            for i in $4; do
+                MY_TRY_COMPILE($my_cxxflags,$my_ldflags,$i,$5,my_works)
+                if test "$my_works" != NO; then
+                    my_header="$i"
+                    break
+                fi
+            done
+        fi
     fi
 
-    if test "$my_works" = no; then
+    if test "$my_works" = NO; then
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
         my_dirs="$2 $my_def_includedir $my_def_prefix/include \
                  /usr/include /usr/local/include /usr/lib/$1/include \
                  /usr/local/lib/$1/include"
-        MY_FIND_FILE($1,$my_dirs,my_includedir,my_header)
+        MY_FIND_FILE($4,$my_dirs,my_includedir,my_header)
         my_cxxflags="-I$my_includedir"
 
         # Search common locations where library might be stored.
         my_dirs="$3 $my_def_libdir $my_def_prefix/lib \
                  /usr/lib /usr/local/lib /usr/lib/$1/lib /usr/local/lib/$1/lib"
         MY_FIND_FILE(lib$1.la,$my_dirs,my_libdir)
-        my_ldflags="-L$my_libdir -l$1"
+        my_ldflags="$my_libdir/lib$1.la"
 
         if test "$my_includedir" != NO && test "$my_libdir" != NO; then
             # Test compilation with found paths.
@@ -457,7 +465,7 @@ AC_DEFUN(MY_FIND_LIB,
         fi
 
         AC_MSG_RESULT([library $my_libdir, headers $my_includedir])
-        if test "$my_works" = no; then
+        if test "$my_works" = NO; then
             AC_MSG_ERROR([
 $1 build test failed with found library and header files.
 Please check your installation!
