@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2002/07/17 19:25:28  s_a_white
+ *  Temp fix to allow SID model to change for current builder.
+ *
  *  Revision 1.24  2002/04/14 21:46:50  s_a_white
  *  PlaySID reads fixed to come from RAM only.
  *
@@ -333,11 +336,12 @@ float64_t Player::clockSpeed (sid2_clock_t userClock, sid2_clock_t defaultClock,
             
         switch (userClock)
         {
-        case SID2_CLOCK_PAL:
-            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-            break;
         case SID2_CLOCK_NTSC:
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+            break;
+        case SID2_CLOCK_PAL:
+        default:
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
             break;
         }
     }
@@ -350,7 +354,6 @@ float64_t Player::clockSpeed (sid2_clock_t userClock, sid2_clock_t defaultClock,
             userClock = SID2_CLOCK_NTSC;
             break;
         case SIDTUNE_CLOCK_PAL:
-        default:
             userClock = SID2_CLOCK_PAL;
             break;
         }
@@ -404,7 +407,12 @@ int Player::environment (sid2_env_t env)
     if (m_tuneInfo.playAddr == 0xffff)
         env = sid2_envR;
     if (m_tuneInfo.psidSpecific)
-    {
+    {   // Check if tune is invalid in the memory mode
+        if (m_tuneInfo.playAddr == 0xffff)
+        {
+            //m_errorString = ERR_PSID_SPECIFIC_FLAG;
+            return -1;
+        }
         if (env == sid2_envR)
             env  = sid2_envBS;
     }
@@ -455,6 +463,7 @@ int Player::environment (sid2_env_t env)
                 m_readMemDataByte = &Player::readMemByte_sidplaytp;
             break;
 
+            //case sid2_envTR:
             case sid2_envBS:
                 m_readMemByte     = &Player::readMemByte_player;
                 m_writeMemByte    = &Player::writeMemByte_sidplay;
@@ -469,13 +478,6 @@ int Player::environment (sid2_env_t env)
             break;
             }
         }
-    }
-
-    // Check if tune is invalid in the memory mode
-    if ((m_info.environment != sid2_envR) &&
-        (m_tuneInfo.playAddr == 0xffff))
-    {
-        return -1;
     }
 
     {   // Have to reload the song into memory as
@@ -553,11 +555,12 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
             
             switch (userModel)
             {
-            case SID2_MOS6581:
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-                break;
             case SID2_MOS8580:
                 m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+                break;
+            case SID2_MOS6581:
+            default:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
                 break;
             }
         }
@@ -570,16 +573,10 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                 userModel = SID2_MOS8580;
                 break;
             case SIDTUNE_SIDMODEL_6581:
-            default:
                 userModel = SID2_MOS6581;
                 break;
             }
         }
-
-        // Set the tunes sid model
-        m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-        if (userModel == SID2_MOS8580)
-            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
 
         for (int i = 0; i < SID2_MAX_SIDS; i++)
         {   // Get first SID emulation
