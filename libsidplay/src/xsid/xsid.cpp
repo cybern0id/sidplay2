@@ -17,16 +17,24 @@
  ***************************************************************************/
 
 #include <string.h>
-#include "xsid.h"
 #include <stdio.h>
+#include "xsid.h"
 
 
 #ifndef XSID_USE_SID_VOLUME
 // Convert from 4 bit resolution to 8 bits
+/* Rev 2.0.5 (saw) - Removed for a more non-linear equivalent
+   which better models the SIDS master volume register
 const sbyte_sidt channel::sampleConvertTable[16] =
 {
     '\x80', '\x91', '\xa2', '\xb3', '\xc4', '\xd5', '\xe6', '\xf7',
     '\x08', '\x19', '\x2a', '\x3b', '\x4c', '\x5d', '\x6e', '\x7f'
+};
+*/
+const sbyte_sidt channel::sampleConvertTable[16] =
+{
+    '\x80', '\x94', '\xa9', '\xbc', '\xce', '\xe1', '\xf2', '\x03',
+    '\x1b', '\x2a', '\x3b', '\x49', '\x58', '\x66', '\x73', '\x7f'
 };
 #endif
 
@@ -153,8 +161,12 @@ void channel::sampleInit ()
     active  = true;
     _clock  = &channel::sampleClock;
     sample  = sampleCalculate ();
+
 #ifdef XSID_USE_SID_VOLUME
     changed = true;
+    // Rev 2.0.5 (saw) - Added to track origin
+    samMin  = sample;
+    samMax  = sample;
 #endif
 
 #ifdef XSID_FULL_DEBUG
@@ -197,6 +209,11 @@ void channel::sampleClock ()
                 printf ("XSID [%lu]: Sample Stop (%lu Cycles, %lu Outputs)\n",
                     (unsigned long) this, cycles, outputs);
 #endif
+#ifdef XSID_USE_SID_VOLUME
+                // Rev 2.0.5 (saw) - Locate Origin
+                sample  = (samMin + samMax) / 2;
+                changed = true;
+#endif
                 free ();
                 checkForInit ();
                 return;
@@ -206,7 +223,13 @@ void channel::sampleClock ()
         // We have reached the required sample
         // So now we need to extract the right nibble
         sample     = sampleCalculate ();
+
 #ifdef XSID_USE_SID_VOLUME
+        // Rev 2.0.5 (saw) - Added to track origin
+        if (sample < samMin)
+	    samMin = sample;
+	else if (sample > samMax)
+            samMax = sample;
         changed    = true;
 #endif
         samNibble &= 1;
@@ -238,8 +261,8 @@ sbyte_sidt channel::sampleCalculate ()
     }
 
     // Move to next address
-    samNibble++;
-    address  += (samNibble >> 1);
+    address   += samNibble;
+    samNibble ^= 1;;
 #ifndef XSID_USE_SID_VOLUME
     return sampleConvertTable[(tempSample & 0x0f) >> volShift];
 #else
@@ -346,7 +369,9 @@ void channel::galwayTonePeriod ()
 
 void channel::silence ()
 {
+#ifndef XSID_USE_SID_VOLUME
     sample = 0;
+#endif
 }
 
 
@@ -423,7 +448,7 @@ void XSID::reset ()
 }
 
 #ifdef XSID_USE_SID_VOLUME
-void XSID::setSidVolume (void)
+void XSID::setSidVolume (bool cached)
 {
     if (ch4.changed || ch5.changed)
     {
@@ -454,11 +479,18 @@ void XSID::clock (udword_sidt delta_t)
     if (ch4 || ch5)
         setSidVolume ();
     else if (wasRunning)
-    {
-       // The channels have stopped so
-       // restore old volume from the cache
-       ubyte_sidt sidVolume = envReadMemDataByte (sidVolAddr, true);
-       envWriteMemByte (sidVolAddr, sidVolume, false);
+    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
+        // Normally after samples volume should be restored to half volume,
+        // however, Galway Tunes sound horrible and seem to require setting back to
+        // the original volume.  Setting back to the original volume for normal
+        // samples can have nasty pulsing effects
+        if (ch4.isGalway ())
+        {
+            ubyte_sidt sidVolume = envReadMemDataByte (sidVolAddr, true);
+            envWriteMemByte (sidVolAddr, sidVolume);
+        }
+        else
+            setSidVolume (true);
     }
 #endif
 }
@@ -472,4 +504,3 @@ void  XSID::setEnvironment (C64Environment *envp)
     ch4.setEnvironment (envp);
     ch5.setEnvironment (envp);
 }
-
