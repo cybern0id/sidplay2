@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:42  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.1  2000/12/12 19:13:15  s_a_white
  *  New keyboard handling routines.
  *
@@ -222,9 +225,7 @@ int _kbhit (void)
 int _getch (void)
 {
     char ch = 0;
-    int  ret;
-    ret = read (STDERR_FILENO, &ch, 1);
-    if (ret <= 0)
+    if (read (STDERR_FILENO, &ch, 1) < 0)
         return -1;
     return ch;
 }
@@ -233,7 +234,6 @@ int _getch (void)
 static termios term;
 void keyboard_enable_raw ()
 {
-    // set to non canonical mode, echo off, ignore signals
     struct termios current;
     // save current terminal settings
     tcgetattr (STDERR_FILENO, &current);
