@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/03/11 18:02:56  s_a_white
+ *  Display errors like sidplay1.
+ *
  *  Revision 1.5  2002/01/29 08:11:43  s_a_white
  *  TSID filename fix
  *
@@ -332,6 +335,14 @@ bool ConsolePlayer::args (int argc, char *argv[])
         displayError ((m_tune.getInfo ()).statusString);
         return false;
     }
+
+    // If filename specified we can only convert one song
+    if (m_outfile != NULL)
+        m_track.single = true;
+
+    // Can only loop if not creating audio files
+    if (m_driver.output > OUT_SOUNDCARD)
+        m_track.loop = false;
 
     // Check to see if we are trying to generate an audio file
     // whilst using a hardware emulation

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/03/11 18:02:56  s_a_white
+ *  Display errors like sidplay1.
+ *
  *  Revision 1.14  2002/03/04 19:30:15  s_a_white
  *  Fix C++ use of nothrow.
  *
@@ -561,24 +564,21 @@ void ConsolePlayer::event (void)
         else if (m_timer.stop && (seconds == m_timer.stop))
         {
             m_state = playerExit;
-            if (!m_driver.file)
+            for (;;)
             {
-                for (;;)
-                {
-                    if (m_track.single)
-                        break;
-                    // Move to next track
-                    m_track.selected++;
-                    if (m_track.selected > m_track.songs)
-                        m_track.selected = 1;
-                    if (m_track.selected == m_track.first)
-                        break;
-                    m_state = playerRestart;
+                if (m_track.single)
                     break;
-                }
-                if (m_track.loop)
-                    m_state = playerRestart;
+                // Move to next track
+                m_track.selected++;
+                if (m_track.selected > m_track.songs)
+                    m_track.selected = 1;
+                if (m_track.selected == m_track.first)
+                    break;
+                m_state = playerRestart;
+                break;
             }
+            if (m_track.loop)
+                m_state = playerRestart;
         }
         m_timer.current = seconds;
     }
