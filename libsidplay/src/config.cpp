@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/12/20 20:15:23  s_a_white
+ *  Fixed bad environment initialisation when switching to legacy modes.
+ *
  *  Revision 1.12  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -402,6 +405,9 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
     // then don't change
     if (builder == sid1->builder ())
         return 0;
+
+    // Make xsid forget it's emulation
+    xsid.emulation (&nullsid);
 
 	{   // Release old sids
 		sidbuilder *b;
