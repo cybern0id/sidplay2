@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2002/02/17 12:42:45  s_a_white
+ *  envReset now sets playerStopped indicators.  This means the player
+ *  nolonger locks up when a HLT instruction is encountered.
+ *
  *  Revision 1.36  2002/02/06 20:12:03  s_a_white
  *  Added sidplay1 random extension for vic reads.
  *
@@ -652,7 +656,7 @@ void Player::envReset (void)
 
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i]->reset ();
+        sid[i]->reset (0x0f);
 
     if (m_info.environment == sid2_envR)
     {
@@ -724,10 +728,6 @@ void Player::envReset (void)
         m_ram[0x02a6] = 1;
     else // SIDTUNE_CLOCK_NTSC
         m_ram[0x02a6] = 0;
-
-    // Set master volume to fix some bad songs
-    for (i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i]->write (0x18, 0x0f);
 }
 
 uint8_t Player::envReadMemByte (uint_least16_t addr)
