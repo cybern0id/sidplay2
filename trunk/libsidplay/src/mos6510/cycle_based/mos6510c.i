@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2003/01/20 23:10:48  s_a_white
+ *  Fixed RMW instructions to perform memory re-write on the correct cycle.
+ *
  *  Revision 1.32  2003/01/20 18:37:08  s_a_white
  *  Stealing update.  Apparently the cpu does a memory read from any non
  *  write cycle (whether it needs to or not) resulting in those cycles
@@ -189,9 +192,9 @@ void MOS6510::aecSignal (bool state)
         // IRQs that appeared during the steal must have
         // there clocks corrected
         if (interrupts.nmiClk > clock)
-            interrupts.nmiClk = clock;
+            interrupts.nmiClk = clock - 1;
         if (interrupts.irqClk > clock)
-            interrupts.irqClk = clock;
+            interrupts.irqClk = clock - 1;
         m_blocked = false;
         eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
     }
@@ -331,7 +334,7 @@ MOS6510_interruptPending_check:
     {
         // Try to determine if we should be processing the NMI yet
         event_clock_t cycles = eventContext.getTime (interrupts.nmiClk);
-        if (cycles >= interrupts.delay)
+        if (cycles > interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             break;
@@ -346,7 +349,7 @@ MOS6510_interruptPending_check:
     {
         // Try to determine if we should be processing the IRQ yet
         event_clock_t cycles = eventContext.getTime (interrupts.irqClk);
-        if (cycles >= interrupts.delay)
+        if (cycles > interrupts.delay)
             break;
 
         // NMI delayed so check for other interrupts
@@ -722,7 +725,7 @@ void MOS6510::brk_instr (void)
     if (interrupts.pending & iNMI)
     {
         event_clock_t cycles = eventContext.getTime (interrupts.nmiClk);
-        if (cycles >= interrupts.delay)
+        if (cycles > interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
