@@ -28,6 +28,12 @@ AC_C_BIGENDIAN
 dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
 
+dnl Checks for library functions.
+AC_CHECK_FUNC(strncasecmp,[AC_DEFINE(HAVE_STRNCASECMP,,
+  [Define if you have the strncasecmp function.])],[])
+AC_CHECK_FUNC(strcasecmp,[AC_DEFINE(HAVE_STRCASECMP,,
+  [Define if you have the strcasecmp function.])],[])
+
 dnl Check for nothrow allocator.
 MY_CHECK_EXCEPTIONS
 
