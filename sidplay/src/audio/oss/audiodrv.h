@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:36:16  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -33,9 +37,9 @@
 
 #include "config.h"
 #ifdef   HAVE_OSS
-#   ifndef AudioDriver
-#   define AudioDriver Audio_OSS
-#   endif
+
+#ifndef AudioDriver
+#define AudioDriver Audio_OSS
 #endif
 
 #include <sys/ioctl.h>
@@ -45,13 +49,13 @@
 #include <unistd.h>
 
 #if defined(HAVE_LINUX_SOUNDCARD_H)
-  #include <linux/soundcard.h>
+#   include <linux/soundcard.h>
 #elif defined(HAVE_MACHINE_SOUNDCARD_H)
-  #include <machine/soundcard.h>
+#   include <machine/soundcard.h>
 #elif defined(HAVE_SOUNDCARD_H)
-  #include <soundcard.h>
+#   include <soundcard.h>
 #else
-  #error Audio driver not supported.
+#   error Audio driver not supported.
 #endif
 
 #include "../AudioBase.h"
