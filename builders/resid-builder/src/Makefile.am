@@ -1,6 +1,3 @@
-sidplayincludedir = $(includedir)/sidplay/builders
-sidplayinclude_HEADERS = resid.h
-
 # The library.
 
 libdir = $(LIBSIDPLAY2_DIR)

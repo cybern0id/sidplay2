@@ -1,7 +1,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src
+SUBDIRS = include src
 
 EXTRA_DIST = unix win acconfig.h
 
