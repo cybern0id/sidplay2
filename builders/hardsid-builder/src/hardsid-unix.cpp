@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/07/20 08:36:24  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.6  2002/02/17 17:24:51  s_a_white
  *  Updated for new reset interface.
  *
@@ -201,7 +204,7 @@ void HardSID::flush(void)
     ioctl(m_handle, HSID_IOCTL_FLUSH);
 }
 
-void HardSID::lock(c64env* env)
+bool HardSID::lock(c64env* env)
 {
     if( env == NULL )
     {
@@ -211,8 +214,11 @@ void HardSID::lock(c64env* env)
     }
     else
     {
+	if (m_locked)
+	    return false;
         m_locked = true;
         m_eventContext = &env->context();
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
     }
+    return true;
 }
