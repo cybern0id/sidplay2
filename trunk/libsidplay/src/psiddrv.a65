@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2002/11/19 22:53:23  s_a_white
+ *  Sidplay1 modes modified to make them nolonger require the psid driver.
+ *
  *  Revision 1.13  2002/11/01 17:36:01  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -105,6 +108,11 @@ ntsc        lda #$95
             ldx #$42
 timer       sta $dc04
             stx $dc05
+
+            ; enable the VICs screen
+            lda $d011
+            ora #$10
+            sta $d011
 
             ; 0 indicates VIC timing, else it's from CIA
             ldx #$81
