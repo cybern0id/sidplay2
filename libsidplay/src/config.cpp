@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2002/08/10 22:35:56  s_a_white
+ *  Small clock speed fix for when both clockSpeed and clockDefault are set
+ *  to SID2_CLOCK_CORRECT.
+ *
  *  Revision 1.25  2002/07/17 19:25:28  s_a_white
  *  Temp fix to allow SID model to change for current builder.
  *
@@ -410,7 +414,7 @@ int Player::environment (sid2_env_t env)
     {   // Check if tune is invalid in the memory mode
         if (m_tuneInfo.playAddr == 0xffff)
         {
-            //m_errorString = ERR_PSID_SPECIFIC_FLAG;
+            m_errorString = ERR_PSID_SPECIFIC_FLAG;
             return -1;
         }
         if (env == sid2_envR)
