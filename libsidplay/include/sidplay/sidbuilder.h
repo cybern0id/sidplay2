@@ -44,9 +44,8 @@ public:
 
     // Standard SID functions
     virtual int_least32_t output  (uint_least8_t bits) = 0;
-    virtual void          voice   (uint_least8_t num,
-                                   uint_least8_t vol,
-                                   bool mute) = 0;
+    virtual void          volume  (uint_least8_t num, uint_least8_t level) = 0;
+    virtual void          mute    (uint_least8_t num, bool enable) = 0;
     virtual void          gain    (int_least8_t precent) = 0;
     virtual void          optimisation (uint_least8_t /*level*/) {;}
     sidbuilder           *builder (void) const { return m_builder; }
