@@ -93,7 +93,7 @@ int SidDatabase::open (const char *filename)
 {
     close ();
     // @FIXME@:  Libini should be changed
-    database = ini_open ((char *) filename, "r");
+    database = ini_open ((char *) filename, "r", ";");
     if (!database)
     {
         errorString = ERR_UNABLE_TO_LOAD_DATABASE;

@@ -43,7 +43,7 @@ void SidFilter::clear ()
 
 void SidFilter::read (char *filename)
 {
-    ini_fd_t ini = ini_open (filename, "r");
+    ini_fd_t ini = ini_open (filename, "r", ";");
 
     // Illegal ini fd
     if (!ini)
