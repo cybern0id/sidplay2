@@ -27,8 +27,17 @@
 #   define SID_HAVE_BAD_COMPILER
 #endif
 
-#ifndef SID_EXPORT
-#   define SID_EXPORT
+/* DLL building support on win32 hosts */
+#ifndef SID_EXTERN
+#   ifdef DLL_EXPORT      /* defined by libtool (if required) */
+#       define SID_EXTERN __declspec(dllexport)
+#   endif
+#   ifdef SID_DLL_IMPORT  /* define if linking with this dll */
+#       define SID_EXTERN extern __declspec(dllimport)
+#   endif
+#   ifndef SID_EXTERN     /* static linking or !_WIN32 */
+#       define SID_EXTERN
+#   endif
 #endif
 
 #endif // _sidconfig_h_
