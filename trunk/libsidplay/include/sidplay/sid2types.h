@@ -56,8 +56,6 @@ struct sid2_config_t
     sid2_playback_t     playback;
     int                 precision;
     sidbuilder         *sidEmulation;
-    bool                sidFilter;
-    const sid_filter_t *sidFilterDef;
     sid2_model_t        sidModel;
     bool                sidSamples;
     uint_least32_t      leftVolume;
@@ -73,7 +71,10 @@ struct sid2_info_t
     const char        *name;
     const SidTuneInfo *tuneInfo; // May not need this
     const char        *version;
+    // load, config and stop calls will reset this
+    // and remove all pending events! 10th sec resolution.
     EventContext      *eventContext;
+    uint               maxsids;
 };
 
 #endif // _sid2types_h_
