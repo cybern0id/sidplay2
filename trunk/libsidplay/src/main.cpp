@@ -74,28 +74,28 @@ static class player_t
 {
 public:
     sidplayer       lib;
-	AudioBase      *audioDrv;
-	// Rev 1.11 (saw) - Bug fix for Ctrl C exiting
-	volatile bool   fastExit;
-	int	            quietLevel;
+    AudioBase      *audioDrv;
+    // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
+    volatile bool   fastExit;
+    int                quietLevel;
     uword_sidt      selectedSong;
-	bool            restart;
+    bool            restart;
     playerInfo_sidt info;
 #ifdef HAVE_UNIX
     struct termios  term;
 #endif // HAVE_UNIX
 
 public:
-	player_t::player_t ()
-	{
-		audioDrv     = 0;
-		fastExit     = false;
+    player_t::player_t ()
+    {
+        audioDrv     = 0;
+        fastExit     = false;
         // (ms) Opposite of verbose output.
         // 1 = no time display
-		quietLevel   = 0;
-		selectedSong = 0;
-		restart      = false;	
-	}
+        quietLevel   = 0;
+        selectedSong = 0;
+        restart      = false;    
+    }
 } player;
 
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     AudioConfig     audioCfg;
     struct          SidTuneInfo *tuneInfo;
 
-	// (ms) Incomplete...
+    // (ms) Incomplete...
     // Fastforward/Rewind Patch
     udword_sidt   starttime     = 0;
 
@@ -133,302 +133,7 @@ int main(int argc, char *argv[])
     audioCfg.precision = SIDPLAYER_DEFAULT_PRECISION;
     audioCfg.channels  = 1; // Mono
 
-    // Install signal error handlers
-    if ((signal (SIGINT,  &sighandler) == SIG_ERR)
-     || (signal (SIGABRT, &sighandler) == SIG_ERR)
-     || (signal (SIGTERM, &sighandler) == SIG_ERR))
-    {
-		displayError(argv[0], ERR_SIGHANDLER);
-        goto main_error;
-    }
-
-    if (argc < 2) // at least one argument required
-    {
-        displayError (argv[0], ERR_SYNTAX);
-        goto main_error;
-    }
-
-    {   // parse command line arguments
-	    int i = 1;
-		while ((i < argc) && (argv[i] != NULL))
-		{
-			int x = 0;
-			if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
-			{
-				x++;
-				switch (argv[i][x++])
-				{
-				case 'f':
-					switch (argv[i][x++])
-					{
-					case '\0':
-						// User forgot frequency number
-						x = 0;
-					break;
-
-					case 'd':
-						// Override sudTune and enable the second sid
-						force2SID = true;
-					break;
-
-					default:
-						audioCfg.frequency = atoi(argv[i] + x - 1);
-						// Show that all string was processed
-						while (argv[i][x] != '\0')
-							x++;
-					break;
-					}
-				break;
-		
-				// Player Mode (Environment) Options
-				case 'm':
-					switch (argv[i][x++])
-					{
-					case '\0':
-						playerMode = sid_envPS;
-						x--;
-					break;
-
-					case 't':
-						playerMode = sid_envTP;
-					break;
-
-					case 'b':
-						playerMode = sid_envBS;
-					break;
-
-					default:
-					break;
-					}
-				break;
-
-				// New/No options
-				case 'n':
-					switch (argv[i][x++])
-					{
-					// External Filter Options
-					case 'e':
-						if (argv[i][x] == '\0')
-						{   // Disable filter
-							player.lib.extFilter (false);
-							break;
-						}
-					break;
-
-					// Filter options
-					case 'f':
-						if (argv[i][x] == '\0')
-						{   // Disable filter
-							player.lib.filter (false);
-							break;
-						}
-					break;
-
-					// Newer sid (8580)
-					case 's':
-						if (argv[i][x] == '\0')
-						{   // Select newer sid
-							player.lib.sidModel (SID_MOS6581);
-							break;
-						}
-					break;
-
-					default:
-						x = 0;
-					break;
-					}
-				break;
-
-				case 'o':
-					if (argv[i][x] == '\0')
-					{   // User forgot track number
-						x = 0;
-						break;
-					}
-
-					player.selectedSong = atoi(argv[i] + x);
-					// Show that all string was processed
-					while (argv[i][x] != '\0')
-						x++;
-				break;
-
-				case 'O':
-					if (argv[i][x] == '\0')
-					{   // User optimisation level
-						x = 0;
-						break;
-					}
-
-					optimiseLevel = atoi(argv[i] + x);
-					// Show that all string was processed
-					while (argv[i][x] != '\0')
-						x++;
-				break;
-
-				case 'p':
-					if (argv[i][x] == '\0')
-					{
-						// User forgot precision
-						x = 0;
-					}
-
-					{
-						int precision = atoi(argv[i] + x);
-						if (precision <= 8)
-							precision = 8;
-						else if (precision <= 16)
-							precision = 16;
-						else
-							precision = 24;
-
-						if (precision > SIDPLAYER_MAX_PRECISION)
-							precision = SIDPLAYER_MAX_PRECISION;
-						audioCfg.precision = precision;
-
-						// Show that all string was processed
-						while (argv[i][x] != '\0')
-							x++;
-					}
-				break;
-
-				case 'q':
-					// Later introduce incremental mode.
-					if (argv[i][x] == '\0')
-						++player.quietLevel;
-				break;
-
-				// Stereo Options
-				case 's':
-					switch (argv[i][x++])
-					{
-					case '\0':
-     					// Select Dual SIDS
-						playback = sid_stereo;
-						audioCfg.channels = 2; // Stereo
-						x--;
-					break;
-
-					case 'l':
-						// Left Channel
-						playback = sid_left;
-						audioCfg.channels = 1; // Mono
-					break;
-
-					case 'r':
-						// Right Channel
-						playback = sid_right;
-						audioCfg.channels = 1; // Mono
-					break;
-
-					default:
-					break;
-					}
-				break;
-
-				case 't':
-				{
-					char *sep;
-					bool start = false;
-					udword_sidt time;
-					if ((argv[i][x]) == 's')
-					{
-						x++;
-						start = true;
-					}
-
-					sep = strstr (argv[i] + x, ":");
-					if (!sep)
-					{   // User gave seconds
-						time = atoi (argv[i] + x);
-					}
-					else
-					{   // Read in MM:SS format
-						*sep = '\0';
-						int val;
-						val  = atoi (argv[i] + x);
-						if (val < 0 || val > 99)
-							break;
-						time = (udword_sidt) val * 60;
-						val  = atoi (sep + 1);
-						if (val < 0 || val > 59)
-							break;
-						time += (udword_sidt) val;
-					}
-
-					if (!start)
-						runtime   = time;
-					else
-						starttime = time;
-
-					// Show that complete string was parsed
-					while (argv[i][x] != '\0')
-						x++;
-				}
-				break;
-
-				case 'v':
-					switch (argv[i][x++])
-					{
-					case '\0':
-     					// Select Dual SIDS
-						verboseOutput = true;
-						x--;
-					break;
-
-					case 'n':
-						// Select NTSC
-						clockSpeed = SID_NTSC;
-					break;
-
-					case 'p':
-						// Select NTSC
-						clockSpeed = SID_PAL;
-					break;
-
-					default:
-					break;
-					}
-				break;
-
-				case 'w':
-					wavOutput = true;
-				break;
-
-				default:
-					// Rev 2.0.3 (saw): Added to fix switch bug
-					x = 0;
-				break;
-				}
-
-				// Make sure all all string was checked
-				if (argv[i][x] != '\0')
-				{
-					displaySyntax (argv[0]);
-					goto main_error;
-				}
-			}
-			else
-			{   // Reading file name
-				if (!sidFile)
-				{
-					sidFile = i;
-				}
-				else
-				{
-					displayError (argv[0], ERR_SYNTAX);
-					goto main_error;
-				}
-			}
-			i++;  // next index
-		}
-	}
-
-    if (sidFile == 0)
-    {   // Neither file nor stdin.
-        displaySyntax(argv[0]);
-        exit(0);
-    }
-
+    // Rev 1.17 (saw) - Moved to fix Linux console lockup.
     // Rev 1.13 (saw) - Configure Unix terminal to allow direct access to keypresses
 #ifdef HAVE_UNIX
     {   // set to non canonical mode, echo off, ignore signals
@@ -444,7 +149,303 @@ int main(int argc, char *argv[])
         tcsetattr (STDOUT_FILENO, TCSAFLUSH, &current);
     }
 #endif // HAVE_UNIX
-	
+
+    // Install signal error handlers
+    if ((signal (SIGINT,  &sighandler) == SIG_ERR)
+     || (signal (SIGABRT, &sighandler) == SIG_ERR)
+     || (signal (SIGTERM, &sighandler) == SIG_ERR))
+    {
+        displayError(argv[0], ERR_SIGHANDLER);
+        goto main_error;
+    }
+
+    if (argc < 2) // at least one argument required
+    {
+        displayError (argv[0], ERR_SYNTAX);
+        goto main_error;
+    }
+
+    {   // parse command line arguments
+        int i = 1;
+        while ((i < argc) && (argv[i] != NULL))
+        {
+            int x = 0;
+            if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
+            {
+                x++;
+                switch (argv[i][x++])
+                {
+                case 'f':
+                    switch (argv[i][x++])
+                    {
+                    case '\0':
+                        // User forgot frequency number
+                        x = 0;
+                    break;
+
+                    case 'd':
+                        // Override sudTune and enable the second sid
+                        force2SID = true;
+                    break;
+
+                    default:
+                        audioCfg.frequency = atoi(argv[i] + x - 1);
+                        // Show that all string was processed
+                        while (argv[i][x] != '\0')
+                            x++;
+                    break;
+                    }
+                break;
+        
+                // Player Mode (Environment) Options
+                case 'm':
+                    switch (argv[i][x++])
+                    {
+                    case '\0':
+                        playerMode = sid_envPS;
+                        x--;
+                    break;
+
+                    case 't':
+                        playerMode = sid_envTP;
+                    break;
+
+                    case 'b':
+                        playerMode = sid_envBS;
+                    break;
+
+                    default:
+                    break;
+                    }
+                break;
+
+                // New/No options
+                case 'n':
+                    switch (argv[i][x++])
+                    {
+                    // External Filter Options
+                    case 'e':
+                        if (argv[i][x] == '\0')
+                        {   // Disable filter
+                            player.lib.extFilter (false);
+                            break;
+                        }
+                    break;
+
+                    // Filter options
+                    case 'f':
+                        if (argv[i][x] == '\0')
+                        {   // Disable filter
+                            player.lib.filter (false);
+                            break;
+                        }
+                    break;
+
+                    // Newer sid (8580)
+                    case 's':
+                        if (argv[i][x] == '\0')
+                        {   // Select newer sid
+                            player.lib.sidModel (SID_MOS6581);
+                            break;
+                        }
+                    break;
+
+                    default:
+                        x = 0;
+                    break;
+                    }
+                break;
+
+                case 'o':
+                    if (argv[i][x] == '\0')
+                    {   // User forgot track number
+                        x = 0;
+                        break;
+                    }
+
+                    player.selectedSong = atoi(argv[i] + x);
+                    // Show that all string was processed
+                    while (argv[i][x] != '\0')
+                        x++;
+                break;
+
+                case 'O':
+                    if (argv[i][x] == '\0')
+                    {   // User optimisation level
+                        x = 0;
+                        break;
+                    }
+
+                    optimiseLevel = atoi(argv[i] + x);
+                    // Show that all string was processed
+                    while (argv[i][x] != '\0')
+                        x++;
+                break;
+
+                case 'p':
+                    if (argv[i][x] == '\0')
+                    {
+                        // User forgot precision
+                        x = 0;
+                    }
+
+                    {
+                        int precision = atoi(argv[i] + x);
+                        if (precision <= 8)
+                            precision = 8;
+                        else if (precision <= 16)
+                            precision = 16;
+                        else
+                            precision = 24;
+
+                        if (precision > SIDPLAYER_MAX_PRECISION)
+                            precision = SIDPLAYER_MAX_PRECISION;
+                        audioCfg.precision = precision;
+
+                        // Show that all string was processed
+                        while (argv[i][x] != '\0')
+                            x++;
+                    }
+                break;
+
+                case 'q':
+                    // Later introduce incremental mode.
+                    if (argv[i][x] == '\0')
+                        ++player.quietLevel;
+                break;
+
+                // Stereo Options
+                case 's':
+                    switch (argv[i][x++])
+                    {
+                    case '\0':
+                        // Select Dual SIDS
+                        playback = sid_stereo;
+                        audioCfg.channels = 2; // Stereo
+                        x--;
+                    break;
+
+                    case 'l':
+                        // Left Channel
+                        playback = sid_left;
+                        audioCfg.channels = 1; // Mono
+                    break;
+
+                    case 'r':
+                        // Right Channel
+                        playback = sid_right;
+                        audioCfg.channels = 1; // Mono
+                    break;
+
+                    default:
+                    break;
+                    }
+                break;
+
+                case 't':
+                {
+                    char *sep;
+                    bool start = false;
+                    udword_sidt time;
+                    if ((argv[i][x]) == 's')
+                    {
+                        x++;
+                        start = true;
+                    }
+
+                    sep = strstr (argv[i] + x, ":");
+                    if (!sep)
+                    {   // User gave seconds
+                        time = atoi (argv[i] + x);
+                    }
+                    else
+                    {   // Read in MM:SS format
+                        *sep = '\0';
+                        int val;
+                        val  = atoi (argv[i] + x);
+                        if (val < 0 || val > 99)
+                            break;
+                        time = (udword_sidt) val * 60;
+                        val  = atoi (sep + 1);
+                        if (val < 0 || val > 59)
+                            break;
+                        time += (udword_sidt) val;
+                    }
+
+                    if (!start)
+                        runtime   = time;
+                    else
+                        starttime = time;
+
+                    // Show that complete string was parsed
+                    while (argv[i][x] != '\0')
+                        x++;
+                }
+                break;
+
+                case 'v':
+                    switch (argv[i][x++])
+                    {
+                    case '\0':
+                        // Select Dual SIDS
+                        verboseOutput = true;
+                        x--;
+                    break;
+
+                    case 'n':
+                        // Select NTSC
+                        clockSpeed = SID_NTSC;
+                    break;
+
+                    case 'p':
+                        // Select NTSC
+                        clockSpeed = SID_PAL;
+                    break;
+
+                    default:
+                    break;
+                    }
+                break;
+
+                case 'w':
+                    wavOutput = true;
+                break;
+
+                default:
+                    // Rev 2.0.3 (saw): Added to fix switch bug
+                    x = 0;
+                break;
+                }
+
+                // Make sure all all string was checked
+                if (argv[i][x] != '\0')
+                {
+                    displaySyntax (argv[0]);
+                    goto main_error;
+                }
+            }
+            else
+            {   // Reading file name
+                if (!sidFile)
+                {
+                    sidFile = i;
+                }
+                else
+                {
+                    displayError (argv[0], ERR_SYNTAX);
+                    goto main_error;
+                }
+            }
+            i++;  // next index
+        }
+    }
+
+    if (sidFile == 0)
+    {   // Neither file nor stdin.
+        displaySyntax(argv[0]);
+        goto main_error;
+    }
+
     if (!wavOutput)
     {
         // Open Audio Driver
@@ -507,7 +508,7 @@ main_restart:
         }
         if (!i) i = length;
         
-		// Rev 1.12 (saw - Create wav filename
+        // Rev 1.12 (saw - Create wav filename
 #ifdef SID_HAVE_EXCEPTIONS
         wavName = new(nothrow) char[i + 10];
 #else
@@ -565,7 +566,7 @@ main_restart:
     cout << "  SIDPLAY - Music Player and C64 SID Chip Emulator" << endl;
     displayTable (sid_tableMiddle);
     cout << setw(24) << "sidplay V2.0.0," << " "
-		 << player.info.name << " V" << player.info.version << endl;
+         << player.info.name << " V" << player.info.version << endl;
     displayTable (sid_tableSeperator);
  
     if (verboseOutput)
@@ -582,7 +583,7 @@ main_restart:
         }
         displayTable (sid_tableMiddle);
         cout << "Condition    : " << tuneInfo->statusString << endl;
-	}
+    }
 
     displayTable (sid_tableMiddle);
     cout << "Setting Song : " << tuneInfo->currentSong
@@ -739,7 +740,7 @@ sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
 
         return seconds;
     }
-	
+    
     return 0;
 }
 
@@ -851,8 +852,8 @@ void cleanup (bool fast)
 #endif
 
 #ifdef HAVE_UNIX
-	// Rev 1.13 (saw) - Restore old terminal settings
-	tcsetattr (STDOUT_FILENO, TCSAFLUSH, &player.term);
+    // Rev 1.13 (saw) - Restore old terminal settings
+    tcsetattr (STDOUT_FILENO, TCSAFLUSH, &player.term);
 #endif
 }
 
