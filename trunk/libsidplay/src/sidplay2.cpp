@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2003/10/16 07:41:05  s_a_white
+ *  Allow redirection of debug information to file.
+ *
  *  Revision 1.16  2003/02/20 19:12:54  s_a_white
  *  Fix included header files.
  *
@@ -134,3 +137,6 @@ void sidplay2::debug (bool enable, FILE *out)
 
 sid2_player_t sidplay2::state (void) const
 {   return sidplayer.state (); }
+
+uint32_least32_t sidplay2::timebase (void) const
+{   return SID2_TIME_BASE; }
