@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2002/11/20 21:44:34  s_a_white
+ *  Initial support for external DMA to steal cycles away from the CPU.
+ *
  *  Revision 1.36  2002/11/19 22:55:50  s_a_white
  *  PSIDv2NG/RSID changes to deal with spec updates for recommended
  *  implementation.
@@ -366,8 +369,7 @@ private:
     void signalAEC    (bool state) { cpu->aecSignal (state); }
 
     // PSID driver
-    int  psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
-                         uint_least16_t &drvLength);
+    int  psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info);
     void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
 
 public:

@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.54  2002/11/25 21:09:41  s_a_white
+ *  Reset address for old sidplay1 modes now directly passed to the CPU.  This
+ *  prevents tune corruption and banking issues for the different modes.
+ *
  *  Revision 1.53  2002/11/21 19:53:58  s_a_white
  *  CPU nolonger a special case.  It now uses the event scheduler like all the
  *  other components.
@@ -365,11 +369,8 @@ int Player::initialise ()
     m_mileage += time ();
 
     reset ();
-    if (psidDrvInstall (m_tuneInfo, m_info.driverAddr,
-                        m_info.driverLength) < 0)
-    {
+    if (psidDrvInstall (m_tuneInfo, m_info) < 0)
         return -1;
-    }
 
     // The Basic ROM sets these values on loading a file.
     {   // Program start address
@@ -822,14 +823,15 @@ void Player::envReset (bool safe)
     if (safe)
     {   // Emulation crashed so run in safe mode
         uint8_t prg[] = {LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn};
-        uint_least16_t addr, length;
+        sid2_info_t info;
         SidTuneInfo tuneInfo;
         // Install driver
         tuneInfo.relocStartPage = 0x09;
         tuneInfo.relocPages     = 0x20;
         tuneInfo.initAddr       = 0x0800;
         tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
-        psidDrvInstall (tuneInfo, addr, length);
+        info.environment        = m_info.environment;
+        psidDrvInstall (tuneInfo, info);
         // Install prg
         memcpy (&m_ram[0x0800], prg, sizeof (prg));
 
