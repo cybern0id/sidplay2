@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=0
+LIBREV=1
 LIBAGE=0
 AM_INIT_AUTOMAKE(hardsid-builder,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -21,7 +21,7 @@ AC_PROG_CXX
 dnl Initialize libtool.
 AC_DISABLE_SHARED
 AC_LIBTOOL_WIN32_DLL
-MY_CONFIG_LIBTOOL
+AC_PROG_LIBTOOL
 
 dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
