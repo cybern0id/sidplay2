@@ -43,6 +43,9 @@ const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
 const int SIDTUNE_CLOCK_PAL = 0;        // These are also used in the
 const int SIDTUNE_CLOCK_NTSC = 1;       // emulator engine!
 
+// Required to export template
+template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
+
 struct SidTuneInfo
 {
     // An instance of this structure is used to transport values to
@@ -241,7 +244,7 @@ class SID_EXTERN SidTune
     // Needed for MUS/STR player installation.
     uint_least16_t musDataLen;
 
-    class SID_EXTERN Buffer_sidtt<const uint_least8_t> cache;
+    Buffer_sidtt<const uint_least8_t> cache;
 
     // Filename extensions to append for various file types.
     static const char** fileNameExtensions;
