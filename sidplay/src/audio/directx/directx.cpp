@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
 #include "directx.h"
@@ -72,19 +75,19 @@ HWND Audio_DirectX::GetConsoleHwnd ()
     return (hwndFound);
 }
 
-void *Audio_DirectX::open (AudioConfig &cfg)
+void *Audio_DirectX::open (AudioConfig &cfg, const char *name)
 {
     HWND hwnd;
     // Assume we have a console.  Use other other
     // if we have a non console Window
     hwnd = GetConsoleHwnd ();
-    return open (cfg, hwnd);
+    return open (cfg, name, hwnd);
 }
 
-void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
+void *Audio_DirectX::open (AudioConfig &cfg, const char *, HWND hwnd)
 { 
     DSBUFFERDESC        dsbdesc; 
-    LPDIRECTSOUNDBUFFER lpDsbPrimary;
+    LPDIRECTSOUNDBUFFER lpDsbPrimary = 0;
     WAVEFORMATEX        wfm;
     DWORD               dwBytes;
     int i;
@@ -92,9 +95,11 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (isOpen)
     {
         _errorString = "DIRECTX ERROR: Audio device already open.";
-        return NULL;
+        goto Audio_DirectX_openError;
     }
-    isOpen = true;
+
+    lpvData = 0;
+    isOpen  = true;
 
     for (i = 0; i < AUDIO_DIRECTX_BUFFERS; i++) 
         rghEvent[i] = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -102,12 +107,12 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (FAILED (DirectSoundCreate (NULL, &lpds, NULL)))
     {
         _errorString = "DIRECTX ERROR: Could not open audio device.";
-        return NULL;
+        goto Audio_DirectX_openError;
     }
     if (FAILED (lpds->SetCooperativeLevel (hwnd, DSSCL_PRIORITY)))
     {
         _errorString = "DIRECTX ERROR: Could not set cooperative level.";
-        return NULL;
+        goto Audio_DirectX_openError;
     }
 
     // Primary Buffer Setup
@@ -129,19 +134,18 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (FAILED (lpds->CreateSoundBuffer(&dsbdesc, &lpDsbPrimary, NULL)))
     {
         _errorString = "DIRECTX ERROR: Unable to create sound buffer.";
-	  return NULL;
+        goto Audio_DirectX_openError;
     }
     if (FAILED (lpDsbPrimary->SetFormat(&wfm)))
     {
         _errorString = "DIRECTX ERROR: Unable to setup required sampling format.";
-        lpDsbPrimary->Release ();
-	  return NULL;
+        goto Audio_DirectX_openError;
     }
     lpDsbPrimary->Release ();
 
     // Rev 2.0.4 (saw) - Need about a secs worth to work well
     // Rev 1.5 (saw) - Buffer size reduced to 2 blocks of 250ms
-    bufSize = wfm.nAvgBytesPerSec / 4;
+    bufSize = wfm.nAvgBytesPerSec / 2;
     if (wfm.nAvgBytesPerSec & 0x3)
         bufSize++;
 
@@ -156,7 +160,7 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (FAILED (lpds->CreateSoundBuffer(&dsbdesc, &lpDsb, NULL)))
     {
         _errorString = "DIRECTX ERROR: Could not create sound buffer.";
-        return false;
+        goto Audio_DirectX_openError;
     }
     lpDsb->Stop();
 
@@ -173,12 +177,12 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (FAILED (lpDsb->QueryInterface (IID_IDirectSoundNotify, (VOID **) &lpdsNotify)))
     {
         _errorString = "DIRECTX ERROR: Sound interface query failed.";
-        return false;
+        goto Audio_DirectX_openError;
     }
     if (FAILED (lpdsNotify->SetNotificationPositions(AUDIO_DIRECTX_BUFFERS, rgdscbpn)))
     {
         _errorString = "DIRECTX ERROR: Unable to set up sound notification positions.";
-        return false;
+        goto Audio_DirectX_openError;
     }
     // -----------------------------------------------------------
 
@@ -186,16 +190,21 @@ void *Audio_DirectX::open (AudioConfig &cfg, HWND hwnd)
     if (FAILED (lpDsb->Lock (0, bufSize, &lpvData, &dwBytes, NULL, NULL, 0)))
     {
         _errorString = "DIRECTX ERROR: Unable to lock sound buffer.";
-        return NULL;
+        goto Audio_DirectX_openError;
     }
 
     // Update the users settings
-    cfg.bufSize  = bufSize;
-	cfg.encoding = AUDIO_UNSIGNED_PCM; // IS this write?
-    _settings    = cfg;
+    cfg.bufSize   = bufSize;
+    cfg.encoding  = AUDIO_UNSIGNED_PCM; // IS this write?
+    _settings     = cfg;
+    isPlaying     = false;
+    _sampleBuffer = lpvData;
+return _sampleBuffer;
 
-    isPlaying = false;
-    return lpvData;
+Audio_DirectX_openError:
+    SAFE_RELEASE (lpDsbPrimary);
+    close ();
+    return NULL;
 }
 
 void *Audio_DirectX::write ()
@@ -206,9 +215,9 @@ void *Audio_DirectX::write ()
     if (!isOpen)
     {
         _errorString = "DIRECTX ERROR: Device not open.";
-		return NULL;
+        return NULL;
     }
-	// Unlock the current buffer for playing
+    // Unlock the current buffer for playing
     lpDsb->Unlock (lpvData, bufSize, NULL, 0);
 
     // Check to see of the buffer is playing
@@ -218,33 +227,36 @@ void *Audio_DirectX::write ()
         isPlaying = true;
         // Rev 1.7 (saw) - Set the play position back to the begining
         if (FAILED (lpDsb->SetCurrentPosition(0)))
-		{
+        {
             _errorString = "DIRECTX ERROR: Unable to set play position to start of buffer.";
-		    return NULL;
-	    }
+            return NULL;
+        }
 
         if (FAILED (lpDsb->Play (0,0,DSBPLAY_LOOPING)))
-		{
+        {
             _errorString = "DIRECTX ERROR: Unable to start playback.";
-		    return NULL;
-	    }
+            return NULL;
+        }
     }
 
-	// Check the incoming event to make sure it's one of our event messages and
-	// not something else
-	do
-	{
-	    dwEvt  = MsgWaitForMultipleObjects (AUDIO_DIRECTX_BUFFERS, rghEvent, FALSE, INFINITE, QS_ALLINPUT);
-	    dwEvt -= WAIT_OBJECT_0; 
-	} while (dwEvt >= AUDIO_DIRECTX_BUFFERS);
+    // Check the incoming event to make sure it's one of our event messages and
+    // not something else
+    do
+    {
+        dwEvt  = MsgWaitForMultipleObjects (AUDIO_DIRECTX_BUFFERS, rghEvent, FALSE, INFINITE, QS_ALLINPUT);
+        dwEvt -= WAIT_OBJECT_0; 
+    } while (dwEvt >= AUDIO_DIRECTX_BUFFERS);
+
+//    printf ("Event - %lu\n", dwEvt);
 
     // Lock the next buffer for filling
     if (FAILED (lpDsb->Lock (bufSize * dwEvt, bufSize, &lpvData, &dwBytes, NULL, NULL, 0)))
     {
         _errorString = "DIRECTX ERROR: Unable to lock sound buffer.";
-		return NULL;
+        return NULL;
     }
-    return lpvData;
+    _sampleBuffer = lpvData;
+    return _sampleBuffer;
 }
 
 void *Audio_DirectX::reset (void)
@@ -257,7 +269,7 @@ void *Audio_DirectX::reset (void)
     // Start new music data being added at the begining of
     // the first buffer
     lpDsb->Stop ();
-	// Rev 1.7 (saw) - Prevents output going silent after reset
+    // Rev 1.7 (saw) - Prevents output going silent after reset
     isPlaying = false;
     lpDsb->Unlock (lpvData, bufSize, NULL, 0);
 
@@ -266,8 +278,9 @@ void *Audio_DirectX::reset (void)
     {
         _errorString = "DIRECTX ERROR: Unable to lock sound buffer.";
         return NULL;
-    }		
-    return lpvData;
+    }        
+    _sampleBuffer = lpvData;
+    return _sampleBuffer;
 }
 
 // Rev 1.8 (saw) - Alias fix
@@ -275,14 +288,19 @@ void Audio_DirectX::close (void)
 {
     if (!isOpen)
         return;
-    isOpen = false;
+
+    isOpen        = false;
+    _sampleBuffer = NULL;
 
     if (lpDsb)
     {
-		lpDsb->Stop();
+        lpDsb->Stop();
         isPlaying = false;
-		// Rev 1.4 (iv) - Unlock before we release buffer.
-        lpDsb->Unlock (lpvData, bufSize, NULL, 0);      
+        if (lpvData)
+        {
+            // Rev 1.4 (iv) - Unlock before we release buffer.
+            lpDsb->Unlock (lpvData, bufSize, NULL, 0);      
+        }
     }
 
     SAFE_RELEASE (lpdsNotify);
