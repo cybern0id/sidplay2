@@ -698,7 +698,7 @@ void displaySyntax (char* arg0)
         << " -o<num>      select track number (default: preset)" << endl
         // Rev 1.7 (saw) - Changed max printed optimisation
         << " -O<num>      optimisation level, max is " << (SIDPLAYER_MAX_OPTIMISATION - 1)
-        << " (default: 0)" << endl
+        << " (default: " << SIDPLAYER_DEFAULT_OPTIMISATION << ')' << endl
 
         << " -p<num>      set bit precision for samples. "
         << "(default: " << SIDPLAYER_DEFAULT_PRECISION << ")" << endl

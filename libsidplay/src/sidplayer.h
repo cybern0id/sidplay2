@@ -24,6 +24,8 @@
 // Default settings
 const udword_sidt SIDPLAYER_DEFAULT_SAMPLING_FREQ = 44100;
 const int SIDPLAYER_DEFAULT_PRECISION = 16;
+// Rev 1.6 (saw) - Added
+const int SIDPLAYER_DEFAULT_OPTIMISATION = 0;
 
 // Maximum values
 const int SIDPLAYER_MAX_PRECISION = 16;

@@ -75,7 +75,8 @@ sidplayer_pr::sidplayer_pr (void)
     _playLength    = 0;
     configure (sid_mono, SIDPLAYER_DEFAULT_SAMPLING_FREQ,
                SIDPLAYER_DEFAULT_PRECISION, false);
-    _optimiseLevel = 1;
+    // Rev 1.7 (saw) - Fixed
+    _optimiseLevel = SIDPLAYER_DEFAULT_OPTIMISATION;
 
     // Rev 2.0.4 (saw) - Added Force Clock Speed
     _clockSpeed    = SID_TUNE_CLOCK;
