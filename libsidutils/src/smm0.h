@@ -47,7 +47,8 @@
 #define SMM7_ID BUILD_ID('S','M','M','7')
 #define SMM8_ID BUILD_ID('S','M','M','8')
 #define SMM9_ID BUILD_ID('S','M','M','9')
-#define SMM_EX_FLAGS 1 /*((sizeof(sid_usage_t::memflags_t) / 8) - 1)*/
+#define SMM_EX_FLAGS (sizeof(sid_usage_t::memflags_t)-1)
+
 
 class Chunk
 {
@@ -123,12 +124,12 @@ class Body_extended_flags: public Chunk
 {
 private:
     Body   &m_body;
-    uint8_t m_flags[0x100 * SMM_EX_FLAGS];
+    uint8_t m_flags[0x100 * SMM_EX_FLAGS + 1];
 
 protected:
-    void init    (sid2_usage_t &) {;}    
-    bool _import (FILE *file, int &count, int &extension, uint_least32_t &length);
-    bool _export (FILE *file, int count, int extension, uint_least32_t &length);
+    void init   (sid2_usage_t &) {;}    
+    bool recall (FILE *file, int &count, int &extension, uint_least32_t &length);
+    bool store  (FILE *file, int count, int extension, uint_least32_t &length);
 
 public:
     Body_extended_flags(Chunk *next, Body *body)
