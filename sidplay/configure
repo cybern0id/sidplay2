@@ -1979,7 +1979,8 @@ rm -f conftest*
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidplay2_incdirs="/usr/include /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidplay2/include \
+                             /usr/local/lib/sidplay2/include"
         
     libsidplay2_foundincdir=NO
     for i in $libsidplay2_incdirs;
@@ -1997,7 +1998,7 @@ rm -f conftest*
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
-        libsidplay2_libdirs="/usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
         
     libsidplay2_foundlibdir=NO
     for i in $libsidplay2_libdirs;
@@ -2037,14 +2038,14 @@ rm -f conftest*
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 2041 "configure"
+#line 2042 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int main() {
 sidplay2 *player;
 ; return 0; }
 EOF
-if { (eval echo configure:2048: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2049: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidplay2_works=yes
 else
@@ -2095,7 +2096,7 @@ Please check your installation!
 
 
     echo $ac_n "checking for working SIDUtils library and headers""... $ac_c" 1>&6
-echo "configure:2099: checking for working SIDUtils library and headers" >&5
+echo "configure:2100: checking for working SIDUtils library and headers" >&5
     
         sid_libsidutils_library=NO
     sid_libsidutils_includes=NO
@@ -2192,14 +2193,14 @@ fi
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 2196 "configure"
+#line 2197 "configure"
 #include "confdefs.h"
 #include <sidplay/utils/SidDatabase.h>
 int main() {
 SidDatabase *d;
 ; return 0; }
 EOF
-if { (eval echo configure:2203: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2204: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidutils_works=yes
 else
@@ -2221,7 +2222,8 @@ rm -f conftest*
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidutils_incdirs="/usr/include /usr/local/include /usr/lib/sidutils/include /usr/local/lib/sidutils/include"
+        libsidutils_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidutils/include \
+                             /usr/local/lib/sidutils/include"
         
     libsidutils_foundincdir=NO
     for i in $libsidutils_incdirs;
@@ -2239,7 +2241,7 @@ rm -f conftest*
         sid_libsidutils_includes=$libsidutils_foundincdir
 
         # Search common locations where library might be stored.
-        libsidutils_libdirs="/usr/lib /usr/local/lib /usr/lib/sidutils/lib /usr/local/lib/sidutils/lib"
+        libsidutils_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidutils/lib /usr/local/lib/sidutils/lib"
         
     libsidutils_foundlibdir=NO
     for i in $libsidutils_libdirs;
@@ -2279,14 +2281,14 @@ rm -f conftest*
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 2283 "configure"
+#line 2285 "configure"
 #include "confdefs.h"
 #include <sidplay/utils/SidDatabase.h>
 int main() {
 SidDatabase *d;
 ; return 0; }
 EOF
-if { (eval echo configure:2290: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2292: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidutils_works=yes
 else
@@ -2337,14 +2339,14 @@ Please check your installation!
 
 
 echo $ac_n "checking whether byte ordering is bigendian""... $ac_c" 1>&6
-echo "configure:2341: checking whether byte ordering is bigendian" >&5
+echo "configure:2343: checking whether byte ordering is bigendian" >&5
 if eval "test \"`echo '$''{'ac_cv_c_bigendian'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat > conftest.$ac_ext <<EOF
-#line 2348 "configure"
+#line 2350 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2355,11 +2357,11 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2359: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2361: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat > conftest.$ac_ext <<EOF
-#line 2363 "configure"
+#line 2365 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2370,7 +2372,7 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2374: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2376: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_c_bigendian=yes
 else
@@ -2390,7 +2392,7 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 2394 "configure"
+#line 2396 "configure"
 #include "confdefs.h"
 #ifdef __cplusplus
 extern "C" void exit(int);
@@ -2406,7 +2408,7 @@ main () {
   exit (u.c[sizeof (long) - 1] == 1);
 }
 EOF
-if { (eval echo configure:2410: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2412: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_c_bigendian=no
 else
@@ -2432,20 +2434,20 @@ fi
 
 
     echo $ac_n "checking whether nothrow allocator is available""... $ac_c" 1>&6
-echo "configure:2436: checking whether nothrow allocator is available" >&5
+echo "configure:2438: checking whether nothrow allocator is available" >&5
     if eval "test \"`echo '$''{'test_cv_have_exceptions'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
         cat > conftest.$ac_ext <<EOF
-#line 2442 "configure"
+#line 2444 "configure"
 #include "confdefs.h"
 #include <new>
 int main() {
 char* buf = new(nothrow) char[1024];
 ; return 0; }
 EOF
-if { (eval echo configure:2449: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2451: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   test_cv_have_exceptions=yes
 else
@@ -2470,20 +2472,20 @@ EOF
 
 
     echo $ac_n "checking whether standard member ios::binary is available""... $ac_c" 1>&6
-echo "configure:2474: checking whether standard member ios::binary is available" >&5
+echo "configure:2476: checking whether standard member ios::binary is available" >&5
     if eval "test \"`echo '$''{'test_cv_have_ios_binary'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
         cat > conftest.$ac_ext <<EOF
-#line 2480 "configure"
+#line 2482 "configure"
 #include "confdefs.h"
 #include <fstream.h>
 int main() {
 ifstream myTest(ios::in|ios::binary);
 ; return 0; }
 EOF
-if { (eval echo configure:2487: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2489: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   test_cv_have_ios_binary=yes
 else
@@ -2507,7 +2509,7 @@ EOF
 
 
 echo $ac_n "checking how to run the C++ preprocessor""... $ac_c" 1>&6
-echo "configure:2511: checking how to run the C++ preprocessor" >&5
+echo "configure:2513: checking how to run the C++ preprocessor" >&5
 if test -z "$CXXCPP"; then
 if eval "test \"`echo '$''{'ac_cv_prog_CXXCPP'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2520,12 +2522,12 @@ ac_link='${CXX-g++} -o conftest${ac_exeext} $CXXFLAGS $CPPFLAGS $LDFLAGS conftes
 cross_compiling=$ac_cv_prog_cxx_cross
   CXXCPP="${CXX-g++} -E"
   cat > conftest.$ac_ext <<EOF
-#line 2524 "configure"
+#line 2526 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2529: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2531: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -2550,12 +2552,12 @@ CXXCPP="$ac_cv_prog_CXXCPP"
 echo "$ac_t""$CXXCPP" 1>&6
 
 echo $ac_n "checking for ANSI C header files""... $ac_c" 1>&6
-echo "configure:2554: checking for ANSI C header files" >&5
+echo "configure:2556: checking for ANSI C header files" >&5
 if eval "test \"`echo '$''{'ac_cv_header_stdc'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2559 "configure"
+#line 2561 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 #include <stdarg.h>
@@ -2563,7 +2565,7 @@ else
 #include <float.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2567: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2569: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2580,7 +2582,7 @@ rm -f conftest*
 if test $ac_cv_header_stdc = yes; then
   # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2584 "configure"
+#line 2586 "configure"
 #include "confdefs.h"
 #include <string.h>
 EOF
@@ -2598,7 +2600,7 @@ fi
 if test $ac_cv_header_stdc = yes; then
   # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
 cat > conftest.$ac_ext <<EOF
-#line 2602 "configure"
+#line 2604 "configure"
 #include "confdefs.h"
 #include <stdlib.h>
 EOF
@@ -2619,7 +2621,7 @@ if test "$cross_compiling" = yes; then
   :
 else
   cat > conftest.$ac_ext <<EOF
-#line 2623 "configure"
+#line 2625 "configure"
 #include "confdefs.h"
 #ifdef __cplusplus
 extern "C" void exit(int);
@@ -2633,7 +2635,7 @@ if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
 exit (0); }
 
 EOF
-if { (eval echo configure:2637: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2639: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   :
 else
@@ -2659,12 +2661,12 @@ fi
 
 
     echo $ac_n "checking for hardsid soundcard""... $ac_c" 1>&6
-echo "configure:2663: checking for hardsid soundcard" >&5
+echo "configure:2665: checking for hardsid soundcard" >&5
     if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 2668 "configure"
+#line 2670 "configure"
 #include "confdefs.h"
 #ifdef __cplusplus
 extern "C" void exit(int);
@@ -2681,7 +2683,7 @@ extern "C" void exit(int);
          }
         
 EOF
-if { (eval echo configure:2685: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2687: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   sid_have_hardsid=yes
 else
@@ -2709,17 +2711,17 @@ audio.h dmedia/audio.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2713: checking for $ac_hdr" >&5
+echo "configure:2715: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2718 "configure"
+#line 2720 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2723: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2725: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2747,7 +2749,7 @@ done
 
 
 echo $ac_n "checking which audio subsystem is available""... $ac_c" 1>&6
-echo "configure:2751: checking which audio subsystem is available" >&5
+echo "configure:2753: checking which audio subsystem is available" >&5
 audiodrv_libadd=""
 case "$host" in
     *cygwin*) cat >> confdefs.h <<\EOF
@@ -2780,7 +2782,7 @@ EOF
         audiodrv_libadd="./audio/irix/libirix.a"
         echo "$ac_t""irix" 1>&6
         echo $ac_n "checking for main in -laudio""... $ac_c" 1>&6
-echo "configure:2784: checking for main in -laudio" >&5
+echo "configure:2786: checking for main in -laudio" >&5
 ac_lib_var=`echo audio'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2788,14 +2790,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-laudio  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2792 "configure"
+#line 2794 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2799: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2801: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2830,7 +2832,7 @@ EOF
         audiodrv_libadd="./audio/oss/liboss.a"
         echo "$ac_t""oss" 1>&6
         echo $ac_n "checking for main in -lossaudio""... $ac_c" 1>&6
-echo "configure:2834: checking for main in -lossaudio" >&5
+echo "configure:2836: checking for main in -lossaudio" >&5
 ac_lib_var=`echo ossaudio'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2838,14 +2840,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lossaudio  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2842 "configure"
+#line 2844 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2849: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2851: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2873,7 +2875,7 @@ EOF
         audiodrv_libadd="./audio/alsa/libalsa.a"
         echo "$ac_t""alsa" 1>&6
         echo $ac_n "checking for main in -lasound""... $ac_c" 1>&6
-echo "configure:2877: checking for main in -lasound" >&5
+echo "configure:2879: checking for main in -lasound" >&5
 ac_lib_var=`echo asound'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2881,14 +2883,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lasound  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2885 "configure"
+#line 2887 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:2892: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2894: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
