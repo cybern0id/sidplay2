@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.74  2004/03/20 16:13:49  s_a_white
+ *  Remove sid volume reset to reduce DC clicks, potentially incompatibility
+ *  added though.
+ *
  *  Revision 1.73  2004/03/19 00:14:33  s_a_white
  *  Do waveform sync after reset.  This is because the internal clocks are wong
  *  once the scedular becomes reset.
@@ -895,9 +899,21 @@ void Player::reset (void)
 
     // Initalise Memory
     memset (m_ram, 0, 0x10000);
-    memset (m_rom, 0, 0x10000);
-    if (m_info.environment != sid2_envPS)
+    switch (m_info.environment)
+    {
+    case sid2_envPS:
+        break;
+    case sid2_envR:
+    {   // Initialize RAM with powerup pattern
+        for (int i=64; i<0x10000; i+=128)
+            memset (m_ram+i, 0xff, 64);
+        memset (m_rom, 0, 0x10000);
+        break;
+    }
+    default:
+        memset (m_rom, 0, 0x10000);
         memset (m_rom + 0xA000, RTSn, 0x2000);
+    }
 
     if (m_info.environment == sid2_envR)
     {
