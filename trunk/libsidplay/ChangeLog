@@ -1,3 +1,39 @@
+Release Notes 2.1.1:
+
+Added:
+
+Support for basic C64 tunes and direct running of C64 (.prg/.c64) files.  Note that
+prgs requiring user feedback (e.g. keyboard) or storage support (e.g. tape/disk
+loads/saves) will not work.
+
+Changes:
+
+Tidied up handling of mono to stereo channel splitting, especially when driving a
+hardsid.
+
+Channel splitting can now be turned off when stereo output is enabled.
+
+Utilise new hardsid calls to indicate user selected mixer changes from program
+selected mixer changes.  Prevents user constantly re-configuring the mixer
+after stopping/starting a tune.
+
+Updated all file formats to comply with latest RSID/PSIDv2NG specifications.
+
+Stereo MUS files loaded in the wrong order will now display the credits
+correctly and play the tunes on the correct channels (Amiga icon file
+format needs testing).
+
+Fixes:
+
+Creation order of new sid-emulations was incorrect with respect to setting the
+mute/volume properties (meaning the new emulation did not see the settings).
+
+ROM/RAM memory not delected on exit.
+
+Other minor fixes.
+
+
+
 Release Notes 2.1.0:
 
 Added:
