@@ -2087,8 +2087,8 @@ rm -f conftest*
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        resid_incdirs="src/mos6581 src/mos6581/resid/include /usr/include /usr/local/include \
-                       /usr/lib/resid/include /usr/local/lib/resid/include"
+        resid_incdirs="$prefix/include src/mos6581 src/mos6581/resid/include /usr/include \
+                       /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
         
     resid_foundincdir=NO
     for i in $resid_incdirs;
@@ -2106,8 +2106,8 @@ rm -f conftest*
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="src/mos6581/resid src/mos6581/resid/lib /usr/lib /usr/local/lib \
-                       /usr/lib/resid/lib /usr/local/lib/resid/lib"
+        resid_libdirs="$prefix/lib src/mos6581/resid src/mos6581/resid/lib /usr/lib \
+                       /usr/local/lib /usr/lib/resid/lib /usr/local/lib/resid/lib"
         
     resid_foundlibdir=NO
     for i in $resid_libdirs;
