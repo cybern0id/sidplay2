@@ -38,10 +38,10 @@ typedef enum {SID2_MOS6581, SID2_MOS8580} sid2_model_t;
 typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
 
 /* Environment Modes
-sid_envps = Playsid
-sid_envtp = Sidplay  - Transparent Rom
-sid_envbs = Sidplay  - Bankswitching
-sid_envr  = Sidplay2 - Real C64 Environment
+sid2_envPS = Playsid
+sid2_envTP = Sidplay  - Transparent Rom
+sid2_envBS = Sidplay  - Bankswitching
+sid2_envR  = Sidplay2 - Real C64 Environment
 */
 
 typedef struct
