@@ -101,7 +101,7 @@ AC_DEFUN(CHECK_EXCEPTIONS,
     AC_CACHE_VAL(test_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
-            [#include <new>],
+            [#include <new.h>],
             [char* buf = new(nothrow) char[1024];],
             [test_cv_have_exceptions=yes],
             [test_cv_have_exceptions=no]

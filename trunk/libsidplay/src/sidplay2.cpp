@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/09/17 19:03:58  s_a_white
+ *  2.1.0 interface stabalisation.
+ *
  *  Revision 1.11  2001/09/01 11:16:12  s_a_white
  *  Renamed configure to config.
  *
@@ -64,7 +67,7 @@
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 sidplay2::sidplay2 ()

@@ -25,7 +25,7 @@
 #include "sidendian.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new>
+#include <new.h>
 #endif
 
 const char _sidtune_txt_format_mus[] = "C64 Sidplayer format (MUS)";

@@ -34,7 +34,7 @@
 #include "sidendian.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new>
+#include <new.h>
 #endif
 #include <string.h>
 #if defined(HAVE_STRSTREA_H)
