@@ -20,7 +20,7 @@ AC_PROG_CXX
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
-MY_PROG_LIBTOOL
+MY_CONFIG_LIBTOOL
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -69,8 +69,8 @@ else
     MY_SUBST_UNDEF(SID_HAVE_BOOL)
 fi
 
-dnl Check for nothrow allocator.
-MY_CHECK_NOTHROW
+dnl Check for exceptions.
+MY_CHECK_EXCEPTIONS
 
 dnl Check ANSI C++ ios features
 MY_CHECK_IOS_BIN
