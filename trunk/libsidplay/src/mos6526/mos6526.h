@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/10/02 19:49:22  s_a_white
+ *  Revert previous change as was incorrect.
+ *
  *  Revision 1.9  2002/09/11 22:30:47  s_a_white
  *  Counter interval writes now go to a new register call prescaler.  This is
  *  copied to the timer latch/counter as appropriate.
@@ -76,7 +79,7 @@ protected:
     bool    cnt_high;
 
     // Timer A
-    uint8_t cra, cra_latch;
+    uint8_t cra, cra_latch, dpa;
     uint_least16_t ta, ta_latch;
     int  ta_state;
 
