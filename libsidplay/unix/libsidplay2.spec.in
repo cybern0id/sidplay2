@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 2mdk
+%define release 3
 %define major   2
 %define residversion 0.11
 
@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Wed Apr 10 2001 Simon White <s_a_white@email.com> @VERSION@-3
+- Use non Mandrake specific release number.
+
 * Wed Apr 4 2001 Simon White <s_a_white@email.com> @VERSION@-2mdk
 - Updated --prefix and make install so la file does not end up with
   a bad install path.
