@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2002/12/13 22:07:29  s_a_white
+ *  C64 code fixed so a theres no decrement before checking the random value.
+ *
  *  Revision 1.24  2002/11/27 00:16:51  s_a_white
  *  Make sure driver info gets reset and exported properly.
  *
@@ -167,32 +170,31 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
         uint8_t *reloc_driver = psid_driver;
         int      reloc_size   = sizeof (psid_driver);
 
-        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 13))
+        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 10))
         {
             m_errorString = ERR_PSIDDRV_RELOC;
             return -1;
         }
 
         // Adjust size to not included initialisation data.
-        reloc_size -= 13;
+        reloc_size -= 10;
         info.driverAddr   = relocAddr;
         info.driverLength = (uint_least16_t) reloc_size;
         // Round length to end of page
         info.driverLength += 0xff;
         info.driverLength &= 0xff00;
 
-        m_ram[0x310] = JMPw;
-        memcpy (&m_ram[0x0311], &reloc_driver[4], 9);
         memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
+        memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
 
         {   // Experimental exit to basic support
             uint_least16_t addr;
-            addr = endian_little16(&reloc_driver[2]);
+            addr = endian_little16(&reloc_driver[8]);
             m_rom[0xa7ae] = JMPw;
             endian_little16 (&m_rom[0xa7af], 0xffe1);
             endian_little16 (&m_ram[0x0328], addr);
         }
-        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size);
+        memcpy (&m_ram[relocAddr], &reloc_driver[10], reloc_size);
     }
 
     {   // Setup the Initial entry point
@@ -212,12 +214,13 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
         endian_little16 (&m_ram[addr], playAddr);
         addr += 2;
         // Below we limit the delay to something sensible.
-        info.rnddelay = (uint_least16_t) (m_rand >> 3) & 0x0FFF;
+        info.rnddelay = (uint_least16_t) (m_rand >> 3) & 0x1FFF;
         endian_little16 (&m_ram[addr], m_info.rnddelay);
         addr += 2;
         m_rand        = m_rand * 13 + 1;
         m_ram[addr++] = iomap (m_tuneInfo.initAddr);
         m_ram[addr++] = iomap (m_tuneInfo.playAddr);
+        m_ram[addr++] = m_ram[0x02a6]; // PAL/NTSC flag
     }
     return 0;
 }
