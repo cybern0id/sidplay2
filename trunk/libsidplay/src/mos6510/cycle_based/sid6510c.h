@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/07/14 13:18:15  s_a_white
+ *  Stack & PC invalid tests now only performed on a BRK.
+ *
  *  Revision 1.7  2001/03/24 18:09:17  s_a_white
  *  On entry to interrupt routine the first instruction in the handler is now always
  *  executed before pending interrupts are re-checked.
@@ -43,13 +46,14 @@
 #define _sid6510c_h_
 
 #include "mos6510c.h"
-
+#include "sid2types.h"
 
 class SID6510: public MOS6510
 {
 private:
     // Sidplay Specials
-    bool sleeping;
+    bool       sleeping;
+    sid2_env_t m_mode;
 
 public:
     SID6510 (EventContext *context);
@@ -59,6 +63,7 @@ public:
     void reset (uint8_t a, uint8_t x, uint8_t y);
     void clock (void);
 
+    void environment (sid2_env_t mode) { m_mode = mode; }
     void triggerRST (void);
     void triggerNMI (void);
     void triggerIRQ (void);
@@ -70,6 +75,8 @@ private:
     inline void sid_brk (void);
     inline void sid_jmp (void);
     inline void sid_rts (void);
+    inline void sid_cli (void);
+    inline void sid_rti (void);
 };
 
 
