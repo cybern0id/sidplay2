@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2001/03/21 22:32:34  s_a_white
+ *  Filter redefinition support.  VIC & NMI support added.  Moved fake interrupts
+ *  to sid6510 class.
+ *
  *  Revision 1.16  2001/03/09 22:26:36  s_a_white
  *  Support for updated C64 player.
  *
@@ -101,8 +105,11 @@ const char  *player::ERR_FILTER_DEFINITION     = "SIDPLAYER ERROR: Filter defini
 // this player
 player::player (void)
 // Set default settings for system
-:_tune (NULL),
- ram    (NULL), rom  (NULL),
+:cia   (false),
+ cia2  (true),
+ _tune (NULL),
+ ram   (NULL),
+ rom   (NULL),
  _clockSpeed        (SID2_CLOCK_CORRECT),
  _environment       (sid2_envBS),
  _errorString       (TXT_NA),
@@ -115,15 +122,13 @@ player::player (void)
  _seconds           (0),
  _userLeftVolume    (255),
  _userRightVolume   (255),
- playerState        (_stopped),
- cia(false),
- cia2(true)
+ playerState        (_stopped)
 {   // Set the ICs to use this environment
     cpu.setEnvironment  (this);
     cia.setEnvironment  (this);
     cia2.setEnvironment (this);
     xsid.setEnvironment (this);
-	vic.setEnvironment  (this);
+    vic.setEnvironment  (this);
 
     //----------------------------------------------
     // SID Initialise
@@ -175,7 +180,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         _cpuFreq = CLOCK_FREQ_PAL;
         tuneInfo.speedString     = TXT_PAL_VBI;
-		vic.chip (MOS6569);
+        vic.chip (MOS6569);
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_PAL_CIA;
     }
@@ -183,7 +188,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         _cpuFreq = CLOCK_FREQ_NTSC;
         tuneInfo.speedString     = TXT_NTSC_VBI;
-		vic.chip (MOS6567R8);
+        vic.chip (MOS6567R8);
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_NTSC_CIA;
     }
@@ -533,7 +538,7 @@ int player::initialise ()
         playAddr  = 0;
 
     // Tell C64 about song, 1st 2 locations reserved for
-	// bank switching.
+    // bank switching.
     endian_little16 (&psidDrv[0x02], tuneInfo.initAddr);
     endian_little16 (&psidDrv[0x04], playAddr);
     psidDrv[0x06] = (uint8_t) tuneInfo.currentSong;
@@ -556,17 +561,17 @@ int player::initialise ()
 int player::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
 {
 #ifndef HAVE_HARDSID
-	fc_point fc[0x800];
+    fc_point fc[0x800];
  
-	// Make sure there are enough filter points and they are legal
+    // Make sure there are enough filter points and they are legal
     if ((points < 2) || (points > 0x800))
         goto player_loadFilter_error;
 
     {
-		const sid_fc_t *val, *valp, vals = {-1, 0};
+        const sid_fc_t *val, *valp, vals = {-1, 0};
         // Last check, make sure they are list in numerical order
         // for both axis
-		val = &vals; // (start)
+        val = &vals; // (start)
         for (int i = 0; i < points; i++)
         {
             valp = val;
@@ -575,8 +580,8 @@ int player::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
                 goto player_loadFilter_error;
 //            if ((*valp)[1] >= (*val)[1])
 //                goto player_loadFilter_error;
-			fc[i][0] = (sound_sample) (*val)[0];
-			fc[i][1] = (sound_sample) (*val)[1];
+            fc[i][0] = (sound_sample) (*val)[0];
+            fc[i][1] = (sound_sample) (*val)[1];
         }
     }
 
@@ -588,7 +593,7 @@ return 0;
 
 player_loadFilter_error:
     _errorString = ERR_FILTER_DEFINITION;
-	return -1;
+    return -1;
 #endif // HAVE_HARDSID
 }
 
@@ -659,8 +664,8 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
         }
 
         cia.clock  ();
-		cia2.clock ();
-		vic.clock  ();
+        cia2.clock ();
+        vic.clock  ();
         clock++;
 
         // Check to see if we need a new sample from reSID
@@ -777,7 +782,7 @@ uint8_t player::readMemByte_plain (uint_least16_t addr, bool useCache)
     if (addr == 0x0001)
         return _bankReg;
 
-	// Access the Protected PSID Driver
+    // Access the Protected PSID Driver
     if (usePsidDrv && (addr < 0x0100))
         return psidDrv[addr];
     return ram[addr];
@@ -925,12 +930,12 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
         }
 
         if ( (addr&0xfc00) == 0xd000 )
-		{
-			vic.write(addr&0x3f, data);
-			return;
-		}
+        {
+            vic.write(addr&0x3f, data);
+            return;
+        }
 
-		rom[addr] = data;
+        rom[addr] = data;
         return;
     }
 
@@ -1086,7 +1091,7 @@ void player::envWriteMemByte (uint_least16_t addr, uint8_t data, bool useCache)
 void player::envTriggerIRQ (void)
 {
     cpu.triggerIRQ ();
-	// Start the sample sequence
+    // Start the sample sequence
     xsid.suppress  (false);
     xsid.suppress  (true);
 }
