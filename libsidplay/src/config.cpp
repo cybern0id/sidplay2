@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/09/17 19:02:38  s_a_white
+ *  Now uses fixed point maths for sample output and rtc.
+ *
  *  Revision 1.5  2001/09/01 11:13:56  s_a_white
  *  Fixes sidplay1 environment modes.
  *
@@ -73,9 +76,13 @@ int Player::config (const sid2_config_t &cfg)
     }
 
     // External Setups
-    sidEmulation (cfg.sidEmulation);
+    if (sidEmulation (cfg.sidEmulation) < 0)
+    {
+        m_errorString = cfg.sidEmulation->error ();
+        goto Player_configure_restore;
+    }
     if (sidFilterDef (cfg.sidFilterDef) < 0)
-        goto Player_configure_error;
+        goto Player_configure_restore;
     
     // Only do these if we have a loaded tune
     if (m_tune)
@@ -97,7 +104,7 @@ int Player::config (const sid2_config_t &cfg)
         }
         // Configure, setup and install C64 environment/events
         if (environment (cfg.environment) < 0)
-            goto Player_configure_error;
+            goto Player_configure_restore;
         // Start the real time clock event
         rtc.clock (cpuFreq);
     }
@@ -220,8 +227,9 @@ int Player::config (const sid2_config_t &cfg)
         m_cfg.optimisation = SID2_MAX_OPTIMISATION;    
 return 0;
 
-Player_configure_error:
+Player_configure_restore:
     config (m_cfg);
+Player_configure_error:
     return -1;
 }
 
@@ -361,7 +369,7 @@ void Player::extFilter (uint fc)
     mos6581_1.exfilter (cutoff);
 }
 
-void Player::sidEmulation (sidbuilder *builder)
+int Player::sidEmulation (sidbuilder *builder)
 {
     sidemu *sid;
     if (m_builder)
@@ -374,9 +382,19 @@ void Player::sidEmulation (sidbuilder *builder)
         sid2 = &mos6581_2;
     } else {
         sid  = builder->create (this);
+        if (!*builder)
+            return -1;
         sid2 = builder->create (this);
+        if (!*builder)
+            return -1;
+        // Check for failed SIDs
+        if (!sid)
+            sid = &nullsid;
+        if (!sid2)
+            sid = &nullsid;
     }
     xsid.emulation (sid);
+    return 0;
 }
 
 void Player::sidFilter (bool enable)
