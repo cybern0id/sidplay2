@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Mon May 7 2001 Simon White <s_a_white@email.com> 2.0.7-4
+- Fix for endian functions under gcc 2.96.
+
 * Wed Apr 10 2001 Simon White <s_a_white@email.com> 2.0.7-3
 - Use non Mandrake specific release number.
 
