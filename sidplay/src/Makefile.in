@@ -61,22 +61,22 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 AUDIO_DRV = @AUDIO_DRV@
-AUDIO_LIB = @AUDIO_LIB@
+AUDIO_LDADD = @AUDIO_LDADD@
 CC = @CC@
 CXX = @CXX@
 DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EXEEXT = @EXEEXT@
+LD = @LD@
 LIBSIDPLAY2_INCLUDES = @LIBSIDPLAY2_INCLUDES@
 LIBSIDPLAY2_LDADD = @LIBSIDPLAY2_LDADD@
+LIBSIDUTILS_INCLUDES = @LIBSIDUTILS_INCLUDES@
+LIBSIDUTILS_LDADD = @LIBSIDUTILS_LDADD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+NM = @NM@
 OBJDUMP = @OBJDUMP@
-OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-STRIP = @STRIP@
 VERSION = @VERSION@
 
 SUBDIRS = audio docs
@@ -85,21 +85,24 @@ SUBDIRS = audio docs
 
 bin_PROGRAMS = sidplay2
 
-sidplay2_SOURCES = keyboard.cpp main.cpp
-sidplay2_LDADD = ./audio/null/libnull.a ./audio/wav/libwav.a $(AUDIO_DRV) $(AUDIO_LIB) -lsidplay2
+sidplay2_SOURCES = IniConfig.cpp IniConfig.h keyboard.cpp keyboard.h main.cpp
 
-mkinstalldirs = $(SHELL) $(top_srcdir)/unix/scripts/mkinstalldirs
-CONFIG_HEADER = ../unix/config.h
+
+sidplay2_LDADD = ./audio/null/libnull.a ./audio/wav/libwav.a $(AUDIO_DRV) $(AUDIO_LDADD) $(LIBSIDPLAY2_LDADD) -lsidplay2 $(LIBSIDUTILS_LDADD) -lsidutils
+
+
+INCLUDES = $(LIBSIDPLAY2_INCLUDES) $(LIBSIDUTILS_INCLUDES)
+mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
+CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
-bin_PROGRAMS =  sidplay2$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) -I../unix
+DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-sidplay2_OBJECTS =  keyboard.$(OBJEXT) main.$(OBJEXT)
+sidplay2_OBJECTS =  IniConfig.o keyboard.o main.o
 sidplay2_DEPENDENCIES =  ./audio/null/libnull.a ./audio/wav/libwav.a
 sidplay2_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
@@ -107,6 +110,11 @@ CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  Makefile.am Makefile.in
 
 
@@ -114,13 +122,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/keyboard.P .deps/main.P
+DEP_FILES =  .deps/IniConfig.P .deps/keyboard.P .deps/main.P
 SOURCES = $(sidplay2_SOURCES)
 OBJECTS = $(sidplay2_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cpp .lo .o .obj .s
+.SUFFIXES: .S .c .cpp .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile
 
@@ -154,11 +162,6 @@ uninstall-binPROGRAMS:
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -167,7 +170,6 @@ uninstall-binPROGRAMS:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -192,13 +194,11 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-sidplay2$(EXEEXT): $(sidplay2_OBJECTS) $(sidplay2_DEPENDENCIES)
-	@rm -f sidplay2$(EXEEXT)
+sidplay2: $(sidplay2_OBJECTS) $(sidplay2_DEPENDENCIES)
+	@rm -f sidplay2
 	$(CXXLINK) $(sidplay2_LDFLAGS) $(sidplay2_OBJECTS) $(sidplay2_LDADD) $(LIBS)
 .cpp.o:
 	$(CXXCOMPILE) -c $<
-.cpp.obj:
-	$(CXXCOMPILE) -c `cygpath -w $<`
 .cpp.lo:
 	$(LTCXXCOMPILE) -c $<
 
@@ -304,7 +304,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
