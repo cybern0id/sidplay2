@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/02/13 21:01:14  s_a_white
+ *  Support for real interrupts.  C64 Initialisation routine now run from player::play
+ *  instead of player::initialise.  Prevents lockups if init routine does not return.
+ *
  *  Revision 1.10  2001/02/08 17:21:14  s_a_white
  *  Initial SID volumes not being stored in cache.  Fixes Dulcedo Cogitationis.
  *
@@ -154,8 +158,6 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
         tuneInfo.speedString     = TXT_PAL_VBI;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_PAL_CIA;
-        // Will get done later if can't now
-        if (ram) ram[0x02a6]     = 1; // PAL
     }
     else if (clock == SID2_CLOCK_NTSC)
     {
@@ -163,8 +165,6 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
         tuneInfo.speedString     = TXT_NTSC_VBI;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_NTSC_CIA;
-        // Will get done later if can't now
-        if (ram) ram[0x02a6]     = 0; // NTSC
     }
 
     // Set the VBI Timer
@@ -174,18 +174,14 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
             cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_PAL + 0.5));
         else // SIDTUNE_CLOCK_NTSC
             cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_NTSC + 0.5));
-
-        cia.write (0x0e, 0x01); // Start timer
+        cia.write (0x0e, 0x01); // Start the timer
         cia.locked = true;
     }
     else // SIDTUNE_SPEED_CIA_1A
     {   // Don't reset the CIA if already running.  If we do,
         // will mess up the song.
         if (playerState == _stopped)
-        {
-            cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_NTSC + 0.5));
-            cia.write (0x0e, 0x01); // Start the timer
-        }
+            cia.reset ();
     }
 
     // Clock speed changes due to loading a new song
@@ -249,13 +245,15 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
     _sidAddress[0]  = 0xd400;
     _sidAddress[1]  = tuneInfo.sidChipBase2;
 
-    if (playback != sid2_mono)
+    // Only force dual sids if second wasn't detected
+    if (!_sidAddress[1] && _forceDualSids)
+        _sidAddress[1] = 0xd500; // Assumed
+
+    if (_playback != sid2_mono)
     {   // Try Spliting channels across 2 sids
-        if (!(_forceDualSids || _sidAddress[1]))
+        if (!_sidAddress[1])
         {
             _sidAddress[1] = _sidAddress[0];
-            if (playback == sid2_left)
-                xsid.mute (true);
 
             // Mute Voices
             sid.mute  (1, true);
@@ -273,8 +271,9 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
             //    _rightVolume /= 2;
 #endif // XSID_USE_SID_VOLUME
         }
-        else if (_forceDualSids)
-            _sidAddress[1] = 0xd500; // Assumed
+
+        if (_playback == sid2_left)
+            xsid.mute (true);
     }
 
     // Setup the audio side, depending on the audio hardware
@@ -346,10 +345,10 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
     // Not really necessary, but improve performance
     _sidEnabled[0] = true;
     _sidEnabled[1] = (_sidAddress[1] != 0);
-    if ((_playback == sid2_right) && _sidEnabled[1])
-        _sidEnabled[0] = 0;
+    if (_playback == sid2_right)
+        _sidEnabled[0] = false;
     else if (_playback == sid2_left)
-        _sidEnabled[1] = 0;
+        _sidEnabled[1] = false;
 
     return 0;
 }
@@ -363,11 +362,11 @@ int player::environment (sid2_env_t env)
     }
 
     // Not supported yet
-    if (env == sid2_envR)
-    {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = ERR_UNSUPPORTED_MODE;
-        return -1;
-    }
+//    if (env == sid2_envR)
+//    {   // Rev 1.6 (saw) - Added descriptive error
+//        _errorString = ERR_UNSUPPORTED_MODE;
+//        return -1;
+//    }
 
     // Environment already set?
     if (_environment == env)
@@ -397,7 +396,7 @@ int player::environment (sid2_env_t env)
     if (_environment == sid2_envPS)
     {   // Playsid has no roms and SID exists in ram space
         rom             = ram;
-        readMemByte     = &player::readMemByte_plain;
+        readMemByte     = &player::readMemByte_player;
         writeMemByte    = &player::writeMemByte_playsid;
         readMemDataByte = &player::readMemByte_playsid;
     }
@@ -412,20 +411,20 @@ int player::environment (sid2_env_t env)
         switch (_environment)
         {
         case sid2_envTP:
-            readMemByte     = &player::readMemByte_plain;
+            readMemByte     = &player::readMemByte_player;
             writeMemByte    = &player::writeMemByte_sidplay;
             readMemDataByte = &player::readMemByte_sidplaytp;
         break;
 
         case sid2_envBS:
-            readMemByte     = &player::readMemByte_plain;
+            readMemByte     = &player::readMemByte_player;
             writeMemByte    = &player::writeMemByte_sidplay;
             readMemDataByte = &player::readMemByte_sidplaybs;
         break;
 
         case sid2_envR:
         default: // <-- Just to please compiler
-            readMemByte     = &player::readMemByte_sidplaybs;
+            readMemByte     = &player::readMemByte_player;
             writeMemByte    = &player::writeMemByte_sidplay;
             readMemDataByte = &player::readMemByte_sidplaybs;
         break;
@@ -482,12 +481,31 @@ int player::initialise ()
         return -1;
     }
 
+    // Code must not be bigger than zero page (256 bytes)
+    uint8_t psid_driver[] = {
+#       include "player.bin"
+    };
+
+    /* EA31 IRQ return: jmp($0312). */
+    rom [0xea31] = 0x6c;
+    rom [0xea32] = 0x12;
+    rom [0xea33] = 0x03;
+
+    /* Install PSID driver code. */
+    memcpy (psidDrv, psid_driver, sizeof(psid_driver));
+
+    /* Install interrupt vectors in both ROM and RAM. */
+    memcpy (&ram[0xfffa], psid_driver, 6);
+    memcpy (&rom[0xfffa], psid_driver, 6);
+    memcpy (&ram[0x0312], &psid_driver[0x0d], 8);
+    ram[0x0311] = JMPw;
+
     // Setup the Initial entry point
     uint_least16_t initAddr = tuneInfo.initAddr;
     uint_least16_t playAddr = tuneInfo.playAddr;
 
-    endian_little16 (&ram[0xfffc], initAddr);
-    endian_little16 (&rom[0xfffc], initAddr);
+//    endian_little16 (&ram[0xfffc], initAddr);
+//    endian_little16 (&rom[0xfffc], initAddr);
 
     // Check to make sure the play address is legal
     // (playAddr == initAddr) is no longer treated as an
@@ -495,12 +513,31 @@ int player::initialise ()
     //if ((playAddr == 0xffff) || (playAddr == initAddr))
     if (playAddr == 0xffff)
         tuneInfo.playAddr = 0;
+
+    // Tell C64 about song
+    endian_little16 (&psidDrv[0x06], tuneInfo.initAddr);
+    endian_little16 (&psidDrv[0x08], tuneInfo.playAddr);
+    psidDrv[0x0a] = (uint8_t) tuneInfo.currentSong;
+    if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
+        psidDrv[0x0b] = 0;
+    else // SIDTUNE_SPEED_CIA_1A
+        psidDrv[0x0b] = 1;
+
+    // Will get done later if can't now
+    if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+        ram[0x02a6] = 0;
+    else // SIDTUNE_CLOCK_NTSC
+        ram[0x02a6] = 1;
+
+    /*
     // Setup the initial bank register setting for the
     // play loop
     initBankSelect (playAddr);
     _initBankReg = _bankReg;
     initBankSelect (initAddr);
     cpu.reset (tuneInfo.currentSong - 1, 0, 0);
+    */
+    cpu.reset ();
     return 0;
 }
 
@@ -508,6 +545,15 @@ int player::loadSong (SidTune *tune)
 {
     _tune = tune;
     _tune->getInfo(tuneInfo);
+
+    // Un-mute all voices
+    xsid.mute (false);
+    reg8 i = 3;
+    while (i--)
+    {
+        sid.mute  (i, false);
+        sid2.mute (i, false);
+    }
 
     // Must re-configure on fly for stereo support!
     (void) configure (_playback, _samplingFreq, _precision, _forceDualSids);
@@ -526,25 +572,21 @@ int player::loadSong (SidTune *tune)
 // this function should be called from trigger IRQ event
 void player::nextSequence ()
 {
-    if (cpu)
-    {   // We are still running, pull real irq
-        // Move IRQ vector as can't read roms
-        if ((_environment != sid2_envR) && isKernal)
-            endian_little16 (&rom[0xfffe], endian_little16 (&ram[0x0314]));
+    if (cpu) // Real IRQ
         cpu.triggerIRQ ();
-    }
-    else
+    else // CPU is sleeping, so restart it.
     {
         // Check to see if the play address has been provided or whether
         // we should pick it up from an IRQ vector
-        uint_least16_t playAddr = tuneInfo.playAddr;
+        //uint_least16_t playAddr = tuneInfo.playAddr;
 
-        // We have to reload the new play address
-        if (!playAddr)
-        {   // Setup the entry point from hardware IRQ
-            playAddr = endian_little16 (&ram[0xfffe]);
-            if (isKernal)
-            {   // Setup the entry point from software IRQ
+        // Setup the entry point from hardware IRQ
+        uint_least16_t playAddr = endian_little16 (&ram[0xfffe]);
+        if (isKernal)
+            playAddr = endian_little16 (&rom[0xfffe]);
+
+        /*
+        {   // Setup the entry point from software IRQ
                 playAddr = endian_little16 (&ram[0x0314]);
             }
         }
@@ -554,17 +596,24 @@ void player::nextSequence ()
         // Setup the entry point and restart the cpu
         endian_little16 (&ram[0xfffc], playAddr);
         endian_little16 (&rom[0xfffc], playAddr);
+        */
+
+        evalBankSelect  (0x37);
+        endian_little16 (&rom[0xfffc], playAddr);
         cpu.reset ();
     }
 
     // Paged CPU mode moved to interrupt
+    xsid.suppress (false);
     xsid.suppress (true);
+/*
     if (_optimiseLevel > 1)
     {
         while (cpu)
             cpu.clock ();
         xsid.suppress (false);
     }
+*/
 }
 
 void player::pause (void)
@@ -594,11 +643,10 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
         // when the play routine exists.  The cpu will stay
         // idle until an interrupt occurs
         if (cpu)
-        {
             cpu.clock ();
-            if (!cpu)
-                xsid.suppress (false);
-        }
+//            if (!cpu)
+//                xsid.suppress (false);
+//        }
 
         if (!_optimiseLevel)
         {   // Sids currently have largest cpu overhead, so have been moved
@@ -688,7 +736,6 @@ void player::initBankSelect (uint_least16_t addr)
     }
 
     evalBankSelect (data);
-    ram[1] = data;
 }
 
 void player::evalBankSelect (uint8_t data)
@@ -697,13 +744,32 @@ void player::evalBankSelect (uint8_t data)
     isIO     = ((data & 7) >  4);
     isKernal = ((data & 2) != 0);
     _bankReg = data;
-#ifdef DEBUG
-    ram[1]   = data;
-#endif // DEBUG
+}
+
+uint8_t player::readMemByte_player (uint_least16_t addr, bool useCache)
+{
+    if (useCache)
+    {   // Support bad samples in Sidplay Modes
+        return ram[addr];
+    }
+
+    usePsidDrv = false;
+    if (addr < 0x0100)
+        usePsidDrv = true;
+
+    if (_environment == sid2_envR)
+        return readMemByte_sidplaybs (addr, useCache);
+
+    return readMemByte_plain (addr, useCache);
 }
 
 uint8_t player::readMemByte_plain (uint_least16_t addr, bool useCache)
-{
+{   // Access the Protected PSID Driver
+    if (usePsidDrv && (addr < 0x0100))
+        return psidDrv[addr];
+    // Bank Select Register Value DOES NOT get to ram
+    if (addr == 0x0001)
+        return _bankReg;
     return ram[addr];
 }
 
@@ -714,10 +780,8 @@ uint8_t player::readMemByte_playsid (uint_least16_t addr, bool useCache)
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        // Bank Select Register Value DOES NOT get to ram
-        if (addr == 0x0001)
-            return _bankReg;
-
+        if ( (addr&0xff00) == 0 )
+            return readMemByte_plain (addr, false);
         if ( (addr&0xfff0) == 0xdc00 )   // (ms) CIA 1
             return cia.read(addr&0x0f);
         return rom[addr];
@@ -725,9 +789,7 @@ uint8_t player::readMemByte_playsid (uint_least16_t addr, bool useCache)
 
     // $D41D/1E/1F, $D43D/, ... SID not mirrored
     if (( tempAddr & 0x00ff ) >= 0x001d )
-    {
         return xsid.read (addr);
-    }
     else // (Mirrored) SID.
     {
         // Read real sid for these
@@ -747,9 +809,7 @@ uint8_t player::readMemByte_playsid (uint_least16_t addr, bool useCache)
 uint8_t player::readMemByte_sidplaytp(uint_least16_t addr, bool useCache)
 {
     if (addr < 0xD000)
-    {
-        return ram[addr];
-    }
+        return readMemByte_plain (addr, false);
     else
     {
         // Get high-nibble of address.
@@ -772,10 +832,7 @@ uint8_t player::readMemByte_sidplaytp(uint_least16_t addr, bool useCache)
 uint8_t player::readMemByte_sidplaybs (uint_least16_t addr, bool useCache)
 {
     if (addr < 0xA000)
-    {
-        if (addr == 0x0001) return _bankReg;
-        return ram[addr];
-    }
+        return readMemByte_plain (addr, false);
     else
     {
         // Get high-nibble of address.
@@ -808,6 +865,26 @@ uint8_t player::readMemByte_sidplaybs (uint_least16_t addr, bool useCache)
     }
 }
 
+void player::writeMemByte_plain (uint_least16_t addr, uint8_t data, bool useCache)
+{   // Access the Protected PSID Driver
+    if (usePsidDrv && (addr < 0x0100))
+    {   // Writes to PSID drivers memory must effect banks!
+        psidDrv[addr] = data;
+        if (addr == 0x0001)
+            goto player_writeMemByte_plain_bankSelect;
+        return;
+    }
+
+    if (addr == 0x0001)
+    {   // Determine new memory configuration.
+player_writeMemByte_plain_bankSelect:
+        evalBankSelect (data);
+        return;
+    }
+
+    ram[addr] = data;
+}
+
 void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCache)
 {
     uint_least16_t tempAddr = (addr & 0xfc1f);
@@ -815,17 +892,18 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        if (addr == 0x0001)
-        {   // Determine new memory configuration.
-            evalBankSelect (data);
+        if ( (addr&0xff00) == 0 )
+        {
+            writeMemByte_plain (addr, data, false);
             return;
         }
 
         if ( (addr&0xfff0) == 0xdc00 )   // (ms) CIA 1
-    {
+        {
             cia.write(addr&0x0f, data);
             return;
         }
+
         rom[addr] = data;
         return;
     }
@@ -834,9 +912,7 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
     // Map to real address to support PlaySID
     // Extended SID Chip Registers.
     if (( tempAddr & 0x00ff ) >= 0x001d )
-    {
         xsid.write (addr - 0xd400, data);
-    }
     else // Mirrored SID.
     {   // SID.
         // Convert address to that acceptable by resid
@@ -859,29 +935,25 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
                 return;
         }
 
-        sid.write ((uint8_t) tempAddr, data);
         if (useCache)
         {
             rom[tempAddr] = data;
 #ifdef XSID_USE_SID_VOLUME
-            if ((tempAddr & 0x00FF) == 0x0018)
-                xsid.volumeUpdated ();
+            if ((uint8_t) tempAddr == 0x18)
+            {   // Check if xsid wants to trap the change
+                if (xsid.volumeUpdated ())
+                    return;
+            }
 #endif // XSID_USE_SID_VOLUME
         }
+        sid.write ((uint8_t) tempAddr, data);
     }
 }
 
 void player::writeMemByte_sidplay (uint_least16_t addr, uint8_t data, bool useCache)
 {
     if (addr < 0xA000)
-    {
-        if (addr == 0x0001)
-        {
-            evalBankSelect (data);
-            return;
-        }
-        ram[addr] = data;
-    }
+        writeMemByte_plain (addr, data, false);
     else
     {
         // Get high-nibble of address.
@@ -918,7 +990,7 @@ void player::envReset (void)
     // Initalise Memory
     memset (ram, 0, 0x10000);
     memset (rom, 0, 0x10000);
-    memset (rom + 0xE000, RTIn, 0x2000);
+    memset (rom + 0xE000, RTSn, 0x2000);
     if (_environment != sid2_envPS)
         memset (rom + 0xA000, RTSn, 0x2000);
 
@@ -936,6 +1008,7 @@ void player::envReset (void)
     endian_little16 (&ram[0x0314], 0xEA31); // IRQ
     endian_little16 (&ram[0x0316], 0xFE66); // BRK
     endian_little16 (&ram[0x0318], 0xFE47); // NMI
+
 
     // hardware vectors
     endian_little16 (&rom[0xfffa],  0xFE43); // NMI
@@ -984,8 +1057,7 @@ void player::envTriggerRST (void)
 
 void player::envClearIRQ (void)
 {
-    if (cpu)
-        cpu.clearIRQ ();
+    cpu.clearIRQ ();
 }
 
 uint8_t player::envReadMemDataByte (uint_least16_t addr, bool useCache)
