@@ -69,7 +69,6 @@ private:
     udword_sidt   _sampleCount;
     udword_sidt   _seconds;
     bool          _updateClock;
-    udword_sidt   _playLength;
     udword_sidt   _channels;
 
     bool          _filter;
@@ -164,7 +163,6 @@ private:
     }
 
     // Rev 2.0.4 (saw) - Added new timer functions
-    void        playLength   (udword_sidt seconds);
     udword_sidt time         (void) { return _seconds; }
     bool        updateClock  (void)
     {
