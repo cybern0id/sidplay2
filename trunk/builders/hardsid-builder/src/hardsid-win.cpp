@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/10/17 18:36:43  s_a_white
+ *  Prevent multiple unlocks causing a NULL pointer access.
+ *
  *  Revision 1.6  2002/08/09 18:11:35  s_a_white
  *  Added backwards compatibility support for older hardsid.dll.
  *
@@ -119,7 +122,8 @@ void HardSID::reset (uint8_t volume)
         hsid2.Reset  ((BYTE) m_instance);
 
     if (m_eventContext != NULL)
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
+                                  EVENT_CLOCK_PHI1);
 }
 
 void HardSID::voice (uint_least8_t num, uint_least8_t volume,
@@ -154,7 +158,8 @@ bool HardSID::lock (c64env *env)
         }
         m_locked = true;
         m_eventContext = &env->context ();
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
+                                  EVENT_CLOCK_PHI1);
     }
     return true;
 }
@@ -165,7 +170,8 @@ void HardSID::event (void)
     m_accessClk += cycles;
     if (cycles)
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
+                              EVENT_CLOCK_PHI1);
 }
 
 // Disable/Enable SID filter

@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/01/29 21:50:33  s_a_white
+ *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  config.  Initial code added to support more than two sids.
+ *
  *  Revision 1.9  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -55,7 +59,7 @@ void Player::mixerReset (void)
     m_sampleClock  = m_samplePeriod & 0x0FFFF;
     // Schedule next sample event
     (context ()).schedule (&mixerEvent,
-        m_samplePeriod >> 24);
+        m_samplePeriod >> 24, EVENT_CLOCK_PHI1);
 }
 
 void Player::mixer (void)
@@ -68,7 +72,7 @@ void Player::mixer (void)
     m_sampleIndex += (this->*output) (buf);
  
     // Schedule next sample event
-    (context ()).schedule (&mixerEvent, cycles);
+    (context ()).schedule (&mixerEvent, cycles, EVENT_CLOCK_PHI1);
 
     // Filled buffer
     if (m_sampleIndex >= m_sampleCount)

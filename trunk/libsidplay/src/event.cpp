@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/11/21 19:55:38  s_a_white
+ *  We now jump to next event directly instead on clocking by a number of
+ *  cycles.
+ *
  *  Revision 1.6  2002/07/17 19:20:03  s_a_white
  *  More efficient event handling code.
  *
@@ -41,6 +45,7 @@
 EventScheduler::EventScheduler (const char * const name)
 :m_name(name),
  m_pendingEventCount(0),
+ m_phase(EVENT_CLOCK_PHI1),
  m_timeWarp(this)
 {
     memset (&m_pendingEvents, 0, sizeof (Event));
@@ -66,7 +71,7 @@ void EventScheduler::timeWarp ()
     }
     m_eventClk = 0;
     // Re-schedule the next timeWarp
-    schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT);
+    schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT, EVENT_CLOCK_PHI1);
 }
 
 void EventScheduler::reset (void)
@@ -86,9 +91,10 @@ void EventScheduler::reset (void)
 }
 
 // Add event to ordered pending queue
-void EventScheduler::schedule (Event *event, event_clock_t cycles)
+void EventScheduler::schedule (Event *event, event_clock_t cycles,
+                               event_phase_t phase)
 {
-    uint clk = m_eventClk + cycles;
+    uint clk = m_eventClk + ((cycles << 1) | (phase ^ m_phase));
     if (event->m_pending)
         cancelPending (*event);
     event->m_pending = true;

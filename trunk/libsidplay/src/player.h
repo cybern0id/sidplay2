@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2002/12/03 23:25:53  s_a_white
+ *  Prevent PSID digis from playing in real C64 mode.
+ *
  *  Revision 1.38  2002/11/27 00:16:51  s_a_white
  *  Make sure driver info gets reset and exported properly.
  *
@@ -141,6 +144,7 @@
 #ifndef _player_h_
 #define _player_h_
 
+#include <stdio.h>
 #include <string.h>
 
 #include "config.h"
@@ -229,7 +233,7 @@ private:
             cycles = m_clk >> 7;
             m_clk &= 0x7F;
             m_seconds++;
-            m_eventContext.schedule (this, cycles);
+            m_eventContext.schedule (this, cycles, EVENT_CLOCK_PHI1);
         }
 
     public:
@@ -245,7 +249,7 @@ private:
         {   // Fixed point 25.7
             m_seconds = 0;
             m_clk     = m_period & 0x7F;
-            m_eventContext.schedule (this, m_period >> 7);
+            m_eventContext.schedule (this, m_period >> 7, EVENT_CLOCK_PHI1);
         }
 
         void clock (float64_t period)
