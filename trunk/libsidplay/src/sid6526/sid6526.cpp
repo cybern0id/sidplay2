@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.10  2003/02/24 19:45:00  s_a_white
  *  Make sure events are canceled on reset.
  *
@@ -49,13 +52,14 @@
  ***************************************************************************/
 
 #include <time.h>
+#include "config.h"
 #include "sidendian.h"
 #include "sid6526.h"
 
 const char * const SID6526::credit =
 {   // Optional information
     "*SID6526 (SIDPlay1 Fake CIA) Emulation:\0"
-    "\tCopyright (C) 2001 Simon White <sidplay2@email.com>\0"
+    "\tCopyright (C) 2001 Simon White <" S_A_WHITE_EMAIL ">\0"
 };
 
 SID6526::SID6526 (c64env *env)
