@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/09/20 20:33:54  s_a_white
+ *  sid2 now gets correctly set to nullsid for a bad create call.
+ *
  *  Revision 1.7  2001/09/20 19:34:11  s_a_white
  *  Error checking added for the builder create calls.
  *
@@ -77,27 +80,25 @@ int Player::config (const sid2_config_t &cfg)
         m_errorString = ERR_UNSUPPORTED_PRECISION;
         goto Player_configure_error;
     }
-
-    // External Setups
-    if (sidEmulation (cfg.sidEmulation) < 0)
-    {
-        m_errorString = cfg.sidEmulation->error ();
-        goto Player_configure_restore;
-    }
-    if (sidFilterDef (cfg.sidFilterDef) < 0)
-        goto Player_configure_restore;
-    
+   
     // Only do these if we have a loaded tune
     if (m_tune)
     {
         float64_t cpuFreq;
+        // External Setups
+        if (sidCreate (cfg.sidEmulation, cfg.sidModel) < 0)
+        {
+            m_errorString      = cfg.sidEmulation->error ();
+            m_cfg.sidEmulation = NULL;
+            goto Player_configure_restore;
+        }
         // Must be this order:
         // Determine clock speed
         cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockForced);
-        // Fixed point conversion 8.24
+        // Fixed point conversion 16.16
         m_samplePeriod = (event_clock_t) (cpuFreq /
                          (float64_t) cfg.frequency *
-                         (1 << 24) * m_fastForwardFactor);
+                         (1 << 16) * m_fastForwardFactor);
         // Setup fake cia
         sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
         if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
@@ -111,8 +112,6 @@ int Player::config (const sid2_config_t &cfg)
         // Start the real time clock event
         rtc.clock (cpuFreq);
     }
-    sidModel   (cfg.sidModel);
-    sidFilter  (cfg.sidFilter);
     sidSamples (cfg.sidSamples);
 
     // All parameters check out, so configure player.
@@ -122,9 +121,6 @@ int Player::config (const sid2_config_t &cfg)
 
     m_sidAddress[0]  = m_tuneInfo.sidChipBase1;
     m_sidAddress[1]  = m_tuneInfo.sidChipBase2;
-
-    // Setup the external filter to avoid aliasing
-    extFilter (cfg.frequency / 2);
 
     // Only force dual sids if second wasn't detected
     if (!m_sidAddress[1] && cfg.forceDualSids)
@@ -360,110 +356,88 @@ int Player::environment (sid2_env_t env)
         }
     }
 
+    // Check if tune is invalid
+    if ((m_environment != sid2_envR) &&
+        (m_tuneInfo.playAddr == 0xffff))
+    {   // Unload song.
+        load (NULL);
+    }
+
     // Have to reload the song into memory as
     // everything has changed
     return initialise ();
 }
 
-void Player::extFilter (uint fc)
+// Integrate SID emulation from the builder class into
+// libsidplay2
+int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
 {
-    double cutoff = fc;
-    mos6581_1.exfilter (cutoff);
-    mos6581_1.exfilter (cutoff);
-}
+    sidemu *sid1 = xsid.emulation ();
 
-int Player::sidEmulation (sidbuilder *builder)
-{
-    sidemu *sid;
-    if (m_builder)
-        m_builder->remove ();
+    // If we are already using the emulation
+    // then don't change
+    if (builder == sid1->builder ())
+        return 0;
 
-    m_builder = builder;
+	{   // Release old sids
+		sidbuilder *b;
+		b = sid1->builder ();
+		if (b)
+			b->unlock (sid1);
+		b = sid2->builder ();
+		if (b)
+		   b->unlock (sid2);
+    }
+
     if (!builder)
-    {   // Restore internal sid emulations
-        sid  = &mos6581_1;
-        sid2 = &mos6581_2;
-    } else {
-        sid  = builder->create (this);
-        if (!*builder)
-            return -1;
-        sid2 = builder->create (this);
-        if (!*builder)
-            return -1;
-        // Check for failed SIDs
-        if (!sid)
-            sid  = &nullsid;
-        if (!sid2)
-            sid2 = &nullsid;
-    }
-    xsid.emulation (sid);
-    return 0;
-}
-
-void Player::sidFilter (bool enable)
-{
-    sid->filter  (enable);
-    sid2->filter (enable);
-
-    if (m_builder)
-    {   // Mirror settings in internal SIDs
-        mos6581_1.filter (enable);
-        mos6581_2.filter (enable);
-    }
-}
-
-void Player::sidModel (sid2_model_t model)
-{
-    if (model == SID2_MODEL_CORRECT)
-    {
-        if (!m_tuneInfo.sidRev8580)
-            sidModel (SID2_MOS6581);
-        else
-            sidModel (SID2_MOS8580);
+    {   // No sid
+        sid1 = &nullsid;
+        sid2 = &nullsid;
     }
     else
     {
-        sid->model  (model);
-        sid2->model (model);
-        if (m_builder)
-        {   // Mirror settings in internal SIDs
-            mos6581_1.model (model);
-            mos6581_2.model (model);
+        if (model == SID2_MODEL_CORRECT)
+        {   // Base selection on song
+            model = SID2_MOS6581;
+            if ((m_tune->getInfo()).sidRev8580)
+                model = SID2_MOS8580;
         }
 
         // Set the tunes sid model
         m_tuneInfo.sidRev8580 = false;
         if (model == SID2_MOS8580)
             m_tuneInfo.sidRev8580 = true;
+
+        // Get first SID emulation
+        sid1 = builder->lock (this, model);
+        if (!sid1)
+            sid1 = &nullsid;
+        if (!*builder)
+            return -1;
+
+        // Get second SID emulation
+        sid2 = builder->lock (this, model);
+        if (!sid2)
+            sid2 = &nullsid;
     }
+    xsid.emulation (sid1);
+    return 0;
 }
 
 void Player::sidSamples (bool enable)
 {
+    sidemu *sid1 = xsid.emulation ();
     xsid.sidSamples (enable);
 
     // Now balance voices
     if (enable)
     {
-        mos6581_1.gain (0);
-        mos6581_2.gain (0);
+        sid1->gain (0);
+        sid2->gain (0);
         xsid.gain (-100);
     } else {
-        mos6581_1.gain (-25);
-        mos6581_2.gain (-25);
+        sid1->gain (-25);
+        sid2->gain (-25);
         xsid.gain (-75);
     }
-}
-
-int Player::sidFilterDef (const sid_filter_t *filter)
-{
-    if (!mos6581_1.filter (filter))
-        goto Player_sidFilterDef_error;
-    if (!mos6581_2.filter (filter))
-        goto Player_sidFilterDef_error;
-return 0;
-
-Player_sidFilterDef_error:
-    m_errorString = ERR_FILTER_DEFINITION;
-    return -1;
 }
