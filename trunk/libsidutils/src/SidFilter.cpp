@@ -43,7 +43,7 @@ void SidFilter::clear ()
 
 void SidFilter::read (char *filename)
 {
-    ini_fd_t ini = ini_open (filename);
+    ini_fd_t ini = ini_open (filename, "r");
 
     // Illegal ini fd
     if (!ini)
@@ -76,11 +76,11 @@ void SidFilter::read (ini_fd_t ini, char *heading)
     switch (type)
     {
     case 1:
-        readFilterType1 (ini);
+        readType1 (ini);
     break;
 
     case 2:
-        readFilterType2 (ini);
+        readType2 (ini);
     break;
 
     default:
@@ -90,24 +90,24 @@ void SidFilter::read (ini_fd_t ini, char *heading)
     }
 }
 
-void SidFilter::readFilterType1 (ini_fd_t ini)
+void SidFilter::readType1 (ini_fd_t ini)
 {
     int points;
 
     // Does Section exist in ini file
     if (ini_locateKey (ini, "points") < 0)
-        goto SidFilter_readFilterType1_errorDefinition;
+        goto SidFilter_readType1_errorDefinition;
     if (ini_readInt (ini, &points) < 0)
-        goto SidFilter_readFilterType1_errorDefinition;
+        goto SidFilter_readType1_errorDefinition;
 
     // Make sure there are enough filter points
     if ((points < 2) || (points > 0x800))
-        goto SidFilter_readFilterType1_errorDefinition;
+        goto SidFilter_readType1_errorDefinition;
     filter.points = (uint_least16_t) points;
 
     // Set the ini reader up for array access
     if (ini_listDelims (ini, ",") < 0)
-        goto SidFilter_readFilterType1_errorMemory;
+        goto SidFilter_readType1_errorMemory;
 
     {
         char key[12];
@@ -117,9 +117,9 @@ void SidFilter::readFilterType1 (ini_fd_t ini)
             sprintf (key, "point%d", i + 1);
             ini_locateKey (ini, key);
             if (ini_readInt (ini, &reg) < 0)
-                goto SidFilter_readFilterType1_errorDefinition;
+                goto SidFilter_readType1_errorDefinition;
             if (ini_readInt (ini, &fc)  < 0)
-                goto SidFilter_readFilterType1_errorDefinition;
+                goto SidFilter_readType1_errorDefinition;
 
             // Got valid reg/fc
             filter.cutoff[i][0] = (uint) reg;
@@ -128,57 +128,62 @@ void SidFilter::readFilterType1 (ini_fd_t ini)
     }
 return;
 
-SidFilter_readFilterType1_errorDefinition:
+SidFilter_readType1_errorDefinition:
     clear ();
     errorString = "SID Filter: Invalid Type 1 filter definition";
     status = false;
 return;
 
-SidFilter_readFilterType1_errorMemory:
+SidFilter_readType1_errorMemory:
     errorString = "SID Filter: Out of memory";
     status = false;
 }
 
-void SidFilter::readFilterType2 (ini_fd_t ini)
+void SidFilter::readType2 (ini_fd_t ini)
 {
     double fs, fm, ft;
     
     // Read filter parameters
     ini_locateKey (ini, "fs");
     if (ini_readDouble (ini, &fs) < 0)
-        goto SidFilter_readFilterType2_errorDefinition;
+        goto SidFilter_readType2_errorDefinition;
     ini_locateKey (ini, "fm");
     if (ini_readDouble (ini, &fm) < 0)
-        goto SidFilter_readFilterType2_errorDefinition;
+        goto SidFilter_readType2_errorDefinition;
     ini_locateKey (ini, "ft");
     if (ini_readDouble (ini, &ft) < 0)
-        goto SidFilter_readFilterType2_errorDefinition;
-    
-    // Definition from reSID
-    filter.points = 0x100;
+        goto SidFilter_readType2_errorDefinition;
 
-    {
-        double fcMax = 1.0;
-        double fcMin = 0.01;
-        double fc;
-    
-        // Create filter
-        for (uint i = 0; i < 0x100; i++)
-        {
-            uint rk = i << 3;
-            filter.cutoff[i][0] = rk;
-            fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
-            if (fc < fcMin)
-                fc = fcMin;
-            if (fc > fcMax)
-                fc = fcMax;
-            filter.cutoff[i][1] = (uint) (fc * 4100);
-        }
-    }
+    // Calculate the filter
+    calcType2 (fs, fm, ft);
 return;
 
-SidFilter_readFilterType2_errorDefinition:
+SidFilter_readType2_errorDefinition:
     clear ();
     errorString = "SID Filter: Invalid Type 2 filter definition";
     status = false;
+}
+
+// Calculate a Type 2 filter (Sidplay 1 Compatible)
+void SidFilter::calcType2 (double fs, double fm, double ft)
+{
+    double fcMax = 1.0;
+    double fcMin = 0.01;
+    double fc;
+
+    // Definition from reSID
+    filter.points = 0x100;
+
+    // Create filter
+    for (uint i = 0; i < 0x100; i++)
+    {
+        uint rk = i << 3;
+        filter.cutoff[i][0] = rk;
+        fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
+        if (fc < fcMin)
+            fc = fcMin;
+        if (fc > fcMax)
+            fc = fcMax;
+        filter.cutoff[i][1] = (uint) (fc * 4100);
+    }
 }
