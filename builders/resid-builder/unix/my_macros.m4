@@ -100,7 +100,7 @@ dnl -------------------------------------------------------------------------
 
 AC_DEFUN(MY_CHECK_IOS_OPENMODE,
 [
-    AC_MSG_CHECKING(whether standard member ios::openmode is available)
+    AC_MSG_CHECKING([whether standard member ios::openmode is available])
     AC_CACHE_VAL(test_cv_have_ios_openmode,
     [
         AC_TRY_COMPILE(
@@ -124,7 +124,7 @@ dnl -------------------------------------------------------------------------
 
 AC_DEFUN(MY_CHECK_EXCEPTIONS,
 [
-    AC_MSG_CHECKING([whether nothrow allocator is available])
+    AC_MSG_CHECKING([whether exceptions are available])
     AC_CACHE_VAL(test_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
@@ -171,8 +171,8 @@ AC_DEFUN(MY_TRY_COMPILE,
     my_save_ldflags=$LDFLAGS
     my_save_cxx=$CXX
 
-    CXXFLAGS=$1
-    LDFLAGS=$2
+    CXXFLAGS="$CXXFLAGS $1"
+    LDFLAGS="$LDFLAGS $2"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
@@ -411,7 +411,7 @@ AC_DEFUN(MY_FIND_LIB,
     if test "$my_libdir" != NO; then
         my_dirs="$my_libdir $my_libdir/lib"
         MY_FIND_FILE(lib$1.la,$my_dirs,my_libdir)
-        my_ldflags="$my_libdir -l$1"
+        my_ldflags="-L$my_libdir -l$1"
     else
         my_ldflags="-l$1"
     fi
