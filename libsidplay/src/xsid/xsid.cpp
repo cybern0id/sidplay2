@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2002/02/21 20:26:13  s_a_white
+ *  Nolonger default to Galway Mode when Noise samples init incorrectly. Fixes
+ *  VARIOUS/S-Z/Zyron/Bouncy_Balls.sid (HVSC).
+ *
  *  Revision 1.18  2002/02/17 16:34:39  s_a_white
  *  New reset interface
  *
@@ -131,14 +135,14 @@ void channel::checkForInit ()
     case 0xFE:
     case 0xFC:
         sampleInit ();
-		break;
+        break;
     case 0xFD:
         if (!active)
             return;
         free (); // Stop
         // Calculate the sample offset
         m_xsid.sampleOffsetCalc ();
-		break;
+        break;
     case 0x00:
         break;
     default:
@@ -436,9 +440,16 @@ void XSID::suppress (bool enable)
     suppressed = enable;
     if (!suppressed)
     {   // Get the channels running
+#if XSID_DEBUG
+        printf ("XSID: Un-suppressing\n");
+#endif
         ch4.checkForInit ();
         ch5.checkForInit ();
     }
+#if XSID_DEBUG
+    else
+        printf ("XSID: Suppressing\n");
+#endif
 }
 
 // By muting samples they will start and play the at the
@@ -516,14 +527,16 @@ void XSID::setSidData0x18 (void)
 }
 
 void XSID::recallSidData0x18 (void)
-{
-    // Rev 2.0.5 (saw) - Changed to recall volume differently depending on mode
+{   // Rev 2.0.5 (saw) - Changed to recall volume differently depending on mode
     // Normally after samples volume should be restored to half volume,
     // however, Galway Tunes sound horrible and seem to require setting back to
     // the original volume.  Setting back to the original volume for normal
     // samples can have nasty pulsing effects
     if (ch4.isGalway ())
-        writeMemByte (sidData0x18);
+    {
+        if (_sidSamples && !muted)
+            writeMemByte (sidData0x18);
+    }
     else
         setSidData0x18 ();
 }
@@ -569,10 +582,13 @@ bool XSID::storeSidData0x18 (uint8_t data)
     if (ch4 || ch5)
     {   // Force volume to be changed at next clock
         sampleOffsetCalc ();
+        if (_sidSamples)
+        {
 #if XSID_DEBUG
-        printf ("XSID: SID Volume Changed Externally (Corrected).\n");
+            printf ("XSID: SID Volume Changed Externally (Corrected).\n");
 #endif
-        return true;
+            return true;
+        }
     }
     writeMemByte (sidData0x18);
     return false;
