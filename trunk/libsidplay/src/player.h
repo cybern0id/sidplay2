@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.22  2001/10/18 22:34:04  s_a_white
  *  GCC3 fixes.
  *
@@ -275,6 +278,7 @@ private:
     inline void    envWriteMemByte    (uint_least16_t addr, uint8_t data);
     inline bool    envCheckBankJump   (uint_least16_t addr);
     inline uint8_t envReadMemDataByte (uint_least16_t addr);
+    inline void    envSleep           (void);
 
     void   envLoadFile (char *file)
     {
@@ -334,15 +338,16 @@ public:
     const char    *error        (void) const { return m_errorString; }
 };
 
+inline void Player::envSleep (void)
+{   // Start the sample sequence
+    xsid.suppress (false);
+    xsid.suppress (true);
+}
+
 inline void Player::interruptIRQ (const bool state)
 {
     if (state)
-    {
         cpu->triggerIRQ ();
-        // Start the sample sequence
-        xsid.suppress (false);
-        xsid.suppress (true);
-    }
     else
         cpu->clearIRQ ();
 }

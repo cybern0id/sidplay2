@@ -56,9 +56,10 @@ public:
 
     void write   (const uint_least8_t addr, const uint8_t data)
     {
-        m_sid->write (addr, data);
         if (addr == 0x18)
             XSID::storeSidData0x18 (data);
+        else
+            m_sid->write (addr, data);
     }
 
     void write16 (const uint_least16_t addr, const uint8_t data)

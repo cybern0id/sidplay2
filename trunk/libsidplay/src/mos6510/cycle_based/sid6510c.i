@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/10/02 18:00:37  s_a_white
+ *  Removed un-necessary cli.
+ *
  *  Revision 1.13  2001/09/18 07:51:39  jpaana
  *  Small fix to rti-processing.
  *
@@ -181,6 +184,7 @@ void SID6510::sid_brk (void)
 
     // The CPU is about to sleep.  It can only be woken by a
     // reset or interrupt.
+    envSleep ();
     Initialise ();
 
     // When we return from interrupt we will do a break
