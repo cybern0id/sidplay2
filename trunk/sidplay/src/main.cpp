@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/03/27 19:00:49  s_a_white
+ *  Default record and play lengths can now be set in the sidplay2.ini file.
+ *
  *  Revision 1.9  2001/03/27 17:14:39  s_a_white
  *  Time length can be made INFINITE by using -t0 on the command line.
  *
@@ -642,14 +645,7 @@ main_restart:
         delete wavName;
 
         if (!runtime)
-        {
             runtime = sidplay2.recordLength;
-            // Can't have endless runtime for Wav Output
-            if (!runtime)
-            {   // Use default of 3 mins 30 secs
-                runtime = 3 * 60 + 30;
-            }
-        }
     }
 
     if (!nextBuffer)
