@@ -58,8 +58,8 @@ static AudioBase *audioDrv = NULL;
 int quietLevel;
 
 // Function prototypes
-static void displayError  (char* arg0, int num);
-static void displaySyntax (char* arg0);
+static void displayError  (char *arg0, int num);
+static void displaySyntax (char *arg0);
 // Rev 2.0.4 (saw) - Added for better MAC support
 static inline bool generateMusic (AudioConfig &cfg, void *buffer);
 static void sighandler    (int signum);
@@ -142,58 +142,6 @@ int main(int argc, char *argv[])
                 }
             break;
 	
-            case 'o':
-                if (argv[i][x] == '\0')
-                {   // User forgot track number
-                    x = 0;
-                    break;
-                }
-
-                selectedSong = atoi(argv[i] + x);
-                // Show that all string was processed
-                while (argv[i][x] != '\0')
-                    x++;
-            break;
-
-            case 'O':
-                if (argv[i][x] == '\0')
-                {   // User optimisation level
-                    x = 0;
-                    break;
-                }
-
-                optimiseLevel = atoi(argv[i] + x);
-                // Show that all string was processed
-                while (argv[i][x] != '\0')
-                    x++;
-            break;
-
-            case 'p':
-                if (argv[i][x] == '\0')
-                {
-                    // User forgot precision
-                    x = 0;
-                }
-
-                {
-                    int precision = atoi(argv[i] + x);
-                    if (precision <= 8)
-                        precision = 8;
-                    else if (precision <= 16)
-                        precision = 16;
-                    else
-                        precision = 24;
-
-                    if (precision > SIDPLAYER_MAX_PRECISION)
-                        precision = SIDPLAYER_MAX_PRECISION;
-                    audioCfg.precision = precision;
-
-                    // Show that all string was processed
-                    while (argv[i][x] != '\0')
-                        x++;
-                }
-            break;
-
             // Player Mode (Environment) Options
             case 'm':
                 switch (argv[i][x++])
@@ -253,13 +201,63 @@ int main(int argc, char *argv[])
                 }
             break;
 
+            case 'o':
+                if (argv[i][x] == '\0')
+                {   // User forgot track number
+                    x = 0;
+                    break;
+                }
+
+                selectedSong = atoi(argv[i] + x);
+                // Show that all string was processed
+                while (argv[i][x] != '\0')
+                    x++;
+            break;
+
+            case 'O':
+                if (argv[i][x] == '\0')
+                {   // User optimisation level
+                    x = 0;
+                    break;
+                }
+
+                optimiseLevel = atoi(argv[i] + x);
+                // Show that all string was processed
+                while (argv[i][x] != '\0')
+                    x++;
+            break;
+
+            case 'p':
+                if (argv[i][x] == '\0')
+                {
+                    // User forgot precision
+                    x = 0;
+                }
+
+                {
+                    int precision = atoi(argv[i] + x);
+                    if (precision <= 8)
+                        precision = 8;
+                    else if (precision <= 16)
+                        precision = 16;
+                    else
+                        precision = 24;
+
+                    if (precision > SIDPLAYER_MAX_PRECISION)
+                        precision = SIDPLAYER_MAX_PRECISION;
+                    audioCfg.precision = precision;
+
+                    // Show that all string was processed
+                    while (argv[i][x] != '\0')
+                        x++;
+                }
+            break;
+
             case 'q':
-				{
-                    // Later introduce incremental mode.
-					//while (argv[i][x++] == 'q')
-                        ++quietLevel;
-			break;
-				}
+                // Later introduce incremental mode.
+                if (argv[i][x] == '\0')
+                    ++quietLevel;
+            break;
 
             // Stereo Options
             case 's':
@@ -384,11 +382,11 @@ int main(int argc, char *argv[])
             }
         }
         i++;  // next index
-	}
+    }
 
     if (sidFile == 0)
     {   // Neither file nor stdin.
-		displaySyntax(argv[0]);
+        displaySyntax(argv[0]);
         exit(0);
     }
 
@@ -427,7 +425,9 @@ int main(int argc, char *argv[])
     player.environment  (playerMode);
     if (player.loadSong (argv[sidFile], selectedSong) == -1)
     {
-        displayError (argv[0], ERR_FILE_OPEN);
+        // Rev 1.7 (saw) - Changed to print error message provided
+        // from the player
+        cerr << argv[0] << " " << player.getErrorString () << endl;
         goto main_error;
     }
 
@@ -696,11 +696,12 @@ void displaySyntax (char* arg0)
         << " -ns          MOS 8580 waveforms (default: MOS 6581)" << endl
 
         << " -o<num>      select track number (default: preset)" << endl
-        << " -O<num>      optimisation level, max is " << SIDPLAYER_MAX_OPTIMISATION
+        // Rev 1.7 (saw) - Changed max printed optimisation
+        << " -O<num>      optimisation level, max is " << (SIDPLAYER_MAX_OPTIMISATION - 1)
         << " (default: 0)" << endl
 
         << " -p<num>      set bit precision for samples. "
-		<< "(default: " << SIDPLAYER_DEFAULT_PRECISION << ")" << endl
+        << "(default: " << SIDPLAYER_DEFAULT_PRECISION << ")" << endl
 
         << " -q           quiet (= no time display) (EXPERIMENTAL)" << endl
         << " -t<num>      set play length in [m:]s format (0 is endless)" << endl
@@ -713,7 +714,8 @@ void displaySyntax (char* arg0)
 //        << " -w<name>     explicitly defines wav output name" << endl
         << endl
 //        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
-        << "Project main page: http://sourceforge.net/projects/sidplay2/" << endl;
+        // Rev 1.7 (saw) - Changed to new hompage address
+        << "Home Page: http://sidplay2.sourceforge.net/" << endl;
 }
 
 void cleanup (void)
@@ -722,4 +724,3 @@ void cleanup (void)
         delete audioDrv;
     cout << endl;
 }
-

@@ -83,6 +83,9 @@ public:
     void        sidModel     (model_sidt model);
     void        clockSpeed   (clock_sidt clock);
 
+    // Rev 1.5 (saw) - Added error loop through support
+    const char *getErrorString (void);
+
     operator bool()  const { return (player ? true: false); }
     bool operator!() const { return (player ? false: true); }
 };

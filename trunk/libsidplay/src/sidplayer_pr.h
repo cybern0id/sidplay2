@@ -77,6 +77,10 @@ private:
     model_sidt    _sidModel;
     clock_sidt    _clockSpeed;
 
+    // Rev 1.5 (saw) - Added to allow pass through of error
+    // messages.
+    const char   *_errorString;
+
     // temp stuff -------------
     bool   isKernal;
     bool   isBasic;

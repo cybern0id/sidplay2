@@ -30,10 +30,18 @@
 #define SIDPLAYER_VIC_FREQ_NTSC        60.0
 
 // These texts are used to override the sidtune settings.
-static const char SIDPLAYER_PAL_VBI_TEXT[] = "50 Hz VBI (PAL FORCED)";
-static const char SIDPLAYER_PAL_CIA_TEXT[] = "CIA 1 Timer A (PAL FORCED)";
-static const char SIDPLAYER_NTSC_VBI_TEXT[] = "60 Hz VBI (NTSC FORCED)";
-static const char SIDPLAYER_NTSC_CIA_TEXT[] = "CIA 1 Timer A (NTSC FORCED)";
+static const char SIDPLAYER_TXT_PAL_VBI[]  = "50 Hz VBI (PAL FORCED)";
+static const char SIDPLAYER_TXT_PAL_CIA[]  = "CIA 1 Timer A (PAL FORCED)";
+static const char SIDPLAYER_TXT_NTSC_VBI[] = "60 Hz VBI (NTSC FORCED)";
+static const char SIDPLAYER_TXT_NTSC_CIA[] = "CIA 1 Timer A (NTSC FORCED)";
+static const char SIDPLAYER_TXT_NA[]       = "NA";
+
+// Rev 1.6 (saw) - Added Error Strings
+static const char SIDPLAYER_ERR_CONF_WHILST_ACTIVE[]    = "SIDPLAYER ERROR: Trying to configure player whilst active.";
+static const char SIDPLAYER_ERR_UNSUPPORTED_FREQ[]      = "SIDPLAYER ERROR: Unsupported sampling frequency.";
+static const char SIDPLAYER_ERR_UNSUPPORTED_PRECISION[] = "SIDPLAYER ERROR: Unsupported sample precision.";
+static const char SIDPLAYER_ERR_MEM_ALLOC[]             = "SIDPLAYER ERROR: Memory Allocation Failure.";
+static const char SIDPLAYER_ERR_UNSUPPORTED_MODE[]      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
 
 // Set the ICs environment variable to point to
 // this sidplayer_pr
@@ -67,6 +75,7 @@ sidplayer_pr::sidplayer_pr (void)
     _playLength    = 0;
     configure (sid_mono, SIDPLAYER_DEFAULT_SAMPLING_FREQ,
                SIDPLAYER_DEFAULT_PRECISION, false);
+    _optimiseLevel = 1;
 
     // Rev 2.0.4 (saw) - Added Force Clock Speed
     _clockSpeed    = SID_TUNE_CLOCK;
@@ -74,7 +83,9 @@ sidplayer_pr::sidplayer_pr (void)
     // Temp @TODO@
     _leftVolume    = 255;
     _rightVolume   = 255;
-    _optimiseLevel = 1;
+
+    // Rev 1.6 (saw) - Added variable initialisation
+    _errorString = SIDPLAYER_TXT_NA;
 }
 
 sidplayer_pr::~sidplayer_pr ()
@@ -86,11 +97,17 @@ sidplayer_pr::~sidplayer_pr ()
 int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, int precision, bool forceDualSids)
 {
     if (playerState != _stopped)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_CONF_WHILST_ACTIVE;
         return -1;
+    }
 
     // Check for bas sampling frequency
     if (!samplingFreq)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_UNSUPPORTED_FREQ;
         return -1;
+    }
 
     // Check for legal precision
     switch (precision)
@@ -99,11 +116,16 @@ int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, i
     case 16:
     case 24:
         if (precision > SIDPLAYER_MAX_PRECISION)
+        {   // Rev 1.6 (saw) - Added descriptive error
+            _errorString = SIDPLAYER_ERR_UNSUPPORTED_PRECISION;
             return -1;
+        }
         _precision = precision;
     break;
 
     default:
+        // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_UNSUPPORTED_PRECISION;
         return -1;
     }
 
@@ -279,9 +301,18 @@ int sidplayer_pr::loadSong (const char * const title, const uword_sidt songNumbe
     myTune = new SidTune(title);
 #endif
     // Make sure the memory was allocated
-    if (!myTune)    return -1;
+    if (!myTune)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_MEM_ALLOC;
+        return -1;
+    }
+
     // Make sure the tune loaded correctly
-    if (!(*myTune)) return -1;
+    if (!(*myTune))
+    {   // Rev 1.6 (saw) - Allow loop through errors
+        _errorString = (myTune->getInfo ()).statusString;
+        return -1;
+    }
     myTune->selectSong(songNumber);
     return loadSong (myTune);
 };
@@ -381,7 +412,7 @@ void sidplayer_pr::getInfo (playerInfo_sidt *info)
     info->version     = VERSION;
     info->filter      = _filter;
     info->extFilter   = _extFilter;
-	info->tuneInfo    = tuneInfo;
+    info->tuneInfo    = tuneInfo;
     info->environment = _environment;
 }
 
@@ -390,7 +421,10 @@ int sidplayer_pr::initialise ()
     ubyte_sidt AC = tuneInfo.currentSong - 1;
     envReset ();
     if (!tune->placeSidTuneInC64mem (ram))
+    {   // Rev 1.6 (saw) - Allow loop through errors
+        _errorString = tuneInfo.statusString;
         return -1;
+    }
 
     // Rev 2.0.4 (saw) - Added for new time ounter
     _currentPeriod  = 0;
@@ -431,11 +465,17 @@ int sidplayer_pr::initialise ()
 int sidplayer_pr::environment (env_sidt env)
 {
     if (playerState != _stopped)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_CONF_WHILST_ACTIVE;
         return -1;
+    }
 
     // Not supported yet
     if (env == sid_envR)
+    {   // Rev 1.6 (saw) - Added descriptive error
+        _errorString = SIDPLAYER_ERR_UNSUPPORTED_MODE;
         return -1;
+    }
 
     // Environment already set?
     if (_environment == env)
@@ -770,17 +810,17 @@ void sidplayer_pr::envReset (void)
     {
         tuneInfo.clockSpeed      = SIDTUNE_CLOCK_PAL;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_VBI)
-            tuneInfo.speedString = SIDPLAYER_PAL_VBI_TEXT;
+            tuneInfo.speedString = SIDPLAYER_TXT_PAL_VBI;
         else // if (tuneInfo.songSpeed == SIDTUNE_SPEED_CIA_1A)
-            tuneInfo.speedString = SIDPLAYER_PAL_CIA_TEXT;
+            tuneInfo.speedString = SIDPLAYER_TXT_PAL_CIA;
     }
     else if (_clockSpeed == SID_NTSC)
     {
         tuneInfo.clockSpeed      = SIDTUNE_CLOCK_NTSC;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_VBI)
-            tuneInfo.speedString = SIDPLAYER_NTSC_VBI_TEXT;
+            tuneInfo.speedString = SIDPLAYER_TXT_NTSC_VBI;
         else // if (tuneInfo.songSpeed == SIDTUNE_SPEED_CIA_1A)
-            tuneInfo.speedString = SIDPLAYER_NTSC_CIA_TEXT;
+            tuneInfo.speedString = SIDPLAYER_TXT_NTSC_CIA;
     }
 
     // Set the CIA Timer
@@ -991,3 +1031,8 @@ void sidplayer::sidModel (model_sidt model)
 
 void sidplayer::clockSpeed (clock_sidt clock)
 {   player->clockSpeed (clock); }
+
+// Rev 1.6 (saw) - Added to obtain error messages
+// from the player
+const char *sidplayer::getErrorString (void)
+{   return player->_errorString; }
