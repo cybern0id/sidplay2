@@ -38,7 +38,7 @@ int __ini_listEval (ini_t *ini)
     int  length, count, i, ret;
     int  ldelim;
     char ch;
-    
+
     // Remove old list
     if (ini->list)
     {
@@ -47,7 +47,7 @@ int __ini_listEval (ini_t *ini)
     }
 
     // Re-evaluate with new settings
-    length = ini_dataLength ((ini_fd_t) ini);
+    length = ini->selected->selected->length;
     if (length < 0)
         return -1;
     if (!length)
