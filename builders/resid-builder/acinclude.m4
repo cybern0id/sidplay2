@@ -128,7 +128,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
     # Use library path given by user (if any).
     if test "$sid_resid_library" != NO; then
         # Help to try and better locate library just from --with-resid option
-        resid_libdirs="$sid_resid_library $sid_resid_library/lib $sid_resid_library/.libs"
+        resid_libdirs="$sid_resid_library $sid_resid_library/lib"
         SID_FIND_FILE(libresid.la,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
     fi
@@ -392,7 +392,7 @@ Please check your installation!
         LIBSIDPLAY2_BUILDERS=`$PKG_CONFIG --variable=builders libsidplay2`
     else
         LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_LIBDIR $LIBSIDPLAY2_LIBDIR/lib \
-                          $LIBSIDPLAY2_LIBDIR/.libs"
+                          $LIBSIDPLAY2_LIBDIR/src"
         SID_FIND_FILE(libsidplay2.la,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_LIBDIR)
         LIBSIDPLAY2_LDFLAGS="-L$LIBSIDPLAY2_LIBDIR -lsidplay2"
         LIBSIDPLAY2_BUILDERS="$LIBSIDPLAY2_LIBDIR/sidplay/builders"
@@ -426,7 +426,7 @@ AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
     sid_ldflags_save=$LDFLAGS
     sid_cxx_save=$CXX
 
-    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
     LDFLAGS="$LDFLAGS $LIBSIDPLAY2_LDFLAGS"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
