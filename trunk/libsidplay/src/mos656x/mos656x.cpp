@@ -326,7 +326,7 @@ void MOS656X::event (void)
         if (sprite_dma & 0x20)
             addrctrl (false);
         // No sprites before next compulsory cycle
-        else if (!(sprite_dma & 0xe0))
+        else if (!(sprite_dma & 0xf0))
            delay = 10;
         break;
 
