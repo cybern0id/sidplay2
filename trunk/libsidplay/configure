@@ -15606,7 +15606,7 @@ EOF
     echo "$as_me:15606: result: $my_cv_have_bool" >&5
 echo "${ECHO_T}$my_cv_have_bool" >&6
 
-if test "$test_cv_have_bool" = yes; then
+if test "$my_cv_have_bool" = yes; then
 
     eval "SID_HAVE_BOOL=\"#define SID_HAVE_BOOL\""
 
