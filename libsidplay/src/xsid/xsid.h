@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/04/20 22:21:06  s_a_white
+ *  inlined updateSidData0x18.
+ *
  *  Revision 1.12  2001/03/25 19:51:23  s_a_white
  *  Performance update.
  *
@@ -83,8 +86,7 @@ programmed with.
 #define _xsid_h_
 
 #include "config.h"
-#include "sidtypes.h"
-#include "sidenv.h"
+#include "sidemu.h"
 
 // XSID configuration settings
 //#define XSID_DEBUG 1
@@ -101,22 +103,49 @@ programmed with.
 #endif
 
 class XSID;
-class channel: public C64Environment
+class channel
 {
 private:
     // General
-    XSID &xsid;
+    const char * const m_name;
+    EventContext &m_context;
+    XSID         &m_xsid;
+    friend XSID;
+
+    class SampleEvent: public Event
+    {
+    private:
+        channel &m_ch;
+        void event (void) { m_ch.sampleClock (); }
+
+    public:
+        SampleEvent (channel *ch)
+        :Event("xSID Sample"),
+         m_ch(*ch) {}
+    } sampleEvent;
+    friend SampleEvent;
+
+    class GalwayEvent: public Event
+    {
+    private:
+        channel &m_ch;
+        void event (void) { m_ch.galwayClock (); }
+
+    public:
+        GalwayEvent (channel *ch)
+        :Event("xSID Galway"),
+         m_ch(*ch) {}
+    } galwayEvent;
+    friend GalwayEvent;
 
     uint8_t  reg[0x10];
     enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
     bool     active;
-    void    (channel::*_clock) (void);
     uint_least16_t address;
     uint_least16_t cycleCount; // Counts to zero and triggers!
     uint_least8_t  volShift;
     uint_least8_t  sampleLimit;
     int8_t         sample;
-    bool           changed;
 
     // Sample Section
     uint_least8_t  samRepeat;
@@ -137,10 +166,11 @@ private:
     uint_least8_t  galNullWait;
 
     // For Debugging
-    uint_least32_t cycles;
-    uint_least32_t outputs;
+    event_clock_t cycles;
+    event_clock_t outputs;
 
 private:
+    channel (const char * const name, EventContext *context, XSID *xsid);
     void free        (void);
     void silence     (void);
     void sampleInit  (void);
@@ -152,11 +182,7 @@ private:
     uint_least8_t convertAddr(uint_least8_t addr)
     { return (((addr) & 0x3) | ((addr) >> 3) & 0x0c); }
 
-public:
-    channel (XSID *p);
     void    reset    (void);
-    void    clock    ();
-    void    clock    (uint_least16_t delta_t);
     uint8_t read     (uint_least8_t  addr)
     { return reg[convertAddr (addr)]; }
     void    write    (uint_least8_t addr, uint8_t data)
@@ -164,13 +190,6 @@ public:
     int8_t  output   (void);
     bool    isGalway (void)
     { return mode == FM_GALWAY; }
-
-    bool hasChanged (void)
-    {
-        bool v  = changed;
-        changed = false;
-        return v;
-    }
 
     uint_least8_t limit  (void)
     { return sampleLimit; }
@@ -184,7 +203,7 @@ public:
 };
 
 
-class XSID: public C64Environment
+class XSID: public sidemu, private Event
 {
     friend channel;
 
@@ -193,8 +212,8 @@ private:
     channel ch5;
     bool    muted;
     bool    suppressed;
+    static  const char *credit;
 
-    uint_least16_t      sidAddr0x18;
     uint8_t             sidData0x18;
     bool                _sidSamples;
     int8_t              sampleOffset;
@@ -202,20 +221,23 @@ private:
     bool                wasRunning;
 
 private:
-    void   checkForInit     (channel *ch);
-    inline void   setSidData0x18   (bool cached = false);
-    int8_t sampleOutput     (void);
-    void   sampleOffsetCalc (void);
+    void    event                (void);
+    void    checkForInit         (channel *ch);
+    inline  void setSidData0x18  (void);
+    inline  void recallSidData0x18 (void);
+    int8_t  sampleOutput         (void);
+    void    sampleOffsetCalc     (void);
+    virtual uint8_t readMemByte  (uint_least16_t addr) = 0;
+    virtual void    writeMemByte (uint8_t data) = 0;
 
 public:
-    XSID ();
+    XSID (EventContext *context);
 
     // Standard calls
-    void    reset    (void);
-    uint8_t read     (uint_least16_t addr);
-    void    write    (uint_least16_t addr, uint8_t data);
-    void    clock    (uint_least16_t delta_t = 1);
-    void    setEnvironment (C64Environment *envp);
+    void    reset (void);
+    uint8_t read  (uint_least16_t addr) { return 0; }
+    void    write (uint_least16_t addr, uint8_t data);
+    const   char *credits (void) {return credit;}
 
     // Specialist calls
     int_least32_t output (uint_least8_t bits = 16);
@@ -225,10 +247,8 @@ public:
 
     void    sidSamples (bool enable)
     {   _sidSamples = enable; }
-    void setSidBaseAddr (uint_least16_t addr)
-    {   sidAddr0x18 = addr + 0x18; }
     // Return whether we care it was changed.
-    inline bool updateSidData0x18 (uint8_t data);
+    bool storeSidData0x18 (uint8_t data);
 };
 
 
@@ -236,17 +256,13 @@ public:
  * Inline functions
  **************************************************************************/
 
-inline void channel::clock ()
-{   // Emulate a CIA timer
-    if (!cycleCount)
-        return;
-
-    // Optimisation to prevent _clock being
-    // called un-necessarily.
-    cycles++;
-    if (--cycleCount)
-        return;
-    (this->*_clock) ();
+inline int_least32_t XSID::output (uint_least8_t bits)
+{
+    int_least32_t sample;
+    if (_sidSamples || muted)
+        return 0;
+    sample = sampleConvertTable[sampleOutput () + 8];
+    return sample << (bits - 8);
 }
 
 #endif // _xsid_h_

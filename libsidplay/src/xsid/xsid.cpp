@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/03/25 19:51:23  s_a_white
+ *  Performance update.
+ *
  *  Revision 1.12  2001/03/19 23:40:19  s_a_white
  *  Removed repeat definition of state for debug mode.
  *
@@ -42,6 +45,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "sidendian.h"
 #include "xsid.h"
 
 
@@ -60,9 +64,19 @@ const int8_t XSID::sampleConvertTable[16] =
     '\x1b', '\x2a', '\x3b', '\x49', '\x58', '\x66', '\x73', '\x7f'
 };
 
+const char *XSID::credit =
+{
+    "xSID (Extended SID) Engine:\0"
+    "\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0"
+};
 
-channel::channel (XSID *p)
-:xsid(*p)
+
+channel::channel (const char * const name, EventContext *context, XSID *xsid)
+:m_name(name),
+ m_context(*context),
+ m_xsid(*xsid),
+ sampleEvent(this),
+ galwayEvent(this)
 {
     memset (reg, 0, sizeof (reg));
     active = true;
@@ -80,7 +94,6 @@ void channel::free ()
 {
     active      = false;
     cycleCount  = 0;
-    _clock      = &channel::silence;
     sampleLimit = 0;
     // Set XSID to stopped state
     reg[convertAddr (0x1d)] = 0;
@@ -91,28 +104,6 @@ inline int8_t channel::output ()
 {
     outputs++;
     return sample;
-}
-
-void channel::clock (uint_least16_t delta_t)
-{   // Emulate a CIA timer
-    if (!cycleCount)
-        return;
-
-    // Slightly optimised clocking routine
-    // for clock periods > than 1
-    while (cycleCount <= delta_t)
-    {   // Rev 1.4 (saw) - Changed to reflect change above
-        cycles  += cycleCount;
-        delta_t -= cycleCount;
-        (this->*_clock) ();
-        // Check to see if the sequence finished
-        if (!cycleCount)
-            return;
-    }
-    
-    // Reduce the cycleCount by whats left
-    cycles     += delta_t;
-    cycleCount -= delta_t;
 }
 
 void channel::checkForInit ()
@@ -128,7 +119,7 @@ void channel::checkForInit ()
             return;
         free (); // Stop
         // Calculate the sample offset
-        xsid.sampleOffsetCalc ();
+        m_xsid.sampleOffsetCalc ();
     }
     else if (state < 0xfc)
         galwayInit ();
@@ -138,31 +129,37 @@ void channel::checkForInit ()
 
 void channel::sampleInit ()
 {
+    uint8_t *r;
     if (active && (mode == FM_GALWAY))
         return;
 
 #ifdef XSID_DEBUG
-    printf ("XSID [%lu]: Sample Init\n", (unsigned long) this);
+    printf ("XSID [%s]: Sample Init\n", m_name);
     if (active && (mode == FM_HUELS))
-        printf ("XSID [%lu]: Stopping Playing Sample\n", (unsigned long) this);
+        printf ("XSID [%s]: Stopping Playing Sample\n", m_name);
 #endif
 
     // Check all important parameters are legal
-    _clock        = &channel::silence;
-    volShift      = (uint_least8_t) (0 - (int8_t) reg[convertAddr (0x1d)]) >> 1;
-    reg[convertAddr (0x1d)] = 0;
-    address       = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr (0x1e)];
-    samEndAddr    = ((uint_least16_t) reg[convertAddr (0x3e)] << 8) | reg[convertAddr (0x3d)];
+    r             = &reg[convertAddr (0x1d)];
+    volShift      = (uint_least8_t) (0 - (int8_t) r[0]) >> 1;
+    r[0]          = 0;
+    // Use endian_16 as can't g
+    r             = &reg[convertAddr (0x1e)];
+    address       = endian_16 (r[1], r[0]);
+    r             = &reg[convertAddr (0x3d)];
+    samEndAddr    = endian_16 (r[1], r[0]);
     if (samEndAddr <= address) return;
-    samScale      = reg[convertAddr (0x5f)];
-    samPeriod     = (((uint_least16_t) reg[convertAddr (0x5e)] << 8) | reg[convertAddr (0x5d)]) >> samScale;
+    samScale      = reg[convertAddr  (0x5f)];
+    r             = &reg[convertAddr (0x5d)];
+    samPeriod     = endian_16 (r[1], r[0]) >> samScale;
     if (!samPeriod) return;
 
     // Load the other parameters
     samNibble     = 0;
-    samRepeat     = reg[convertAddr (0x3f)];
-    samOrder      = reg[convertAddr (0x7d)];
-    samRepeatAddr = ((uint_least16_t) reg[convertAddr (0x7f)] << 8) | reg[convertAddr (0x7e)];
+    samRepeat     = reg[convertAddr  (0x3f)];
+    samOrder      = reg[convertAddr  (0x7d)];
+    r             = &reg[convertAddr (0x7e)];
+    samRepeatAddr = endian_16 (r[1], r[0]);
     cycleCount    = samPeriod;
 
     // Support Galway Samples, but that
@@ -171,29 +168,31 @@ void channel::sampleInit ()
     if (mode == FM_NONE)
         mode  = FM_HUELS;
 
-    _clock  = &channel::sampleClock;
     active  = true;
     cycles  = 0;
     outputs = 0;
 
     sampleLimit = 8 >> volShift;
     sample      = sampleCalculate ();
-    changed     = true;
 
     // Calculate the sample offset
-    xsid.sampleOffsetCalc ();
+    m_xsid.sampleOffsetCalc ();
 
 #ifdef XSID_DEBUG
 #   if XSID_DEBUG > 1
-    printf ("XSID [%lu]: Sample Start Address:  0x%04x\n", (unsigned long) this, address);
-    printf ("XSID [%lu]: Sample End Address:    0x%04x\n", (unsigned long) this, samEndAddr);
-    printf ("XSID [%lu]: Sample Repeat Address: 0x%04x\n", (unsigned long) this, samRepeatAddr);
-    printf ("XSID [%lu]: Sample Period: %u\n", (unsigned long) this, samPeriod);
-    printf ("XSID [%lu]: Sample Repeat: %u\n", (unsigned long) this, samRepeat);
-    printf ("XSID [%lu]: Sample Order:  %u\n", (unsigned long) this, samOrder);
+    printf ("XSID [%s]: Sample Start Address:  0x%04x\n", m_name, address);
+    printf ("XSID [%s]: Sample End Address:    0x%04x\n", m_name, samEndAddr);
+    printf ("XSID [%s]: Sample Repeat Address: 0x%04x\n", m_name, samRepeatAddr);
+    printf ("XSID [%s]: Sample Period: %u\n", m_name, samPeriod);
+    printf ("XSID [%s]: Sample Repeat: %u\n", m_name, samRepeat);
+    printf ("XSID [%s]: Sample Order:  %u\n", m_name, samOrder);
 #   endif
-    printf ("XSID [%lu]: Sample Start\n", (unsigned long) this);
+    printf ("XSID [%s]: Sample Start\n", m_name);
 #endif // XSID_DEBUG
+
+    // Schedule a sample update
+    m_context.schedule (&m_xsid, 0);
+    m_context.schedule (&sampleEvent, cycleCount);
 }
 
 void channel::sampleClock ()
@@ -218,13 +217,10 @@ void channel::sampleClock ()
             if (*status != 0xfd)
                 active   = false;
 #ifdef XSID_DEBUG
-            printf ("XSID [%lu]: Sample Stop (%lu Cycles, %lu Outputs)\n",
-                    (unsigned long) this, cycles, outputs);
+            printf ("XSID [%s]: Sample Stop (%lu Cycles, %lu Outputs)\n",
+                    m_name, cycles, outputs);
             if (*status != 0xfd)
-            {
-                printf ("XSID [%lu]: Starting Delayed Sequence\n",
-                        (unsigned long) this);
-            }
+                printf ("XSID [%s]: Starting Delayed Sequence\n", m_name);
 #endif
             checkForInit ();
             return;
@@ -234,12 +230,15 @@ void channel::sampleClock ()
     // We have reached the required sample
     // So now we need to extract the right nibble
     sample  = sampleCalculate ();
-    changed = true;
+    cycles += cycleCount;
+    // Schedule a sample update
+    m_context.schedule (&sampleEvent, cycleCount);
+    m_context.schedule (&m_xsid, 0);
 }
 
 int8_t channel::sampleCalculate ()
 {
-    uint_least8_t tempSample = envReadMemByte (address, true);
+    uint_least8_t tempSample = m_xsid.readMemByte (address);
     if (samOrder == SO_LOWHIGH)
     {
         if (samScale == 0)
@@ -264,12 +263,13 @@ int8_t channel::sampleCalculate ()
     // Move to next address
     address   += samNibble;
     samNibble ^= 1;
-    samNibble &= 1;
     return (int8_t) ((tempSample & 0x0f) - 0x08) >> volShift;
 }
 
 void channel::galwayInit()
 {
+    uint8_t *r;
+
     // If mode was HUELS, then it's
     // gonna become GALWAY and we should
     // not interrupt current sample
@@ -278,13 +278,13 @@ void channel::galwayInit()
         return;
 
 #ifdef XSID_DEBUG
-    printf ("XSID [%lu]: Galway Init\n", (unsigned long) this);
+    printf ("XSID [%s]: Galway Init\n", m_name);
 #endif
 
     // Check all important parameters are legal
-    _clock        = &channel::silence;
-    galTones      = reg[convertAddr (0x1d)];
-    reg[convertAddr (0x1d)] = 0;
+    r             = &reg[convertAddr (0x1d)];
+    galTones      = r[0];
+    r[0]          = 0;
     galInitLength = reg[convertAddr (0x3d)];
     if (!galInitLength) return;
     galLoopWait   = reg[convertAddr (0x3f)];
@@ -293,26 +293,28 @@ void channel::galwayInit()
     if (!galNullWait)   return;
 
     // Load the other parameters
-    address  = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr(0x1e)];
+    r        = &reg[convertAddr(0x1e)];
+    address  = endian_16 (r[1], r[0]);
     volShift = reg[convertAddr (0x3e)] & 0x0f;
     mode     = FM_GALWAY;
-    _clock   = &channel::galwayClock;
     active   = true;
     cycles   = 0;
     outputs  = 0;
 
     sampleLimit = 8;
     sample      = (int8_t) galVolume - 8;
-    changed     = true;
-
     galwayTonePeriod ();
 
     // Calculate the sample offset
-    xsid.sampleOffsetCalc ();
+    m_xsid.sampleOffsetCalc ();
 
 #ifdef XSID_DEBUG
-    printf ("XSID [%lu]: Galway Start\n", (unsigned long) this);
+    printf ("XSID [%s]: Galway Start\n", m_name);
 #endif
+
+    // Schedule a sample update
+    m_context.schedule (&m_xsid, 0);
+    m_context.schedule (&galwayEvent, cycleCount);
 }
 
 void channel::galwayClock ()
@@ -327,13 +329,10 @@ void channel::galwayClock ()
         if (*status != 0xfd)
             active   = false;
 #ifdef XSID_DEBUG
-        printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
-                (unsigned long) this, cycles, outputs);
+        printf ("XSID [%s]: Galway Stop (%lu Cycles, %lu Outputs)\n",
+                m_name, cycles, outputs);
         if (*status != 0xfd)
-        {
-            printf ("XSID [%lu]: Starting Delayed Sequence\n",
-                    (unsigned long) this);
-        }
+            printf ("XSID [%s]: Starting Delayed Sequence\n", m_name);
 #endif
         checkForInit ();
         return;
@@ -345,22 +344,24 @@ void channel::galwayClock ()
     galVolume += volShift;
     galVolume &= 0x0f;
     sample     = (int8_t) galVolume - 8;
-    changed    = true;
+    cycles    += cycleCount;
+    m_context.schedule (&galwayEvent, cycleCount);
+    m_context.schedule (&m_xsid, 0);
 }
 
 void channel::galwayTonePeriod ()
 {   // Calculate the number of cycles over which sample should last
     galLength  = galInitLength;
-    samPeriod  = envReadMemByte (address + galTones, true);
+    samPeriod  = m_xsid.readMemByte (address + galTones);
     samPeriod *= galLoopWait;
     samPeriod += galNullWait;
     cycleCount = samPeriod;
 #if XSID_DEBUG > 2
-    printf ("XSID [%lu]: Galway Settings\n", (unsigned long) this);
-    printf ("XSID [%lu]: Length %u, LoopWait %u, NullWait %u\n",
-        (unsigned long) this, galLength, galLoopWait, galNullWait);
-    printf ("XSID [%lu]: Tones %u, Data %u\n",
-        (unsigned long) this, galTones, envReadMemByte (address + galTones), true);
+    printf ("XSID [%s]: Galway Settings\n", m_name);
+    printf ("XSID [%s]: Length %u, LoopWait %u, NullWait %u\n",
+        m_name, galLength, galLoopWait, galNullWait);
+    printf ("XSID [%s]: Tones %u, Data %u\n",
+        m_name, galTones, m_xsid.readMemByte (address + galTones));
 #endif
     galTones--;
 }
@@ -368,15 +369,18 @@ void channel::galwayTonePeriod ()
 void channel::silence ()
 {
     sample = 0;
+    m_context.cancel   (&sampleEvent);
+    m_context.cancel   (&galwayEvent);
+    m_context.schedule (&m_xsid, 0);
 }
 
 
-XSID::XSID ()
-:ch4(this),
- ch5(this),
+XSID::XSID (EventContext *context)
+:Event("xSID"),
+ ch4("CH4", context, this),
+ ch5("CH5", context, this),
  muted(false)
 {
-    setSidBaseAddr (0xd400);
     sidSamples (true);
     reset ();
 }
@@ -389,38 +393,16 @@ void XSID::reset ()
     wasRunning = false;
 }
 
-void XSID::clock (uint_least16_t delta_t)
+void XSID::event (void)
 {
     if (ch4 || ch5)
     {
-        if (delta_t == 1)
-        {
-            ch4.clock ();
-            ch5.clock ();
-        }
-        else
-        {
-            ch4.clock (delta_t);
-            ch5.clock (delta_t);
-        }
-
-        if (!_sidSamples)
-            return;
-
-        if (ch4.hasChanged () || ch5.hasChanged ())
-            setSidData0x18 ();
+        setSidData0x18 ();
         wasRunning = true;
     }
     else if (wasRunning)
-    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
-        // Normally after samples volume should be restored to half volume,
-        // however, Galway Tunes sound horrible and seem to require setting back to
-        // the original volume.  Setting back to the original volume for normal
-        // samples can have nasty pulsing effects
-        if (ch4.isGalway ())
-            envWriteMemByte (sidAddr0x18, sidData0x18);
-        else
-            setSidData0x18 ();
+    {
+        recallSidData0x18 ();
         wasRunning = false;
     }
 }
@@ -430,7 +412,7 @@ void XSID::clock (uint_least16_t delta_t)
 void XSID::suppress (bool enable)
 {
     // @FIXME@: Mute Temporary Hack
-    suppressed = enable | muted;
+    suppressed = enable;
     if (!suppressed)
     {   // Get the channels running
         ch4.checkForInit ();
@@ -443,8 +425,9 @@ void XSID::suppress (bool enable)
 // will cause sound output from the current play position.
 void XSID::mute (bool enable)
 {
-    // @FIXME@: Mute not properly implemented
-    muted = suppressed = enable;
+    if (!muted && enable && wasRunning)
+        recallSidData0x18 ();
+    muted = enable;
 }
 
 void XSID::write (uint_least16_t addr, uint8_t data)
@@ -466,7 +449,7 @@ void XSID::write (uint_least16_t addr, uint8_t data)
     printf ("XSID: Addr 0x%02x, Data 0x%02x\n", tempAddr, data);
 #endif
 
-    if (addr == 0x1d)
+    if (tempAddr == 0x1d)
     {
         if (suppressed)
         {
@@ -479,27 +462,6 @@ void XSID::write (uint_least16_t addr, uint8_t data)
     }
 }
 
-uint8_t XSID::read (uint_least16_t addr)
-{
-    channel *ch;
-    uint8_t  tempAddr;
-
-    // Make sure address is legal
-    if ((addr & 0xfe8c) ^ 0xd40c)
-        return 0;
-    if ((addr & 0x001f) < 0x001d)
-    {   // Should never happen
-        return 0;
-    }
-
-    ch = &ch4;
-    if (addr & 0x0100)
-        ch = &ch5;
-
-    tempAddr = (uint8_t) addr;
-    return ch->read (tempAddr);
-}
-
 int8_t XSID::sampleOutput (void)
 {
     int8_t sample;
@@ -510,17 +472,11 @@ int8_t XSID::sampleOutput (void)
     return sample;
 }
 
-int_least32_t XSID::output (uint_least8_t bits)
+void XSID::setSidData0x18 (void)
 {
-    int_least32_t sample;
-    if (_sidSamples)
-        return 0;
-    sample = sampleConvertTable[sampleOutput () + 8];
-    return sample << (bits - 8);
-}
+    if (!_sidSamples || muted)
+        return;
 
-void XSID::setSidData0x18 (bool cached)
-{
     uint8_t data = (sidData0x18 & 0xf0);
     data |= ((sampleOffset + sampleOutput ()) & 0x0f);
 
@@ -535,14 +491,20 @@ void XSID::setSidData0x18 (bool cached)
 #   endif
 #endif // XSID_DEBUG
 
-    envWriteMemByte (sidAddr0x18, data, false);
+    writeMemByte (data);
 }
 
-void  XSID::setEnvironment (C64Environment *envp)
+void XSID::recallSidData0x18 (void)
 {
-    C64Environment::setEnvironment (envp);
-    ch4.setEnvironment (envp);
-    ch5.setEnvironment (envp);
+    // Rev 2.0.5 (saw) - Changed to recall volume differently depending on mode
+    // Normally after samples volume should be restored to half volume,
+    // however, Galway Tunes sound horrible and seem to require setting back to
+    // the original volume.  Setting back to the original volume for normal
+    // samples can have nasty pulsing effects
+    if (ch4.isGalway ())
+        writeMemByte (sidData0x18);
+    else
+        setSidData0x18 ();
 }
 
 void XSID::sampleOffsetCalc (void)
@@ -580,7 +542,7 @@ void XSID::sampleOffsetCalc (void)
 #endif // XSID_DEBUG
 }
 
-bool XSID::updateSidData0x18 (uint8_t data)
+bool XSID::storeSidData0x18 (uint8_t data)
 {
     sidData0x18 = data;
     if (ch4 || ch5)
