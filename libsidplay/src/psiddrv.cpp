@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2004/02/11 21:01:34  s_a_white
+ *  For RSID tunes use the BRK and NMI handlers directly from the kernel.
+ *
  *  Revision 1.30  2003/07/16 20:42:45  s_a_white
  *  Some initialisation code from the psiddrv is required to start basic tunes.
  *
@@ -214,7 +217,7 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         // interrupt hooks and trap programs trying to restart basic
         if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_BASIC)
         {   // Only install irq handle for RSID tunes
-            if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_R64)
+            if (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_R64)
                 memcpy (&m_ram[0x0314], &reloc_driver[2], 2);
             else
                 memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
