@@ -708,23 +708,31 @@ void SidTune::getFromFiles(const char* fileName)
                 {
                     // Check if tunes in wrong order and therefore swap them here
                     if ( MYSTRICMP (fileNameExtensions[n], ".mus")==0 )
-                        ret = MUS_fileSupport(fileBuf2,fileBuf1);
-                    else
-                        ret = MUS_fileSupport(fileBuf1,fileBuf2);
-
-                    // The first tune loaded ok, so ignore errors on the
-                    // second tune, may find an ok one in later
-                    if (ret == LOAD_OK)
                     {
-                        if ( MUS_mergeParts(fileBuf1,fileBuf2) )
-                            status = acceptSidTune(fileName,fileName2.get(),
-                                                   fileBuf1);
-                        return;  // in either case
+                        if ( MUS_fileSupport(fileBuf2,fileBuf1) == LOAD_OK )
+                        {
+                            if ( MUS_mergeParts(fileBuf2,fileBuf1) )
+                                status = acceptSidTune(fileName2.get(),fileName,
+                                                       fileBuf2);
+                            return;
+                        }
                     }
+                    else
+                    {
+                        if ( MUS_fileSupport(fileBuf1,fileBuf2) == LOAD_OK )
+                        {
+                            if ( MUS_mergeParts(fileBuf1,fileBuf2) )
+                                status = acceptSidTune(fileName,fileName2.get(),
+                                                       fileBuf1);
+                            return;
+                        }
+                    }
+                    // The first tune loaded ok, so ignore errors on the
+                    // second tune, may find an ok one later
                 }
                 n++;
             };
-            // No second file.
+            // No (suitable) second file.
             status = acceptSidTune(fileName,0,fileBuf1);
             return;
         }
