@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/03/28 22:59:59  s_a_white
+ *  Converted some bad envReadMemByte's to
+ *  envReadMemDataByte
+ *
  *  Revision 1.13  2001/03/28 21:17:34  s_a_white
  *  Added support for proper RMW instructions.
  *
@@ -838,7 +842,7 @@ void MOS6510::bcc_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -860,7 +864,7 @@ void MOS6510::bcs_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -882,7 +886,7 @@ void MOS6510::beq_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -911,7 +915,7 @@ void MOS6510::bmi_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -933,7 +937,7 @@ void MOS6510::bne_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -955,7 +959,7 @@ void MOS6510::bpl_instr(void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -977,7 +981,7 @@ void MOS6510::bvc_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
@@ -999,7 +1003,7 @@ void MOS6510::bvs_instr (void)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
-        page = endian_16hi8 (Cycle_EffectiveAddress);
+        page = endian_32hi8 (Register_ProgramCounter);
         Register_ProgramCounter += Cycle_Data;
 
         // Handle page boundary crossing
