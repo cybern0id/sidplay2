@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.6  2000/12/18 15:16:42  s_a_white
  *  No hardware support generates only a warning now.  Allows code to default
  *  to wav file generation on any platform.
@@ -28,27 +31,29 @@
 #ifndef _AudioDrv_h_
 #define _AudioDrv_h_
 
+// Drivers must be put in order of preference
 #include "config.h"
+
+// Hardsid Compatibility Driver
+#include "null/null.h"
 
 // Unix Sound Drivers
 #include "alsa/audiodrv.h"
+#include "oss/audiodrv.h"
 #include "hpux/audiodrv.h"
 #include "irix/audiodrv.h"
-#include "oss/audiodrv.h"
 #include "sunos/audiodrv.h"
 
 // Windows Sound Drivers
 #include "directx/directx.h"
 #include "mmsystem/mmsystem.h"
 
-// Hardsid Compatibility Driver
-#include "null/null.h"
-
 // Make sure that a sound driver was used
-#ifndef AUDIO_HAVE_DRIVER
+#ifndef AudioDriver
 #   warning Audio hardware not recognised, please check configuration files.
 #endif
 
 // Add music conversion drivers
 #include "wav/WavFile.h"
+
 #endif // _AudioDrv_h_
