@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/04 12:58:56  s_a_white
+ *  Defualt environment changed to real.  Verbose info now printed correctly.
+ *
  *  Revision 1.5  2001/03/01 23:47:00  s_a_white
  *  Support for sample mode to be selected at runtime.
  *
@@ -51,8 +54,10 @@
 // Lots of sidTune stuff
 // @TODO@: Tidy this code up
 #include <sidplay/sidplay2.h>
+#include <sidplay/utils/SidDatabase.h>
 #include "audio/AudioDrv.h"
 #include "keyboard.h"
+#include "IniConfig.h"
 
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
@@ -78,6 +83,7 @@ enum
     ERR_FILE_OPEN
 };
 
+typedef enum {black, red, green, yellow, blue, magenta, cyan, white} textColour_t;
 typedef enum {sid2_tableStart, sid2_tableMiddle, sid2_tableSeperator, sid2_tableEnd} sid2_table_t;
 
 // Rev 1.13 (saw) - Grouped global variables
@@ -95,7 +101,10 @@ public:
     bool                paused;
     uint_least8_t       speed;
     const uint_least8_t speedMax;
-    bool                sidSamples;
+    IniConfig           ini;
+    SidDatabase         database;
+    SidFilter           userFilter;
+    const sid_filter_t *filter;
 
 public:
     sid2_player_t::sid2_player_t ()
@@ -110,7 +119,7 @@ public:
         restart      = false;    
         paused       = false;
         speed        = 1;
-        sidSamples   = SID2_DEFAULT_SID_SAMPLES;
+        filter       = NULL;
     }
 } player;
 
@@ -120,6 +129,7 @@ static void displayError  (char *arg0, uint num);
 static void displaySyntax (char *arg0);
 static void sighandler    (int signum);
 static void cleanup       (bool fast);
+static void textColour    (textColour_t colour, bool bold);
 static void displayTable  (sid2_table_t table);
 static void decodeKeys ();
 
@@ -128,29 +138,31 @@ static inline int_least32_t generateMusic (AudioConfig &cfg, void *buffer);
 
 int main(int argc, char *argv[])
 {
-    sid2_playback_t playback      = sid2_mono;
     sid2_env_t      playerMode    = sid2_envR;
     bool            wavOutput     = false;
     uint            sidFile       = 0;
     void           *nextBuffer    = NULL;
     uint_least32_t  runtime       = 0;
+    uint_least32_t  usertime      = 0;
     bool            verboseOutput = false;
     bool            force2SID     = false;
+
     // Rev 1.9 (saw) - Default now obtained from sidplayer.h
-    uint_least8_t   optimiseLevel = SID2_DEFAULT_OPTIMISATION;
-    sid2_clock_t    clockSpeed    = SID2_CLOCK_CORRECT;
-    bool            clockForced   = false;
     AudioConfig     audioCfg;
-    SidTune         tune (0);
+    SidTuneMod      tune (0);
     struct          SidTuneInfo tuneInfo;
+
+    IniConfig::audio_section     audio;
+    IniConfig::emulation_section emulation;
 
     // (ms) Incomplete...
     // Fastforward/Rewind Patch
-    uint_least32_t  starttime     = 0;
-  
-    audioCfg.frequency = SID2_DEFAULT_SAMPLING_FREQ;;
-    audioCfg.precision = SID2_DEFAULT_PRECISION;
-    audioCfg.channels  = 1; // Mono
+    uint_least32_t  starttime  = 0;
+
+    // Load ini settings
+    player.ini.read ();
+    audio         = player.ini.audio();
+    emulation     = player.ini.emulation();
 
     if (argc < 2) // at least one argument required
     {
@@ -183,11 +195,11 @@ int main(int argc, char *argv[])
 
                     case 's':
                         // Force samples through soundcard instead of SID
-                        player.sidSamples = false;
+                        emulation.sidSamples = false;
                     break;
 
                     default:
-                        audioCfg.frequency = atoi(argv[i] + x - 1);
+                        audio.frequency = atoi(argv[i] + x - 1);
                         // Show that all string was processed
                         while (argv[i][x] != '\0')
                             x++;
@@ -230,7 +242,7 @@ int main(int argc, char *argv[])
                     case 'e':
                         if (argv[i][x] == '\0')
                         {   // Disable filter
-                            player.lib.extFilter (false);
+                            emulation.extFilter = false;
                             break;
                         }
                     break;
@@ -239,8 +251,23 @@ int main(int argc, char *argv[])
                     case 'f':
                         if (argv[i][x] == '\0')
                         {   // Disable filter
-                            player.lib.filter (false);
+                            emulation.filter = false;
                             break;
+                        }
+
+                        {   // New filter
+                            // This line will open an existing file
+                            player.userFilter.read (&(argv[i][x]));
+                            if (!player.userFilter)
+                            {
+                                cerr << argv[0] << "\n" << player.userFilter.getErrorString () << endl;
+                                goto main_error;
+                            }
+                            player.filter = player.userFilter.definition ();
+
+                            // Show that complete string was parsed
+                            while (argv[i][x] != '\0')
+                                x++;
                         }
                     break;
 
@@ -249,7 +276,7 @@ int main(int argc, char *argv[])
                         if (argv[i][x] == '\0')
                         {   // Select newer sid
                             // Rev 1.18 (MiKiL) - Changed from MOS6581
-                            player.lib.sidModel (SID2_MOS8580);
+                            emulation.sidModel = SID2_MOS8580;
                             break;
                         }
                     break;
@@ -280,7 +307,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    optimiseLevel = atoi(argv[i] + x);
+                    emulation.optimiseLevel = atoi(argv[i] + x);
                     // Show that all string was processed
                     while (argv[i][x] != '\0')
                         x++;
@@ -304,7 +331,7 @@ int main(int argc, char *argv[])
 
                         if (precision > SID2_MAX_PRECISION)
                             precision = SID2_MAX_PRECISION;
-                        audioCfg.precision = precision;
+                        audio.precision = precision;
 
                         // Show that all string was processed
                         while (argv[i][x] != '\0')
@@ -324,21 +351,18 @@ int main(int argc, char *argv[])
                     {
                     case '\0':
                         // Stereo Playback
-                        playback = sid2_stereo;
-                        audioCfg.channels = 2; // Stereo
+                        audio.playback = sid2_stereo;
                         x--;
                     break;
 
                     case 'l':
                         // Left Channel
-                        playback = sid2_left;
-                        audioCfg.channels = 1; // Mono
+                        audio.playback = sid2_left;
                     break;
 
                     case 'r':
                         // Right Channel
-                        playback = sid2_right;
-                        audioCfg.channels = 1; // Mono
+                        audio.playback = sid2_right;
                     break;
 
                     default:
@@ -378,7 +402,7 @@ int main(int argc, char *argv[])
                     }
 
                     if (!start)
-                        runtime   = time;
+                        usertime  = time;
                     else
                         starttime = time;
 
@@ -398,15 +422,15 @@ int main(int argc, char *argv[])
                     break;
 
                     case 'n':
-                        clockSpeed = SID2_CLOCK_NTSC;
+                        emulation.clockSpeed = SID2_CLOCK_NTSC;
                     break;
 
                     case 'p':
-                        clockSpeed = SID2_CLOCK_PAL;
+                        emulation.clockSpeed = SID2_CLOCK_PAL;
                     break;
 
                     case 'f':
-                        clockForced = true;
+                        emulation.clockForced = true;
                     break;
 
                     default:
@@ -452,6 +476,12 @@ int main(int argc, char *argv[])
         goto main_error;
     }
 
+    audioCfg.channels     = 1; // Mono
+    if (audio.playback   == sid2_stereo)
+        audioCfg.channels = 2;
+    audioCfg.frequency = audio.frequency;
+    audioCfg.precision = audio.precision;
+    
     if (!wavOutput)
     {
         // Open Audio Driver
@@ -470,41 +500,72 @@ int main(int argc, char *argv[])
     }
 
     // Check to make sure that hardware supports stereo
-    if (playback == sid2_stereo)
+    if (audio.playback == sid2_stereo)
     {
         if (audioCfg.channels != 2)
-            playback = sid2_mono;
+            audio.playback = sid2_mono;
     }
 
     tune.load (argv[sidFile]);
     if (!tune)
     {
-        cerr << argv[0] << " " << (tune.getInfo ()).statusString << endl;
+        cerr << argv[0] << "\n" << (tune.getInfo ()).statusString << endl;
         goto main_error;
     }        
+//	tune.savePSIDfile ("d:/ig_new.sid", true);
 
-    player.lib.clockSpeed   (clockSpeed, clockForced);
-    player.lib.configure    (playback, audioCfg.frequency, audioCfg.precision, force2SID);
-    player.lib.optimisation (optimiseLevel);
-    player.lib.sidSamples   (player.sidSamples);
+    // Load the filter
+    if (!player.filter)
+        player.filter = player.ini.filter (emulation.sidModel);
+
+    if (player.filter)
+    {
+        if (player.lib.loadFilter (player.filter->fc, player.filter->points) == -1)
+        {
+            cerr << argv[0] << "\n" << player.lib.getErrorString () << endl;
+            goto main_error;
+        }
+    }
+
+    // Configure Emulation
+    player.lib.clockSpeed   (emulation.clockSpeed, emulation.clockForced);
+    player.lib.configure    (audio.playback, audio.frequency, audio.precision, force2SID);
+    player.lib.optimisation (emulation.optimiseLevel);
+    player.lib.sidModel     (emulation.sidModel);
+    player.lib.sidSamples   (emulation.sidSamples);
+    player.lib.filter       (emulation.filter);
+    player.lib.extFilter    (emulation.extFilter);
     if (player.lib.environment (playerMode) == -1)
     {
-        cerr << argv[0] << " " << player.lib.getErrorString () << endl;
+        cerr << argv[0] << "\n" << player.lib.getErrorString () << endl;
         goto main_error;
     }
+
+    // Load song length database
+    if (!usertime)
+        player.database.open (player.ini.songLengthDB ());
 
 main_restart:
     player.selectedSong = tune.selectSong (player.selectedSong);
     if (!tune)
     {
-        cerr << argv[0] << " " << player.lib.getErrorString () << endl;
+        cerr << argv[0] << "\n" << player.lib.getErrorString () << endl;
         goto main_error;
     }
 
     if (player.lib.loadSong (&tune) == -1)
     {
-        cerr << argv[0] << " " << player.lib.getErrorString () << endl;
+        cerr << argv[0] << "\n" << player.lib.getErrorString () << endl;
         goto main_error;
+    }
+
+    // See if we can get the songs length
+    runtime = usertime;
+    if (!runtime)
+    {
+        int_least32_t ret = player.database.getSongLength (tune);
+        if (ret > 0)
+        runtime = ret;
     }
 
     // Rev 1.12 (saw) Moved to allow modification of wav filename
@@ -575,18 +636,32 @@ main_restart:
 
     if (!nextBuffer)
     {
-        cerr << argv[0] << " " << player.audioDrv->getErrorString () << endl;
+        cerr << argv[0] << "\n" << player.audioDrv->getErrorString () << endl;
         goto main_error;
     }
 
     player.lib.getInfo (&player.info);
     tuneInfo = player.info.tuneInfo;
     // cerr << (char) 12 << '\b'; // New Page
+
+    if ((player.ini.console ()).ansi)
+    {
+        cerr << '\x1b' << "[40m";  // Background black
+        cerr << '\x1b' << "[2J";   // Clear screen
+        cerr << '\x1b' << "[0;0H"; // Move cursor to 0,0
+    }
+
     displayTable (sid2_tableStart);
     displayTable (sid2_tableMiddle);
-    cerr << "   SIDPLAY - Music Player and C64 SID Chip Emulator" << endl;
+    textColour (red, true);
+    cerr << "   SID";
+    textColour (blue, true);
+    cerr << "PLAY";
+    textColour (white, true);
+    cerr << " - Music Player and C64 SID Chip Emulator" << endl;
     displayTable (sid2_tableMiddle);
-    cerr << setw(19) << "Sidplay V" << VERSION << ", ";
+    textColour (white, false);
+    cerr << setw(19) << "Sidplay" << " V" << VERSION << ", ";
     cerr << (char) toupper (*player.info.name);
     cerr << player.info.name + 1 << " V" << player.info.version << endl;
 
@@ -594,18 +669,30 @@ main_restart:
     if (tuneInfo.numberOfInfoStrings == 3)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " Name         : " << tuneInfo.infoString[0] << endl;
+        textColour   (cyan, true);
+        cerr << " Name         : ";
+        textColour   (magenta, true);
+        cerr << tuneInfo.infoString[0] << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Author       : " << tuneInfo.infoString[1] << endl;
+        textColour   (cyan, true);
+        cerr << " Author       : ";
+        textColour   (magenta, true);
+        cerr << tuneInfo.infoString[1] << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Copyright    : " << tuneInfo.infoString[2] << endl;
+        textColour   (cyan, true);
+        cerr << " Copyright    : ";
+        textColour   (magenta, true);
+        cerr << tuneInfo.infoString[2] << endl;
     }
     else
     {
         for (int infoi = 0; infoi < tuneInfo.numberOfInfoStrings; infoi++)
         {
             displayTable (sid2_tableMiddle);
-            cerr << " Description  : " << tuneInfo.infoString[infoi] << endl;
+            textColour   (cyan, true);
+            cerr << " Description  : ";
+            textColour   (magenta, true);
+            cerr << tuneInfo.infoString[infoi] << endl;
         }
     }
 
@@ -613,69 +700,97 @@ main_restart:
     if (verboseOutput)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " File format  : " << tuneInfo.formatString << endl;
+        textColour   (green, true);
+        cerr << " File format  : ";
+        textColour   (white, true);
+        cerr << tuneInfo.formatString << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Filename(s)  : " << tuneInfo.dataFileName << endl;
+        textColour   (green, true);
+        cerr << " Filename(s)  : ";
+        textColour   (white, true);
+        cerr << tuneInfo.dataFileName << endl;
         // Second file is only sometimes present
         if (tuneInfo.infoFileName[0])
         {
             displayTable (sid2_tableMiddle);
-            cerr << "              : " << tuneInfo.infoFileName << endl;
+            textColour   (green, true);
+            cerr << "              : ";
+            textColour   (white, true);
+            cerr << tuneInfo.infoFileName << endl;
         }
         displayTable (sid2_tableMiddle);
-        cerr << " Condition    : " << tuneInfo.statusString << endl;
+        textColour   (green, true);
+        cerr << " Condition    : ";
+        textColour   (white, true);
+        cerr << tuneInfo.statusString << endl;
     }
 
     displayTable (sid2_tableMiddle);
-    cerr << " Setting Song : " << tuneInfo.currentSong
+    textColour   (green, true);
+    cerr << " Setting Song : ";
+    textColour   (white, true);
+    cerr << tuneInfo.currentSong
          << " out of "         << tuneInfo.songs
          << " (default = "     << tuneInfo.startSong << ')' << endl;
 
     if (verboseOutput)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " Song Speed   : " << tuneInfo.speedString << endl;
+        textColour   (green, true);
+        cerr << " Song Speed   : ";
+        textColour   (white, true);
+        cerr << tuneInfo.speedString << endl;
     }
 
     displayTable (sid2_tableMiddle);
+    textColour   (green, true);
+    cerr << " Song Length  : ";
+    textColour   (white, true);
     if (runtime)
-        cerr << " Song Length  : " << setw(2) << setfill('0') << ((runtime / 60) % 100)
+        cerr << setw(2) << setfill('0') << ((runtime / 60) % 100)
              << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
     else
-        cerr << " Song Length  : UNKNOWN" << endl;
+        cerr << "UNKNOWN" << endl;
 
     if (verboseOutput)
     {
         displayTable (sid2_tableSeperator);
         displayTable (sid2_tableMiddle);
+        textColour   (yellow, true);
         cerr << " Addresses    : " << hex;
-		cerr.setf(ios::uppercase);
+        cerr.setf(ios::uppercase);
+        textColour   (white, false);
         cerr << "Load=$"   << setw(4) << setfill('0') << tuneInfo.loadAddr;
         cerr << ", Init=$" << setw(4) << setfill('0') << tuneInfo.initAddr;
         cerr << ", Play=$" << setw(4) << setfill('0') << tuneInfo.playAddr;
-		cerr << dec << endl;
+        cerr << dec << endl;
         cerr.unsetf(ios::uppercase);
 
         displayTable (sid2_tableMiddle);
+        textColour   (yellow, true);
         cerr << " SID Filters  : ";
+        textColour   (white, false);
         cerr << "Internal=";
         cerr << ((player.info.filter == true) ? "Yes" : "No");
         cerr << ", External=";
         cerr << ((player.info.extFilter == true) ? "Yes" : "No") << endl;
         displayTable (sid2_tableMiddle);
+        textColour   (yellow, true);
+        cerr << " Environment  : ";
+        textColour   (white, false);
         switch (player.info.environment)
         {
         case sid2_envPS:
-            cerr << " Environment  : PlaySID (PlaySID-specific rips)" << endl;
+            cerr << "PlaySID (PlaySID-specific rips)" << endl;
         break;
         case sid2_envTP:
-            cerr << " Environment  : Transparent ROM" << endl;
+            cerr << "Transparent ROM" << endl;
         break;
         case sid2_envBS:
-            cerr << " Environment  : Bank Switching (default)" << endl;
+            cerr << "Bank Switching" << endl;
         break;
         case sid2_envR:  // When it happens
-            cerr << " Environment  : Real C64 (default)" << endl;
+            cerr << "Real C64 (default)" << endl;
         break;
         }
     }
@@ -741,15 +856,42 @@ main_restart:
         goto main_error;
     }
 
-    // Rev 1.13 (saw) - Allow restart of keys
-    if (player.restart)
+    if (!player.fastExit)
     {
-        nextBuffer = player.audioDrv->reset();
-        if (wavOutput)
-            player.audioDrv->close();
-        cerr << endl << endl;
-        player.restart = false;
-        goto main_restart;
+        bool fastReset = true;
+
+        if (!player.restart)
+        {
+            if (!(wavOutput || usertime))
+            {   // It's annoying to exit at end of song when there is lots
+                // of subtunes and we were skipping through and accidently waited
+                // too long on a short track.  As a result increment naturally to
+                // the next tune during normal playback.
+                uint_least16_t songs = player.info.tuneInfo.songs;
+                if (songs > 1)
+                {   // Has multiple subtunes, so move onto next one
+                    player.restart = true;
+                    fastReset      = false;
+                    player.selectedSong++;
+                    if (player.selectedSong > songs)
+                        player.selectedSong = 1;
+                }
+            }
+        }
+            
+
+        // Allow the same or another tune to be played
+        if (player.restart)
+        {   // Allows user to skip songs immediately, but prevents
+            // the ends of songs benig cutoff through natural song playback
+            if (fastReset)
+                nextBuffer = player.audioDrv->reset();
+            if (wavOutput)
+                player.audioDrv->close();
+            cerr << endl << endl;
+            player.restart = false;
+            goto main_restart;
+        }
     }
 
 #ifndef HAVE_MSWINDOWS
@@ -760,7 +902,7 @@ main_restart:
     cleanup (player.fastExit);
     if (wavOutput && !player.fastExit)
         cerr << (char) 7; // Bell
-    return EXIT_SUCCESS;
+return EXIT_SUCCESS;
 
 main_error:
     cleanup (true);
@@ -914,7 +1056,35 @@ void cleanup (bool fast)
             (void) player.audioDrv->reset();
         delete player.audioDrv;
     }
+    if ((player.ini.console ()).ansi)
+        cerr << '\x1b' << "[0m";
     cerr << endl;
+}
+
+
+void textColour (textColour_t colour, bool bold)
+{
+    if ((player.ini.console ()).ansi)
+    {
+        char *mode = "";
+
+        switch (colour)
+        {
+        case black:   mode = "30"; break;
+        case red:     mode = "31"; break;
+        case green:   mode = "32"; break;
+        case yellow:  mode = "33"; break;
+        case blue:    mode = "34"; break;
+        case magenta: mode = "35"; break;
+        case cyan:    mode = "36"; break;
+        case white:   mode = "37"; break;
+        }
+
+        if (bold)
+            cerr << '\x1b' << "[1;40;" << mode << 'm';
+        else
+            cerr << '\x1b' << "[0;40;" << mode << 'm';
+    }
 }
 
 
@@ -922,6 +1092,7 @@ void displayTable (sid2_table_t table)
 {
     const uint tableWidth = 54;
 
+    textColour (white, true);
     switch (table)
     {
     case sid2_tableStart:
@@ -975,16 +1146,16 @@ void decodeKeys ()
         break;
 
         case A_UP_ARROW:
-	    player.speed *= 2;
+        player.speed *= 2;
             if (player.speed > player.speedMax)
-	        player.speed = player.speedMax;
-	    player.lib.fastForward (100 / player.speed);
-	break;
+            player.speed = player.speedMax;
+        player.lib.fastForward (100 / player.speed);
+    break;
 
         case A_DOWN_ARROW:
-	    player.speed = 1;
-	    player.lib.fastForward (100);
-	break;
+        player.speed = 1;
+        player.lib.fastForward (100);
+    break;
 
         case A_HOME:
             player.restart      = true;
