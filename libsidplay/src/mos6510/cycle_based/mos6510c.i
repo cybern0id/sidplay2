@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2001/08/05 15:46:02  s_a_white
+ *  No longer need to check on which cycle an instruction ends or when to print
+ *  debug information.
+ *
  *  Revision 1.16  2001/07/14 13:15:30  s_a_white
  *  Accumulator is now unsigned, which improves code readability.  Emulation
  *  tested with testsuite 2.15.  Various instructions required modification.
@@ -656,7 +660,7 @@ void MOS6510::jmp_instr (void)
 void MOS6510::jsr_instr (void)
 {   // JSR uses absolute addressing in this emulation,
     // hence the -1.  The real SID does not use this addressing
-	// mode.
+    // mode.
     Register_ProgramCounter--;
     PushHighPC ();
 }
@@ -1301,9 +1305,8 @@ void MOS6510::sec_instr (void)
 
 void MOS6510::shs_instr (void)
 {
-    endian_16lo8  (Register_StackPointer, (Register_Accumulator & Register_X));
-    uint8_t tmp = (endian_16hi8 (Cycle_EffectiveAddress) + 1) & Register_StackPointer;
-    envWriteMemByte (Cycle_EffectiveAddress, tmp);
+    endian_16lo8 (Register_StackPointer, (Register_Accumulator & Register_X));
+    Cycle_Data = (endian_16hi8 (Cycle_EffectiveAddress) + 1) & Register_StackPointer;
 }
 
 void MOS6510::tax_instr (void)
@@ -1527,6 +1530,8 @@ MOS6510::MOS6510 (EventContext *context)
 
         for (pass = 0; pass < 2; pass++)
         {
+            enum {WRITE = 0, RMW = 1, READ = 2};
+            int access = WRITE;
             cycleCount = -1;
             legalMode  = true;
             legalInstr = true;
@@ -1555,75 +1560,73 @@ MOS6510::MOS6510 (EventContext *context)
             break;
 
             // Zero Page Addressing Mode Handler - Read & RMW
-            case ADCz: case ANDz: case ASLz: case BITz: case CMPz: case CPXz:
-            case CPYz: case DCPz: case DECz: case EORz: case INCz: case ISBz:
-            case LAXz: case LDAz: case LDXz: case LDYz: case LSRz: case NOPz_:
-            case ORAz: case ROLz: case RORz: case SBCz: case SREz: case SLOz:
-            case RLAz: case RRAz:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Zero Page Addressing Mode Handler - Write
+            case ADCz:  case ANDz: case BITz: case CMPz: case CPXz: case CPYz:
+            case EORz:  case LAXz: case LDAz: case LDXz: case LDYz: case ORAz: 
+            case NOPz_: case SBCz:
+                access++;
+            case ASLz: case DCPz: case DECz: case INCz: case ISBz: case LSRz:
+            case ROLz: case RORz: case SREz: case SLOz: case RLAz: case RRAz:
+                access++;
             case SAXz: case STAz: case STXz: case STYz:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
+                if (access == READ) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                } else if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
-            // Zero Page with X Offset Addressing Mode Handler - Read & RMW
-            case ADCzx:  case ANDzx: case ASLzx: case CMPzx: case DCPzx: case DECzx:
-            case EORzx:  case INCzx: case ISBzx: case LDAzx: case LDYzx: case LSRzx:
-            case NOPzx_: case ORAzx: case RLAzx: case ROLzx: case RORzx: case RRAzx:
-            case SBCzx:  case SLOzx: case SREzx:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddrX;
-#ifdef MOS6510_ACCURATE_CYCLES
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
-#endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Zero Page with X Offset Addressing Mode Handler - Write
+            // Zero Page with X Offset Addressing Mode Handler
+            case ADCzx: case ANDzx:  case CMPzx: case EORzx: case LDAzx: case LDYzx:
+            case NOPzx_: case ORAzx: case SBCzx:
+                access++;
+            case ASLzx: case DCPzx: case DECzx: case INCzx: case ISBzx: case LSRzx:
+            case RLAzx:    case ROLzx: case RORzx: case RRAzx: case SLOzx: case SREzx:
+                access++;
             case STAzx: case STYzx:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddrX;
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
+                if (access == READ) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                } else if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
-            // Zero Page with Y Offset Addressing Mode Handler - Read & RMW
+            // Zero Page with Y Offset Addressing Mode Handler
             case LDXzy: case LAXzy:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddrY;
-#ifdef MOS6510_ACCURATE_CYCLES
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
-#endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-            
-            // Zero Page with Y Offset Addressing Mode Handler - Write
+                access = READ;
             case STXzy: case SAXzy:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddrY;
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
+                if (access == READ) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                }
             break;
-
-            // Absolute Addressing Mode Handler - Read & RMW
-            case ADCa: case ANDa: case ASLa: case BITa: case CMPa: case CPXa:
-            case CPYa: case DCPa: case DECa: case EORa: case INCa: case ISBa:
-            case LAXa: case LDAa: case LDXa: case LDYa: case LSRa: case NOPa:
-            case ORAa: case ROLa: case RORa: case SBCa: case SLOa: case SREa: 
-            case RLAa: case RRAa:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Absolute Addressing Mode Handler - Write
+            
+            // Absolute Addressing Mode Handler
+            case ADCa: case ANDa: case BITa: case CMPa: case CPXa: case CPYa:
+            case EORa: case LAXa: case LDAa: case LDXa: case LDYa: case NOPa:
+            case ORAa: case SBCa:
+                access++;
+            case ASLa: case DCPa: case DECa: case INCa: case ISBa: case LSRa: 
+            case ROLa: case RORa: case SLOa: case SREa: case RLAa: case RRAa:
+                access++;
             case JMPw: case JSRw: case SAXa: case STAa: case STXa: case STYa:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddr;
+                if (access == READ) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                } else if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
-            // Absolute With X Offset Addressing Mode Handler - Read & RMW
+            // Absolute With X Offset Addressing Mode Handler (Read)
             case ADCax: case ANDax:  case CMPax: case EORax: case LDAax:
             case LDYax: case NOPax_: case ORAax: case SBCax:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
@@ -1634,31 +1637,25 @@ MOS6510::MOS6510 (EventContext *context)
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
             break;
 
-            // Absolute X (No page crossing handled) - Read & RMW
+            // Absolute X (No page crossing handled)
             case ASLax: case DCPax: case DECax: case INCax: case ISBax:
             case LSRax: case RLAax: case ROLax: case RORax: case RRAax:
             case SLOax: case SREax:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddrX2;
-#ifdef MOS6510_ACCURATE_CYCLES
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
-#endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Absolute X (No page crossing handled) - Write
+                access = RMW;
             case SHYax: case STAax:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddrX2;
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
+                if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
-            // Absolute With Y Offset Addresing Mode Handler - Read & RMW
+            // Absolute With Y Offset Addresing Mode Handler (Read)
             case ADCay: case ANDay: case CMPay: case EORay: case LASay:
             case LAXay: case LDAay: case LDXay: case ORAay: case SBCay:
-            case SHSay:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddrY;
 #ifdef MOS6510_ACCURATE_CYCLES
@@ -1667,24 +1664,19 @@ MOS6510::MOS6510 (EventContext *context)
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
             break;
             
-            // Absolute Y (No page crossing handled) - Read & RMW
+            // Absolute Y (No page crossing handled)
             case DCPay: case ISBay: case RLAay: case RRAay: case SLOay:
             case SREay:
+                access = RMW;
+            case SHAay: case SHSay: case SHXay: case STAay:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddrY2;
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Absolute Y (No page crossing handled) - Write
-            case SHAay: case SHXay: case STAay:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighAddrY2;
-#ifdef MOS6510_ACCURATE_CYCLES
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
-#endif
+                if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
             // Absolute Indirect Addressing Mode Handler
@@ -1695,26 +1687,25 @@ MOS6510::MOS6510 (EventContext *context)
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighEffAddr;
             break;
 
-            // Indexed with X Preinc Addressing Mode Handler - Read & RMW
-            case ADCix: case ANDix: case CMPix: case DCPix: case EORix: case ISBix:
-            case LAXix: case LDAix: case ORAix: case SBCix: case SLOix: case SREix:
-            case RLAix: case RRAix:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointer;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointerX;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowEffAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighEffAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Indexed with X Preinc Addressing Mode Handler - Write
+            // Indexed with X Preinc Addressing Mode Handler
+            case ADCix: case ANDix: case CMPix: case EORix: case LAXix: case LDAix:
+            case ORAix: case SBCix: 
+                access++;
+            case DCPix: case ISBix: case SLOix: case SREix: case RLAix: case RRAix:
+                access++;
             case SAXix: case STAix:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointer;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointerX;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowEffAddr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighEffAddr;
+                if (access == READ) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
+                } else if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
-            // Indexed with Y Postinc Addressing Mode Handler - Read & RMW
+            // Indexed with Y Postinc Addressing Mode Handler (Read)
             case ADCiy: case ANDiy: case CMPiy: case EORiy: case LAXiy:
             case LDAiy: case ORAiy: case SBCiy:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointer;
@@ -1726,19 +1717,10 @@ MOS6510::MOS6510 (EventContext *context)
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
             break;
             
-            // Indexed Y (No page crossing handled) - Read & RMW
+            // Indexed Y (No page crossing handled)
             case DCPiy: case ISBiy: case RLAiy: case RRAiy: case SLOiy:
             case SREiy:
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointer;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowEffAddr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchHighEffAddrY2;
-#ifdef MOS6510_ACCURATE_CYCLES
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
-#endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchEffAddrDataByte;
-            break;
-
-            // Indexed Y (No page crossing handled) - Write
+                access = RMW;
             case SHAiy: case STAiy:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowPointer;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchLowEffAddr;
@@ -1746,6 +1728,9 @@ MOS6510::MOS6510 (EventContext *context)
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
+                if (access == RMW) {
+                    cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchPutEffAddrDataByte;
+                }
             break;
 
             default:
@@ -2138,7 +2123,7 @@ MOS6510::MOS6510 (EventContext *context)
 
             case SHSay: // Also known as TAS
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::shs_instr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PutEffAddrDataByte;
             break;
 
             case SHXay: // Also known as XAS
@@ -2354,6 +2339,7 @@ MOS6510::MOS6510 (EventContext *context)
     Cycle_Data             = 0;
     fetchCycle[0]          = &MOS6510::interruptPending;
 
+    dodump = false;
     Initialise ();
 return;
 
@@ -2425,7 +2411,6 @@ void MOS6510::reset (void)
     Register_ProgramCounter = Cycle_EffectiveAddress;
     interrupts.delay        = MOS6510_INTERRUPT_DELAY;
     filepos = 0;
-    dodump = false;
 }
 
 //-------------------------------------------------------------------------//
