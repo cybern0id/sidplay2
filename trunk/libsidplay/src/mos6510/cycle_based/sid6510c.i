@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/09/18 07:51:39  jpaana
+ *  Small fix to rti-processing.
+ *
  *  Revision 1.12  2001/09/03 22:23:06  s_a_white
  *  Fixed faked IRQ trigger on BRK for sidplay1 environment modes.
  *
@@ -286,7 +289,6 @@ void SID6510::triggerIRQ (void)
         MOS6510::triggerIRQ ();
         if (sleeping)
         {
-            cli_instr ();
             MOS6510::clock ();
             // Can't support overlapped IRQs in older
             // environment modes and RTIs are RTSs.
