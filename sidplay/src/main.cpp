@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/03/21 22:54:55  s_a_white
+ *  Support for ini config file and libsidutils tools.
+ *
  *  Revision 1.6  2001/03/04 12:58:56  s_a_white
  *  Defualt environment changed to real.  Verbose info now printed correctly.
  *
@@ -512,7 +515,6 @@ int main(int argc, char *argv[])
         cerr << argv[0] << "\n" << (tune.getInfo ()).statusString << endl;
         goto main_error;
     }        
-//	tune.savePSIDfile ("d:/ig_new.sid", true);
 
     // Load the filter
     if (!player.filter)
