@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2002/02/21 20:26:13  s_a_white
+ *  Nolonger default to Galway Mode when Noise samples init incorrectly. Fixes
+ *  VARIOUS/S-Z/Zyron/Bouncy_Balls.sid (HVSC).
+ *
  *  Revision 1.18  2002/02/17 16:34:39  s_a_white
  *  New reset interface
  *
@@ -105,7 +109,7 @@ programmed with.
 #   endif
 #endif
 
-#if XSID_DEBUG
+#ifdef XSID_DEBUG
 #   include <stdio.h>
 #endif
 
