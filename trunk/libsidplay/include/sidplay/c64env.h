@@ -28,11 +28,13 @@
 
 class c64env
 {
+protected:
+    EventContext &m_context;
+
 public:
-    EventContext eventContext;
-    c64env ()
-        :eventContext ("SID") {}
-    EventContext &context (void) { return eventContext; }
+    c64env (EventContext *context)
+        :m_context (*context) {}
+    EventContext &context (void) const { return m_context; }
     virtual void interruptIRQ (const bool state) = 0;
     virtual void interruptNMI (void) = 0;
     virtual void interruptRST (void) = 0;
