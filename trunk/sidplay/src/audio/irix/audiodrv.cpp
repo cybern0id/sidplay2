@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/03/04 19:07:48  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.6  2002/01/10 19:04:01  s_a_white
  *  Interface changes for audio drivers.
  *
@@ -57,28 +60,50 @@ void *Audio_Irix::open (AudioConfig& cfg, const char *)
 {
     // Copy input parameters. May later be replaced with driver defaults.
     _settings = cfg;
-
-    long chpars[] = {AL_OUTPUT_RATE, 0};
-
-    // Frequency
-    chpars[1] = _settings.frequency;
-    ALsetparams(AL_DEFAULT_DEVICE, chpars, 2);
-    ALgetparams(AL_DEFAULT_DEVICE, chpars, 2);
-    _settings.frequency = chpars[1];
     
     _config = ALnewconfig();
 
     // Set sample format
     ALsetsampfmt(_config, AL_SAMPFMT_TWOSCOMP);
-    // encoding = SIDEMU_SIGNED_PCM;  // unlike other systems
 
-    // Mono output
-    ALsetchannels(_config, AL_MONO);
+    // stereo or mono mode
+    _settings.channels = cfg.channels >= 2 ? 2 : 1;
+    if (_settings.channels == 2)
+        ALsetchannels(_config, AL_STEREO);
+    else
+        ALsetchannels(_config, AL_MONO);
 
-    // 8-bit sampleSize
-    ALsetwidth(_config, AL_SAMPLE_8);
+    // 16 or 8 bit sample
+    _settings.precision = cfg.precision >= 16 ? 16 : 8;
+    if (_settings.precision == 16)
+        ALsetwidth(_config, AL_SAMPLE_16);
+    else
+        ALsetwidth(_config, AL_SAMPLE_8);
 
-    if((_audio = ALopenport("SIDPLAY2 sound", "w", _config)) == NULL)
+    // Frequency
+    long chpars[] = {AL_OUTPUT_RATE, 0};
+    if (cfg.frequency > 48000)
+        chpars[1] = AL_RATE_48000;
+    else if (cfg.frequency > 44100)
+        chpars[1] = AL_RATE_44100;
+    else if (cfg.frequency > 32000)
+        chpars[1] = AL_RATE_32000;
+    else if (cfg.frequency > 22050)
+        chpars[1] = AL_RATE_22050;
+    else if (cfg.frequency > 16000)
+        chpars[1] = AL_RATE_16000;
+    else
+        chpars[1] = AL_RATE_11025;
+    ALsetparams(AL_DEFAULT_DEVICE, chpars, 2);
+    ALgetparams(AL_DEFAULT_DEVICE, chpars, 2);
+    _settings.frequency = (uint_least32_t) chpars[1];
+
+    // Allocate sound buffers and set audio queue
+    ALsetqueuesize(_config, chpars[1]);
+
+    // open audio device
+    _audio = ALopenport("SIDPLAY2 sound", "w", _config);
+    if (_audio == NULL)
     {
         perror("AUDIO:");
         _errorString = "ERROR: Could not open audio device.\n       See standard error output.";
@@ -86,23 +111,18 @@ void *Audio_Irix::open (AudioConfig& cfg, const char *)
         return 0;
     }
 
-    // Allocate sound buffers
-    int blockSize = _settings.frequency;
-    ALsetqueuesize(_config,blockSize);
-
     // Setup internal Config
-    _settings.channels  = 1;
     _settings.encoding  = AUDIO_SIGNED_PCM;
-    _settings.bufSize   = blockSize;
-    _settings.precision = 8;
+    _settings.bufSize   = (uint_least32_t) chpars[1];
+
     // Update the users settings
     getConfig (cfg);
 
     // Allocate memory same size as buffer
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(std::nothrow) int_least8_t[blockSize];
+    _sampleBuffer = new(std::nothrow) int_least8_t[chpars[1]];
 #else
-    _sampleBuffer = new int_least8_t[blockSize];
+    _sampleBuffer = new int_least8_t[chpars[1]];
 #endif
 
     _errorString = "OK";
