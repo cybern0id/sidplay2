@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/02/08 17:21:14  s_a_white
+ *  Initial SID volumes not being stored in cache.  Fixes Dulcedo Cogitationis.
+ *
  *  Revision 1.9  2001/02/07 20:56:46  s_a_white
  *  Samples now delayed until end of simulated frame.
  *
@@ -134,14 +137,14 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         clock = SID2_CLOCK_PAL;
         if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
-	    clock = SID2_CLOCK_NTSC;
+        clock = SID2_CLOCK_NTSC;
     }
     // If forced change song to be the requested speed
     else if (_forced)
     {
         tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
         if (clock == SID2_CLOCK_NTSC)
-	    tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
     }
 
     // Set clock and select speed description string.
@@ -179,7 +182,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {   // Don't reset the CIA if already running.  If we do,
         // will mess up the song.
         if (playerState == _stopped)
-	{
+        {
             cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_NTSC + 0.5));
             cia.write (0x0e, 0x01); // Start the timer
         }
@@ -481,32 +484,23 @@ int player::initialise ()
 
     // Setup the Initial entry point
     uint_least16_t initAddr = tuneInfo.initAddr;
-    initBankSelect (initAddr);
+    uint_least16_t playAddr = tuneInfo.playAddr;
+
     endian_little16 (&ram[0xfffc], initAddr);
     endian_little16 (&rom[0xfffc], initAddr);
-    cpu.reset (tuneInfo.currentSong - 1, 0, 0);
-
-    // Initialise the song
-    while (!cpu.SPWrapped)
-    {
-        cpu.clock ();
-#ifdef DEBUG
-        cpu.DumpState ();
-#endif // DEBUG
-    }
 
     // Check to make sure the play address is legal
-    uint_least16_t playAddr = tuneInfo.playAddr;
-    // Rev 1.8 (saw) - (playAddr == initAddr) is no longer
-    // treated as an init loop that sets it's own irq handler
+    // (playAddr == initAddr) is no longer treated as an
+    // init loop that sets it's own irq handler
     //if ((playAddr == 0xffff) || (playAddr == initAddr))
     if (playAddr == 0xffff)
         tuneInfo.playAddr = 0;
+    // Setup the initial bank register setting for the
+    // play loop
     initBankSelect (playAddr);
     _initBankReg = _bankReg;
-
-    // Get the next sequence of notes
-    nextSequence ();
+    initBankSelect (initAddr);
+    cpu.reset (tuneInfo.currentSong - 1, 0, 0);
     return 0;
 }
 
@@ -531,35 +525,43 @@ int player::loadSong (SidTune *tune)
 // Makes the next sequence of notes available.  For sidplay compatibility
 // this function should be called from trigger IRQ event
 void player::nextSequence ()
-{   // Check to see if the play address has been provided or whether
-    // we should pick it up from an IRQ vector
-    uint_least16_t playAddr = tuneInfo.playAddr;
-
-    // We have to reload the new play address
-    if (!playAddr)
-    {
-        if (isKernal)
-        {   // Setup the entry point from hardware IRQ
-            playAddr = endian_little16 (&ram[0x0314]);
-        }
-        else
-        {   // Setup the entry point from software IRQ
-            playAddr = endian_little16 (&ram[0xfffe]);
-        }
+{
+    if (cpu)
+    {   // We are still running, pull real irq
+        // Move IRQ vector as can't read roms
+        if ((_environment != sid2_envR) && isKernal)
+            endian_little16 (&rom[0xfffe], endian_little16 (&ram[0x0314]));
+        cpu.triggerIRQ ();
     }
     else
-        evalBankSelect (_initBankReg);
+    {
+        // Check to see if the play address has been provided or whether
+        // we should pick it up from an IRQ vector
+        uint_least16_t playAddr = tuneInfo.playAddr;
 
-    // Setup the entry point and restart the cpu
-    endian_little16 (&ram[0xfffc], playAddr);
-    endian_little16 (&rom[0xfffc], playAddr);
-    cpu.reset ();
+        // We have to reload the new play address
+        if (!playAddr)
+        {   // Setup the entry point from hardware IRQ
+            playAddr = endian_little16 (&ram[0xfffe]);
+            if (isKernal)
+            {   // Setup the entry point from software IRQ
+                playAddr = endian_little16 (&ram[0x0314]);
+            }
+        }
+        else
+            evalBankSelect (_initBankReg);
+
+        // Setup the entry point and restart the cpu
+        endian_little16 (&ram[0xfffc], playAddr);
+        endian_little16 (&rom[0xfffc], playAddr);
+        cpu.reset ();
+    }
 
     // Paged CPU mode moved to interrupt
     xsid.suppress (true);
     if (_optimiseLevel > 1)
     {
-        while (!cpu.SPWrapped)
+        while (cpu)
             cpu.clock ();
         xsid.suppress (false);
     }
@@ -591,10 +593,10 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
     {   // For sidplay compatibility the cpu must be idle
         // when the play routine exists.  The cpu will stay
         // idle until an interrupt occurs
-        if (!cpu.SPWrapped)
+        if (cpu)
         {
             cpu.clock ();
-            if (cpu.SPWrapped)
+            if (!cpu)
                 xsid.suppress (false);
         }
 
@@ -859,13 +861,13 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
 
         sid.write ((uint8_t) tempAddr, data);
         if (useCache)
-		{
+        {
             rom[tempAddr] = data;
 #ifdef XSID_USE_SID_VOLUME
-			if ((tempAddr & 0x00FF) == 0x0018)
-			    xsid.volumeUpdated ();
+            if ((tempAddr & 0x00FF) == 0x0018)
+                xsid.volumeUpdated ();
 #endif // XSID_USE_SID_VOLUME
-		}
+        }
     }
 }
 
@@ -981,8 +983,9 @@ void player::envTriggerRST (void)
 }
 
 void player::envClearIRQ (void)
-{   // NOT DEFINED
-    ;
+{
+    if (cpu)
+        cpu.clearIRQ ();
 }
 
 uint8_t player::envReadMemDataByte (uint_least16_t addr, bool useCache)
