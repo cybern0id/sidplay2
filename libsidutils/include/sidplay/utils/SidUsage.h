@@ -22,8 +22,6 @@
 #include <sidplay/utils/SidTuneMod.h>
 
 struct SidTuneInfo;
-struct IffHeader;
-struct Chunk;
 
 // Extended usuage information
 struct sid2_usage_t: public sid_usage_t
