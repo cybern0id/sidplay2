@@ -28,6 +28,8 @@
 class sidemu: public component
 {
 public:
+    virtual ~sidemu (void) {;}
+
     // Standard component functions
     virtual void    reset (void) = 0;
     virtual uint8_t read  (const uint_least8_t addr) = 0;
