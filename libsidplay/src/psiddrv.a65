@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/03/12 18:45:37  s_a_white
+ *  Added PHP to push stack as sidplay1 compatibility IRQ now behaves like
+ *  JSR.
+ *
  *  Revision 1.7  2002/02/17 12:35:35  s_a_white
  *  BRK handler clean up and better sidplay2 optimisation usage.
  *
@@ -65,6 +69,7 @@ playnum     .byte 0
 speed       .byte 0
 initvec     .word 0
 playvec     .word 0
+rndwait     .word 0
 iomap       .byte 0
 
             ; init/play PSID
@@ -114,11 +119,23 @@ timer       sta $dc04
             beq doinit
 
             ; enable CIA 1 timer A interrupt
-ciainit     lda #$01
-            stx $dc0d
+ciainit     stx $dc0d
+
+            ; always enable timer A for random numbers
+doinit      lda #$01
             sta $dc0e
 
-doinit      ; set I/O map and call song init routine
+            ; simulate time before user loads tune
+            tya
+            ldx rndwait
+            ldy rndwait+1
+wait        dex
+            bne wait
+            dey
+            bne wait
+            tay
+
+            ; set I/O map and call song init routine
             lda #$2f
             sta $00
             lda initvec+1
