@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/23 21:25:15  s_a_white
+ *  Only way to load a tune now is by passing in a sidtune object.  This is
+ *  required for songlength database support.
+ *
  *  Revision 1.1  2001/01/08 16:41:42  s_a_white
  *  App and Library Seperation
  *
@@ -774,6 +778,9 @@ int_least32_t generateMusic (AudioConfig &cfg, void *buffer)
             return -1;
         }
     }
+
+    if (player.paused)
+        return 0;
 
     if (currentSecs != seconds)
     {
