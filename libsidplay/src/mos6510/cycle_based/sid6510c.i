@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2002/12/03 23:24:52  s_a_white
+ *  Let environment know when cpu sleeps in real c64 mode.
+ *
  *  Revision 1.27  2002/12/02 22:19:43  s_a_white
  *  sid_brk fix to prevent it running some of the real brk cycles in old emulation
  *  modes.
@@ -207,24 +210,11 @@ void SID6510::reset ()
 // interrupt will wake up the processor
 void SID6510::sleep ()
 {   // Simulate a delay for JMPw
-    m_delayClk = eventContext.getTime ();
-    m_sleeping = true;
+    m_delayClk = m_stealingClk = eventContext.getTime ();
     procCycle  = delayCycle;
     cycleCount = 0;
-    eventContext.cancel (this);
+    m_sleeping = !(interrupts.irqRequest || interrupts.pending);
     envSleep ();
-
-    // Check for outstanding interrupts
-    if (interrupts.irqs)
-    {
-        interrupts.irqs--;
-        triggerIRQ ();
-    }
-    else if (interrupts.pending)
-    {
-        m_sleeping = false;
-        eventContext.schedule (this, 1);
-    }
 }
 
 void SID6510::FetchOpcode (void)
@@ -244,10 +234,16 @@ void SID6510::FetchOpcode (void)
 
     if (m_framelock == false)
     {
+        uint timeout = 1000000;
         m_framelock = true;
         // Simulate sidplay1 frame based execution
-        while (!m_sleeping)
+        while (!m_sleeping && timeout)
+        {
             MOS6510::clock ();
+            timeout--;
+        }
+        if (!timeout)
+            printf ("\n\nINFINITE LOOP DETECTED *********************************\n");
         sleep ();
         m_framelock = false;
     }
@@ -275,14 +271,11 @@ void SID6510::sid_brk (void)
 void SID6510::sid_jmp (void)
 {   // For sidplay compatibility, inherited from environment
     if (m_mode == sid2_envR)
-    {   // If a busy loop then just sleep
-        if (Cycle_EffectiveAddress != instrStartPC)
-            jmp_instr ();
-        else
-        {
-            Register_ProgramCounter = Cycle_EffectiveAddress;
+    {
+        jmp_instr ();
+        // If a busy loop then just sleep
+        if (Cycle_EffectiveAddress == instrStartPC)
             sleep ();
-        }
         return;
     }
 
@@ -344,12 +337,53 @@ void SID6510::sid_illegal (void)
 
 void SID6510::sid_delay (void)
 {
-    cycleCount = 0;
-    if (++m_delayCycles >= 3)
-    {
-        (void) interruptPending ();
-        m_delayCycles = 0;
+    for (;;)
+    {   // Woken up during steal from IRQ/NMI
+        if (m_blocked)
+            break;
+
+        // Wakeup from stealing
+        bool steal = !(rdy && aec);
+        event_clock_t stolen  = eventContext.getTime (m_stealingClk);
+        event_clock_t delayed = eventContext.getTime (m_delayClk);
+
+        // Check for stealing.  The relative clock cycle
+        // differences are compared here rather than the
+        // clocks directly.  This means we don't have to
+        // worry about the clocks wrapping
+        if (delayed > stolen)
+        {   // If we are still stealing exit
+            if (steal)
+                break;
+
+            // No longer stealing so adjust clock
+            delayed      -= stolen;
+            m_delayClk   += stolen;
+            m_stealingClk = m_delayClk;
+        }
+
+        event_clock_t cycle = (delayed - 1) % 3;
+        // See if we have reached a stealable cycle
+        if (steal)
+            stealCycle (cycle < 2);
+        // Nothing interesting has happend so can we sleep
+        else if (m_sleeping)
+            break;
+        // Nolonger sleeping, waiting for IRQ to take effect
+        else
+        {
+            if (cycle == 0)
+            {
+                if (interruptPending ())
+                    return;
+            }
+            eventContext.schedule (this, 3 - cycle, EVENT_CLOCK_PHI2);
+        }
+        cycleCount--;
+        return;
     }
+    cycleCount--;
+    eventContext.cancel (this);
 }
 
 
@@ -362,7 +396,7 @@ void SID6510::triggerRST (void)
     if (m_sleeping)
     {
         m_sleeping = false;
-        eventContext.schedule (this, 1);
+        eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
     }
 }
 
@@ -373,9 +407,8 @@ void SID6510::triggerNMI (void)
         MOS6510::triggerNMI ();
         if (m_sleeping)
         {
-            m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
-            eventContext.schedule (this, 1);
+            eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
         }
     }
 }
@@ -398,9 +431,8 @@ void SID6510::triggerIRQ (void)
         MOS6510::triggerIRQ ();
         if (m_sleeping)
         {   // Simulate busy loop
-            m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
-            eventContext.schedule (this, 1);
+            eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
         }
     }
 }
