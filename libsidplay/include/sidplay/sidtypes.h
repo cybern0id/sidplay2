@@ -80,6 +80,8 @@ typedef unsigned int uint;
 typedef float    float32_t;
 typedef double   float64_t;
 
+typedef int sid_fc_t[2];
+
 #define FOREVER for(;;)
 #define SWAP(x,y) ((x)^=(y)^=(x)^=(y))
 
