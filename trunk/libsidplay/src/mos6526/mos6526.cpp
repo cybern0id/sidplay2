@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/01/06 21:28:27  s_a_white
+ *  Initial TOD support (code taken from vice)
+ *
  *  Revision 1.13  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -115,8 +118,8 @@ MOS6526::MOS6526 (EventContext *context)
 }
 
 void MOS6526::clock (float64_t clock)
-{	// Fixed point 25.7
-    m_todPeriod = (event_clock_t) (clock * (float64_t) (1 << 7) / 10.0);
+{    // Fixed point 25.7
+    m_todPeriod = (event_clock_t) (clock * (float64_t) (1 << 7));
 }
 
 void MOS6526::reset (void)
@@ -138,7 +141,7 @@ void MOS6526::reset (void)
     m_todlatched = false;
     m_todstopped = true;
     m_todclock[TOD_HR-TOD_TEN] = 1; // the most common value
-	m_todCycles = 0;
+    m_todCycles = 0;
 
     // Remove outstanding events
     event_context.cancel   (&event_ta);
@@ -433,8 +436,14 @@ void MOS6526::tb_event (void)
 #define bcd2byte(bcd)  (((10*(((bcd) & 0xf0) >> 4)) + ((bcd) & 0xf)) & 0xff)
 
 void MOS6526::tod_event(void)
-{	// Fixed precision 25.7
-    m_todCycles += m_todPeriod;
+{   // Reload divider according to 50/60 Hz flag
+    // Only performed on expiry according to Frodo
+    if (cra & 0x80)
+        m_todCycles += (m_todPeriod * 5);
+    else
+        m_todCycles += (m_todPeriod * 6);    
+    
+    // Fixed precision 25.7
     event_context.schedule (&event_tod, m_todCycles >> 7, m_phase);
     m_todCycles &= 0x7F; // Just keep the decimal part
 

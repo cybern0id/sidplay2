@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2004/01/06 21:35:19  s_a_white
+ *  Setup the TOD clocks.
+ *
  *  Revision 1.37  2003/07/17 19:29:00  s_a_white
  *  Don't try to channel split stereo tunes in stereo audio mode.
  *
@@ -213,14 +216,24 @@ int Player::config (const sid2_config_t &cfg)
                              (1 << 16) * m_fastForwardFactor);
             // Setup fake cia
             sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
-            // @FIXME@ see mos6526.h for details
-            cia.clock  (cpuFreq);
-            cia2.clock (cpuFreq);
             if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
                 m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
             {
                 sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_NTSC + 0.5));
             }
+
+            // @FIXME@ see mos6526.h for details. Setup TOD clock 
+            if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+            {
+                cia.clock  (cpuFreq / VIC_FREQ_PAL);
+                cia2.clock (cpuFreq / VIC_FREQ_PAL);
+            }
+            else
+            {
+                cia.clock  (cpuFreq / VIC_FREQ_NTSC);
+                cia2.clock (cpuFreq / VIC_FREQ_NTSC);
+            }
+
             // Configure, setup and install C64 environment/events
             if (environment (cfg.environment) < 0)
                 goto Player_configure_restore;
