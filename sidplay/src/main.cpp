@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2001/11/21 18:55:25  s_a_white
+ *  Sidplay2 0.8 new frontend interface.
+ *
  *  Revision 1.19  2001/09/01 11:48:42  s_a_white
  *  Help moved from cerr to cout.
  *
@@ -64,8 +67,8 @@
  *  Support for sample mode to be selected at runtime.
  *
  *  Revision 1.4  2001/02/08 20:58:01  s_a_white
- *  Help screen bug fix for default precision and optimisation, which were printed
- *  as characters.
+ *  Help screen bug fix for default precision and optimisation, which were
+ *  printed as characters.
  *
  *  Revision 1.3  2001/01/23 22:54:24  s_a_white
  *  Prevents timer overwriting paused message.
