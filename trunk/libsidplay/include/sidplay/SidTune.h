@@ -26,6 +26,11 @@
 
 #include <fstream.h>
 
+// Temporary old fixes till
+// namespace code added
+#define TuneInfo SidTuneInfo
+#define Tune     SidTune
+
 /*
 SIDPLAY2_NAMESPACE_START
 */
@@ -193,7 +198,7 @@ class SID_EXTERN Tune
     }
     
     // Copy sidtune into C64 memory (64 KB).
-    bool placeTuneInC64mem(uint_least8_t* c64buf);
+    bool placeSidTuneInC64mem(uint_least8_t* c64buf);
 
     // --- file save & format conversion ---
 
@@ -318,8 +323,8 @@ class SID_EXTERN Tune
     
     // Cache the data of a single-file or two-file sidtune and its
     // corresponding file names.
-    bool acceptTune(const char* dataFileName, const char* infoFileName,
-                    Buffer_sidtt<const uint_least8_t>& buf);
+    bool acceptSidTune(const char* dataFileName, const char* infoFileName,
+                       Buffer_sidtt<const uint_least8_t>& buf);
 
     bool createNewFileName(Buffer_sidtt<char>& destString,
                            const char* sourceName, const char* sourceExt);
