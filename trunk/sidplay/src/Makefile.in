@@ -111,6 +111,9 @@ $(LIBSIDPLAY2_LDFLAGS) $(LIBSIDUTILS_LDFLAGS) \
 $(BUILDERS_LDFLAGS) \
 $(RESID_LDFLAGS) $(HARDSID_LDFLAGS)
 
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/unix/config.h
@@ -126,7 +129,6 @@ sidplay2_DEPENDENCIES = ./audio/null/libnull.a ./audio/wav/libwav.a
 sidplay2_LDFLAGS =
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/unix
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
