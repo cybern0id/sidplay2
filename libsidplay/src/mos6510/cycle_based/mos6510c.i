@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.46  2004/04/23 01:04:26  s_a_white
+ *  Overlap FetchOpcode with last cycle of previous instruction rather than
+ *  next cycle of this instruction.  Although results are almost indentical there
+ *  are differences when cycle stealing is invloved.
+ *
  *  Revision 1.45  2004/03/07 22:37:42  s_a_white
  *  Cycle stealing only takes effect after 3 consecutive writes or any read.
  *  However stealing does not effect internal only operations and since all writes
@@ -796,6 +801,7 @@ void MOS6510::brk_instr (void)
 void MOS6510::cld_instr (void)
 {
     setFlagD (false);
+    clock ();
 }
 
 void MOS6510::cli_instr (void)
@@ -807,6 +813,7 @@ void MOS6510::cli_instr (void)
     // Check to see if interrupts got re-enabled
     if (interrupts.irqs)
         interrupts.irqRequest = true;
+    clock ();
 }
 
 void MOS6510::jmp_instr (void)
@@ -1132,11 +1139,11 @@ void MOS6510::branch_instr (bool condition)
     else
     {
         cycleCount += 2;
+        clock ();
     }
 #else
     Register_ProgramCounter += (int8_t) Cycle_Data;
 #endif
-    clock ();
 }
 
 void MOS6510::branch2_instr ()
@@ -1147,6 +1154,7 @@ void MOS6510::branch2_instr ()
     interrupts.irqClk++;
     interrupts.nmiClk++;
     cycleCount++;
+    clock ();
 }
 
 void MOS6510::bcc_instr (void)
@@ -1359,6 +1367,7 @@ void MOS6510::rora_instr (void)
     if (getFlagC ()) Register_Accumulator |= 0x80;
     setFlagsNZ (Register_Accumulator);
     setFlagC   (tmp);
+    clock ();
 }
 
 void MOS6510::sbx_instr (void)
