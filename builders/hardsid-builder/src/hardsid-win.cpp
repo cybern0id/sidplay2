@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/04/15 15:19:31  s_a_white
+ *  Only insert delays from the periodic event into output stream if
+ *  HARDSID_DELAY_CYCLES has passed (removes unnecessary hw writes)
+ *
  *  Revision 1.12  2004/03/18 20:46:41  s_a_white
  *  Fixed use of uninitialised variable m_phase.
  *
@@ -137,12 +141,16 @@ void HardSID::reset (uint8_t volume)
     hsid2.Sync ((BYTE) m_instance);
 
     if (m_eventContext != NULL)
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
-                                  EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
+                  EVENT_CLOCK_PHI1);
 }
 
-void HardSID::voice (uint_least8_t num, uint_least8_t volume,
-                     bool mute)
+void HardSID::volume (uint_least8_t num, uint_least8_t level)
+{
+    // Not yet implemented
+}
+
+void HardSID::mute (uint_least8_t num, bool mute)
 {
     if (hsid2.Version >= HSID_VERSION_207)
         hsid2.Mute2 ((BYTE) m_instance, (BYTE) num, (BOOL) mute, FALSE);
@@ -160,7 +168,7 @@ bool HardSID::lock (c64env *env)
         if (hsid2.Version >= HSID_VERSION_204)
             hsid2.Unlock (m_instance);
         m_locked = false;
-        m_eventContext->cancel (this);
+        cancel ();
         m_eventContext = NULL;
     }
     else
@@ -174,8 +182,8 @@ bool HardSID::lock (c64env *env)
         }
         m_locked = true;
         m_eventContext = &env->context ();
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
-                                  EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
+                  EVENT_CLOCK_PHI1);
     }
     return true;
 }
@@ -185,15 +193,15 @@ void HardSID::event (void)
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     if (cycles < HARDSID_DELAY_CYCLES)
     {
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES - cycles,
-                                EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES - cycles,
+                  EVENT_CLOCK_PHI1);
     }
     else
     {
         m_accessClk += cycles;
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
-                                EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
+                  EVENT_CLOCK_PHI1);
     }
 }
 
