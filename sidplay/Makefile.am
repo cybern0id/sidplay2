@@ -1,9 +1,9 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = src 
+SUBDIRS = doc src unix
 
-EXTRA_DIST = include unix win Makefile.dist acconfig.h sidplay.spec
+EXTRA_DIST = include win acconfig.h
 
 
 # Remove CVS directories from any subdirs that get
