@@ -32,6 +32,8 @@ struct sid2_usage_t: public sid_usage_t
     uint_least16_t end;   // Load image end address
     char           md5[SIDTUNE_MD5_LENGTH + 1]; // Tunes MD5 key
     uint_least16_t length;  // usage scan length
+
+    sid2_usage_t& operator=(const sid_usage_t&);
 };
 
 class SID_EXTERN SidUsage
