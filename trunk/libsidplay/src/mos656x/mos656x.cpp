@@ -16,6 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <string.h>
 #include "sidendian.h"
 #include "mos656x.h"
 
@@ -57,8 +58,9 @@ void MOS656X::reset ()
     raster_y     = yrasters - 1;
     raster_x     = 0;
     bad_lines_enabled = false;
-    event_context.schedule (this, 0, m_phase);
     m_rasterClk  = 0;
+    memset (regs, 0, sizeof (regs));
+    event_context.schedule (this, 0, m_phase);
 }
 
 void MOS656X::chip (mos656x_model_t model)
