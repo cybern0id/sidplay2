@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2002/07/20 08:34:52  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.29  2002/07/17 21:48:10  s_a_white
  *  PSIDv2NG reloc exclude region extension.
  *
@@ -156,6 +159,7 @@ private:
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
     static const char  *ERR_PSIDDRV_RELOC;
+    static const char  *ERR_PSIDDRV_BAD_PAGES;
 
     EventScheduler m_scheduler;
 
