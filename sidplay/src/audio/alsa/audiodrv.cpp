@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.4  2001/01/29 01:17:30  jpaana
  *  Use int_least8_t instead of ubyte_sidt which is obsolete now
  *
@@ -45,7 +48,7 @@ void Audio_ALSA::outOfOrder ()
     _audioHandle = NULL;
 }
 
-void *Audio_ALSA::open (AudioConfig &cfg)
+void *Audio_ALSA::open (AudioConfig &cfg, const char *)
 {
     AudioConfig tmpCfg;
     int mask, wantedFormat, format;

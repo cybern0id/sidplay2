@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/10/30 23:35:35  s_a_white
+ *  Added pause support.
+ *
  *  Revision 1.3  2001/01/23 17:50:59  s_a_white
  *  Removed duplicate #endif.
  *
@@ -46,7 +49,7 @@ public:  // --------------------------------------------------------- public
     Audio_Irix();
     ~Audio_Irix();
 
-    void *open (AudioConfig &cfg);
+    void *open (AudioConfig &cfg, const char *name);
 	
     // Free and close opened audio device and reset any variables that
     // reflect the current state of the driver.

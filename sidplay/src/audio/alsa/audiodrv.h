@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/10/30 23:35:35  s_a_white
+ *  Added pause support.
+ *
  *  Revision 1.3  2001/01/23 17:50:57  s_a_white
  *  Removed duplicate #endif.
  *
@@ -45,7 +48,7 @@ public:  // --------------------------------------------------------- public
     Audio_ALSA();
     ~Audio_ALSA();
 
-    void *open  (AudioConfig &cfg);
+    void *open  (AudioConfig &cfg, const char *name);
     void  close ();
     // Rev 1.2 (saw) - Changed, see AudioBase.h	
     void *reset ();
