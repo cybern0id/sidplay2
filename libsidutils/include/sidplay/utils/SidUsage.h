@@ -19,11 +19,20 @@
 #define _SidUsage_h_
 
 #include <sidplay/sidusage.h>
+#include <sidplay/utils/SidTuneMod.h>
 
 struct SidTuneInfo;
 struct IffHeader;
 struct Chunk;
 
+// Extended usuage information
+struct sid2_usage_t: public sid_usage_t
+{
+    uint_least16_t start; // Load image start address
+    uint_least16_t end;   // Load image end address
+    char           md5[SIDTUNE_MD5_LENGTH + 1]; // Tunes MD5 key
+    uint_least16_t length;  // usage scan length
+};
 
 class SID_EXTERN SidUsage
 {
@@ -38,13 +47,13 @@ protected:
 
 private:
     // Old obsolete MM file format
-    bool           readMM     (FILE *file, sid_usage_t &usage, const char *ext);
+    bool           readMM     (FILE *file, sid2_usage_t &usage, const char *ext);
     // Sid Memory Map (MM file)
-    bool           readSMM    (FILE *file, sid_usage_t &usage, const char *ext);
-    bool           readSMM0   (FILE *file, sid_usage_t &usage,
+    bool           readSMM    (FILE *file, sid2_usage_t &usage, const char *ext);
+    bool           readSMM0   (FILE *file, sid2_usage_t &usage,
                                const IffHeader &header);
-    void           writeSMM0  (FILE *file, const sid_usage_t &usage);
-    void           writeMAP   (FILE *file, const sid_usage_t &usage);
+    void           writeSMM0  (FILE *file, const sid2_usage_t &usage);
+    void           writeMAP   (FILE *file, const sid2_usage_t &usage);
     void           filterMAP  (int from, int to, uint_least8_t mask);
 
 protected:
@@ -58,8 +67,8 @@ public:
     SidUsage ();
 
     // @FIXME@ add ext to these
-    void           read       (const char *filename, sid_usage_t &usage);
-    void           write      (const char *filename, const sid_usage_t &usage);
+    void           read       (const char *filename, sid2_usage_t &usage);
+    void           write      (const char *filename, const sid2_usage_t &usage);
     const char *   error      (void) { return m_errorString; }
 
     operator bool () { return m_status; }

@@ -130,7 +130,7 @@ SidUsage::SidUsage ()
     filterMAP (0x07e8, 0x07f7, SID_BAD_READ); /* Bug in tons of sids */
 }
 
-void SidUsage::read (const char *filename, sid_usage_t &usage)
+void SidUsage::read (const char *filename, sid2_usage_t &usage)
 {
     FILE *file;
     size_t i = strlen (filename);
@@ -166,7 +166,7 @@ void SidUsage::read (const char *filename, sid_usage_t &usage)
 }
 
 
-void SidUsage::write (const char *filename, const sid_usage_t &usage)
+void SidUsage::write (const char *filename, const sid2_usage_t &usage)
 {
     FILE *file;
     size_t i = strlen (filename);
@@ -200,7 +200,7 @@ void SidUsage::write (const char *filename, const sid_usage_t &usage)
 }
 
 
-bool SidUsage::readMM (FILE *file, sid_usage_t &usage, const char *ext)
+bool SidUsage::readMM (FILE *file, sid2_usage_t &usage, const char *ext)
 {
     // Need to check extension
     if (strcmp (ext, "mm"))
@@ -249,7 +249,7 @@ bool SidUsage::readMM (FILE *file, sid_usage_t &usage, const char *ext)
 }
 
 
-bool SidUsage::readSMM (FILE *file, sid_usage_t &usage, const char *)
+bool SidUsage::readSMM (FILE *file, sid2_usage_t &usage, const char *)
 {
     uint8_t   chunk[4] = {0};
     IffHeader header;
@@ -286,7 +286,7 @@ bool SidUsage::readSMM (FILE *file, sid_usage_t &usage, const char *)
 }
 
 
-bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header)
+bool SidUsage::readSMM0 (FILE *file, sid2_usage_t &usage, const IffHeader &header)
 {
     Smm_v0 smm;
     smm.header = header;
@@ -404,7 +404,7 @@ bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header
 }
 
 
-void SidUsage::writeSMM0 (FILE *file, const sid_usage_t &usage)
+void SidUsage::writeSMM0 (FILE *file, const sid2_usage_t &usage)
 {
     struct Smm_v0  smm0;
     uint_least32_t headings = 2; /* Mandatory */
@@ -493,7 +493,7 @@ void SidUsage::filterMAP (int from, int to, uint_least8_t mask)
 }
 
 
-void SidUsage::writeMAP (FILE *file, const sid_usage_t &usage)
+void SidUsage::writeMAP (FILE *file, const sid2_usage_t &usage)
 {
     bool err = false;
     // Find out end unused regions which can be removed from
@@ -537,6 +537,7 @@ void SidUsage::writeMAP (FILE *file, const sid_usage_t &usage)
                         u |= (SID_BAD_READ | SID_BAD_EXECUTE);
                     // Apply usage filter for this memory location
                     u &= m_filterMAP[addr];
+		    printf ("%04x %02x\n", addr, u);
                     err |= fprintf (file, "%s", m_decodeMAP[u]) < 0;
                     if ((j & 7) == 7)
                         err |= fprintf (file, " ") < 0;
