@@ -18,11 +18,6 @@
 #include <sidplay/sidtypes.h>
 #include "libini.h"
 
-typedef struct
-{
-    sid_fc_t       fc[0x800];
-    uint_least16_t points;
-} sid_filter_t;
 
 class SID_EXTERN SidFilter
 {
@@ -51,6 +46,6 @@ public:
 
     operator bool () { return status; }
 
-    const char* getErrorString (void)
+    const char* error (void)
     {   return errorString; }
 };
