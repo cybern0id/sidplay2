@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.40  2004/03/18 20:20:29  s_a_white
+ *  Added sidmapper (so support more the 2 sids).
+ *
  *  Revision 1.39  2004/01/08 09:01:34  s_a_white
  *  Support the TOD frequency divider.
  *
@@ -665,6 +668,7 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                 sid[i] = &nullsid;
             if ((i == 0) && !*builder)
                 return -1;
+            sid[0]->optimisation (m_cfg.optimisation);
         }
     }
     xsid.emulation (sid[0]);
