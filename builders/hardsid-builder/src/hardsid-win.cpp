@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/10/29 23:36:45  s_a_white
+ *  Get clock wrt correct phase.
+ *
  *  Revision 1.10  2003/06/27 18:35:19  s_a_white
  *  Remove unnecessary muting and add some initial support for the async dll.
  *
@@ -67,6 +70,7 @@ HardSID::HardSID (sidbuilder *builder)
 :sidemu(builder),
  Event("HardSID Delay"),
  m_eventContext(NULL),
+ m_phase(EVENT_CLOCK_PHI1),
  m_instance(sid++),
  m_status(false),
  m_locked(false)
