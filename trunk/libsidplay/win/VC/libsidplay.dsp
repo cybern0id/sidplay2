@@ -245,10 +245,6 @@ SOURCE=..\..\src\c64\c64cia.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\sidplay\c64env.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\c64\c64vic.h
 # End Source File
 # Begin Source File
@@ -267,14 +263,14 @@ SOURCE=..\..\src\nullsid.h
 
 SOURCE=..\..\src\player.h
 # End Source File
-# Begin Source File
-
-SOURCE=..\..\include\sidenv.h
-# End Source File
 # End Group
 # Begin Group "Header Files (Public)"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\c64env.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\include\sidplay\component.h
@@ -298,6 +294,10 @@ SOURCE=..\..\include\sidplay\sidconfig.h
 # Begin Source File
 
 SOURCE=..\..\include\sidplay\sidendian.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidenv.h
 # End Source File
 # Begin Source File
 
