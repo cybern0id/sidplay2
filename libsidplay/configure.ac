@@ -91,6 +91,11 @@ AC_ARG_WITH(sidbuilders,
 )
 AC_SUBST(builders)
 
+dnl Email addresses
+AH_BOTTOM([/* Email addresses */
+#define S_A_WHITE_EMAIL "sidplay2@yahoo.com"
+])
+
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay"
