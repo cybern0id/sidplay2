@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/02/22 08:28:57  s_a_white
+ *  Interrupt masking fixed.
+ *
  *  Revision 1.6  2001/02/13 23:01:44  s_a_white
  *  envReadMemDataByte now used for some memory accesses.
  *
@@ -28,7 +31,6 @@
  ***************************************************************************/
 
 #include "config.h"
-#include "sidendian.h"
 
 // Microsoft Visual C++ Version Number to work around compiler bug
 // Currently both Visual C++ Versions 5, 6 are broken.
@@ -66,9 +68,10 @@
 void MOS6510::PushSR (void)
 {
     uint_least16_t addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     /* Rev 1.04 - Corrected flag mask */
-    Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_DECIMAL) | (1 << SR_BREAK));
+    Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_INTERRUPT)
+	                 |  (1 << SR_DECIMAL) | (1 << SR_BREAK));
     Register_Status |= (getFlagN () << SR_NEGATIVE);
     Register_Status |= (getFlagV () << SR_OVERFLOW);
     Register_Status |= (getFlagZ () << SR_ZERO);
@@ -83,7 +86,7 @@ void MOS6510::PopSR (void)
     Register_StackPointer++;
     {
         uint_least16_t addr = Register_StackPointer;
-	    endian_16hi8 (addr, SP_PAGE);
+        endian_16hi8 (addr, SP_PAGE);
         Register_Status     = envReadMemByte (addr);
     }
     setFlagB (false);
@@ -128,8 +131,9 @@ void MOS6510::triggerNMI (void)
 
 // Level triggered interrupt
 void MOS6510::triggerIRQ (void)
-{
-    interrupts.pending |= iIRQ;
+{   // IRQ Suppressed
+    if (!getFlagI ())
+        interrupts.pending |= iIRQ;
     interrupts.irqs++;
     if (interrupts.irqs > iIRQSMAX)
     {
@@ -159,28 +163,23 @@ void MOS6510::interruptPending (void)
     // Service the highest priority interrupt
     offset = offTable[interrupts.pending];
     switch (offset)
-	{
-	case oRST:
-	    break;
-	
-	case oIRQ:
-	    if (getFlagI ())
-		    return;
-	break;
+    {
+    case oNONE:
+    default:
+        return;
 
-	case oNMI:
+    case oIRQ:
+    case oRST:
+        break;
+
+    case oNMI:
         // Simulate Edge Triggering
         interrupts.pending &= (~iNMI);
-	break;
+    break;
+    }
 
-	case oNONE:
-    default:
-	    return;
-	}
- 
     // Start the interrupt
-    instr      = &interruptTable[offset];
-    cycleCount = 0;
+    instrCurrent = &interruptTable[offset];
 }
 
 void MOS6510::RSTRequest (void)
@@ -232,11 +231,21 @@ void MOS6510::IRQ2Request (void)
 // Addressing Modes:    All
 void MOS6510::FetchOpcode (void)
 {
-    instrOpcode = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
-    Register_ProgramCounter++;
-    // Convert opcode to pointer in instruction table
-    instr       = &instrTable[instrOpcode];
-    cycleCount  = 0;
+    instrCurrent = NULL;
+
+    interruptPending ();
+    if (!instrCurrent)
+    {
+        instrStartPC = endian_32lo16  (Register_ProgramCounter++);
+        instrOpcode  = envReadMemByte (instrStartPC);
+        // Convert opcode to pointer in instruction table
+        instrCurrent = &instrTable[instrOpcode];
+        Instr_Operand = 0;
+    }
+
+    procCycle  = instrCurrent->cycle;
+    lastCycle  = instrCurrent->lastCycle;
+    cycleCount = 0;
 }
 
 // Fetch value, increment PC
@@ -249,7 +258,7 @@ void MOS6510::FetchDataByte (void)
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    instr_Operand = (uint_least16_t) Cycle_Data;
+    Instr_Operand = (uint_least16_t) Cycle_Data;
 }
 
 // Fetch low address byte, increment PC
@@ -266,7 +275,7 @@ void MOS6510::FetchLowAddr (void)
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    instr_Operand = Cycle_EffectiveAddress;
+    Instr_Operand = Cycle_EffectiveAddress;
 }
 
 // Read from address, add index register X to it
@@ -312,7 +321,7 @@ void MOS6510::FetchHighAddr (void)
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    endian_16hi8 (instr_Operand, endian_16hi8 (Cycle_EffectiveAddress));
+    endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_EffectiveAddress));
 }
 
 // Fetch high byte of address, add index register X to low address byte,
@@ -360,7 +369,7 @@ void MOS6510::FetchLowPointer (void)
     Cycle_Pointer = envReadMemByte (endian_32lo16 (Register_ProgramCounter));
     Register_ProgramCounter++;
     // Nextline used for Debug
-    instr_Operand = Cycle_Pointer;
+    Instr_Operand = Cycle_Pointer;
 }
 
 // Read pointer from the address and add X to it
@@ -389,7 +398,7 @@ void MOS6510::FetchHighPointer (void)
     Register_ProgramCounter++;
 
     // Nextline used for Debug
-    endian_16hi8 (instr_Operand, endian_16hi8 (Cycle_Pointer));
+    endian_16hi8 (Instr_Operand, endian_16hi8 (Cycle_Pointer));
 }
 
 // Fetch effective address low
@@ -453,7 +462,7 @@ void MOS6510::PushLowPC (void)
 {
     uint_least16_t addr;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     envWriteMemByte (addr, endian_32lo8 (Register_ProgramCounter));
     Register_StackPointer--;
 }
@@ -463,7 +472,7 @@ void MOS6510::PushHighPC (void)
 {
     uint_least16_t addr;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     envWriteMemByte (addr, endian_32hi8 (Register_ProgramCounter));
     Register_StackPointer--;
 }
@@ -474,7 +483,7 @@ void MOS6510::PopLowPC (void)
     uint_least16_t addr;
     Register_StackPointer++;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (addr));
 }
 
@@ -484,7 +493,7 @@ void MOS6510::PopHighPC (void)
     uint_least16_t addr;
     Register_StackPointer++;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     endian_16hi8 (Cycle_EffectiveAddress, envReadMemByte (addr));
 }
 
@@ -551,7 +560,7 @@ void MOS6510::pha_instr (void)
 {
     uint_least16_t addr;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     envWriteMemByte (addr, Register_Accumulator);
     Register_StackPointer--;
 }
@@ -592,6 +601,9 @@ void MOS6510::sed_instr (void)
 void MOS6510::sei_instr (void)
 {
     setFlagI (true);
+    // No need to keep this pending, disable them
+    // and re-enable them later
+    interrupts.pending &= (~iIRQ);
 }
 
 void MOS6510::sta_instr (void)
@@ -1073,7 +1085,7 @@ void MOS6510::pla_instr (void)
     uint_least16_t addr;
     Register_StackPointer++;
     addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
+    endian_16hi8 (addr, SP_PAGE);
     setFlagsNZ (Register_Accumulator = envReadMemByte (addr));
 }
 
@@ -1341,6 +1353,7 @@ void MOS6510::tas_instr (void)
 //MOS6510::MOS6510 (model_t _model, const char *id)
 MOS6510::MOS6510 ()
 {
+    struct ProcessorOperations *instr;
     uint8_t legalMode  = true;
     uint8_t legalInstr = true;
     uint    i, pass;
@@ -1363,7 +1376,7 @@ MOS6510::MOS6510 ()
             cycleCount = -1;
             legalMode  = true;
             legalInstr = true;
-            if (pass) procCycle = (*instr).cycle;
+            if (pass) procCycle = instr->cycle;
 
             switch (i)
             {
@@ -1456,7 +1469,7 @@ MOS6510::MOS6510 ()
             case EORb: case LDAb:  case LDXb:  case LDYb: case LXAb: case NOPb_:
             case ORAb: case SBCb_: case SBXb:
             // OALb ALRb XAAb - Optional Opcode Names
-					cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchDataByte;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::FetchDataByte;
             break;
 
             // Absolute Indirect Addressing Mode Handler
@@ -1859,7 +1872,6 @@ MOS6510::MOS6510 ()
 
             case ROLn:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::rola_instr;
-                instr->overlap       = true;
             break;
 
             case ROLz: case ROLzx: case ROLa: case ROLax:
@@ -2163,6 +2175,7 @@ MOS6510::MOS6510 ()
 
     Cycle_EffectiveAddress = 0;
     Cycle_Data             = 0;
+    fetchCycle[0]          = &MOS6510::FetchOpcode;
 
     Initialise ();
 return;
@@ -2174,6 +2187,7 @@ exit (-1);
 
 MOS6510::~MOS6510 ()
 {
+    struct ProcessorOperations *instr;
     uint i;
 
     // Remove Opcodes
@@ -2204,7 +2218,8 @@ void MOS6510::Initialise (void)
     interrupts.irqs    = 0;
 
     // Reset Cycle Count
-    cycleCount = -1;
+    cycleCount = 0;
+    procCycle  = fetchCycle;
 
     // Reset Status Register
     Register_Status = (1 << SR_NOTUSED);
@@ -2231,42 +2246,6 @@ void MOS6510::reset (void)
     endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFC));
     endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFD));
     Register_ProgramCounter = Cycle_EffectiveAddress;
-}
-
-
-//-------------------------------------------------------------------------//
-// Emulate One Complete Cycle                                              //
-void MOS6510::clock (void)
-{
-    if (cycleCount < 0)
-    {
-        instrStartPC  = endian_32lo16 (Register_ProgramCounter);
-        interruptPending ();
-        if (cycleCount)
-            FetchOpcode ();
-
-        procCycle     = instr->cycle;
-        lastAddrCycle = instr->lastAddrCycle;
-        lastCycle     = instr->lastCycle;
-        instr_Operand = 0;
-    }
-    else
-    {
-        (this->*(procCycle[cycleCount++])) ();
-    }
-
-    if (lastCycle < cycleCount)
-    {
-        cycleCount = -1;
-        // 6510 contains a simple pipe line
-        // which is handled here
-        if (instr->overlap)
-            clock ();
-    }
-
-#ifdef MOS6510_DEBUG
-    DumpState ();
-#endif // MOS6510_DEBUG
 }
 
 //-------------------------------------------------------------------------//
