@@ -7,7 +7,7 @@ dnl $4 - ldflag (output)
 dnl -------------------------------------------------------------------------
 AC_DEFUN(SID2_TEST_BUILDER,
 [
-    AC_MSG_CHECKING("for $1 builder module")
+    AC_MSG_CHECKING([for $1 builder module])
 
     dnl @FIXME@ Builders should export themselves via the base class only
     dnl This is not supported yet
