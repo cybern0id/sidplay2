@@ -61,6 +61,8 @@
 #undef HAVE_HPUX
 #undef HAVE_SGI
 #undef HAVE_SUNOS
+#undef HAVE_MMSYSTEM
+#undef HAVE_WAV_ONLY
 
 @BOTTOM@
 #endif /* _config_h_ */
