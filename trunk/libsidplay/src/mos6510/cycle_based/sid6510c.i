@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2002/02/06 17:49:12  s_a_white
+ *  Fixed sign comparison warning.
+ *
  *  Revision 1.16  2002/02/04 23:53:23  s_a_white
  *  Improved compatibilty of older sidplay1 modes. Fixed BRK to work like sidplay1
  *  only when stack is 0xff in real mode for better compatibility with C64.
@@ -71,23 +74,7 @@
 SID6510::SID6510 (EventContext *context)
 :MOS6510(context),
  m_mode(sid2_envR)
-{
-    // Added V1.04 (saw) - Support of sidplays break functionality
-    // Prevent break from working correctly and locking the player
-    // @FIXME@: Memory has not been released unused cycles
-    // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-    instrTable[BRKn].cycle[1] = reinterpret_cast <void (MOS6510::*)()>
-                               (&SID6510::sid_brk);
-
-    cycleCount = 0;
-#ifdef MOS6510_DEBUG
-    m_brkCycle[cycleCount++] = &MOS6510::DebugCycle;
-#endif
-    m_brkCycle[cycleCount++] = reinterpret_cast <void (MOS6510::*)()>
-                               (&SID6510::sid_brk1);
-    m_brkCycle[cycleCount++] = &MOS6510::FetchOpcode;
-
-    // Ok start all the hacks for sidplay.  This prevents
+{   // Ok start all the hacks for sidplay.  This prevents
     // execution of code in roms.  For real c64 emulation
     // create object from base class!  Also stops code
     // rom execution when bad code switches roms in over
@@ -99,15 +86,10 @@ SID6510::SID6510 (EventContext *context)
 
         for (uint n = 0; n < instrTable[i].cycles; n++)
         {
-            if (procCycle[n] == &MOS6510::FetchEffAddrDataByte)
+            if (procCycle[n] == &MOS6510::illegal_instr)
             {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
                 procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_FetchEffAddrDataByte);
-            }
-            else if (procCycle[n] == &MOS6510::illegal_instr)
-            {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_suppressError);
+                    (&SID6510::sid_illegal);
             }
             else if (procCycle[n] == &MOS6510::jmp_instr)
             {   // Stop jumps into rom code
@@ -122,16 +104,30 @@ SID6510::SID6510 (EventContext *context)
         }
     }
 
-    // Since no real IRQs, all RTIs mapped to RTS
-    // Required for fix bad tunes in old modes
-    procCycle = instrTable[RTIn].cycle;
-    for (uint n = 0; n < instrTable[RTIn].cycles; n++)
-    {
-        if (procCycle[n] == &MOS6510::PopSR)
+    {   // Since no real IRQs, all RTIs mapped to RTS
+        // Required for fix bad tunes in old modes
+        procCycle = instrTable[RTIn].cycle;
+        for (uint n = 0; n < instrTable[RTIn].cycles; n++)
         {
-            procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                (&SID6510::sid_rti);
-            break;
+            if (procCycle[n] == &MOS6510::PopSR)
+            {
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_rti);
+                break;
+            }
+        }
+    }
+
+    {   // Support of sidplays BRK functionality
+        procCycle = instrTable[BRKn].cycle;
+        for (uint n = 0; n < instrTable[BRKn].cycles; n++)
+        {
+            if (procCycle[n] == &MOS6510::PushHighPC)
+            {
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_brk);
+                break;
+            }
         }
     }
 }
@@ -156,25 +152,6 @@ void SID6510::reset ()
 
 
 //**************************************************************************************
-// For sidplay compatibility the memory handle should always be non-banked!  To be able
-// to use the switched in I/O, etc, different versions of fetch/put effective address
-// data have been created.  These versions should call a non flat memory handle where
-// the data is aquired depending on the actual enviroment.
-//**************************************************************************************
-void SID6510::sid_FetchEffAddrDataByte (void)
-{   // For sidplay compatibility, inherited from environment
-    Cycle_Data = envReadMemDataByte (Cycle_EffectiveAddress);
-}
-
-// Sidplay Suppresses Illegal Instructions
-void SID6510::sid_suppressError (void)
-{
-    Register_ProgramCounter++;
-    DebugCycle ();
-}
-
-
-//**************************************************************************************
 // For sidplay compatibility implement those instructions which don't behave properly.
 //**************************************************************************************
 void SID6510::sid_brk (void)
@@ -185,14 +162,7 @@ void SID6510::sid_brk (void)
         MOS6510::PushHighPC ();
         return;
     }
-    // Execute modified sidplay1 & 2 brk
-    procCycle  = m_brkCycle;
-    cycleCount = 0;
-    MOS6510::clock ();
-}
 
-void SID6510::sid_brk1 (void)
-{
     sei_instr ();
 #if !defined(NO_RTS_UPON_BRK)
     sid_rts ();
@@ -204,7 +174,10 @@ void SID6510::sid_brk1 (void)
     m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
 
     if (!m_sleeping)
+    {
+        MOS6510::FetchOpcode ();
         return;
+    }
 
     // The CPU is about to sleep.  It can only be woken by a
     // reset or interrupt.
@@ -285,6 +258,19 @@ void SID6510::sid_rti (void)
     // Fake RTS
     sid_rts ();
     FetchOpcode ();
+}
+
+// Sidplay Suppresses Illegal Instructions
+void SID6510::sid_illegal (void)
+{
+    if (m_mode == sid2_envR)
+    {
+        MOS6510::illegal_instr ();
+        return;
+    }
+#ifdef MOS6510_DEBUG
+    DumpState ();
+#endif
 }
 
 
