@@ -90,7 +90,7 @@ SOURCE="..\..\src\hardsid-emu.h"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\hardsid.cpp
+SOURCE="..\..\src\hardsid-win.cpp"
 # End Source File
 # Begin Source File
 

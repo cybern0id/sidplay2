@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/01/29 00:32:56  jpaana
+ *  Use the new read and delay IOCTLs
+ *
  *  Revision 1.1  2002/01/28 22:35:20  s_a_white
  *  Initial Release.
  *
@@ -47,6 +50,7 @@ char       HardSID::credit[];
 
 HardSID::HardSID (sidbuilder *builder)
 :sidemu(builder),
+ Event("HardSID Delay"),
  m_handle(0),
  m_eventContext(NULL),
  m_instance(sid++),
@@ -157,6 +161,15 @@ void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
     for ( uint i = 0; i < voices; i++ )
         cmute |= (muted[i] << i);
     ioctl (m_handle, HSID_IOCTL_MUTE, cmute);
+}
+
+void HardSID::event (void)
+{
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    m_accessClk += cycles;
+    if (m_accessClk)
+        ioctl(m_handle, HSID_IOCTL_DELAY, cycles);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
 void HardSID::filter(bool enable)

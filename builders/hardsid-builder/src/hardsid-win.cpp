@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2002/01/28 22:35:20  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
 #include <stdio.h>
@@ -33,6 +36,7 @@ char   HardSID::credit[];
 
 HardSID::HardSID (sidbuilder *builder)
 :sidemu(builder),
+ Event("HardSID Delay"),
  m_eventContext(NULL),
  m_instance(sid++),
  m_status(false),
@@ -93,6 +97,7 @@ void HardSID::reset (void)
     
     m_accessClk = 0;
     hsid2.Reset ((BYTE) m_instance);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
 void HardSID::voice (const uint_least8_t num, const uint_least8_t volume,
@@ -118,6 +123,15 @@ void HardSID::lock (c64env *env)
     }
 }
 
+void HardSID::event (void)
+{
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    m_accessClk += cycles;
+    if (m_accessClk)
+        hsid2.Delay ((BYTE) m_instance, 0xFFFF);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
+}
+
 // Disable/Enable SID filter
 void HardSID::filter (const bool enable)
 {
@@ -126,5 +140,5 @@ void HardSID::filter (const bool enable)
 
 void HardSID::flush(void)
 {
-    // Not implemented
+    hsid2.Flush ((BYTE) m_instance);
 }
