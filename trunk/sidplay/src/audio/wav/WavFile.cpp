@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/11/21 23:18:08  s_a_white
+ *  Wrapped ios::openmode as not supported by VC.
+ *
  *  Revision 1.4  2001/11/21 19:54:15  s_a_white
  *  GCC3 update
  *
@@ -42,6 +45,12 @@
 
 #ifdef WAV_HAVE_EXCEPTIONS
 #include <new>
+#endif
+
+#if defined(WAV_HAVE_IOS_OPENMODE)
+    typedef ios::openmode openmode;
+#else
+    typedef int createAttr;
 #endif
 
 
@@ -104,17 +113,12 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     endian_little16(wavHdr.bitsPerSample,bits);
     endian_little32(wavHdr.dataChunkLen,0);
 
-#if defined(HAVE_IOS_OPENMODE)
-    ios_base::openmode createAttr;
-#else
-    int createAttr;
-#endif
+    openmode createAttr = ios::out;
 #if defined(WAV_HAVE_IOS_BIN)
-    createAttr = ios::bin;
+    createAttr |= ios::bin;
 #else
-    createAttr = ios::binary;
+    createAttr |= ios::binary;
 #endif
-    createAttr |= ios::out;
 
     if (overWrite)
         file.open( name, createAttr|ios::trunc );
