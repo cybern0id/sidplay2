@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2004/02/16 23:25:49  s_a_white
+ *  Fixed test for RSIDs.
+ *
  *  Revision 1.31  2004/02/11 21:01:34  s_a_white
  *  For RSID tunes use the BRK and NMI handlers directly from the kernel.
  *
@@ -239,7 +242,7 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         uint8_t *addr = &m_rom[0]; // &m_ram[relocAddr];
 
         // Tell C64 about song
-        *addr++ = (uint8_t) tuneInfo.currentSong;
+        *addr++ = (uint8_t) tuneInfo.currentSong-1;
         if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
             *addr = 0;
         else // SIDTUNE_SPEED_CIA_1A
@@ -265,6 +268,11 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         *addr++ = iomap (m_tuneInfo.initAddr);
         *addr++ = iomap (m_tuneInfo.playAddr);
         *addr++ = m_ram[0x02a6]; // PAL/NTSC flag
+        // Default processor register flags on calling init
+        if (tuneInfo.compatibility >= SIDTUNE_COMPATIBILITY_R64)
+            *addr++ = 0;
+        else
+            *addr++ = 1 << SR_INTERRUPT;
     }
     return 0;
 }
