@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:36:16  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -27,9 +31,9 @@
 
 #include "config.h"
 #ifdef   HAVE_MMSYSTEM
-#   ifndef AudioDriver
-#   define AudioDriver Audio_MMSystem
-#   endif
+
+#ifndef AudioDriver
+#define AudioDriver Audio_MMSystem
 #endif
 
 #include <windows.h>
