@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/02/21 21:43:10  s_a_white
+ *  Now use VSID code and this handles interrupts much better!  The whole
+ *  initialise sequence has been modified to support this.
+ *
  *  Revision 1.11  2001/02/13 21:01:14  s_a_white
  *  Support for real interrupts.  C64 Initialisation routine now run from player::play
  *  instead of player::initialise.  Prevents lockups if init routine does not return.
@@ -486,11 +490,6 @@ int player::initialise ()
 #       include "player.bin"
     };
 
-    /* EA31 IRQ return: jmp($0312). */
-    rom [0xea31] = 0x6c;
-    rom [0xea32] = 0x12;
-    rom [0xea33] = 0x03;
-
     /* Install PSID driver code. */
     memcpy (psidDrv, psid_driver, sizeof(psid_driver));
 
@@ -501,22 +500,23 @@ int player::initialise ()
     ram[0x0311] = JMPw;
 
     // Setup the Initial entry point
-    uint_least16_t initAddr = tuneInfo.initAddr;
     uint_least16_t playAddr = tuneInfo.playAddr;
-
-//    endian_little16 (&ram[0xfffc], initAddr);
-//    endian_little16 (&rom[0xfffc], initAddr);
 
     // Check to make sure the play address is legal
     // (playAddr == initAddr) is no longer treated as an
     // init loop that sets it's own irq handler
     //if ((playAddr == 0xffff) || (playAddr == initAddr))
     if (playAddr == 0xffff)
-        tuneInfo.playAddr = 0;
+	{   // Indicates sid requiring real C64 environment
+        // so speed flag.
+		cia.locked = false;
+		xsid.mute (true);
+        playAddr   = 0;
+    }
 
     // Tell C64 about song
     endian_little16 (&psidDrv[0x06], tuneInfo.initAddr);
-    endian_little16 (&psidDrv[0x08], tuneInfo.playAddr);
+    endian_little16 (&psidDrv[0x08], playAddr);
     psidDrv[0x0a] = (uint8_t) tuneInfo.currentSong;
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
         psidDrv[0x0b] = 0;
@@ -529,14 +529,6 @@ int player::initialise ()
     else // SIDTUNE_CLOCK_NTSC
         ram[0x02a6] = 1;
 
-    /*
-    // Setup the initial bank register setting for the
-    // play loop
-    initBankSelect (playAddr);
-    _initBankReg = _bankReg;
-    initBankSelect (initAddr);
-    cpu.reset (tuneInfo.currentSong - 1, 0, 0);
-    */
     cpu.reset ();
     return 0;
 }
@@ -575,31 +567,11 @@ void player::nextSequence ()
     if (cpu) // Real IRQ
         cpu.triggerIRQ ();
     else // CPU is sleeping, so restart it.
-    {
-        // Check to see if the play address has been provided or whether
-        // we should pick it up from an IRQ vector
-        //uint_least16_t playAddr = tuneInfo.playAddr;
-
-        // Setup the entry point from hardware IRQ
-        uint_least16_t playAddr = endian_little16 (&ram[0xfffe]);
+    {   // Setup the entry point from hardware IRQ
         if (isKernal)
-            playAddr = endian_little16 (&rom[0xfffe]);
-
-        /*
-        {   // Setup the entry point from software IRQ
-                playAddr = endian_little16 (&ram[0x0314]);
-            }
-        }
-        else
-            evalBankSelect (_initBankReg);
-
-        // Setup the entry point and restart the cpu
-        endian_little16 (&ram[0xfffc], playAddr);
-        endian_little16 (&rom[0xfffc], playAddr);
-        */
-
-        evalBankSelect  (0x37);
-        endian_little16 (&rom[0xfffc], playAddr);
+			memcpy (&rom[0xfffc], &rom[0xfffe], 2);
+		else
+			memcpy (&ram[0xfffc], &ram[0xfffe], 2);
         cpu.reset ();
     }
 
@@ -716,6 +688,7 @@ void player::stop (void)
 //-------------------------------------------------------------------------
 // Temporary hack till real bank switching code added
 
+/*
 //  Input: A 16-bit effective address
 // Output: A default bank-select value for $01.
 void player::initBankSelect (uint_least16_t addr)
@@ -737,6 +710,7 @@ void player::initBankSelect (uint_least16_t addr)
 
     evalBankSelect (data);
 }
+*/
 
 void player::evalBankSelect (uint8_t data)
 {   // Determine new memory configuration.
@@ -941,7 +915,7 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
 #ifdef XSID_USE_SID_VOLUME
             if ((uint8_t) tempAddr == 0x18)
             {   // Check if xsid wants to trap the change
-                if (xsid.volumeUpdated ())
+                if (xsid.volumeUpdated (data))
                     return;
             }
 #endif // XSID_USE_SID_VOLUME
@@ -1015,10 +989,28 @@ void player::envReset (void)
     endian_little16 (&rom[0xfffc],  0xFCE2); // RESET
     endian_little16 (&rom[0xfffe],  0xFE48); // IRQ
     
+	// Install some basic rom functionality
+
+    /* EA31 IRQ return: jmp($0312). */
+    rom [0xea31] = JMPw;
+    rom [0xea32] = 0x7e;
+    rom [0xea33] = 0xea;
+
+    rom [0xea7e] = NOPn;
+    rom [0xea7f] = NOPn;
+    rom [0xea80] = NOPn;
+
+    rom [0xea81] = JMPi;
+    rom [0xea82] = 0x12;
+    rom [0xea83] = 0x03;
+
+    // Is this still needed?  Really some of Dags player should be put
+	// into rom as it's only doing what the normal code should do.
+	// However what will playsid mode make of this...
     if (_environment == sid2_envPS)
     {
         // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
-        rom[0xff48] = 0x6c;
+        rom[0xff48] = JMPi;
         rom[0xff49] = 0x14;
         rom[0xff4a] = 0x03;
     }
