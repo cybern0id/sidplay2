@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/02/07 21:02:30  s_a_white
+ *  Supported for delaying samples for frame simulation.  New alogarithm to
+ *  better guess original tunes volume when playing samples.
+ *
  *  Revision 1.6  2000/12/12 22:51:01  s_a_white
  *  Bug Fix #122033.
  *
@@ -90,6 +94,7 @@ private:
     uint_least16_t address;
     uint_least16_t cycleCount; // Counts to zero and triggers!
     uint_least8_t  volShift;
+    uint_least8_t  lowerLimit;
 
     // Sample Section
     uint_least8_t  samRepeat;
@@ -136,9 +141,8 @@ public:
     inline int8_t sampleCalculate  (void);
     inline void   galwayTonePeriod (void);
 
-    // Used to indocate if channel is running
-    operator bool()  const { return (active);  }
-    bool operator!() const { return (!active); }
+    // Used to indicate if channel is running
+    operator bool()  const { return (active); }
 
 #ifdef XSID_DEBUG
 private:
@@ -151,6 +155,9 @@ public:
     bool    changed;
     uint8_t sample;
     uint8_t output (void);
+
+    uint_least8_t limit  (void)
+    { return lowerLimit; }
 #else
 private:
     static const int8_t sampleConvertTable[16];
@@ -175,6 +182,8 @@ private:
     bool    muted;
     bool    suppressed;
     uint_least16_t sidVolAddr;
+    uint8_t        sampleOffset;
+    uint8_t        sidReg0x18;
 
 private:
     void checkForInit  (channel *ch);
@@ -193,6 +202,7 @@ public:
 private:
     void    setSidVolume (bool cached = false);
     uint8_t output ();
+    void    calcSampleOffset (void);
 
 public:
     XSID ()
@@ -202,26 +212,26 @@ public:
     }
 
     void setSIDAddress (uint_least16_t addr)
-    {
-        sidVolAddr = addr + 0x18;
-    }
+    {   sidVolAddr = addr + 0x18; }
 
-	void volumeUpdated (void)
-	{
-		if (ch4 || ch5)
-		{   // Force volume to be restored at
-			// next clock
-			ch4.changed = true;
-#if XSID_DEBUG
+    // Return whether we care.
+    bool volumeUpdated (void)
+    {
+        if (ch4 || ch5)
+        {   // Force volume to be changed at next clock
+            ch4.changed = true;
+#   if XSID_DEBUG
             printf ("XSID: External SID Volume Change (Correcting).\n");
-#endif
-		}
-	}
+#   endif
+            return true;
+        }
+        return false;
+    }
 #else
 public:
     // This provides standard 16 bit outputs
     int_least32_t output (uint_least8_t bits = 16);
-#endif
+#endif // XSID_USE_SID_VOLUME
 };
 
 #endif // _xsid_h_
