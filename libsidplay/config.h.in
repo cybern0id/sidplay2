@@ -19,9 +19,6 @@
 
 #undef HAVE_SUNOS
 
-/* Defines the path to the c64 environment file */
-#undef SID_ENVIRONMENT_H
-
 /* The number of bytes in a char.  */
 #undef SIZEOF_CHAR
 

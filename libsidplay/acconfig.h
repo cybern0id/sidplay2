@@ -16,6 +16,3 @@
 #undef HAVE_SGI
 
 #undef HAVE_SUNOS
-
-/* Defines the path to the c64 environment file */
-#undef SID_ENVIRONMENT_H
