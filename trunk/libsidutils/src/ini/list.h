@@ -25,4 +25,4 @@ struct ini_t;
 int   __ini_listEval (struct ini_t *ini);
 char *__ini_listRead (struct ini_t *ini);
 
-#endif _list_h_
+#endif // _list_h_
