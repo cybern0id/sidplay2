@@ -2023,8 +2023,8 @@ rm -f conftest*
     CXX="$sid_cxx_save"
 
 
-            if test $sid_libsidplay2_works = tes; then
-                $sid_have_libsidplay2=yes
+            if test "$sid_libsidplay2_works" = yes; then
+                sid_have_libsidplay2=yes
             fi
         fi
 

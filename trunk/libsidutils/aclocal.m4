@@ -182,8 +182,8 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
             # Test compilation with found paths.
             SID_TRY_LIBSIDPLAY2
 
-            if test $sid_libsidplay2_works = tes; then
-                $sid_have_libsidplay2=yes
+            if test "$sid_libsidplay2_works" = yes; then
+                sid_have_libsidplay2=yes
             fi
         fi
 
