@@ -29,6 +29,17 @@ typedef struct
 #define sid_filter_t sid_filter_t
 #endif
 
+#ifndef SIDPLAY1_EMUCFG_H
+// For compatibilty with libsidplay1
+// If you use this and libsidplay1 headers, make sure
+// those are included first
+// Default filter parameters.
+const float SIDEMU_DEFAULTFILTERFS = (float) 400.0;
+const float SIDEMU_DEFAULTFILTERFM = (float) 60.0;
+const float SIDEMU_DEFAULTFILTERFT = (float) 0.05;
+#endif // SIDPLAY1_EMUCFG_H
+
+
 class SID_EXTERN SidFilter
 {
 protected:
@@ -47,7 +58,7 @@ public:
 
     void  read (char *filename);
     void  read (ini_fd_t ini, char *heading);
-	void  calcType2 (double fs, double fm, double ft);
+    void  calcType2 (double fs, double fm, double ft);
     const sid_filter_t* definition ()
     {
         if (!status)
