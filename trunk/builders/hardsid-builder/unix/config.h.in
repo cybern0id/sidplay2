@@ -1,0 +1,25 @@
+/* unix/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h (template) */
+#ifndef _config_h_
+#define _config_h_
+
+/* @FOO@ : Define or undefine value FOO as appropriate. */
+
+/* Define if your C++ compiler implements exception-handling.  */
+#undef HAVE_EXCEPTIONS
+
+
+
+/* Define if the C++ compiler supports BOOL */
+#undef HAVE_BOOL
+
+
+/* Define if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+#endif /* _config_h_ */
