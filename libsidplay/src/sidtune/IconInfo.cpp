@@ -37,7 +37,11 @@
 #   include <new>
 #endif
 #include <string.h>
-#include <strstream>
+#if defined(HAVE_SSTREAM)
+#   include <sstream>
+#else
+#   include <strstream>
+#endif
 
 // Amiga Workbench specific structures.
 
@@ -361,8 +365,14 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
         // Now check all possible keywords.
         if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_address) == 0 )
         {
-            std::istrstream addrIn(cmpBuf + strlen(_sidtune_keyword_address),
-                              toolLen - strlen(_sidtune_keyword_address));
+#ifdef HAVE_SSTREAM
+            std::string sAddrIn( cmpBuf + strlen(_sidtune_keyword_address),
+                                 toolLen - strlen(_sidtune_keyword_address) );
+            std::istringstream addrIn( sAddrIn );
+#else
+            std::istrstream addrIn( cmpBuf + strlen(_sidtune_keyword_address),
+                                    toolLen - strlen(_sidtune_keyword_address) );
+#endif
             info.loadAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
             info.initAddr = info.loadAddr;
             hasInitAddr = true;
@@ -379,8 +389,14 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_songs) == 0 )
         {
+#ifdef HAVE_SSTREAM
+            std::string sNumIn( cmpBuf + strlen(_sidtune_keyword_songs),
+                                toolLen - strlen(_sidtune_keyword_songs) );
+            std::istringstream numIn( sNumIn );
+#else
             std::istrstream numIn( cmpBuf + strlen(_sidtune_keyword_songs),
-                              toolLen - strlen(_sidtune_keyword_songs) );
+                                   toolLen - strlen(_sidtune_keyword_songs) );
+#endif
             if ( !numIn )
             {
                 return LOAD_ERROR;
@@ -391,8 +407,14 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_speed) == 0 )
         {
+#ifdef HAVE_SSTREAM
+            std::string sSpeedIn( cmpBuf + strlen(_sidtune_keyword_speed),
+                                  toolLen - strlen(_sidtune_keyword_speed) );
+            std::istringstream speedIn( sSpeedIn );
+#else
             std::istrstream speedIn( cmpBuf + strlen(_sidtune_keyword_speed),
-                                toolLen - strlen(_sidtune_keyword_speed) );
+                                     toolLen - strlen(_sidtune_keyword_speed) );
+#endif
             if ( !speedIn )
             {
                 return LOAD_ERROR;
@@ -437,8 +459,14 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_reloc) == 0 )
         {
-            std::istrstream relocIn(cmpBuf + strlen(_sidtune_keyword_reloc),
-                              toolLen - strlen(_sidtune_keyword_reloc));
+#ifdef HAVE_SSTREAM
+            std::string sRelocIn( cmpBuf + strlen(_sidtune_keyword_reloc),
+                                  toolLen - strlen(_sidtune_keyword_reloc) );
+            std::istringstream relocIn( sRelocIn );
+#else
+            std::istrstream sRelocIn( cmpBuf + strlen(_sidtune_keyword_reloc),
+                                      toolLen - strlen(_sidtune_keyword_reloc) );
+#endif
             info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( relocIn );
             if ( !relocIn )
                 break;

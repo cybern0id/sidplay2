@@ -25,9 +25,14 @@
 #endif
 #include <iostream>
 #include <iomanip>
-#include <strstream>
 #include <ctype.h>
 #include <string.h>
+
+#if defined(HAVE_SSTREAM)
+#   include <sstream>
+#else
+#   include <strstream>
+#endif
 
 #include "SidTune.h"
 #include "SidTuneTools.h"
@@ -131,10 +136,16 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
                 // Calculate number of chars between current pos and end of buf.
                 restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuffer);
             }
+#ifdef HAVE_SSTREAM
+            std::string sParse( pParseBuf, restLen );            
             // Create whitespace eating (!) input string stream.
-            std::istrstream parseStream((char *) pParseBuf, restLen );
+            std::istringstream parseStream( sParse );
             // A second one just for copying.
+            std::istringstream parseCopyStream( sParse );
+#else
+            std::istrstream parseStream((char *) pParseBuf, restLen );
             std::istrstream parseCopyStream((char *) pParseBuf, restLen );
+#endif
             if ( !parseStream || !parseCopyStream )
             {
                 break;
