@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.56  2002/12/13 22:01:54  s_a_white
+ *  Kernel mods:  Memory now bypassed by upping the start address so the
+ *  end or ram is found instantly.  Basic cold/warm start address points to a
+ *  busy loop to prevent undersiable side effects (this may change later).
+ *
  *  Revision 1.55  2002/11/27 00:16:51  s_a_white
  *  Make sure driver info gets reset and exported properly.
  *
@@ -787,6 +792,7 @@ void Player::reset (void)
         // routines, set somethings here.
         endian_little16 (&m_ram[0x028f], 0xEB48); // keyboard poll
         m_rom[0xfd69] = 0x9f; // Bypass memory check
+        m_rom[0xe55f] = 0x00; // Bypass screen clear
         endian_little16 (&m_rom[0xa000], 0xA004);
         endian_little16 (&m_rom[0xa002], 0xA004);
         m_rom[0xa004] = JMPw;
@@ -815,13 +821,13 @@ void Player::reset (void)
         endian_little16 (&m_rom[0xfffc], 0xFCE2); // RESET
         endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
         memcpy (&m_ram[0xfffa], &m_rom[0xfffa], 6);
-
-        // Will get done later if can't now
-        if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
-            m_ram[0x02a6] = 1;
-        else // SIDTUNE_CLOCK_NTSC
-            m_ram[0x02a6] = 0;
     }
+
+    // Will get done later if can't now
+    if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+        m_ram[0x02a6] = 1;
+    else // SIDTUNE_CLOCK_NTSC
+        m_ram[0x02a6] = 0;
 }
 
 // This resets the cpu once the program is loaded to begin
