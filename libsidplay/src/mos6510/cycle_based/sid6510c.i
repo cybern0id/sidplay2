@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.34  2003/10/16 07:47:09  s_a_white
  *  Allow redirection of debug information of file.
  *
@@ -402,7 +405,7 @@ void SID6510::triggerRST (void)
     if (m_sleeping)
     {
         m_sleeping = false;
-        eventContext.schedule (this, 0, m_phase);
+        eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
     }
 }
 
@@ -414,7 +417,7 @@ void SID6510::triggerNMI (void)
         if (m_sleeping)
         {
             m_sleeping = false;
-            eventContext.schedule (this, 0, m_phase);
+            eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
         }
     }
 }
@@ -439,7 +442,7 @@ void SID6510::triggerIRQ (void)
         {   // Simulate busy loop
             m_sleeping = !(interrupts.irqRequest || interrupts.pending);
             if (!m_sleeping)
-                eventContext.schedule (this, 0, m_phase);
+                eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
         }
     }
 }
