@@ -1,0 +1,236 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_ABOUT DIALOGEX 0, 0, 252, 165
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About the in_sid2 Winamp Plugin"
+FONT 8, "Tahoma"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,101,147,50,14
+    LTEXT           "in_sid Winamp Plugin beta 1",IDC_STATIC,4,4,90,8
+    LTEXT           "The in_sid2 Winamp Plugin plays back C64 SID files (extension: .sid).\nTo select a different sub-tune, move the seek-bar slider.\nPlease read the file ""in_sid2.txt"" for more information.",
+                    IDC_STATIC,4,18,244,25
+    CTEXT           "in_sid2 uses libsidplay 2.1.0a3 and resid 0.14p1",
+                    IDC_STATIC_VERSIONS,4,48,244,8
+    LTEXT           "The in_sid2 Winamp Plugin is Copyright (c) 2003 Michael Fink",
+                    IDC_STATIC,28,61,194,8
+    LTEXT           "It is licensed under the GNU General Public License (GPL)",
+                    IDC_STATIC,35,70,181,8
+    GROUPBOX        "libsidplay2 credits",IDC_STATIC,4,83,244,59
+    EDITTEXT        IDC_EDIT_SIDCREDITS,10,93,232,43,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_DIALOG_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 248
+        VERTGUIDE, 10
+        VERTGUIDE, 242
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 161
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_INFO DIALOGEX 0, 0, 148, 175
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sid File Information"
+FONT 8, "Tahoma", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Ok",IDOK,94,157,50,14
+    GROUPBOX        "Song Info",IDC_STATIC,4,1,140,46
+    EDITTEXT        IDC_EDIT_INFOSTR,10,11,128,29,ES_MULTILINE | ES_READONLY | 
+                    NOT WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
+    GROUPBOX        "Detailed Info",IDC_STATIC,4,49,140,102
+    EDITTEXT        IDC_EDIT_DETAILS,10,60,128,85,ES_MULTILINE | 
+                    ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | 
+                    WS_VSCROLL,WS_EX_STATICEDGE
+END
+
+IDD_DIALOG_CONFIG DIALOG DISCARDABLE  0, 0, 293, 169
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "in_sid2 Winamp Plugin Configuration"
+FONT 8, "Tahoma"
+BEGIN
+    GROUPBOX        "libsidplay2 Settings",IDC_STATIC,4,1,285,74,WS_GROUP
+    LTEXT           "Samplerate",IDC_STATIC,11,14,37,8
+    COMBOBOX        IDC_COMBO_SAMPLERATE,11,25,41,50,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Hz",IDC_STATIC,55,29,9,8
+    LTEXT           "SID Model",IDC_STATIC,75,15,33,8
+    COMBOBOX        IDC_COMBO_SIDMODEL,74,25,95,50,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Optimization",IDC_STATIC,180,14,40,8
+    CONTROL         "Level 1",IDC_RADIO_OPT_LEVEL1,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,180,25,39,10
+    CONTROL         "Level 2",IDC_RADIO_OPT_LEVEL2,"Button",
+                    BS_AUTORADIOBUTTON,180,35,39,10
+    CONTROL         "use SID Filter",IDC_CHECK_SIDFILTER,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,45,59,10
+    CONTROL         "Stereo (uses 2 SIDs)",IDC_CHECK_STEREO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,57,82,10
+    GROUPBOX        "in_sid2 Winamp Plugin Settings",IDC_STATIC,4,77,285,68,
+                    WS_GROUP
+    LTEXT           "Title Format (%t: title, %a: artist, %c: current song, %n: num. of songs, %y: year)",
+                    IDC_STATIC,10,89,272,8
+    EDITTEXT        IDC_EDIT_TITLE_FMT,11,100,93,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "uninstall Plugin",IDC_BUTTON1,225,126,58,14,NOT 
+                    WS_VISIBLE
+    PUSHBUTTON      "Cancel",IDCANCEL,182,151,50,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,239,151,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_DIALOG_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 144
+        VERTGUIDE, 10
+        VERTGUIDE, 138
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 171
+    END
+
+    IDD_DIALOG_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 289
+        VERTGUIDE, 11
+        VERTGUIDE, 180
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 165
+        HORZGUIDE, 22
+        HORZGUIDE, 38
+        HORZGUIDE, 75
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_DIALOG_CONFIG DLGINIT
+BEGIN
+    IDC_COMBO_SAMPLERATE, 0x403, 6, 0
+0x3434, 0x3031, 0x0030, 
+    IDC_COMBO_SAMPLERATE, 0x403, 6, 0
+0x3232, 0x3530, 0x0030, 
+    IDC_COMBO_SAMPLERATE, 0x403, 6, 0
+0x3131, 0x3230, 0x0035, 
+    IDC_COMBO_SIDMODEL, 0x403, 5, 0
+0x6562, 0x7473, "\000" 
+    IDC_COMBO_SIDMODEL, 0x403, 21, 0
+0x4953, 0x2044, 0x3536, 0x3138, 0x2820, 0x6c6f, 0x2064, 0x6f6d, 0x6564, 
+0x296c, "\000" 
+    IDC_COMBO_SIDMODEL, 0x403, 21, 0
+0x4953, 0x2044, 0x3538, 0x3038, 0x2820, 0x656e, 0x2077, 0x6f6d, 0x6564, 
+0x296c, "\000" 
+    0
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
