@@ -72,9 +72,9 @@ enum
     PSID_SIDMODEL_ANY     = PSID_SIDMODEL_6581 | PSID_SIDMODEL_8580
 };
 
-const char _sidtune_format[] = "PlaySID one-file format (PSID)";
-const char _sidtune_unknown[] = "Unsupported file format";
-const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
+static const char _sidtune_format[] = "PlaySID one-file format (PSID)";
+static const char _sidtune_unknown[] = "Unsupported file format";
+static const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
 
 const int _sidtune_psid_maxStrLen = 31;
 
@@ -127,7 +127,10 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
     {
         uint_least16_t flags = endian_big16(pHeader->flags);
         if (flags & PSID_MUS)
+        {   // MUS tunes run at any speed
+            clock = SIDTUNE_CLOCK_ANY;
             info.musPlayer = true;
+        }
 
         if (flags & PSID_SAMPLES)
             info.samples = true;
