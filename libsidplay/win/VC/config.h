@@ -6,7 +6,10 @@
 #define VERSION "2.1.0a3"
 
 /* Define if your C++ compiler implements exception-handling.  */
-#define HAVE_EXCEPTIONS
+/* Note: exception specification is only available for MSVC > 6 */
+#if _MSC_VER > 1200
+#  define HAVE_EXCEPTIONS
+#endif
 
 /* Define if you support file names longer than 14 characters.  */
 #define HAVE_LONG_FILE_NAMES
