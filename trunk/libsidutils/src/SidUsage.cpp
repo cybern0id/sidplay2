@@ -17,71 +17,258 @@
 
 #include <stdio.h>
 #include <sidplay/sidendian.h>
+#include <sidplay/sidusage.h>
+#include <sidplay/SidTune.h>
 #include "SidUsage.h"
 #include "smm0.h"
 
 static const char *txt_na        = "SID Usage: N/A";
 static const char *txt_file      = "SID Usage: Unable to open file";
 static const char *txt_corrupt   = "SID Usage: File corrupt";
-static const char *txt_invalid   = "SID Usage: Invalid IFF file";
+static const char *txt_invalid   = "SID Usage: Invalid file format";
 static const char *txt_missing   = "SID Usage: Mandatory chunks missing";
-static const char *txt_supported = "SID Usage: IFF file not supported";
+static const char *txt_supported = "SID Usage: File type not supported";
 static const char *txt_reading   = "SID Usage: Error reading file";
 static const char *txt_writing   = "SID Usage: Error writing file";
-
-static bool           readSMM0   (FILE *file, const char **errorString,
-                                  sid_usage_t &usage,
-                                  const IffHeader &header);
-static bool           writeSMM0  (FILE *file, const char **errorString,
-                                  const sid_usage_t &usage,
-                                  const SidTuneInfo &tuneInfo);
-static uint_least32_t readChunk  (FILE *file, Chunk &chunk);
-static bool           writeChunk (FILE *file, const Chunk &chunk,
-                                  uint_least32_t type,
-                                  uint_least32_t length = 0);
-static uint_least32_t skipChunk  (FILE *file);
 
 
 SidUsage::SidUsage ()
 :m_status(false)
 {
     m_errorString = txt_na;
+
+    // Probably a better way to do this
+    // Detup decode table to convert usage flags to text characters
+    for (int i = 0; i < SID_LOAD_IMAGE; i++)
+    {        
+        m_decodeMAP[i][2] = '\0';
+        switch (i & (SID_EXECUTE | SID_STACK | SID_SAMPLE))
+        {
+        case 0:
+            switch (i)
+            {
+            case 0: // Not used
+                m_decodeMAP[i][0] = '.';
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = ',';
+                break;
+            case SID_READ:
+                m_decodeMAP[i][0] = 'r';
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'R';
+                break;
+            case SID_WRITE:
+                m_decodeMAP[i][0] = 'w';
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'W';
+                break;
+            case SID_WRITE | SID_READ:
+                m_decodeMAP[i][0] = 'x';
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'X';
+                break;
+            }
+            break;
+        case SID_EXECUTE:
+            m_decodeMAP[i][0] = 'p';
+            if (i & SID_WRITE)
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'M';
+            else
+                m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'P';
+            break;
+        case SID_STACK:
+            m_decodeMAP[i][0] = 's';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            break;
+        case SID_STACK | SID_EXECUTE:
+            m_decodeMAP[i][0] = 'S';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            break;
+        case SID_SAMPLE:
+            m_decodeMAP[i][0] = 'd';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'D';
+            break;
+        case SID_SAMPLE | SID_EXECUTE:
+            m_decodeMAP[i][0] = 'z';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'Z';
+            break;
+        case SID_SAMPLE | SID_STACK:
+            m_decodeMAP[i][0] = '$';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            break;
+        case SID_SAMPLE | SID_STACK | SID_EXECUTE:
+            m_decodeMAP[i][0] = '*';
+            m_decodeMAP[SID_LOAD_IMAGE | i][0] = 'E';
+            break;
+        }
+
+        switch (i & (SID_BAD_EXECUTE | SID_BAD_READ))
+        {
+        case SID_BAD_READ:
+            m_decodeMAP[i][1] = '?';
+            // Fine when is load image
+            m_decodeMAP[SID_LOAD_IMAGE | i][1] = ' ';
+            break;
+        case SID_BAD_EXECUTE:
+        case SID_BAD_EXECUTE | SID_BAD_READ:
+            m_decodeMAP[i][1] = '!';
+            // Fine when is load image
+            m_decodeMAP[SID_LOAD_IMAGE | i][1] = ' ';
+            break;
+        default:
+            m_decodeMAP[i][1] = ' ';
+            // We wrote first, meaning location need
+            // not be in load image.
+            m_decodeMAP[SID_LOAD_IMAGE | i][1] = '-';
+        }
+    }
+
+    // Initialise post filter
+    memset (m_filterMAP, ~0, sizeof (m_filterMAP));
+    // We are filtering off bad reads on these standard known locations
+    filterMAP (0x0000, 0x0001, SID_BAD_READ); /* Bank regs */
+    filterMAP (0x00a5, 0x00ac, SID_BAD_READ); /* Bug in tons of SIDs */
+    filterMAP (0x00fb, 0x00ff, SID_BAD_READ); /* Bug in tons of SIDs */
+    filterMAP (0x02a6, 0x02a6, SID_BAD_READ); /* PAL/NTSC flag */
+    filterMAP (0x02a7, 0x02ff, SID_BAD_READ); /* Bug in tons of sids */
+    filterMAP (0x0314, 0x0319, SID_BAD_READ); /* Interrupt vectors */
+    filterMAP (0x07e8, 0x07f7, SID_BAD_READ); /* Bug in tons of sids */
 }
 
 void SidUsage::read (const char *filename, sid_usage_t &usage)
 {
-    FILE     *file;
-    uint8_t   chunk[4] = {0};
-    IffHeader header;
-    uint_least32_t length;
+    FILE *file;
+    size_t i = strlen (filename);
+    const char *ext = NULL;
+
+    m_status = false;
+    file = fopen (filename, "rb");
+    if (file == NULL)
+    {
+        m_errorString = txt_file;
+        return;
+    }
+
+    // Find start of extension
+    while (i > 0)
+    {
+        if (filename[--i] == '.')
+        {
+            ext = &filename[i + 1];
+            break;
+        }
+    }
+
+    // Initialise optional fields
+    usage.flags  = 0;
+    usage.md5[0] = '\0';
+    usage.length = 0;
+
+    if (!readSMM (file, usage, ext)) ;
+    else if (!readMM (file, usage, ext)) ;
+    else m_errorString = txt_invalid;
+    fclose (file);
+}
+
+
+void SidUsage::write (const char *filename, const sid_usage_t &usage)
+{
+    FILE *file;
+    size_t i = strlen (filename);
+    const char *ext = NULL;
 
     m_status = false;
     file = fopen (filename, "wb");
     if (file == NULL)
     {
         m_errorString = txt_file;
-        goto SidTune_read_error;
+        return;
     }
+
+    // Find start of extension
+    while (i > 0)
+    {
+        if (filename[--i] == '.')
+        {
+            ext = &filename[i + 1];
+            break;
+        }
+    }
+
+    if (!strcmp (ext, "mm"))
+        writeSMM0 (file, usage);
+    else if (!strcmp (ext, "map"))
+        writeMAP (file, usage);
+    else
+        m_errorString = txt_invalid;
+    fclose (file);
+}
+
+
+bool SidUsage::readMM (FILE *file, sid_usage_t &usage, const char *ext)
+{
+    // Need to check extension
+    if (!strcmp (ext, "mm"))
+        return false;
+
+    {   // Read header
+        char version;
+        unsigned short flags;
+        fread (&version, sizeof (version), 1, file);
+        if (version != 0)
+        {
+            m_errorString = txt_supported;
+            return true;
+        }
+        fread (&flags, sizeof (flags), 1, file);
+        usage.flags = flags;
+    }
+
+    {   // Read load image details
+        int length;
+        fread (&usage.start, sizeof (usage.start), 1, file);
+        fread (&usage.end, sizeof (usage.end), 1, file);
+        length = (int) usage.start - (int) usage.end + 1;
+        if (length < 0)
+        {
+            m_errorString = txt_corrupt;
+            return true;
+        }
+        memset (&usage.memory[usage.start], SID_LOAD_IMAGE, sizeof (char) * length);
+    }
+
+    {   // Read usage
+        int ret = fgetc (file);
+        while (ret != EOF)
+        {   // Read usage
+            if (fread (&usage.memory[ret << 8], sizeof (char) * 0x100, 1, file) != 1)
+            {
+                m_errorString = txt_reading;
+                return true;
+            }   
+            ret = fgetc (file);
+        }
+    }
+    m_status = true;
+    return true;
+}
+
+
+bool SidUsage::readSMM (FILE *file, sid_usage_t &usage, const char *)
+{
+    uint8_t   chunk[4] = {0};
+    IffHeader header;
+    uint_least32_t length;
 
     // Read header chunk
     fread (&chunk, sizeof (chunk), 1, file);
     if (endian_big32 (chunk) != FORM_ID)
-    {
-        m_errorString = txt_invalid;
-        goto SidTune_read_error;
-    }
+        return false;
     length = readChunk (file, header);
     if (!length)
-    {
-        m_errorString = txt_invalid;
-        goto SidTune_read_error;
-    }
+        return false;
 
     // Determine SMM version
     switch (endian_big32 (header.type))
     {
     case SMM0_ID:
-        m_status = readSMM0 (file, &m_errorString, usage, header);
+        m_status = readSMM0 (file, usage, header);
         break;
 
     case SMM1_ID:
@@ -93,42 +280,14 @@ void SidUsage::read (const char *filename, sid_usage_t &usage)
     case SMM7_ID:
     case SMM8_ID:
     case SMM9_ID:
-        m_errorString = txt_invalid;
-        goto SidTune_read_error;
-
-    default:
         m_errorString = txt_supported;
-        goto SidTune_read_error;
+        break;
     }
-    fclose (file);
-    return;
-
-SidTune_read_error:
-    if (file != NULL)
-        fclose (file);
+    return true;
 }
 
 
-void SidUsage::write (const char *filename, const sid_usage_t &usage,
-                      SidTuneInfo &tuneInfo)
-{
-    FILE *file;
-
-    m_status = false;
-    file = fopen (filename, "wb");
-    if (file == NULL)
-    {
-        m_errorString = txt_file;
-        return;
-    }
-
-    m_status = writeSMM0 (file, &m_errorString, usage, tuneInfo);
-    fclose (file);
-}
-
-
-bool readSMM0 (FILE *file, const char **errorString,
-               sid_usage_t &usage, const IffHeader &header)
+bool SidUsage::readSMM0 (FILE *file, sid_usage_t &usage, const IffHeader &header)
 {
     Smm_v0 smm;
     smm.header = header;
@@ -149,22 +308,25 @@ bool readSMM0 (FILE *file, const char **errorString,
                 break;
 
             // Check for a chunk we are interested in
-	        switch (endian_big32 (chunk))
-	        {
+            switch (endian_big32 (chunk))
+            {
             case INF0_ID:
                 length = readChunk (file, smm.info);
                 break;
 
             case ERR0_ID:
                 length = readChunk (file, smm.error);
+                usage.flags = endian_big16(smm.error.flags);
                 break;
 
             case MD5_ID:
                 length = readChunk (file, smm.md5);
+                memcpy (usage.md5, smm.md5.key, sizeof (smm.md5.key));
                 break;
 
             case TIME_ID:
                 length = readChunk (file, smm.time);
+                usage.length = endian_big16(smm.time.stamp);
                 break;
 
             case BODY_ID:            
@@ -195,16 +357,15 @@ bool readSMM0 (FILE *file, const char **errorString,
         // Check for file reader error
         if (error)
         {
-            *errorString = txt_reading;
+            m_errorString = txt_reading;
             return false;
         }
     }
 
     // Test that all required checks were found
-    if ((smm.info.length == 0) || (smm.error.length == 0) ||
-        (smm.body.length == 0))
+    if ((smm.info.length == 0) || (smm.body.length == 0))
     {
-        *errorString = txt_missing;
+        m_errorString = txt_missing;
         return false;
     }
 
@@ -218,37 +379,42 @@ bool readSMM0 (FILE *file, const char **errorString,
     }}
 
     {   // File in the load range
-        uint_least16_t load, last;
         int length;
-        load = endian_big16 (smm.info.startAddr);
-        last = endian_big16 (smm.info.stopAddr);
-        length = (int) (last - load) + 1;
+        usage.start = endian_big16 (smm.info.startAddr);
+        usage.end   = endian_big16 (smm.info.stopAddr);
+        length = (int) usage.start - (int) usage.end + 1;
 
         if (length < 0)
         {
-            *errorString = txt_corrupt;
+            m_errorString = txt_corrupt;
             return false;
         }
 
+        uint_least8_t *p = &usage.memory[usage.start];
         {for (int i = 0; i < length; i++)
-            usage.memory[load + i] |= SID_LOAD_IMAGE;
+            p[i] |= SID_LOAD_IMAGE;
         }
     }
-    usage.flags = endian_big16(smm.error.flags);  
     return true;
 }
 
 
-bool writeSMM0 (FILE *file, const char **errorString,
-                const sid_usage_t &usage, const SidTuneInfo &tuneInfo)
+void SidUsage::writeSMM0 (FILE *file, const sid_usage_t &usage)
 {
     struct Smm_v0  smm0;
-    uint_least32_t headings = 3; /* Mandatory */
+    uint_least32_t headings = 2; /* Mandatory */
 
     endian_big32 (smm0.header.type, SMM0_ID);
-    endian_big16 (smm0.error.flags, (uint_least16_t) usage.flags);
 
     // Optional
+    if (usage.flags == 0)
+        smm0.error.length = 0;
+    else
+    {
+        endian_big16 (smm0.error.flags, (uint_least16_t) usage.flags);
+        headings++;
+    }
+
     if (usage.length == 0)
         smm0.time.length = 0;
     else
@@ -257,23 +423,17 @@ bool writeSMM0 (FILE *file, const char **errorString,
         headings++;
     }
 
-    {
-        uint_least16_t load = tuneInfo.loadAddr;
-        uint_least16_t last = load + (tuneInfo.c64dataLen - 1);
-        endian_big16 (smm0.info.startAddr, load);
-        endian_big16 (smm0.info.stopAddr,  last);
-    }
-
-    // Optional
     if ( usage.md5[0] == '\0' )
         smm0.md5.length = 0;
     else
     {
-        {for (int i = 0; i < 32; i++)
-            smm0.md5.key[i] = usage.md5[i];
-        }
+        memcpy (smm0.md5.key, usage.md5, sizeof (smm0.md5.key));
         headings++;
     }
+    // End Optional
+
+    endian_big16 (smm0.info.startAddr, usage.start);
+    endian_big16 (smm0.info.stopAddr,  usage.end);
     
     {
         uint8_t i = 0;
@@ -282,7 +442,7 @@ bool writeSMM0 (FILE *file, const char **errorString,
         {
             char used = 0;
             for (int j = 0; j < 0x100; j++)
-                used |= (usage.memory[(page << 8) | j] & 0x7f);
+                used |= (usage.memory[(page << 8) | j] & ~SID_LOAD_IMAGE);
            
             if (used)
             {
@@ -312,15 +472,83 @@ bool writeSMM0 (FILE *file, const char **errorString,
         goto writeSMM0_error;
     if ( writeChunk (file, smm0.body, BODY_ID)  == false )
         goto writeSMM0_error;
-    return true;
+    m_status = true;
+    return;
 
 writeSMM0_error:
-    *errorString = txt_writing;
-    return false;
+    m_errorString = txt_writing;
 }
 
 
-uint_least32_t readChunk (FILE *file, Chunk &chunk)
+// Add filtering to the specified memory locations
+void SidUsage::filterMAP (int from, int to, uint_least8_t mask)
+{
+    for (int i = from; i <= to; i++)
+        m_filterMAP[i] = ~mask;
+}
+
+
+void SidUsage::writeMAP (FILE *file, const sid_usage_t &usage)
+{
+    bool err = false;
+    // Find out end unused regions which can be removed from
+    // load image
+    uint_least16_t faddr = usage.start;
+    uint_least16_t laddr = usage.end;
+
+    // Trim ends unused off load image
+    for (; faddr < laddr; faddr++)
+    {
+//        if (usage.memory[faddr] & (SID_BAD_READ | SID_BAD_EXECUTE))
+        if (usage.memory[faddr] & ~SID_LOAD_IMAGE)
+            break;
+    }
+
+    for (; laddr > faddr; laddr--)
+    {
+//        if (usage.memory[laddr-1] & (SID_BAD_READ | SID_BAD_EXECUTE))
+        if (usage.memory[laddr-1] & ~SID_LOAD_IMAGE)
+            break;
+    }
+
+    for (int page = 0; page < 0x100; page++)
+    {
+        bool used = false;
+        for (int offset = 0; offset < 0x100; offset++)
+            used |= (usage.memory[(page << 8) | offset] != 0);
+               
+        if (used)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                fprintf (file, "%02X%02X=", page, i << 6);
+                for (int j = 0; j < 64; j++)
+                {
+                    int addr = (page << 8) | (i << 6) | j;
+                    uint_least8_t u = usage.memory[addr];
+                    // The addresses which don't need to be in the load image have now been
+                    // trimmed off.  Anything between faddr and laddr needs to be kept
+                    if ((addr >= faddr) && (addr <= laddr))
+                        u |= (SID_BAD_READ | SID_BAD_EXECUTE);
+                    // Apply usage filter for this memory location
+                    u &= m_filterMAP[addr];
+                    err |= fprintf (file, "%s", m_decodeMAP[u]) < 0;
+                    if ((j & 7) == 7)
+                        err |= fprintf (file, " ") < 0;
+                }
+                err |= fprintf (file, "\n") < 0;
+            }
+        }
+    }
+
+    if (err)
+        m_errorString = txt_writing;
+    else
+        m_status = true;
+}
+
+
+uint_least32_t SidUsage::readChunk (FILE *file, Chunk &chunk)
 {
     uint8_t tmp[4];
     size_t  ret;
@@ -340,8 +568,8 @@ uint_least32_t readChunk (FILE *file, Chunk &chunk)
 }
 
 
-bool writeChunk (FILE *file, const Chunk &chunk, uint_least32_t type,
-                 uint_least32_t length)
+bool SidUsage::writeChunk (FILE *file, const Chunk &chunk, uint_least32_t type,
+                           uint_least32_t length)
 {
     uint8_t tmp[4];
     size_t  ret;
@@ -366,7 +594,7 @@ bool writeChunk (FILE *file, const Chunk &chunk, uint_least32_t type,
 }
 
 
-uint_least32_t skipChunk (FILE *file)
+uint_least32_t SidUsage::skipChunk (FILE *file)
 {
     uint8_t tmp[4];
     uint_least32_t ret;
