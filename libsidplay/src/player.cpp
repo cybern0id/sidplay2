@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.65  2003/07/16 20:56:54  s_a_white
+ *  Some initialisation code from the psiddrv is required to start basic tunes.
+ *
  *  Revision 1.64  2003/07/16 07:00:52  s_a_white
  *  Added support for c64 basic tunes.
  *
@@ -448,7 +451,6 @@ int Player::initialise ()
         return -1;
     }
 
-
     psidDrvInstall (m_info);
     rtc.reset ();
     envReset  (false);
@@ -636,7 +638,7 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
 
     // Read real sid for these
     if ((addr & 0xff00) == m_sidAddress[1])
-        return sid[1]->read (addr & 0xff);
+        return sid[1]->read (tempAddr & 0xff);
     return sid[0]->read (tempAddr & 0xff);
 }
 
@@ -769,11 +771,11 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
         // Support dual sid
         if ((addr & 0xff00) == m_sidAddress[1])
         {
-            sid[1]->write (addr & 0xff, data);
+            sid[1]->write (tempAddr & 0xff, data);
             return;
         }
         else if (m_emulateStereo)
-            sid[1]->write (addr & 0xff, data);
+            sid[1]->write (tempAddr & 0xff, data);
         sid[0]->write (tempAddr & 0xff, data);
     }
 }
