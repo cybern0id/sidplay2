@@ -407,6 +407,7 @@ int sidplayer_pr::initialise ()
         return -1;
     }
 
+    _seconds = 0;
     // Rev 2.0.4 (saw) - Added for new time ounter
     _currentPeriod  = 0;
     _sampleCount    = 0;

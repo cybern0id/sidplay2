@@ -1,5 +1,7 @@
 Changes since 2.0.6:
 
+(ms) Fixed clock to [re]start at 0:00 upon [song] initialization.
+
 (ms) Converted complete source tree from kdevelop to native Automake
 and made it build a library and the console player. Developers are
 advised to configure the package with --disable-shared, so that they
