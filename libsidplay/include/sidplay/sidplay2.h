@@ -74,6 +74,7 @@ public:
     int            fastForward  (uint_least8_t percent);
     void           getInfo      (sid2_playerInfo_t *info);
     void           optimisation (uint_least8_t level);
+	int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
 
     // Timer functions with respect to 10ths of a second
     uint_least32_t time    (void);
