@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.52  2002/11/20 21:44:03  s_a_white
+ *  Fix fake IRQ to properly obtain next address.
+ *
  *  Revision 1.51  2002/11/19 22:55:18  s_a_white
  *  Sidplay1 modes modified to make them nolonger require the psid driver.
  *  Full c64 kernal supported in real c64 mode.
@@ -453,10 +456,7 @@ uint_least32_t Player::play (void *buffer, uint_least32_t length)
     m_running     = true;
 
     while (m_running)
-    {
-        cpu->clock ();
         m_scheduler.clock ();
-    }
 
     if (m_playerState == sid2_stopped)
         initialise ();
@@ -778,7 +778,12 @@ void Player::reset (void)
         memset (m_rom + 0xA000, RTSn, 0x2000);
 
     if (m_info.environment == sid2_envR)
+    {
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
+        // Since we don't yet run the kernal power up
+        // routines, set somethings here.
+        endian_little16 (&m_ram[0x028f], 0xEB48); // keyboard poll
+    }
     else // !sid2_envR
     {
         memset (m_rom + 0xE000, RTSn, 0x2000);    
