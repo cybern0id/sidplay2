@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/01/29 00:49:49  jpaana
+ *  Fixed a typo on in the TSID code
+ *
  *  Revision 1.3  2002/01/28 19:40:50  s_a_white
  *  Added TSID support.
  *
@@ -319,7 +322,8 @@ bool ConsolePlayer::args (int argc, char *argv[])
     }
 
     // Load the tune
-    m_tune.load (argv[infile]);
+    m_filename = argv[infile];
+    m_tune.load (m_filename);
     if (!m_tune)
     {
         cerr << m_name << "\n" << (m_tune.getInfo ()).statusString << endl;
