@@ -23,6 +23,14 @@
 
 #define INI_EQUALS_ALIGN 10
 
+#if defined(HAVE_STRINGS_H)
+#   include <strings.h>
+#endif
+
+#ifndef HAVE_STRCASECMP
+#   define strcasecmp stricmp
+#endif
+
 
 /********************************************************************************************************************
  * Function          : __ini_addKey
@@ -199,7 +207,7 @@ struct key_tag *__ini_createKey (ini_t *ini, char *key)
             unsigned long crc32;
             unsigned char accel;
 
-            crc32     = __ini_createCrc32 (key, strlen (key));
+            crc32     = __ini_createCrc32 (key, (ini->flags & INI_CASE) != 0);
             pNew->crc = crc32;
             // Rev 1.3 - Add accelerator list
             accel = (unsigned char) crc32 & 0x0FF;
@@ -213,7 +221,7 @@ struct key_tag *__ini_createKey (ini_t *ini, char *key)
     }
 
     section->selected = pNew;
-    ini->changed      = true;
+    ini->flags       |= INI_MODIFIED;
     return pNew;
 }
 
@@ -265,7 +273,7 @@ void __ini_deleteKey (ini_t *ini)
         // Delete Key
         free (current_k->key);
         free (current_k);
-        ini->changed = true;
+        ini->flags |= INI_MODIFIED;
     }
 }
 
@@ -291,14 +299,19 @@ struct key_tag *__ini_locateKey (ini_t *ini, const char *key)
 #ifdef INI_USE_HASH_TABLE
     {   // Rev 1.3 - Added
         unsigned long crc32;
-        crc32 = __ini_createCrc32 (key, strlen (key));
+        crc32 = __ini_createCrc32 (key, (ini->flags & INI_CASE) != 0);
 
         // Search for key
         for (current_k = section->keys[(unsigned char) crc32 & 0x0FF]; current_k; current_k = current_k->pNext_Acc)
         {
             if (current_k->crc == crc32)
             {
-                if (!strcmp (current_k->key, key))
+                if (ini->flags & INI_CASE)
+                {
+                    if (!strcmp (current_k->key, key))
+                        break;
+                }
+                else if (!strcasecmp (current_k->key, key))
                     break;
             }
         }
@@ -307,7 +320,12 @@ struct key_tag *__ini_locateKey (ini_t *ini, const char *key)
     {   // Search for key
         for (current_k = section->first; current_k; current_k = current_k->pNext)
         {
-            if (!strcmp (current_k->key, key))
+            if (ini->flags & INI_CASE)
+            {
+                if (!strcmp (current_k->key, key))
+                    break;
+            }
+            else if (!strcasecmp (current_k->key, key))
                 break;
         }
     }

@@ -21,6 +21,14 @@
 #include <string.h>
 #include "headings.h"
 
+#if defined(HAVE_STRINGS_H)
+#   include <strings.h>
+#endif
+
+#ifndef HAVE_STRCASECMP
+#   define strcasecmp stricmp
+#endif
+
 
 /********************************************************************************************************************
  * Function          : __ini_addHeading
@@ -155,7 +163,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
             unsigned long crc32;
             unsigned char accel;
 
-            crc32     = __ini_createCrc32 (heading, strlen (heading));
+            crc32     = __ini_createCrc32 (heading, (ini->flags & INI_CASE) != 0);
             pNew->crc = crc32;
             // Rev 1.3 - Add accelerator list
             accel = (unsigned char) crc32 & 0x0FF;
@@ -169,7 +177,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
     }
 
     ini->selected = pNew;
-    ini->changed  = true;
+    ini->flags   |= INI_MODIFIED;
     return pNew;
 }
 
@@ -227,7 +235,7 @@ void __ini_deleteHeading (ini_t *ini)
         if (*current_h->heading)
             free (current_h->heading);
         free (current_h);
-        ini->changed = true;
+        ini->flags |= INI_MODIFIED;
     }
 }
 
@@ -250,14 +258,19 @@ struct section_tag *__ini_locateHeading (ini_t *ini, const char *heading)
 #ifdef INI_USE_HASH_TABLE
     // Rev 1.3 - Revised to use new accelerator
     unsigned long crc32;
-    crc32 = __ini_createCrc32 (heading, strlen (heading));
+    crc32 = __ini_createCrc32 (heading, (ini->flags & INI_CASE) != 0);
 
     // Search for heading
     for (current_h = ini->sections[(unsigned char) crc32 & 0x0FF]; current_h; current_h = current_h->pNext_Acc)
     {
         if (current_h->crc == crc32)
         {
-            if (!strcmp (current_h->heading, heading))
+            if (ini->flags & INI_CASE)
+            {
+                if (!strcmp (current_h->heading, heading))
+                    break;
+            }
+            else if (!strcasecmp (current_h->heading, heading))
                 break;
         }
     }
@@ -265,7 +278,12 @@ struct section_tag *__ini_locateHeading (ini_t *ini, const char *heading)
     // Search for heading
     for (current_h = ini->first; current_h; current_h = current_h->pNext)
     {
-        if (!strcmp (current_h->heading, heading))
+        if (ini->flags & INI_CASE)
+        {
+            if (!strcmp (current_h->heading, heading))
+                break;
+        }
+        else if (!strcasecmp (current_h->heading, heading))
             break;
     }
 #endif // INI_USE_HASH_TABLE
