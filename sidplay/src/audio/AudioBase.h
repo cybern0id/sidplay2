@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/10/30 23:34:45  s_a_white
+ *  Added pause.
+ *
  *  Revision 1.2  2001/07/03 17:53:29  s_a_white
  *  Added call to get pointer to current music buffer.
  *
@@ -57,6 +60,7 @@ public:
     virtual void *write () = 0;
     virtual void  close () = 0;
     virtual void  pause () = 0;
+    virtual const char *extension () const { return ""; }
     void   *buffer () { return _sampleBuffer; }
 
     void getConfig (AudioConfig &cfg) const
