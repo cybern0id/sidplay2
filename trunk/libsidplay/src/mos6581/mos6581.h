@@ -17,9 +17,12 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2000/12/11 19:02:10  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
-#include "sidconfig.h"
+#include "config.h"
 
 // Rev 1.2 (saw) - Changed to allow resid to be in more than one location
 #ifdef HAVE_LOCAL_RESID
