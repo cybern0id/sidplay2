@@ -1,15 +1,18 @@
-####### kdevelop will overwrite this part!!! (begin)##########
+
+AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src include 
 
-EXTRA_DIST = libsidplay.kdevprj AUTHORS COPYING ChangeLog INSTALL README TODO libsidplay.lsm sidconfig.h.in config.guess config.sub Makefile.dist config.status config.h 
+EXTRA_DIST = win libsidplay.lsm Makefile.dist sidconfig.h.in
 
-install-data-local:
-	$(mkinstalldirs) /usr/local/include/sidplay2/
-	$(INSTALL_DATA) sidconfig.h /usr/local/include/sidplay2/sidconfig.h
+sidplayincludedir = $(includedir)/sidplay2
 
-uninstall-local:
-	-rm -f /usr/local/include/sidplay2/sidconfig.h
+sidplayinclude_HEADERS = sidconfig.h
 
-####### kdevelop will overwrite this part!!! (end)############
-AUTOMAKE_OPTIONS = foreign
+
+# Remove CVS directories from any subdirs that get
+# included completely (e.g. win, directx,...).
+
+dist-hook:
+		rm -rf `find $(distdir) -path \*/CVS`
+

@@ -1,3 +1,12 @@
+Changes since 2.0.6:
+
+(ms) Converted complete source tree from kdevelop to native Automake
+and made it build a library and the console player. Developers are
+advised to configure the package with --disable-shared, so that they
+don't need to install a shared library and/or set the
+LD_LIBRARY_PATH, respectively.
+
+
 Release Notes 2.0.6:
 
 This version mainly sees bug fixes and finally gets both the Linux and

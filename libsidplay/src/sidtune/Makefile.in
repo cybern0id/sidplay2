@@ -10,8 +10,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-####### kdevelop will overwrite this part!!! (begin)##########
-
 
 SHELL = @SHELL@
 
@@ -61,39 +59,57 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AUDIODRV_LDADD = @AUDIODRV_LDADD@
 CC = @CC@
 CXX = @CXX@
+DLLTOOL = @DLLTOOL@
+LIBTOOL = @LIBTOOL@
+LIBVERSION = @LIBVERSION@
+LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RESID_INCLUDES = @RESID_INCLUDES@
 RESID_LDADD = @RESID_LDADD@
 VERSION = @VERSION@
 
-noinst_LIBRARIES = libsidtune.a
+sidplayincludedir = $(includedir)/sidplay2
 
-libsidtune_a_SOURCES = SidTuneTools.cpp SidTune.cpp PSID.cpp PP20.cpp MUS.cpp InfoFile.cpp IconInfo.cpp 
+sidplayinclude_HEADERS = SidTune.h SidTuneCfg.h SidTuneTypes.h SidTuneEndian.h Buffer.h SmartPtr.h
 
-EXTRA_DIST = Buffer.h IconInfo.cpp InfoFile.cpp MUS.cpp PP20.cpp PP20.h PP20_Defs.h PSID.cpp SidTune.cpp SidTune.h SidTuneCfg.h SidTuneEndian.h SidTuneTools.cpp SidTuneTools.h SidTuneTypes.h SmartPtr.h 
+
+noinst_LTLIBRARIES = libsidtune.la
+
+libsidtune_la_SOURCES = Buffer.h IconInfo.cpp InfoFile.cpp MUS.cpp PP20.cpp PP20.h PP20_Defs.h PSID.cpp SidTune.cpp SidTune.h SidTuneCfg.h SidTuneEndian.h SidTuneTools.cpp SidTuneTools.h SidTuneTypes.h SmartPtr.h
+
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
-LIBRARIES =  $(noinst_LIBRARIES)
+LTLIBRARIES =  $(noinst_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libsidtune_a_LIBADD = 
-libsidtune_a_OBJECTS =  SidTuneTools.o SidTune.o PSID.o PP20.o MUS.o \
-InfoFile.o IconInfo.o
-AR = ar
+libsidtune_la_LDFLAGS = 
+libsidtune_la_LIBADD = 
+libsidtune_la_OBJECTS =  IconInfo.lo InfoFile.lo MUS.lo PP20.lo PSID.lo \
+SidTune.lo SidTuneTools.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(sidplayinclude_HEADERS)
+
 DIST_COMMON =  Makefile.am Makefile.in
 
 
@@ -103,12 +119,12 @@ TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/IconInfo.P .deps/InfoFile.P .deps/MUS.P .deps/PP20.P \
 .deps/PSID.P .deps/SidTune.P .deps/SidTuneTools.P
-SOURCES = $(libsidtune_a_SOURCES)
-OBJECTS = $(libsidtune_a_OBJECTS)
+SOURCES = $(libsidtune_la_SOURCES)
+OBJECTS = $(libsidtune_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cpp .o .s
+.SUFFIXES: .S .c .cpp .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/sidtune/Makefile
 
@@ -117,14 +133,14 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 
-mostlyclean-noinstLIBRARIES:
+mostlyclean-noinstLTLIBRARIES:
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
 
-distclean-noinstLIBRARIES:
+distclean-noinstLTLIBRARIES:
 
-maintainer-clean-noinstLIBRARIES:
+maintainer-clean-noinstLTLIBRARIES:
 
 .s.o:
 	$(COMPILE) -c $<
@@ -142,12 +158,43 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-libsidtune.a: $(libsidtune_a_OBJECTS) $(libsidtune_a_DEPENDENCIES)
-	-rm -f libsidtune.a
-	$(AR) cru libsidtune.a $(libsidtune_a_OBJECTS) $(libsidtune_a_LIBADD)
-	$(RANLIB) libsidtune.a
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libsidtune.la: $(libsidtune_la_OBJECTS) $(libsidtune_la_DEPENDENCIES)
+	$(CXXLINK)  $(libsidtune_la_LDFLAGS) $(libsidtune_la_OBJECTS) $(libsidtune_la_LIBADD) $(LIBS)
 .cpp.o:
 	$(CXXCOMPILE) -c $<
+.cpp.lo:
+	$(LTCXXCOMPILE) -c $<
+
+install-sidplayincludeHEADERS: $(sidplayinclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(sidplayincludedir)
+	@list='$(sidplayinclude_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(sidplayincludedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(sidplayincludedir)/$$p; \
+	done
+
+uninstall-sidplayincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(sidplayinclude_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(sidplayincludedir)/$$p; \
+	done
 
 tags: TAGS
 
@@ -191,7 +238,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -260,19 +307,20 @@ installcheck: installcheck-am
 install-exec-am:
 install-exec: install-exec-am
 
-install-data-am: install-data-local
+install-data-am: install-sidplayincludeHEADERS
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-local
+uninstall-am: uninstall-sidplayincludeHEADERS
 uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(sidplayincludedir)
 
 
 mostlyclean-generic:
@@ -284,58 +332,47 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+mostlyclean-am:  mostlyclean-noinstLTLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-noinstLIBRARIES clean-compile clean-tags clean-depend \
-		clean-generic mostlyclean-am
+clean-am:  clean-noinstLTLIBRARIES clean-compile clean-libtool \
+		clean-tags clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
-distclean-am:  distclean-noinstLIBRARIES distclean-compile \
-		distclean-tags distclean-depend distclean-generic \
-		clean-am
+distclean-am:  distclean-noinstLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
+	-rm -f libtool
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+maintainer-clean-am:  maintainer-clean-noinstLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
-clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+.PHONY: mostlyclean-noinstLTLIBRARIES distclean-noinstLTLIBRARIES \
+clean-noinstLTLIBRARIES maintainer-clean-noinstLTLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile tags mostlyclean-tags distclean-tags \
+maintainer-clean-compile mostlyclean-libtool distclean-libtool \
+clean-libtool maintainer-clean-libtool uninstall-sidplayincludeHEADERS \
+install-sidplayincludeHEADERS tags mostlyclean-tags distclean-tags \
 clean-tags maintainer-clean-tags distdir mostlyclean-depend \
 distclean-depend clean-depend maintainer-clean-depend info-am info \
 dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-local install-data-am install-data install-am \
-install uninstall-local uninstall-am uninstall all-redirect all-am all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
-
-install-data-local:
-	$(mkinstalldirs) /usr/local/include/sidplay2/
-	$(INSTALL_DATA) SidTune.h /usr/local/include/sidplay2/SidTune.h
-	$(mkinstalldirs) /usr/local/include/sidplay2/
-	$(INSTALL_DATA) SidTuneCfg.h /usr/local/include/sidplay2/SidTuneCfg.h
-	$(mkinstalldirs) /usr/local/include/sidplay2/
-	$(INSTALL_DATA) SidTuneTypes.h /usr/local/include/sidplay2/SidTuneTypes.h
-
-uninstall-local:
-	-rm -f /usr/local/include/sidplay2/SidTune.h
-	-rm -f /usr/local/include/sidplay2/SidTuneCfg.h
-	-rm -f /usr/local/include/sidplay2/SidTuneTypes.h
-
-####### kdevelop will overwrite this part!!! (end)############
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

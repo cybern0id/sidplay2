@@ -10,8 +10,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-####### kdevelop will overwrite this part!!! (begin)##########
-
 
 SHELL = @SHELL@
 
@@ -61,38 +59,48 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AS = @AS@
 AUDIODRV_LDADD = @AUDIODRV_LDADD@
 CC = @CC@
 CXX = @CXX@
+DLLTOOL = @DLLTOOL@
+LIBTOOL = @LIBTOOL@
+LIBVERSION = @LIBVERSION@
+LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
+OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RESID_INCLUDES = @RESID_INCLUDES@
 RESID_LDADD = @RESID_LDADD@
 VERSION = @VERSION@
 
-noinst_LIBRARIES = libxsid.a
+noinst_LTLIBRARIES = libxsid.la
 
-libxsid_a_SOURCES = xsid.cpp 
-
-EXTRA_DIST = xsid.cpp xsid.h 
+libxsid_la_SOURCES = xsid.cpp xsid.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
-LIBRARIES =  $(noinst_LIBRARIES)
+LTLIBRARIES =  $(noinst_LTLIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libxsid_a_LIBADD = 
-libxsid_a_OBJECTS =  xsid.o
-AR = ar
+libxsid_la_LDFLAGS = 
+libxsid_la_LIBADD = 
+libxsid_la_OBJECTS =  xsid.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  Makefile.am Makefile.in
 
 
@@ -101,12 +109,12 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/xsid.P
-SOURCES = $(libxsid_a_SOURCES)
-OBJECTS = $(libxsid_a_OBJECTS)
+SOURCES = $(libxsid_la_SOURCES)
+OBJECTS = $(libxsid_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cpp .o .s
+.SUFFIXES: .S .c .cpp .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/xsid/Makefile
 
@@ -115,14 +123,14 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 
-mostlyclean-noinstLIBRARIES:
+mostlyclean-noinstLTLIBRARIES:
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
 
-distclean-noinstLIBRARIES:
+distclean-noinstLTLIBRARIES:
 
-maintainer-clean-noinstLIBRARIES:
+maintainer-clean-noinstLTLIBRARIES:
 
 .s.o:
 	$(COMPILE) -c $<
@@ -140,12 +148,28 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-libxsid.a: $(libxsid_a_OBJECTS) $(libxsid_a_DEPENDENCIES)
-	-rm -f libxsid.a
-	$(AR) cru libxsid.a $(libxsid_a_OBJECTS) $(libxsid_a_LIBADD)
-	$(RANLIB) libxsid.a
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libxsid.la: $(libxsid_la_OBJECTS) $(libxsid_la_DEPENDENCIES)
+	$(CXXLINK)  $(libxsid_la_LDFLAGS) $(libxsid_la_OBJECTS) $(libxsid_la_LIBADD) $(LIBS)
 .cpp.o:
 	$(CXXCOMPILE) -c $<
+.cpp.lo:
+	$(LTCXXCOMPILE) -c $<
 
 tags: TAGS
 
@@ -189,7 +213,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -266,7 +290,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -282,45 +306,47 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+mostlyclean-am:  mostlyclean-noinstLTLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-noinstLIBRARIES clean-compile clean-tags clean-depend \
-		clean-generic mostlyclean-am
+clean-am:  clean-noinstLTLIBRARIES clean-compile clean-libtool \
+		clean-tags clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
-distclean-am:  distclean-noinstLIBRARIES distclean-compile \
-		distclean-tags distclean-depend distclean-generic \
-		clean-am
+distclean-am:  distclean-noinstLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-tags distclean-depend \
+		distclean-generic clean-am
+	-rm -f libtool
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+maintainer-clean-am:  maintainer-clean-noinstLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
-clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+.PHONY: mostlyclean-noinstLTLIBRARIES distclean-noinstLTLIBRARIES \
+clean-noinstLTLIBRARIES maintainer-clean-noinstLTLIBRARIES \
 mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+maintainer-clean-compile mostlyclean-libtool distclean-libtool \
+clean-libtool maintainer-clean-libtool tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info-am info dvi-am dvi check check-am \
+installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
-
-####### kdevelop will overwrite this part!!! (end)############
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -295,3 +295,19 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
 ])
+
+dnl -------------------------------------------------------------------------
+dnl Pass C++ compiler options to libtool which supports C only.
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(SID_PROG_LIBTOOL,
+[
+    sid_save_cc=$CC
+    sid_save_cflags=$CFLAGS
+    CC=$CXX
+    CFLAGS=$CXXFLAGS
+    AM_PROG_LIBTOOL
+    CC=$sid_save_cc
+    CFLAGS=$sid_save_cflags
+])
+    

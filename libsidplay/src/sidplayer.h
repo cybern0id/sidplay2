@@ -19,7 +19,7 @@
 #define _sidplayer_h_
 
 #include "sidtypes.h"
-#include "sidtune/SidTune.h"
+#include "SidTune.h"
 
 // Default settings
 const udword_sidt SIDPLAYER_DEFAULT_SAMPLING_FREQ = 44100;
