@@ -57,6 +57,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+ACLOCAL_AMFLAGS = @ACLOCAL_AMFLAGS@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
@@ -86,7 +87,7 @@ install_sh = @install_sh@
 sidplayincludedir = $(includedir)/sidplay
 sidplayinclude_HEADERS = sidconfig.h sidendian.h sidplay2.h \
 sidtypes.h sid2types.h SidTune.h Buffer.h SmartPtr.h \
-c64env.h component.h event.h sidbuilder.h
+c64env.h component.h event.h sidbuilder.h sidint.h
 
 subdir = include/sidplay
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs

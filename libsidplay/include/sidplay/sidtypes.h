@@ -18,6 +18,7 @@
 #ifndef _sidtypes_h_
 #define _sidtypes_h_
 
+#include "sidint.h"
 #include "sidconfig.h"
 
 #if SID_SIZEOF_CHAR == 1
@@ -42,45 +43,6 @@
 #   endif /* SID_HAVE_STDBOOL_H */
 #endif /* HAVE_BOOL */
 
-#ifdef SID_HAVE_STDINT_H
-#   include <stdint.h>
-#else
-
-    /* Wanted: Exactly 8-bit unsigned/signed (1 byte). */
-    typedef signed char        int8_t;
-    typedef unsigned char      uint8_t;
-
-    /* Small types.  */
-    /* Wanted: Atleast 8-bit unsigned/signed (1 byte). */
-    typedef signed char        int_least8_t;
-    typedef unsigned char      uint_least8_t;
-
-    /* Wanted: Atleast 16-bit unsigned/signed (2 bytes). */
-    #if SID_SIZEOF_SHORT_INT >= 2
-    typedef short int          int_least16_t;
-    typedef unsigned short int uint_least16_t;
-    #else
-    typedef int                int_least16_t;
-    typedef unsigned int       uint_least16_t;
-    #endif /* SID_SIZEOF_SHORT_INT */
-
-    /* Wanted: Atleast 32-bit unsigned/signed (4 bytes). */
-    #if SID_SIZEOF_INT >= 4
-    typedef int                int_least32_t;
-    typedef unsigned int       uint_least32_t;
-    #else
-    typedef long int           uint_least32_t;
-    typedef unsigned long int  uint_least32_t;
-    #endif /* SID_SIZEOF_INT */
-
-    /* Wanted: Atleast 32-bits but final size is determined
-     * on which register size will provide best program
-     * performance
-     */
-    typedef uint_least32_t     uint_fast32_t;
-
-#endif /* SID_HAVE_STDINT_H */
-
 /* Custom types */
 typedef int sid_fc_t[2];
 typedef struct
@@ -94,7 +56,7 @@ typedef unsigned int uint;
 typedef float    float32_t;
 typedef double   float64_t;
 
-#define FOREVER for(;;)
-#define SWAP(x,y) ((x)^=(y)^=(x)^=(y))
+#define SID_FOREVER for(;;)
+#define SID_SWAP(x,y) ((x)^=(y)^=(x)^=(y))
 
 #endif /* _sidtypes_h_ */
