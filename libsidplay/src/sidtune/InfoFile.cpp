@@ -118,19 +118,21 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
 
         // Above implementation is wrong, we need to get all known
         // fields and then check if all ``required'' ones were found.
-        for (;;)
+        do
         {
-            const char* pNextLine = SidTuneTools::returnNextLine( pParseBuf, parseLen );
             uint_least32_t restLen;
-            if ( pNextLine != 0 )
             {
-                // Calculate number of chars between current pos and next line.
-                restLen = (uint_least32_t)(pNextLine - pParseBuf);
-            }
-            else
-            {
-                // Calculate number of chars between current pos and end of buf.
-                restLen = parseLen;
+                const char* pNextLine = SidTuneTools::returnNextLine( pParseBuf, parseLen );
+                if ( pNextLine != 0 )
+                {
+                    // Calculate number of chars between current pos and next line.
+                    restLen = (uint_least32_t)(pNextLine - pParseBuf);
+                }
+                else
+                {
+                    // Calculate number of chars between current pos and end of buf.
+                    restLen = parseLen;
+                }
             }
 #ifdef HAVE_SSTREAM
             std::string sParse( pParseBuf, restLen );            
@@ -269,14 +271,10 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 else if ( SidTuneTools::myStrNcaseCmp( comp, "BASIC" ) == 0 )
                     info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
             }
-            // Skip to next line. Leave loop, if none.
-            if ( pNextLine == 0 )
-            {
-                break;
-            }
             parseLen  -= restLen;
             pParseBuf += restLen;
-        }
+            // Skip to next line. Leave loop, if none.
+        } while (parseLen != 0);
 
         delete[] pParseChunk;
         
