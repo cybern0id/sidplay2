@@ -26,6 +26,10 @@
 
 #include <fstream.h>
 
+/*
+SIDPLAY2_NAMESPACE_START
+*/
+
 const uint_least16_t SIDTUNE_MAX_SONGS = 256;
 // Also PSID file format limit.
 
@@ -43,17 +47,19 @@ const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
 const int SIDTUNE_CLOCK_PAL = 0;        // These are also used in the
 const int SIDTUNE_CLOCK_NTSC = 1;       // emulator engine!
 
+#ifndef _SidTune_cpp_
 // Required to export template
-template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
+extern template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
+#endif
 
-struct SidTuneInfo
+struct TuneInfo
 {
     // An instance of this structure is used to transport values to
     // and from SidTune objects.
 
     // You must read (i.e. activate) sub-song specific information
     // via:
-    //         const SidTuneInfo& tuneInfo = SidTune[songNumber];
+    //        const SidTuneInfo& tuneInfo = SidTune[songNumber];
     //        const SidTuneInfo& tuneInfo = SidTune.getInfo();
     //        void SidTune.getInfo(tuneInfo&);
     
@@ -112,7 +118,7 @@ struct SidTuneInfo
 };
 
 
-class SID_EXTERN SidTune
+class SID_EXTERN Tune
 {
     
  public:  // ----------------------------------------------------------------
@@ -136,14 +142,14 @@ class SID_EXTERN SidTune
     // See ``sidtune.cpp'' for the default list of file name extensions.
     // You can specific ``sidTuneFileName = 0'', if you do not want to
     // load a sidtune. You can later load one with open().
-    SidTune(const char* fileName, const char **fileNameExt = 0,
-            const bool separatorIsSlash = false);
+    Tune(const char* fileName, const char **fileNameExt = 0,
+         const bool separatorIsSlash = false);
 
     // Load a single-file sidtune from a memory buffer.
     // Currently supported: PSID format
-    SidTune(const uint_least8_t* oneFileFormatSidtune, const uint_least32_t sidtuneLength);
+    Tune(const uint_least8_t* oneFileFormatSidtune, const uint_least32_t sidtuneLength);
 
-    virtual ~SidTune();
+    virtual ~Tune();
 
     // The sidTune class does not copy the list of file name extensions,
     // so make sure you keep it. If the provided pointer is 0, the
@@ -153,14 +159,14 @@ class SID_EXTERN SidTune
     
     // Load a sidtune into an existing object.
     // From a file.
-    bool load(const char* sidTuneFileName, const bool separatorIsSlash = false);
+    bool load(const char* fileName, const bool separatorIsSlash = false);
     
     // From a buffer.
     bool read(const uint_least8_t* sourceBuffer, const uint_least32_t bufferLen);
 
     // Select sub-song (0 = default starting song)
     // and retrieve active song information.
-    const SidTuneInfo& operator[](const uint_least16_t songNum);
+    const TuneInfo& operator[](const uint_least16_t songNum);
 
     // Select sub-song (0 = default starting song)
     // and return active song number out of [1,2,..,SIDTUNE_MAX_SONGS].
@@ -168,11 +174,11 @@ class SID_EXTERN SidTune
     
     // Retrieve sub-song specific information.
     // Beware! Still member-wise copy!
-    const SidTuneInfo& getInfo();
+    const TuneInfo& getInfo();
     
     // Get a copy of sub-song specific information.
     // Beware! Still member-wise copy!
-    void getInfo(SidTuneInfo&);
+    void getInfo(TuneInfo&);
 
     // Determine current state of object (true = okay, false = error).
     // Upon error condition use ``getInfo'' to get a descriptive
@@ -187,7 +193,7 @@ class SID_EXTERN SidTune
     }
     
     // Copy sidtune into C64 memory (64 KB).
-    bool placeSidTuneInC64mem(uint_least8_t* c64buf);
+    bool placeTuneInC64mem(uint_least8_t* c64buf);
 
     // --- file save & format conversion ---
 
@@ -225,7 +231,7 @@ class SID_EXTERN SidTune
     
  protected:  // -------------------------------------------------------------
 
-    SidTuneInfo info;
+    TuneInfo info;
     bool status;
 
     uint_least8_t songSpeed[SIDTUNE_MAX_SONGS];
@@ -272,7 +278,7 @@ class SID_EXTERN SidTune
                                 Buffer_sidtt<const uint_least8_t>& strBufRef);
     virtual void MUS_setPlayerAddress();
     virtual void MUS_installPlayer(uint_least8_t *c64buf);
-    virtual int MUS_decodePetLine(SmartPtr_sidtt<const uint_least8_t>&, char*);
+    virtual int  MUS_decodePetLine(SmartPtr_sidtt<const uint_least8_t>&, char*);
 
     virtual bool INFO_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
                                   const void* infoBuffer, uint_least32_t infoBufLen);
@@ -312,16 +318,21 @@ class SID_EXTERN SidTune
     
     // Cache the data of a single-file or two-file sidtune and its
     // corresponding file names.
-    bool acceptSidTune(const char* dataFileName, const char* infoFileName,
-                       Buffer_sidtt<const uint_least8_t>& buf);
+    bool acceptTune(const char* dataFileName, const char* infoFileName,
+                    Buffer_sidtt<const uint_least8_t>& buf);
 
     bool createNewFileName(Buffer_sidtt<char>& destString,
                            const char* sourceName, const char* sourceExt);
 
  private:    // prevent copying
-    SidTune(const SidTune&);
-    SidTune& operator=(SidTune&);  
-
+    Tune(const Tune&);
+    Tune& operator=(Tune&);
 };
+
+/*
+SIDPLAY2_NAMESPACE_STOP
+typedef SID2::TuneInfo SidTuneInfo;
+typedef SID2::Tune     SidTune;
+*/
 
 #endif  /* SIDTUNE_H */
