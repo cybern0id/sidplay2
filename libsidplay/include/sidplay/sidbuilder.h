@@ -48,6 +48,7 @@ public:
                                    uint_least8_t vol,
                                    bool mute) = 0;
     virtual void          gain    (int_least8_t precent) = 0;
+    virtual void          optimisation (uint_least8_t /*level*/) {;}
     sidbuilder           *builder (void) const { return m_builder; }
 };
 
