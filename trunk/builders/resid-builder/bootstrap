@@ -1,5 +1,5 @@
 #!/bin/sh
-aclocal -I unix
+aclocal --force -I unix
 libtoolize --force --copy
 autoheader --force
 automake --force --add-missing --copy
