@@ -4,7 +4,7 @@
 %define version  2.1.0
 %define frelease 1
 %define release  %{frelease}
-%define resid    0.12
+%define resid    0.13
 %define residbld 1.0.0
 %define builders %{_libdir}/sidplay/builders
 
@@ -28,7 +28,7 @@ developed by Simon White. This library provides no internal
 SID emulation. Instead a means to drive any external SID hardware or
 emulation has been provided using the SID Builder Classes.
 
-A ReSID Builder Class using a modified version of ReSID %{resid}
+An ReSID Builder Class using a modified version of ReSID %{resid}
 is included in this package. Alternative/updated classes can be
 obtained from the SIDPlay2 homepage.
 
@@ -43,7 +43,6 @@ This package includes the header and library files necessary
 for developing applications to use %{name}.
 
 %prep
-rm -rf $RPM_BUILD_ROOT 
 %setup -q -n %{oname}-%{version} -a 1 -a 2
 %patch -p0
 touch resid-%{resid}/*
@@ -52,19 +51,19 @@ touch resid-%{resid}/*
 %configure
 %make
 cd resid-%{resid}
-%configure --disable-shared
+%configure --libdir=%{builders} --disable-shared
 %make
 cd ..
 cd resid-builder-%{residbld}
-%configure --with-resid=$PWD/../resid-%{resid} --libdir=%{_libdir}
+%configure --with-resid=$PWD/../resid-%{resid} --libdir=%{builders} --with-sidplay2=$PWD/..
 %make
 cd ..
 
 %install
+rm -rf $RPM_BUILD_ROOT 
 %makeinstall
 cd resid-builder-%{residbld}
 %makeinstall libdir=$RPM_BUILD_ROOT%{builders}
-cd ..
 
 %clean
 rm -rf $RPM_BUILD_ROOT

@@ -7,5 +7,5 @@ builders=${libdir}/sidplay/builders
 Name: @PACKAGE@
 Description: C64 cycle exact stereo sidplayer library.
 Version: @VERSION@
-Libs: -L${libdir} -lsidplay2
-Cflags: -I${includedir}
+Libs: ${libdir}/libsidplay2.la
+Cflags: -DHAVE_UNIX -I${includedir}
