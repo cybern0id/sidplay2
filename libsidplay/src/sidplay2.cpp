@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/03/04 19:05:49  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.14  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -71,6 +74,7 @@
 
 #include "config.h"
 #include "player.h"
+#include "sidplay2.h"
 
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
