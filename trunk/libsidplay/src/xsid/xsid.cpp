@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2001/09/17 18:36:41  s_a_white
+ *  Changed object construction to prevent multiple resets.
+ *
  *  Revision 1.14  2001/07/14 12:59:53  s_a_white
  *  XSID effeciency increased.  Now uses new component classes and event
  *  generation.
@@ -380,7 +383,8 @@ void channel::silence ()
 
 
 XSID::XSID (EventContext *context)
-:Event("xSID"),
+:sidemu(NULL),
+ Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),
  muted(false),
