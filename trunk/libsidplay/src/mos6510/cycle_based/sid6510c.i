@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/09/01 11:08:06  s_a_white
+ *  Fixes for sidplay1 environment modes.
+ *
  *  Revision 1.10  2001/08/05 15:46:02  s_a_white
  *  No longer need to check on which cycle an instruction ends or when to print
  *  debug information.
@@ -186,7 +189,7 @@ void SID6510::sid_brk (void)
     interrupts.delay = 0;
     if (interrupts.pending)
     {   // Start processing the interrupt
-        if (!interrupts.irqs)
+        if (interrupts.irqs)
         {
             interrupts.irqs--;
             triggerIRQ ();
