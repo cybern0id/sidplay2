@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/03/21 22:26:13  s_a_white
+ *  Fake interrupts now been moved into here from player.cpp.  At anytime it's
+ *  now possible to ditch this compatibility class and use the real thing.
+ *
  *  Revision 1.4  2001/03/09 22:28:03  s_a_white
  *  Speed optimisation update.
  *
@@ -64,33 +68,33 @@ private:
 
 inline void SID6510::clock (void)
 {
-	if (sleeping)
-		return;
+    if (sleeping)
+        return;
 
-	// Call inherited clock
+    // Call inherited clock
     MOS6510::clock ();
 
     if (cycleCount)
-		return;
+        return;
     
-	// Sid tunes end by wrapping the stack.  For compatibilty it
-	// has to be handled.
+    // Sid tunes end by wrapping the stack.  For compatibilty it
+    // has to be handled.
     sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
     sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
 
-	if (!sleeping)
-		return;
+    if (!sleeping)
+        return;
 
     // The CPU is about to sleep.  It can only be woken by a
-	// reset or interrupt.
-	Initialise ();
+    // reset or interrupt.
+    Initialise ();
 
-	// Check for outstanding interrupts
-	if (interrupts.pending)
-	{   // Start processing the interrupt
+    // Check for outstanding interrupts
+    if (interrupts.pending)
+    {   // Start processing the interrupt
         FetchOpcode ();
-		sleeping = false;
-	}
+        sleeping = false;
+    }
 }
 
 #endif // _sid6510c_h_
