@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2002/02/04 22:08:14  s_a_white
+ *  Fixed main voice/sample gains.
+ *
  *  Revision 1.18  2002/01/29 21:50:33  s_a_white
  *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
  *  config.  Initial code added to support more than two sids.
@@ -276,7 +279,8 @@ Player_configure_error:
 // Clock speed changes due to loading a new song
 float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
 {
-    float64_t cpuFreq = SID2_CLOCK_PAL;
+    float64_t cpuFreq  = CLOCK_FREQ_PAL;
+    int       intended = (m_tune->getInfo()).clockSpeed;
 
     // Mirror a real C64
     if (m_tuneInfo.playAddr == 0xffff)
@@ -285,24 +289,44 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
     // Detect the Correct Song Speed
     switch (clock)
     {
+    // Switch system as indicated by the tune but default
+    // PAL if no indication is present
     case SID2_CLOCK_PAL_DEFAULT:
         clock = SID2_CLOCK_PAL;
         m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        if ((m_tune->getInfo()).clockSpeed == SIDTUNE_CLOCK_NTSC)
+        if (intended == SIDTUNE_CLOCK_NTSC)
         {
             clock = SID2_CLOCK_NTSC;
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
         }
         break;
+    // Switch system as indicated by the tune but default
+    // NTSC if no indication present
     case SID2_CLOCK_NTSC_DEFAULT:
         clock = SID2_CLOCK_NTSC;
         m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        if ((m_tune->getInfo()).clockSpeed == SIDTUNE_CLOCK_PAL)
+        if (intended == SIDTUNE_CLOCK_PAL)
         {
             clock = SID2_CLOCK_PAL;
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
         }
         break;
+    // All tunes unless specified are NTSC and require
+    // speed fixing for PAL
+    case SID2_CLOCK_PAL_FIXED:
+        clock = SID2_CLOCK_PAL;
+        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        if (intended & SIDTUNE_CLOCK_PAL)
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+        break;
+    // All tunes unless specified are PAL and require
+    // speed fixing for NTSC
+    case SID2_CLOCK_NTSC_FIXED:
+        clock = SID2_CLOCK_NTSC;
+        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+        if (intended & SIDTUNE_CLOCK_NTSC)
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        break;        
     default:
         // Causes us to set speed to something
         if ((m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_UNKNOWN) ||
@@ -310,14 +334,13 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
         {
             forced = true;
         }
+    }
 
-        if (forced)
-        {
-            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-            if (clock == SID2_CLOCK_NTSC)
-                m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        }
-        break;
+    if (forced)
+    {
+        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+        if (clock == SID2_CLOCK_NTSC)
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
     }
 
     if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)

@@ -29,8 +29,18 @@ typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback
 typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
 typedef enum {SID2_MOS6581_DEFAULT, SID2_MOS8580_DEFAULT,
               SID2_MOS6581, SID2_MOS8580}                          sid2_model_t;
-typedef enum {SID2_CLOCK_PAL_DEFAULT, SID2_CLOCK_NTSC_DEFAULT,
-              SID2_CLOCK_PAL, SID2_CLOCK_NTSC}                     sid2_clock_t;
+typedef enum {// Use PAL system and switch NTSC if indicated by tune
+              SID2_CLOCK_PAL_DEFAULT,
+              // Use NTSC system and switch PAL if indicated by tune
+              SID2_CLOCK_NTSC_DEFAULT,
+              // Always use PAL and speed fix NTSC indicated tunes
+              SID2_CLOCK_PAL,
+              // Always use NTSC and speed fix PAL indicated tunes
+              SID2_CLOCK_NTSC,
+              // Always use PAL and speed fix any non PAL tunes
+              SID2_CLOCK_PAL_FIXED,
+              // Always use NTSC and speed fix any non NTSC tunes
+              SID2_CLOCK_NTSC_FIXED}                               sid2_clock_t;
 
 // For backwards compatibility
 #define SID2_MODEL_CORRECT SID2_MOS6581_DEFAULT
