@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/01/29 21:47:35  s_a_white
+ *  Constant fixed interval delay added to prevent emulation going fast when
+ *  there are no writes to the sid.
+ *
  *  Revision 1.1  2002/01/28 22:35:20  s_a_white
  *  Initial Release.
  *
@@ -104,7 +108,8 @@ public:
 
     // Standard component functions
     const char   *credits (void) {return credit;}
-    void          reset   (void);
+    void          reset   () { sidemu::reset (); }
+    void          reset   (uint8_t volume);
     uint8_t       read    (const uint_least8_t addr);
     void          write   (const uint_least8_t addr, const uint8_t data);
     const char   *error   (void) {return m_errorBuffer;}

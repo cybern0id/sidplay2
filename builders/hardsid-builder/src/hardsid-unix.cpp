@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/30 01:47:47  jpaana
+ *  Read ioctl used wrong parameter type and delay ioctl takes uint, not uint*
+ *
  *  Revision 1.4  2002/01/30 00:43:50  s_a_white
  *  Added realtime delays even when there is no accesses to
  *  the sid.  Prevents excessive CPU usage.
@@ -106,11 +109,11 @@ HardSID::~HardSID()
         close (m_handle);
 }
 
-void HardSID::reset (void)
+void HardSID::reset (uint8_t volume)
 {
     for (uint i= 0; i < voices; i++)
         muted[i] = false;
-    ioctl(m_handle, HSID_IOCTL_RESET, 0x0f);
+    ioctl(m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
     if (m_eventContext != NULL)
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
