@@ -18,6 +18,8 @@
 #ifndef _smm0_h_
 #define _smm0_h_
 
+#include <string.h>
+
 // IFF IDs
 #define BUILD_ID(a, b, c, d) ((uint) a << 24 | \
                               (uint) b << 16 | \
