@@ -44,6 +44,7 @@ const char keyword_id[] = "SIDPLAY INFOFILE";
 const char keyword_name[] = "NAME=";            // No white-space characters 
 const char keyword_author[] = "AUTHOR=";        // in these keywords, because
 const char keyword_copyright[] = "COPYRIGHT=";  // we want to use a white-space
+const char keyword_released[] = "RELEASED=";    // we want to use a white-space
 const char keyword_address[] = "ADDRESS=";      // eating string stream to
 const char keyword_songs[] = "SONGS=";          // parse most of the header.
 const char keyword_speed[] = "SPEED=";
@@ -90,7 +91,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
         bool hasAddress = false,
             hasName = false,
             hasAuthor = false,
-            hasCopyright = false,
+            hasReleased = false,
             hasSongs = false,
             hasSpeed = false;
     
@@ -181,7 +182,14 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
             {
                 SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
                 info.infoString[2] = &infoString[2][0];
-                hasCopyright = true;
+                hasReleased = true;
+            }
+            // RELEASED
+            else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_released ) == 0 )
+            {
+                SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
+                info.infoString[2] = &infoString[2][0];
+                hasReleased = true;
             }
             // SONGS
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_songs ) == 0 )
@@ -256,7 +264,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
         delete[] pParseChunk;
         
         // Again check for the ``required'' values.
-        if ( hasAddress || hasName || hasAuthor || hasCopyright || hasSongs || hasSpeed )
+        if ( hasAddress || hasName || hasAuthor || hasReleased || hasSongs || hasSpeed )
         {
             // Check reserved fields to force real c64 compliance
             if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
@@ -321,7 +329,7 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
         << oldStyleSpeed << std::endl
         << keyword_name << info.infoString[0] << std::endl
         << keyword_author << info.infoString[1] << std::endl
-        << keyword_copyright << info.infoString[2] << std::endl;
+        << keyword_released << info.infoString[2] << std::endl;
     if ( info.musPlayer )
     {
         toFile << keyword_musPlayer << std::endl;
