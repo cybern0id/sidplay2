@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2004/03/01 00:46:12  s_a_white
+ *  Change video/RSID test order as can fail depending on bankswitch value.
+ *
  *  Revision 1.27  2004/02/29 14:50:52  s_a_white
  *  For RSID tunes played at the wrong speed use the compatibility raster instead.
  *
@@ -222,8 +225,7 @@ noplay      lda initiomap
 setbank     sta $01
 
             ; simulate time before user loads tune
-random      tya
-            ldx rndwait
+random      ldx rndwait
             ldy rndwait+1
             inx
             iny
@@ -231,12 +233,9 @@ wait        dex
             bne wait
             dey
             bne wait
-            tay
 
 setregs     lda flags
             pha
-            ldx #0
-            ldy #0
             lda playnum
             plp
             jsr init
