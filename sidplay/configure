@@ -13948,7 +13948,7 @@ echo $ECHO_N "checking for resid builder module... $ECHO_C" >&6
 int
 main ()
 {
-ReSID *sid;
+ReSIDBuilder *sid;
   ;
   return 0;
 }
@@ -14007,7 +14007,7 @@ echo $ECHO_N "checking for hardsid builder module... $ECHO_C" >&6
 int
 main ()
 {
-HardSID *sid;
+HardSIDBuilder *sid;
   ;
   return 0;
 }
