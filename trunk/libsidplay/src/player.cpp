@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.40  2002/03/11 18:01:30  s_a_white
+ *  Prevent lockup if config call fails with existing and old configurations.
+ *
  *  Revision 1.39  2002/03/03 22:01:58  s_a_white
  *  New clock speed & sid model interface.
  *
@@ -276,8 +279,8 @@ int Player::initialise ()
     mileageCorrect ();
     m_mileage += time ();
 
-    envReset ();
-    if (psidDrvInstall () < 0)
+    reset ();
+    if (psidDrvInstall (m_tuneInfo) < 0)
         return -1;
 
     // The Basic ROM sets these values on loading a file.
@@ -295,10 +298,8 @@ int Player::initialise ()
         return -1;
     }
 
-    rtc.reset  ();
-    cpu->reset ();
-    mixerReset ();
-    xsid.suppress (true);
+    rtc.reset ();
+    envReset  (false);
     return 0;
 }
 
@@ -658,7 +659,7 @@ void Player::writeMemByte_sidplay (uint_least16_t addr, uint8_t data)
 
 // --------------------------------------------------
 // These must be available for use:
-void Player::envReset (void)
+void Player::reset (void)
 {
     int i;
 
@@ -695,10 +696,6 @@ void Player::envReset (void)
     memset (m_rom + 0xE000, RTSn, 0x2000);
     if (m_info.environment != sid2_envPS)
         memset (m_rom + 0xA000, RTSn, 0x2000);
-
-    m_ram[0] = 0x2F;
-    // defaults: Basic-ROM on, Kernal-ROM on, I/O on
-    evalBankSelect(0x37);
 
     if (m_info.environment == sid2_envR)
     {   // Install some basic rom functionality
@@ -745,6 +742,37 @@ void Player::envReset (void)
         m_ram[0x02a6] = 1;
     else // SIDTUNE_CLOCK_NTSC
         m_ram[0x02a6] = 0;
+}
+
+// This resets the cpu once the program is loaded to begin
+// running. Also called when the emulation crashes
+void Player::envReset (bool safe)
+{
+    if (safe)
+    {   // Emulation crashed so run in safe mode
+        uint8_t prg[] = {LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn};
+        SidTuneInfo tuneInfo;
+        // Install driver
+        tuneInfo.relocStartPage = 0x09;
+        tuneInfo.relocPages     = 0x20;
+        tuneInfo.initAddr       = 0x0800;
+        tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
+        psidDrvInstall (tuneInfo);
+        // Install prg
+        memcpy (&m_ram[0x0800], prg, sizeof (prg));
+
+        // Make sids silent
+        for (int i = 0; i < SID2_MAX_SIDS; i++)
+            sid[i]->reset (0);
+    }
+
+    m_ram[0] = 0x2F;
+    // defaults: Basic-ROM on, Kernal-ROM on, I/O on
+    evalBankSelect(0x37);
+
+    cpu->reset ();
+    mixerReset ();
+    xsid.suppress (true);
 }
 
 uint8_t Player::envReadMemByte (uint_least16_t addr)
