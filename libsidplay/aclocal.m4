@@ -171,22 +171,22 @@ AC_DEFUN(SID_PATH_LIBRESID,
 
     # Use include path given by user (if any).
     if test "$sid_resid_includes" != NO; then
-        resid_libdirs="$sid_resid_library $sid_resid_library/include"
-        SID_FIND_FILE(sid.h resid/sid.h,$resid_libdirs,resid_foundlibdir)
-        sid_resid_library=$resid_foundlibdir
+        resid_incdirs="$sid_resid_includes $sid_resid_includes/include"
+        SID_FIND_FILE(sid.h,$resid_incdirs,resid_foundincdir)
+        sid_resid_includes=$resid_foundincdir
         sid_resid_incadd="-I$sid_resid_includes"
         sid_resid_install=user
     fi
 
     # Run test compilation.
-    if test "$sid_libresid_install" = user; then
+    if test "$sid_resid_install" = user; then
         SID_TRY_USER_LIBRESID
         if test "$sid_libresid_works" = no; then
             sid_resid_install=local
         fi
     fi
     
-    if test "$sid_libresid_works" != user; then
+    if test "$sid_resid_install" != user; then
         SID_TRY_LIBRESID
     fi
 
@@ -373,12 +373,7 @@ AC_REQUIRE([AC_PROG_LN_S])dnl
 dnl
 
 # Check for any special flags to pass to ltconfig.
-#
-# the following will cause an existing older ltconfig to fail, so
-# we ignore this at the expense of the cache file... Checking this 
-# will just take longer ... bummer!
-#libtool_flags="--cache-file=$cache_file"
-#
+libtool_flags="--cache-file=$cache_file"
 test "$enable_shared" = no && libtool_flags="$libtool_flags --disable-shared"
 test "$enable_static" = no && libtool_flags="$libtool_flags --disable-static"
 test "$enable_fast_install" = no && libtool_flags="$libtool_flags --disable-fast-install"
@@ -420,7 +415,10 @@ case "$host" in
   SAVE_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS -belf"
   AC_CACHE_CHECK([whether the C compiler needs -belf], lt_cv_cc_needs_belf,
-    [AC_TRY_LINK([],[],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])])
+    [AC_LANG_SAVE
+     AC_LANG_C
+     AC_TRY_LINK([],[],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])
+     AC_LANG_RESTORE])
   if test x"$lt_cv_cc_needs_belf" != x"yes"; then
     # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
     CFLAGS="$SAVE_CFLAGS"
