@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2002/09/09 18:09:06  s_a_white
+ *  Added error message for psid specific flag set in strict real C64 mode.
+ *
  *  Revision 1.26  2002/08/10 22:35:56  s_a_white
  *  Small clock speed fix for when both clockSpeed and clockDefault are set
  *  to SID2_CLOCK_CORRECT.
@@ -309,10 +312,6 @@ float64_t Player::clockSpeed (sid2_clock_t userClock, sid2_clock_t defaultClock,
 {
     float64_t cpuFreq = CLOCK_FREQ_PAL;
 
-    // Mirror a real C64
-    if (m_tuneInfo.playAddr == 0xffff)
-        forced = true;
-
     // Detect the Correct Song Speed
     // Determine song speed when unknown
     if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_UNKNOWN)
@@ -393,30 +392,17 @@ float64_t Player::clockSpeed (sid2_clock_t userClock, sid2_clock_t defaultClock,
         else if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
             m_tuneInfo.speedString = TXT_NTSC_VBI_FIXED;
     }
-
-    // Check for real C64 environment
-    if (m_tuneInfo.playAddr == 0xffff)
-    {
-        xsid.mute (true);
-        m_tuneInfo.songSpeed   = SIDTUNE_SPEED_CIA_1A;
-        m_tuneInfo.speedString = TXT_PAL_UNKNOWN;
-        if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
-            m_tuneInfo.speedString = TXT_NTSC_UNKNOWN;;
-    }
     return cpuFreq;
 }
 
 int Player::environment (sid2_env_t env)
 {
-    if (m_tuneInfo.playAddr == 0xffff)
+    switch (m_tuneInfo.compatibility)
+    {
+    case SIDTUNE_COMPATIBILITY_R64:
         env = sid2_envR;
-    if (m_tuneInfo.psidSpecific)
-    {   // Check if tune is invalid in the memory mode
-        if (m_tuneInfo.playAddr == 0xffff)
-        {
-            m_errorString = ERR_PSID_SPECIFIC_FLAG;
-            return -1;
-        }
+        break;
+    case SIDTUNE_COMPATIBILITY_PSID:
         if (env == sid2_envR)
             env  = sid2_envBS;
     }
@@ -569,8 +555,9 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
             }
         }
 
-        if (userModel == SID2_MODEL_CORRECT)
+        switch (userModel)
         {
+        case SID2_MODEL_CORRECT:
             switch (m_tuneInfo.sidModel)
             {
             case SIDTUNE_SIDMODEL_8580:
@@ -580,6 +567,14 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                 userModel = SID2_MOS6581;
                 break;
             }
+            break;
+        // Fixup tune information if model is forced
+        case SID2_MOS6581:
+            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+            break;
+        case SID2_MOS8580:
+            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+            break;
         }
 
         for (int i = 0; i < SID2_MAX_SIDS; i++)
