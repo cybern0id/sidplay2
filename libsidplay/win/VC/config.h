@@ -3,7 +3,7 @@
 #define _config_h_
 
 #define PACKAGE "libsidplay"
-#define VERSION "2.1.0"
+#define VERSION "2.1.0a2"
 
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS */
