@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/03/24 18:09:17  s_a_white
+ *  On entry to interrupt routine the first instruction in the handler is now always
+ *  executed before pending interrupts are re-checked.
+ *
  *  Revision 1.7  2001/03/22 22:40:07  s_a_white
  *  Replaced tabs characters.
  *
@@ -37,7 +41,8 @@
 #include "sid6510c.h"
 
 
-SID6510::SID6510 ()
+SID6510::SID6510 (EventContext *context)
+:MOS6510(context)
 {
     uint i;
     int8_t n;
@@ -132,11 +137,37 @@ void SID6510::sid_suppressError (void)
 //**************************************************************************************
 void SID6510::sid_brk (void)
 {
-    setFlagB(true);
-    setFlagI(true);
+    sei_instr ();
 #if !defined(NO_RTS_UPON_BRK)
     sid_rts ();
 #endif
+
+    // Sid tunes end by wrapping the stack.  For compatibilty it
+    // has to be handled.
+    sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
+    sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+
+    if (!sleeping)
+        return;
+
+    // The CPU is about to sleep.  It can only be woken by a
+    // reset or interrupt.
+    Initialise ();
+
+    // When we return from interrupt we will do a break
+    // which will sleep the CPU.
+    Register_ProgramCounter = Register_StackPointer;
+    Register_Accumulator    = BRKn;
+    pha_instr ();
+
+    // Check for outstanding interrupts
+    cli_instr ();
+    interrupts.delay = 0;
+    if (interrupts.pending)
+    {   // Start processing the interrupt
+        interruptPending ();
+        sleeping = false;
+    }
 }
 
 void SID6510::sid_jmp (void)
