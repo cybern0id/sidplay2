@@ -47,16 +47,16 @@ static const char SIDPLAYER_ERR_NO_TUNE_LOADED[]        = "SIDPLAYER ERROR: No t
 // this sidplayer_pr
 sidplayer_pr::sidplayer_pr (void)
 // Set default settings for system
-:myTune (NULL), tune (NULL),
+:tune (NULL), myTune (NULL),
+ playerState    (_stopped),
  ram    (NULL), rom  (NULL),
- _clockSpeed    (SID_TUNE_CLOCK),
  _environment   (sid_envBS),
- _errorString   (SIDPLAYER_TXT_NA),
- _optimiseLevel (SIDPLAYER_DEFAULT_OPTIMISATION),
- _sampleCount   (0),
  _leftVolume    (255),
  _rightVolume   (255),
- playerState    (_stopped)
+ _optimiseLevel (SIDPLAYER_DEFAULT_OPTIMISATION),
+ _sampleCount   (0),
+ _clockSpeed    (SID_TUNE_CLOCK),
+ _errorString   (SIDPLAYER_TXT_NA)
 {   // Set the ICs to use this environment
     cpu.setEnvironment  (this);
     cia.setEnvironment  (this);
