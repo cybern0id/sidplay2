@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/03/09 22:28:03  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.3  2001/02/13 21:03:33  s_a_white
  *  Changed inlines to non-inlines due to function bodies not being in header.
  *
@@ -96,7 +99,7 @@ protected:
     inline void IRQRequest       (void);
     inline void IRQ1Request      (void);
     inline void IRQ2Request      (void);
-    inline void interruptPending (void);
+    void        interruptPending (void);
 
     // Declare Instrunction Routines
     inline void FetchOpcode          (void);
@@ -220,10 +223,10 @@ public:
     virtual void DumpState (void);
 
     // Non-standard functions
-    void triggerRST (void);
-    void triggerNMI (void);
-    void triggerIRQ (void);
-    void clearIRQ   (void);
+    virtual void triggerRST (void);
+    virtual void triggerNMI (void);
+    virtual void triggerIRQ (void);
+    void         clearIRQ   (void);
 };
 
 
