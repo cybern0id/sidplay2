@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/10/30 23:35:35  s_a_white
+ *  Added pause support.
+ *
  *  Revision 1.3  2001/09/17 19:09:39  s_a_white
  *  Sample enconding support added.
  *
@@ -149,11 +152,8 @@ void *Audio_DirectX::open (AudioConfig &cfg, const char *, HWND hwnd)
     }
     lpDsbPrimary->Release ();
 
-    // Rev 2.0.4 (saw) - Need about a secs worth to work well
-    // Rev 1.5 (saw) - Buffer size reduced to 2 blocks of 250ms
-    bufSize = wfm.nAvgBytesPerSec / 2;
-    if (wfm.nAvgBytesPerSec & 0x3)
-        bufSize++;
+    // Buffer size reduced to 2 blocks of 500ms
+    bufSize = wfm.nSamplesPerSec / 2 * wfm.nBlockAlign;
 
     // Allocate secondary buffers
     memset (&dsbdesc, 0, sizeof(DSBUFFERDESC));
