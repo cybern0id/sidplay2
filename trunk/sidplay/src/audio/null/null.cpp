@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/07/03 17:54:50  s_a_white
+ *  Support for new audio interface for better compatibility.
+ *
  *  Revision 1.2  2001/01/23 21:22:31  s_a_white
  *  Changed to array delete.
  *
@@ -93,7 +96,7 @@ void Audio_Null::close (void)
 {
     if (!isOpen)
         return;
-    delete [] _sampleBuffer;
+    delete [] (uint_least8_t *) _sampleBuffer;
     _sampleBuffer = NULL;
     isOpen = false;
 }
