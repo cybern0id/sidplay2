@@ -63,10 +63,11 @@ const int SIDTUNE_SIDMODEL_ANY     =
     SIDTUNE_SIDMODEL_6581 |
     SIDTUNE_SIDMODEL_8580;              // Compatible on all sid revisions
 
-#ifndef _SidTune_cpp_
 // Required to export template
-extern template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
+#ifndef _SidTune_cpp_
+extern
 #endif
+template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
 
 struct TuneInfo
 {
@@ -102,19 +103,19 @@ struct TuneInfo
 
     // Available after song initialization.
     //
-    uint_least16_t irqAddr;            // if (playAddr == 0), interrupt handler has been
-                                // installed and starts calling the C64 player
-                                // at this address
-    uint_least16_t currentSong;        // the one that has been initialized
-    uint_least8_t songSpeed;        // intended speed, see top
-    uint_least8_t clockSpeed;        // -"-
+    uint_least16_t irqAddr;        // if (playAddr == 0), interrupt handler has been
+                                   // installed and starts calling the C64 player
+                                   // at this address
+    uint_least16_t currentSong;    // the one that has been initialized
+    uint_least8_t songSpeed;       // intended speed, see top
+    uint_least8_t clockSpeed;      // -"-
     uint_least8_t relocStartPage;  // First available page for relocation
     uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
     int  sidModel;                 // Sid Model required for this sid
-    bool samples;                  // PSID specific samples present
-    bool fixLoad;                // whether load address might be duplicate
-    uint_least16_t songLength;        // --- not yet supported ---
+    bool psidSpecific;             // PSID specific samples present
+    bool fixLoad;                  // whether load address might be duplicate
+    uint_least16_t songLength;     // --- not yet supported ---
     //
     // Song title, credits, ...
     // 0 = Title, 1 = Author, 2 = Copyright/Publisher
@@ -126,7 +127,7 @@ struct TuneInfo
     char ** commentString;                // --- not yet supported ---
     //
     uint_least32_t dataFileLen;    // length of single-file sidtune file
-    uint_least32_t c64dataLen;        // length of raw C64 data without load address
+    uint_least32_t c64dataLen;     // length of raw C64 data without load address
     char* path;                    // path to sidtune files; "", if cwd
     char* dataFileName;            // a first file: e.g. "foo.c64"; "", if none
     char* infoFileName;            // a second file: e.g. "foo.sid"; "", if none
