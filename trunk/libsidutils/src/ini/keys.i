@@ -355,6 +355,9 @@ int ini_locateKey (ini_fd_t fd, char *key)
     ini_t *ini = (ini_t *) fd;
     struct key_tag *_key = NULL;
 
+    if (!key)
+        return -1;
+
     if (!ini->selected)
         return -1;
     // Can't search for a key in a temporary heading

@@ -123,14 +123,16 @@ void strtrim (char *str)
 {
     long first, last;
     first = 0;
-    last  = strlen (str) - 1;
+    last  = strlen (str);
+
+    if (!last--)
+        return;
 
     // Clip end first
     while (isspace (str[last]) && last > 0)
         last--;
     str[last + 1] = '\0';
-    if (first < 0)
-        return;
+
     // Clip beginning
     while (isspace (str[first]) && (first < last))
         first++;
@@ -449,12 +451,15 @@ int __ini_process (ini_t *ini, FILE *file)
                             last = pos;
                             if (first > 0)
                             {
-                                if (ini->selected)
-                                {
-				    key = __ini_faddKey (ini, file, first, last - first);
-                                    if (!key)
+			        if (!ini->selected) // Handle keys which are not in a section
+				{                                   
+                                    if (!__ini_faddHeading (ini, file, 0, 0))
                                         goto __ini_processError;
                                 }
+
+ 				key = __ini_faddKey (ini, file, first, last - first);
+                                if (!key)
+                                    goto __ini_processError;
                             }
                         }
 
@@ -477,7 +482,7 @@ int __ini_process (ini_t *ini, FILE *file)
                         if (inSection)
                         {
                             last = pos;
-                            if (first < last)
+                            if (first <= last) // Handle []
                             {
                                 if (!__ini_faddHeading (ini, file, first, last - first))
                                     goto __ini_processError;
@@ -551,11 +556,14 @@ int __ini_store (ini_t *ini, FILE *file)
     while (current_h)
     {
         // Output section heading
-        if (fprintf (file, "[%s]\n", current_h->heading) < 0)
-            goto __ini_storeError;
-        equal_pos = __ini_averageLengthKey (current_h);
+        if (*current_h->heading)
+	{
+            if (fprintf (file, "[%s]\n", current_h->heading) < 0)
+                goto __ini_storeError;
+        }
         
         // Output the sections keys
+        equal_pos = __ini_averageLengthKey (current_h);
         current_k = current_h->first;
         while (current_k)
         {
