@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2001/12/05 22:22:48  s_a_white
+ *  Added playerFast flag.
+ *
  *  Revision 1.23  2001/12/01 20:15:49  s_a_white
  *  Player changed to ConsolePlayer.
  *
@@ -148,7 +151,7 @@ main_restart:
         goto main_error;
     }
 
-    if (player.state() & playerRestart)
+    if ((player.state() & ~playerFast) == playerRestart)
         goto main_restart;
     player.close ();
     return EXIT_SUCCESS;

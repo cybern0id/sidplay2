@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/12/05 22:22:48  s_a_white
+ *  Added playerFast flag.
+ *
  *  Revision 1.4  2001/12/03 20:00:24  s_a_white
  *  sidSamples no longer forced for hardsid.
  *
@@ -326,12 +329,12 @@ bool ConsolePlayer::open (void)
 {
     const SidTuneInfo *tuneInfo;
 
-    if (m_state & playerRestart)
+    if ((m_state & ~playerFast) == playerRestart)
     {
         cerr << endl << endl;
         if (m_state & playerFast)
             m_driver.selected->reset ();
-        m_state == playerStopped;
+        m_state = playerStopped;
     }
     
     // Select the required song
