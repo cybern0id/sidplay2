@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2001/03/08 22:46:42  s_a_white
+ *  playAddr = 0xffff now better supported.
+ *
  *  Revision 1.14  2001/03/01 23:46:37  s_a_white
  *  Support for sample mode to be selected at runtime.
  *
@@ -502,7 +505,7 @@ int player::initialise ()
     /* Install interrupt vectors in both ROM and RAM. */
     memcpy (&ram[0xfffa], psid_driver, 6);
     memcpy (&rom[0xfffa], psid_driver, 6);
-    memcpy (&ram[0x0312], &psid_driver[0x0d], 8);
+    memcpy (&ram[0x0312], &psid_driver[0x0a], 8);
     ram[0x0311] = JMPw;
 
     // Setup the Initial entry point
@@ -515,15 +518,16 @@ int player::initialise ()
     if (playAddr == 0xffff)
         playAddr  = 0;
 
-    // Tell C64 about song
-    endian_little16 (&psidDrv[0x06], tuneInfo.initAddr);
-    endian_little16 (&psidDrv[0x08], playAddr);
-    psidDrv[0x0a] = (uint8_t) tuneInfo.currentSong;
+    // Tell C64 about song, 1st 2 locations reserved for
+	// bank switching.
+    endian_little16 (&psidDrv[0x02], tuneInfo.initAddr);
+    endian_little16 (&psidDrv[0x04], playAddr);
+    psidDrv[0x06] = (uint8_t) tuneInfo.currentSong;
 
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
-        psidDrv[0x0b] = 0;
+        psidDrv[0x07] = 0;
     else // SIDTUNE_SPEED_CIA_1A
-        psidDrv[0x0b] = 1;
+        psidDrv[0x07] = 1;
 
     // Will get done later if can't now
     if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
@@ -742,12 +746,13 @@ uint8_t player::readMemByte_player (uint_least16_t addr, bool useCache)
 }
 
 uint8_t player::readMemByte_plain (uint_least16_t addr, bool useCache)
-{   // Access the Protected PSID Driver
-    if (usePsidDrv && (addr < 0x0100))
-        return psidDrv[addr];
-    // Bank Select Register Value DOES NOT get to ram
+{   // Bank Select Register Value DOES NOT get to ram
     if (addr == 0x0001)
         return _bankReg;
+
+	// Access the Protected PSID Driver
+    if (usePsidDrv && (addr < 0x0100))
+        return psidDrv[addr];
     return ram[addr];
 }
 
