@@ -19,7 +19,6 @@
 #include "SidUsage.h"
 #include "smm0.h"
 
-
 static const char *txt_na        = "SID Usage: N/A";
 static const char *txt_file      = "SID Usage: Unable to open file";
 static const char *txt_corrupt   = "SID Usage: File corrupt";
@@ -223,6 +222,7 @@ bool readSMM0 (FILE *file, const char **errorString,
         load = endian_big16 (smm.info.startAddr);
         last = endian_big16 (smm.info.stopAddr);
         length = (int) (last - load) + 1;
+
         if (length < 0)
         {
             *errorString = txt_corrupt;
@@ -275,23 +275,23 @@ bool writeSMM0 (FILE *file, const char **errorString,
     }
     
     {
-    uint8_t i    = 0;
-    smm0.body.length = 0;
-    {for (int page = 0; page < 0x100; page++)
-    {
-        char used = 0;
-        for (int j = 0; j < 0x100; j++)
-            used |= (usage.memory[(page << 8) | j] & 0x7f);
-           
-        if (used)
+        uint8_t i = 0;
+        smm0.body.length = 0;
+        {for (int page = 0; page < 0x100; page++)
         {
-            smm0.body.length += 0x101;
-            memcpy (smm0.body.usage[i].flags, &usage.memory[page << 8],
-                    0x100);
-            smm0.body.usage[i].page = (uint8_t) page;
-            i++;
-        }
-    }}
+            char used = 0;
+            for (int j = 0; j < 0x100; j++)
+                used |= (usage.memory[(page << 8) | j] & 0x7f);
+           
+            if (used)
+            {
+                smm0.body.length += 0x101;
+                memcpy (smm0.body.usage[i].flags, &usage.memory[page << 8],
+                       0x100);
+                smm0.body.usage[i].page = (uint8_t) page;
+                i++;
+            }
+        }}
     }
 
     uint_least32_t filelength = smm0.header.length + smm0.error.length

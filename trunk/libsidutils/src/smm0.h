@@ -18,8 +18,6 @@
 #ifndef _smm0_h_
 #define _smm0_h_
 
-#include <sidplay/sidendian.h>
-
 // IFF IDs
 #define BUILD_ID(a, b, c, d) ((uint) a << 24 | \
                               (uint) b << 16 | \
@@ -130,4 +128,4 @@ struct Smm_v0
     Body      body;
 };
 
-#endif /* _smm0_h_ */
+#endif // _smm0_h_

@@ -45,8 +45,8 @@ enum
     SID_IRQ         = 1 << 0,  // Play == 0
     SID_IRQ_RTI     = 1 << 1,  // Switch out kernal with no I flag
     SID_IRQ_IFLAG   = 1 << 2,  // Bad I flag
-    SID_IRQ_DISABLE = 1 << 3,
-    SID_IRQ_NOACK   = 1 << 4,
+    SID_IRQ_DISABLE = 1 << 3,  // Permently disables IRQ source
+    SID_IRQ_NOACK   = 1 << 4,  // Dosen't acknowledge IRQ source
     SID_NMI         = 1 << 5,  // Enables NMI IRQs
     SID_EXECUTE_IO  = 1 << 6,  // Execution in IO (under)
     SID_EXECUTE_ROM = 1 << 7,  // Execution in ROM (under)
@@ -66,7 +66,7 @@ typedef struct sid_usage_t
     // The next value may change to 16 bits
     uint_least8_t  memory[0x10000];
     char           md5[33]; // MD5 key
-    uint_least16_t length; // usage scan length
+    uint_least16_t length;  // usage scan length
 } sid_usage_t;
 
-#endif /* _sidusage_h_ */
+#endif // _sidusage_h_
