@@ -26,17 +26,16 @@
    each of the conponents so they can interact with it.
 */
 
-class c64env {
+class c64env
+{
 public:
     EventContext eventContext;
-
-public:
-    c64env (const char * const name)
-        :eventContext(name) {}
+    c64env ()
+        :eventContext ("SID") {}
+    EventContext &context (void) { return eventContext; }
     virtual void interruptIRQ (const bool state) = 0;
     virtual void interruptNMI (void) = 0;
     virtual void interruptRST (void) = 0;
-
     virtual uint8_t readMemRamByte (const uint_least16_t addr) = 0;
 };
 
