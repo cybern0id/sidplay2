@@ -59,7 +59,7 @@ typedef void* ini_fd_t;
 %name (ini_writeString)
     int ini_writeFileFromBuffer (ini_fd_t fd, ini_buffer_t *buffer);
 
-ini_buffer_t *ini_createBuffer        (unsigned long size);
+ini_buffer_t *ini_createBuffer        (unsigned int size);
 void          ini_deleteBuffer        (ini_buffer_t *buffer);
 char         *ini_getBuffer           (ini_buffer_t *buffer);
 int           ini_setBuffer           (ini_buffer_t *buffer, char *str);
@@ -111,14 +111,14 @@ int ini_readFileToBuffer (ini_fd_t fd, ini_buffer_t *buffer)
 {
     if (!buffer)
         return -1;
-    return ini_readString (fd, buffer->buffer, buffer->size + 1);
+    return (int) ini_readString (fd, buffer->buffer, buffer->size + 1);
 }
 
 int ini_writeFileFromBuffer (ini_fd_t fd, ini_buffer_t *buffer)
 {
     if (!buffer)
         return -1;
-    return ini_writeString (fd, buffer->buffer);
+    return (int) ini_writeString (fd, buffer->buffer);
 }
 
 char *ini_getBuffer (ini_buffer_t *buffer)
@@ -139,7 +139,7 @@ int ini_setBuffer (ini_buffer_t *buffer, char *str)
 
     memcpy (buffer->buffer, str, len);
     buffer->buffer[len] = '\0';
-    return len;
+    return (int) len;
 }
 
 %}
@@ -159,20 +159,23 @@ INI_EXTERN int ini_locateKey     (ini_fd_t fd, char *key);
 INI_EXTERN int ini_locateHeading (ini_fd_t fd, char *heading);
 INI_EXTERN int ini_deleteKey     (ini_fd_t fd);
 INI_EXTERN int ini_deleteHeading (ini_fd_t fd);
+/* Rev 1.7 List of heading and key names returned */
+INI_EXTERN size_t ini_keyNames     (ini_fd_t fd, char *str, size_t size);
+INI_EXTERN size_t ini_headingNames (ini_fd_t fd, char *str, size_t size);
 
 /* Returns the number of bytes required to be able to read the key as a
  * string from the file. (1 should be added to this length to account
  * for a NULL character) */
-INI_EXTERN int ini_dataLength (ini_fd_t fd);
+INI_EXTERN size_t ini_dataLength (ini_fd_t fd);
 
 /* Default Data Type Operations
  * Arrays implemented to help with reading, for writing you should format the
  * complete array as a string and perform an ini_writeString. */
 #ifndef SWIG
-INI_EXTERN int ini_readString  (ini_fd_t fd, char *str, size_t size);
-INI_EXTERN int ini_writeString (ini_fd_t fd, char *str);
+INI_EXTERN size_t ini_readString  (ini_fd_t fd, char *str, size_t size);
+INI_EXTERN int    ini_writeString (ini_fd_t fd, char *str);
 #endif /* SWIG */
-INI_EXTERN int ini_readInt     (ini_fd_t fd, int  *value);
+INI_EXTERN int    ini_readInt     (ini_fd_t fd, int  *value);
 
 
 #ifdef INI_ADD_EXTRA_TYPES
@@ -195,14 +198,14 @@ INI_EXTERN int ini_readInt     (ini_fd_t fd, int  *value);
      * back to NULL.
      */
 
-    /* Returns the number of elements in an list being seperated by the provided delimiters */
-    INI_EXTERN int ini_listLength      (ini_fd_t fd);
     /* Change delimiters, default "" */
-    INI_EXTERN int ini_listDelims      (ini_fd_t fd, char *delims);
+    INI_EXTERN int    ini_listDelims      (ini_fd_t fd, char *delims);
     /* Set index to access in a list.  When read the index will automatically increment */
-    INI_EXTERN int ini_listIndex       (ini_fd_t fd, unsigned long index);
+    INI_EXTERN int    ini_listIndex       (ini_fd_t fd, unsigned int index);
+    /* Returns the number of elements in an list being seperated by the provided delimiters */
+    INI_EXTERN size_t ini_listLength      (ini_fd_t fd);
     /* Returns the length of an indexed sub string in the list */
-    INI_EXTERN int ini_listIndexLength (ini_fd_t fd);
+    INI_EXTERN size_t ini_listIndexLength (ini_fd_t fd);
 #endif // INI_ADD_LIST_SUPPORT
 
 #ifdef __cplusplus

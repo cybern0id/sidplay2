@@ -20,34 +20,34 @@
 
 typedef struct
 {
-	sid_fc_t       fc[0x800];
-	uint_least16_t points;
+    sid_fc_t       fc[0x800];
+    uint_least16_t points;
 } sid_filter_t;
 
-class SID_EXPORT SidFilter
+class SID_EXTERN SidFilter
 {
 protected:
     bool  status;
-	char *errorString;
-	sid_filter_t filter;
+    char *errorString;
+    sid_filter_t filter;
 
 protected:
     void readFilterType1 (ini_fd_t ini);
     void readFilterType2 (ini_fd_t ini);
-	void clear ();
+    void clear ();
 
 public:
-	SidFilter ();
-	~SidFilter ();
+    SidFilter ();
+    ~SidFilter ();
 
-	void  read (char *filename);
+    void  read (char *filename);
     void  read (ini_fd_t ini, char *heading);
-	const sid_filter_t* definition ()
-	{
+    const sid_filter_t* definition ()
+    {
         if (!status)
-			return NULL;
-		return &filter;
-	}
+            return NULL;
+        return &filter;
+    }
 
     operator bool () { return status; }
 

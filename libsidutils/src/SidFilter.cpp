@@ -20,11 +20,6 @@
 #include <stdlib.h>
 
 #include "config.h"
-#if defined(HAVE_MSWINDOWS) || defined(DLL_EXPORT)
-// Support for DLLs
-#   define SID_EXPORT __declspec(dllexport)
-#endif
-
 #include "SidFilter.h"
 
 
@@ -36,20 +31,29 @@ SidFilter::SidFilter ()
 
 SidFilter::~SidFilter ()
 {
-	clear ();
+    clear ();
 }
 
 void SidFilter::clear ()
 {
-	filter.points = 0;
-	status        = false;
-	errorString   = "SID Filter: No filter loaded";
+    filter.points = 0;
+    status        = false;
+    errorString   = "SID Filter: No filter loaded";
 }
 
 void SidFilter::read (char *filename)
 {
     ini_fd_t ini = ini_open (filename);
-	read (ini, "Filter");
+
+    // Illegal ini fd
+    if (!ini)
+    {
+        status      = false;
+        errorString = "SID Filter: Unable to open filter file";
+        return;
+    }
+
+    read (ini, "Filter");
     ini_close (ini);
 }
 
@@ -57,61 +61,53 @@ void SidFilter::read (ini_fd_t ini, char *heading)
 {
     int type = 1;
 
-	clear ();
-	status = true;
+    clear ();
+    status = true;
 
-    // Illegal ini fd
-    if (!ini)
-	{
-		status      = false;
-		errorString = "SID Filter: Unable to open input file";
+    if (ini_locateHeading (ini, heading) < 0)
+    {
+        status = false;
+        errorString = "SID Filter: Unable to locate filter section in input file";
         return;
-	}
-
-	if (ini_locateHeading (ini, heading) < 0)
-	{
-		status = false;
-		errorString = "SID Filter: Unable to locate filter section in input file";
-		return;
-	}
+    }
 
     (void) ini_locateKey (ini, "type");
-	(void) ini_readInt   (ini, &type);
+    (void) ini_readInt   (ini, &type);
     switch (type)
     {
     case 1:
-		readFilterType1 (ini);
-	break;
+        readFilterType1 (ini);
+    break;
 
     case 2:
-		readFilterType2 (ini);
-	break;
+        readFilterType2 (ini);
+    break;
 
     default:
-		status = false;
-		errorString = "SID Filter: Invalid filter type";
+        status = false;
+        errorString = "SID Filter: Invalid filter type";
     break;
     }
 }
 
 void SidFilter::readFilterType1 (ini_fd_t ini)
 {
-	int points;
+    int points;
 
     // Does Section exist in ini file
-	if (ini_locateKey (ini, "points") < 0)
-	    goto SidFilter_readFilterType1_errorDefinition;
+    if (ini_locateKey (ini, "points") < 0)
+        goto SidFilter_readFilterType1_errorDefinition;
     if (ini_readInt (ini, &points) < 0)
         goto SidFilter_readFilterType1_errorDefinition;
 
     // Make sure there are enough filter points
     if ((points < 2) || (points > 0x800))
         goto SidFilter_readFilterType1_errorDefinition;
-	filter.points = (uint_least16_t) points;
+    filter.points = (uint_least16_t) points;
 
     // Set the ini reader up for array access
     if (ini_listDelims (ini, ",") < 0)
-		goto SidFilter_readFilterType1_errorMemory;
+        goto SidFilter_readFilterType1_errorMemory;
 
     {
         char key[12];
@@ -133,14 +129,14 @@ void SidFilter::readFilterType1 (ini_fd_t ini)
 return;
 
 SidFilter_readFilterType1_errorDefinition:
-	clear ();
-	errorString = "SID Filter: Invalid Type 1 filter definition";
-	status = false;
+    clear ();
+    errorString = "SID Filter: Invalid Type 1 filter definition";
+    status = false;
 return;
 
 SidFilter_readFilterType1_errorMemory:
-	errorString = "SID Filter: Out of memory";
-	status = false;
+    errorString = "SID Filter: Out of memory";
+    status = false;
 }
 
 void SidFilter::readFilterType2 (ini_fd_t ini)
@@ -159,29 +155,30 @@ void SidFilter::readFilterType2 (ini_fd_t ini)
         goto SidFilter_readFilterType2_errorDefinition;
     
     // Definition from reSID
-	filter.points = 0x800;
+    filter.points = 0x100;
 
-	{
-		double fcMax = 1.0;
-		double fcMin = 0.01;
-		double fc;
+    {
+        double fcMax = 1.0;
+        double fcMin = 0.01;
+        double fc;
     
-		// Create filter
-		for (uint rk = 0; rk < 0x800; rk++)
-		{
-			filter.fc[rk][0] = rk;
-			fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
-			if (fc < fcMin)
-				fc = fcMin;
-			if (fc > fcMax)
-				fc = fcMax;
-			filter.fc[rk][1] = (uint) (fc * 4000);
-		}
-	}
+        // Create filter
+        for (uint i = 0; i < 0x100; i++)
+        {
+            uint rk = i << 3;
+            filter.fc[i][0] = rk;
+            fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
+            if (fc < fcMin)
+                fc = fcMin;
+            if (fc > fcMax)
+                fc = fcMax;
+            filter.fc[i][1] = (uint) (fc * 7000);
+        }
+    }
 return;
 
 SidFilter_readFilterType2_errorDefinition:
-	clear ();
-	errorString = "SID Filter: Invalid Type 2 filter definition";
-	status = false;
+    clear ();
+    errorString = "SID Filter: Invalid Type 2 filter definition";
+    status = false;
 }
