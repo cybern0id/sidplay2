@@ -464,7 +464,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE LIBVERSION build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S ECHO RANLIB ac_ct_RANLIB CPP EGREP LIBTOOL SID_HAVE_STDBOOL_H SID_WORDS_ENDIANESS SID_SIZEOF_CHAR SID_SIZEOF_SHORT_INT SID_SIZEOF_INT SID_SIZEOF_LONG_INT SID_HAVE_BOOL ACLOCAL_AMFLAGS LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE LIBVERSION build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LN_S ECHO RANLIB ac_ct_RANLIB CPP EGREP LIBTOOL SID_HAVE_STDBOOL_H SID_WORDS_ENDIANESS SID_SIZEOF_CHAR SID_SIZEOF_SHORT_INT SID_SIZEOF_INT SID_SIZEOF_LONG_INT SID_HAVE_BOOL builders ACLOCAL_AMFLAGS LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1024,6 +1024,8 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
   --with-pic              try to use only PIC/non-PIC objects default=use both
+  --with-sidbuilders=DIR
+        where the sid builder libraries are to be installed
 
 Some influential environment variables:
   CC          C compiler command
@@ -4686,7 +4688,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 4689 "configure"' > conftest.$ac_ext
+  echo '#line 4691 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -5204,7 +5206,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:5207: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:5209: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -6949,7 +6951,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 6952 "configure"
+#line 6954 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -7047,7 +7049,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 7050 "configure"
+#line 7052 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11198,6 +11200,16 @@ _ACEOF
     fi
 
 
+builders=${libdir}/sidplay/builders
+
+# Check whether --with-sidbuilders or --without-sidbuilders was given.
+if test "${with_sidbuilders+set}" = set; then
+  withval="$with_sidbuilders"
+  builders="$withval"
+
+fi;
+
+
 CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay"
 ACLOCAL_AMFLAGS="-I unix"
@@ -11901,6 +11913,7 @@ s,@SID_SIZEOF_SHORT_INT@,$SID_SIZEOF_SHORT_INT,;t t
 s,@SID_SIZEOF_INT@,$SID_SIZEOF_INT,;t t
 s,@SID_SIZEOF_LONG_INT@,$SID_SIZEOF_LONG_INT,;t t
 s,@SID_HAVE_BOOL@,$SID_HAVE_BOOL,;t t
+s,@builders@,$builders,;t t
 s,@ACLOCAL_AMFLAGS@,$ACLOCAL_AMFLAGS,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t

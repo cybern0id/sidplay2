@@ -4819,7 +4819,7 @@ dnl Remember, if the system already had a valid <stdint.h>, the generated
 dnl file will include it directly. No need for fuzzy HAVE_STDINT_H things...
 dnl
 dnl (this file is part of the http://ac-archive.sf.net/gstdint project)
-dnl @version $Id: aclocal.m4,v 1.24 2002-11-04 20:59:41 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.25 2002-11-04 22:24:15 s_a_white Exp $
 dnl @author  Guido Draheim <guidod@gmx.de>       STATUS: used on new platforms
 
 AC_DEFUN([AC_CREATE_STDINT_H],
@@ -5338,7 +5338,7 @@ dnl      AC_COMPILE_CHECK_SIZEOF(ptrdiff_t, $headers)
 dnl      AC_COMPILE_CHECK_SIZEOF(off_t, $headers)
 dnl
 dnl @author Kaveh Ghazi <ghazi@caip.rutgers.edu>
-dnl @version $Id: aclocal.m4,v 1.24 2002-11-04 20:59:41 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.25 2002-11-04 22:24:15 s_a_white Exp $
 dnl
 AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 [changequote(<<, >>)dnl

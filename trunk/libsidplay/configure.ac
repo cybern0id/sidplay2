@@ -79,6 +79,14 @@ dnl Check ANSI C++ ios features
 MY_CHECK_IOS_BIN
 MY_CHECK_IOS_OPENMODE
 
+builders=${libdir}/sidplay/builders
+AC_ARG_WITH(sidbuilders,
+    [  --with-sidbuilders=DIR
+        where the sid builder libraries are to be installed],
+    [builders="$withval"]
+)
+AC_SUBST(builders)
+
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay"
