@@ -12,5 +12,3 @@ sidplay2_LDADD = ./audio/null/libnull.a ./audio/wav/libwav.a \
 $(AUDIO_DRV) $(AUDIO_LDADD) \
 $(LIBSIDPLAY2_LDADD) -lsidplay2 \
 $(LIBSIDUTILS_LDADD) -lsidutils
-
-INCLUDES = $(LIBSIDPLAY2_INCLUDES) $(LIBSIDUTILS_INCLUDES)

@@ -35,9 +35,6 @@
 /* Define if you have the <audio.h> header file.  */
 #undef HAVE_AUDIO_H
 
-/* Define if you have the <dlfcn.h> header file.  */
-#undef HAVE_DLFCN_H
-
 /* Define if you have the <dmedia/audio.h> header file.  */
 #undef HAVE_DMEDIA_AUDIO_H
 
