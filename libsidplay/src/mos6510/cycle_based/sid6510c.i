@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/03/09 22:28:03  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.4  2001/02/13 21:02:16  s_a_white
  *  Small tidy up and possibly a small performace increase.
  *
@@ -93,7 +96,7 @@ void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
 
 void SID6510::reset ()
 {
-    status = true;
+    sleeping = false;
     // Call inherited reset
     MOS6510::reset ();
 }
@@ -144,4 +147,38 @@ void SID6510::sid_rts (void)
     PopLowPC();
     PopHighPC();
     rts_instr();
+}
+
+
+//**************************************************************************************
+// Sidplay compatibility interrupts.  Basically wakes CPU if it is sleeping
+//**************************************************************************************
+void SID6510::triggerRST (void)
+{
+    MOS6510::triggerRST ();
+	if (sleeping)
+	{
+        FetchOpcode ();
+        sleeping = false;
+	}
+}
+
+void SID6510::triggerNMI (void)
+{
+    MOS6510::triggerNMI ();
+	if (sleeping)
+    {
+        FetchOpcode ();
+        sleeping = false;
+	}
+}
+
+void SID6510::triggerIRQ (void)
+{
+    MOS6510::triggerIRQ ();
+	if (sleeping)
+	{
+        FetchOpcode ();
+        sleeping = false;
+	}
 }
