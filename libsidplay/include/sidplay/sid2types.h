@@ -24,6 +24,22 @@
 class   sidbuilder;
 struct  SidTuneInfo;
 
+#ifndef SIDPLAY2_DEFAULTS
+#define SIDPLAY2_DEFAULTS
+    // Maximum values
+    const uint_least8_t  SID2_MAX_PRECISION      = 16;
+    const uint_least8_t  SID2_MAX_OPTIMISATION   = 2;
+    // Delays <= MAX produce constant results.
+    // Delays >  MAX produce random results
+    const uint_least16_t SID2_MAX_POWER_ON_DELAY = 0x1FFF;
+    // Default settings
+    const uint_least32_t SID2_DEFAULT_SAMPLING_FREQ  = 44100;
+    const uint_least8_t  SID2_DEFAULT_PRECISION      = 16;
+    const uint_least8_t  SID2_DEFAULT_OPTIMISATION   = 0;
+    const bool           SID2_DEFAULT_SID_SAMPLES    = true; // Samples through sid
+    const uint_least16_t SID2_DEFAULT_POWER_ON_DELAY = SID2_MAX_POWER_ON_DELAY + 1;
+#endif // SIDPLAY2_DEFAULTS
+
 typedef enum {sid2_playing = 0, sid2_paused, sid2_stopped}         sid2_player_t;
 typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback_t;
 typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR,
@@ -64,6 +80,7 @@ struct sid2_config_t
     uint_least32_t      leftVolume;
     uint_least32_t      rightVolume;
     sid2_sample_t       sampleFormat;
+    uint_least16_t      powerOnDelay;
 };
 
 struct sid2_info_t
@@ -80,8 +97,8 @@ struct sid2_info_t
     EventContext      *eventContext;
     uint               maxsids;
     sid2_env_t         environment;
-    // Random delay used before starting the sid
-    uint_least16_t     rnddelay;
+    uint_least16_t     powerOnDelay;
+    uint_least32_t     sid2crc;
 };
 
 #endif // _sid2types_h_
