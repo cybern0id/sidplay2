@@ -33,34 +33,44 @@ c64sid::c64sid (c64env *env)
     reset ();
 }
 
-bool c64sid::filter (const sid_fc_t * const cutoffs, const uint_least16_t points)
+bool c64sid::filter (const sid_filter_t *filter)
 {
-    fc_point fc[0x800];
- 
-    // Make sure there are enough filter points and they are legal
-    if ((points < 2) || (points > 0x800))
-        return false;
+    fc_point  f0[0x800];
+    fc_point *fc = f0;
+    int       points;
 
+    if (filter == NULL)
+    {   // Select default filter
+        m_sid.fc_default (fc, points);
+    }
+    else
     {
-        const sid_fc_t *val, *valp, vals = {-1, 0};
-        // Last check, make sure they are list in numerical order
-        // for both axis
-        val = &vals; // (start)
-        for (int i = 0; i < points; i++)
+        const sid_fc_t * const cutoff = filter->cutoff;
+        points = filter->points;
+ 
+        // Make sure there are enough filter points and they are legal
+        if ((points < 2) || (points > 0x800))
+            return false;
+
         {
-            valp = val;
-            val  = &cutoffs[i];
-            if ((*valp)[0] >  (*val)[0])
-                return 0;
-            fc[i][0] = (sound_sample) (*val)[0];
-            fc[i][1] = (sound_sample) (*val)[1];
+            const sid_fc_t *val, *valp, vals = {-1, 0};
+            // Last check, make sure they are list in numerical order
+            // for both axis
+            val = &vals; // (start)
+            for (int i = 0; i < points; i++)
+            {
+                valp = val;
+                val  = &cutoff[i];
+                if ((*valp)[0] >  (*val)[0])
+                    return 0;
+                fc[i][0] = (sound_sample) (*val)[0];
+                fc[i][1] = (sound_sample) (*val)[1];
+            }
         }
     }
 
-    {   // function from reSID
-        uint_least16_t p = points - 1;
-        interpolate (fc, fc, fc + p, fc + p, m_sid.fc_plotter (), 1.0);
-    }
-
+    // function from reSID
+    points--;
+    interpolate (fc, fc, fc + points, fc + points, m_sid.fc_plotter (), 1.0);
     return true;
 }

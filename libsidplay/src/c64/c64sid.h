@@ -105,7 +105,7 @@ public:
     // ReSID specific options
     void exfilter (const double cutoff)
     {m_sid.enable_external_filter (true, cutoff);}
-    bool filter   (const sid_fc_t * const cutoffs, const uint_least16_t points);
+    bool filter   (const sid_filter_t *filter);
 };
 
 #endif // _c64sid_h_
