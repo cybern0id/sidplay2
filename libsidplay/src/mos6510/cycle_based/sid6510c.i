@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2002/03/12 18:47:13  s_a_white
+ *  Made IRQ in sidplay1 compatibility modes behaves like JSR.  This fixes tunes
+ *  that have kernel switched out.
+ *
  *  Revision 1.18  2002/02/07 18:02:10  s_a_white
  *  Real C64 compatibility fixes. Debug of BRK works again. Fixed illegal
  *  instructions to work like sidplay1.
@@ -85,25 +89,20 @@ SID6510::SID6510 (EventContext *context)
     // itself.
     for (uint i = 0; i < OPCODE_MAX; i++)
     {
-        procCycle = instrTable[i].cycle;
-        if (procCycle == NULL) continue;
-
+        void (SID6510::**cycle) (void) = reinterpret_cast<void (SID6510::**)()>
+                                         (instrTable[i].cycle);
+        if  (cycle == NULL) continue;
         for (uint n = 0; n < instrTable[i].cycles; n++)
         {
-            if (procCycle[n] == &MOS6510::illegal_instr)
-            {   // Rev 1.2 (saw) - Changed nasty union to reinterpret_cast
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_illegal);
-            }
-            else if (procCycle[n] == &MOS6510::jmp_instr)
+            if (cycle[n] == &SID6510::illegal_instr)
+                cycle[n] =  &SID6510::sid_illegal;
+            else if (cycle[n] == &SID6510::jmp_instr)
             {   // Stop jumps into rom code
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_jmp);
+                cycle[n] = &SID6510::sid_jmp;
             }
-            else if (procCycle[n] == &MOS6510::cli_instr)
+            else if (cycle[n] == &SID6510::cli_instr)
             {   // No overlapping IRQs allowed
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_cli);
+                cycle[n] = &SID6510::sid_cli;
             }
         }
     }
@@ -111,37 +110,39 @@ SID6510::SID6510 (EventContext *context)
     {   // Since no real IRQs, all RTIs mapped to RTS
         // Required for fix bad tunes in old modes
         uint n;
-        procCycle = instrTable[RTIn].cycle;
+        void (SID6510::**cycle) (void);
+        cycle  = reinterpret_cast<void (SID6510::**)()>
+                 (instrTable[RTIn].cycle);
         for (n = 0; n < instrTable[RTIn].cycles; n++)
         {
-            if (procCycle[n] == &MOS6510::PopSR)
+            if (cycle[n] == &SID6510::PopSR)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_rti);
+                cycle[n] =  &SID6510::sid_rti;
                 break;
             }
         }
 
-        procCycle = interruptTable[oIRQ].cycle;
+        cycle  = reinterpret_cast<void (SID6510::**)()>
+                 (interruptTable[oIRQ].cycle);
         for (n = 0; n < interruptTable[oIRQ].cycles; n++)
         {
-            if (procCycle[n] == &MOS6510::IRQRequest)
+            if (cycle[n] == &SID6510::IRQRequest)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_irq);
+                cycle[n] =  &SID6510::sid_irq;
                 break;
             }
         }
     }
 
     {   // Support of sidplays BRK functionality
-        procCycle = instrTable[BRKn].cycle;
+        void (SID6510::**cycle) (void);
+        cycle = reinterpret_cast<void (SID6510::**)()>
+                (instrTable[BRKn].cycle);
         for (uint n = 0; n < instrTable[BRKn].cycles; n++)
         {
-            if (procCycle[n] == &MOS6510::PushHighPC)
+            if (cycle[n] == &SID6510::PushHighPC)
             {
-                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
-                    (&SID6510::sid_brk);
+                cycle[n] =  &SID6510::sid_brk;
                 break;
             }
         }
