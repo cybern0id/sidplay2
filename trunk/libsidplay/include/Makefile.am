@@ -1,6 +1,2 @@
-
-sidplayincludedir = $(includedir)/sidplay
-
-sidplayinclude_HEADERS = sidendian.h sidplay2.h sidtypes.h
-
+SUBDIRS = sidplay
 EXTRA_DIST = sidenv.h
