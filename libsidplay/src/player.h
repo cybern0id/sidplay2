@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2000/12/12 19:15:40  s_a_white
+ *  Renamed from sidplayer
+ *
  ***************************************************************************/
 
 #ifndef _player_h_
@@ -25,8 +28,8 @@
 
 #ifdef HAVE_MSWINDOWS
 // This is the only place this should be defined!
-#   undef  SID2_LIB_API
-#   define SID2_LIB_API __declspec(dllexport)
+#   undef  SID_API
+#   define SID_API __declspec(dllexport)
 #endif
 
 #include "sidplay2.h"
