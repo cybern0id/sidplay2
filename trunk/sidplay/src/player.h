@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/06/27 21:09:37  s_a_white
+ *  Constified some of the interfaces.
+ *
  *  Revision 1.7  2003/02/20 18:50:45  s_a_white
  *  sid2crc support.
  *
@@ -56,7 +59,12 @@
 #include "IniConfig.h"
 
 #ifdef HAVE_TSID
+#   if HAVE_TSID > 1
+#   include <tsid2/tsid2.h>
+#   define TSID TSID2
+#   else
 #   include <tsid/tsid.h>
+#   endif
 #endif
 
 typedef enum {black, red, green, yellow, blue, magenta, cyan, white}
@@ -127,7 +135,7 @@ private:
     // Display parameters
     uint_least8_t      m_quietLevel;
     uint_least8_t      m_verboseLevel;
-    bool               m_crc;
+    uint_least32_t     m_crc;
 
     struct m_filter_t
     {

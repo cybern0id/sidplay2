@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/10/28 00:26:00  s_a_white
+ *  Display power on cycles count for a loaded song.
+ *
  *  Revision 1.10  2003/09/14 13:47:41  s_a_white
  *  Show whether the environment was forcefully changed from the default
  *  or user requested.
@@ -149,7 +152,7 @@ void ConsolePlayer::menu ()
         consoleColour (white, true);
         cerr << tuneInfo.statusString << endl;
 
-#ifdef HAVE_TSID
+#if HAVE_TSID == 1
         if (!m_tsid)
         {
             consoleTable  (tableMiddle);

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2003/12/15 23:34:49  s_a_white
+ *  Timebase for timers now obtainable from engine.
+ *
  *  Revision 1.27  2003/10/18 12:45:12  s_a_white
  *  no message
  *
@@ -132,7 +135,7 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_context(NULL),
  m_quietLevel(0),
  m_verboseLevel(0),
- m_crc(false)
+ m_crc(0)
 {   // Other defaults
     m_filename       = "";
     m_filter.enabled = true;
@@ -567,7 +570,6 @@ bool ConsolePlayer::play ()
             decodeKeys ();
         return true;
     default:
-        m_engine.stop ();
         if (m_quietLevel < 2)
             cerr << endl;
         if (m_crc)
@@ -578,11 +580,25 @@ bool ConsolePlayer::play ()
                  << m_filename << " - song " << tuneInfo->currentSong
                  << "/" << tuneInfo->songs << endl;
         }
-#ifdef HAVE_TSID
+        m_engine.stop ();
+#if HAVE_TSID == 1
         if (m_tsid)
         {
-            m_tsid.addTime((int) (m_engine.time() / m_engine.timebase()),
-                           m_track.selected, m_filename);
+            m_tsid.addTime ((int) m_timer.current, m_track.selected,
+                            m_filename);
+        }
+#elif HAVE_TSID == 2
+        if (m_tsid)
+        {
+            int_least32_t length;
+            char md5[SIDTUNE_MD5_LENGTH + 1];
+            m_tune.createMD5 (md5);
+            length = m_database.length (md5, m_track.selected);
+            // ignore errors
+            if (length < 0)
+                length = 0;
+            m_tsid.addTime (md5, m_filename, (uint) m_timer.current,
+                            m_track.selected, (uint) length);
         }
 #endif
         break;
@@ -611,6 +627,12 @@ void ConsolePlayer::event (void)
 
     if (seconds != m_timer.current)
     {
+        m_timer.current = seconds;
+
+        // Handle exiting on crc completion
+        if (m_crc && (m_crc == (m_engine.info ()).sid2crcCount))
+            m_timer.stop = seconds;
+
         if (seconds == m_timer.start)
         {   // Switch audio drivers.
             m_driver.selected = m_driver.device;
@@ -625,20 +647,19 @@ void ConsolePlayer::event (void)
             for (;;)
             {
                 if (m_track.single)
-                    break;
+                    return;
                 // Move to next track
                 m_track.selected++;
                 if (m_track.selected > m_track.songs)
                     m_track.selected = 1;
                 if (m_track.selected == m_track.first)
-                    break;
+                    return;
                 m_state = playerRestart;
                 break;
             }
             if (m_track.loop)
                 m_state = playerRestart;
-        }
-        m_timer.current = seconds;
+        }            
     }
     
     // Units in C64 clock cycles
