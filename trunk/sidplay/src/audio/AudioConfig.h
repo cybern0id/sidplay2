@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/01/10 18:58:17  s_a_white
+ *  Interface changes for 2.0.8.
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -31,10 +34,11 @@
 //typedef SID2::uint uint;
 #define FOREVER SID_FOREVER
 #define SWAP    SID_SWAP
+/*
 #ifdef SIDPLAY2_NAMESPACE
     using namespace SIDPLAY2_NAMESPACE;
 #endif
-
+*/
 // Configuration constants.
 enum
 {
