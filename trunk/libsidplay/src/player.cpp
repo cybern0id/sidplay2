@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.45  2002/09/12 21:01:30  s_a_white
+ *  Added support for simulating the random delay before the user loads a
+ *  program on a real C64.
+ *
  *  Revision 1.44  2002/09/09 18:01:30  s_a_white
  *  Prevent m_info driver details getting modified when C64 crashes.
  *
@@ -731,10 +735,6 @@ void Player::reset (void)
         m_rom[0xea32] = 0x7e;
         m_rom[0xea33] = 0xea;
 
-        m_rom[0xea7e] = NOPn;
-        m_rom[0xea7f] = NOPn;
-        m_rom[0xea80] = NOPn;
-
         // NMI entry
         m_rom[0xFE43] = SEIn;
         m_rom[0xFE44] = JMPi;
@@ -756,7 +756,7 @@ void Player::reset (void)
         {   // IRQ clean up code
             uint8_t prg[] = {LDAa, 0x0d, 0xdc, PLAn, TAYn, PLAn,
                              TAXn, PLAn, RTIn};
-            memcpy (&m_rom[0xea81], prg, sizeof (prg));
+            memcpy (&m_rom[0xea7e], prg, sizeof (prg));
         }
     }
     else // !sid2_envR
