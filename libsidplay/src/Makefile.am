@@ -7,7 +7,13 @@ SUBDIRS = mos6510 xsid sidtune audio mos6581 docs
 
 EXTRA_DIST = main.cpp fake6526.cpp fake6526.h sidplayer.cpp sidplayer.h sidmixer.cpp sidplayer_pr.h 
 
+install-data-local:
+	$(mkinstalldirs) /usr/local/include/sidplay2/
+	$(INSTALL_DATA) sidplayer.h /usr/local/include/sidplay2/sidplayer.h
+
+uninstall-local:
+	-rm -f /usr/local/include/sidplay2/sidplayer.h
+
 ####### kdevelop will overwrite this part!!! (end)############
 
 INCLUDES = $(RESID_INCLUDES)
-

@@ -73,7 +73,7 @@ VERSION = @VERSION@
 
 SUBDIRS = src include 
 
-EXTRA_DIST = libsidplay.kdevprj AUTHORS COPYING ChangeLog INSTALL README TODO libsidplay.lsm sidconfig.h.in config.guess config.sub Makefile.dist config.status 
+EXTRA_DIST = libsidplay.kdevprj AUTHORS COPYING ChangeLog INSTALL README TODO libsidplay.lsm sidconfig.h.in config.guess config.sub Makefile.dist config.status config.h 
 
 ####### kdevelop will overwrite this part!!! (end)############
 AUTOMAKE_OPTIONS = foreign
@@ -304,13 +304,13 @@ all-recursive-am: config.h
 install-exec-am:
 install-exec: install-exec-recursive
 
-install-data-am:
+install-data-am: install-data-local
 install-data: install-data-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-recursive
-uninstall-am:
+uninstall-am: uninstall-local
 uninstall: uninstall-recursive
 all-am: Makefile config.h
 all-redirect: all-recursive-am
@@ -358,11 +358,19 @@ dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
 maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
 distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
 dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
-install-exec-am install-exec install-data-am install-data install-am \
-install uninstall-am uninstall all-redirect all-am all installdirs-am \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+install-exec-am install-exec install-data-local install-data-am \
+install-data install-am install uninstall-local uninstall-am uninstall \
+all-redirect all-am all installdirs-am installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
+
+install-data-local:
+	$(mkinstalldirs) /usr/local/include/sidplay2/
+	$(INSTALL_DATA) sidconfig.h /usr/local/include/sidplay2/sidconfig.h
+
+uninstall-local:
+	-rm -f /usr/local/include/sidplay2/sidconfig.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
