@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2005/01/12 22:11:11  s_a_white
+ *  Updated to support new ioctls so we can find number of installed sid devices.
+ *
  *  Revision 1.9  2004/06/26 11:18:32  s_a_white
  *  Merged sidplay2/w volume/mute changes.
  *
@@ -119,29 +122,30 @@ private:
 
     // HardSID specific data
 #ifdef HAVE_UNIX
-    static         bool m_sidFree[16];
     int            m_handle;
+    static int     m_device;
+    static int     m_devices;
 #endif
 
     static const   uint voices;
-    static         uint sid;
     static char    credit[100];
-
 
     // Generic variables
     EventContext  *m_eventContext;
     event_phase_t  m_phase;
-    event_clock_t  m_accessClk;
-    char           m_errorBuffer[100];
+    event_clock_t &m_accessClk;
 
     // Must stay in this order
     bool           muted[HARDSID_VOICES];
-    uint           m_instance;
-    bool           m_status;
+    uint           m_id;
     bool           m_locked;
 
 public:
-    HardSID  (sidbuilder *builder);
+    HardSID  (sidbuilder *builder, uint id, event_clock_t &accessClk
+#ifdef HAVE_UNIX
+              , int handle
+#endif
+             );
     ~HardSID ();
 
     // Standard component functions
@@ -150,8 +154,7 @@ public:
     void          reset   (uint8_t volume);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
-    const char   *error   (void) {return m_errorBuffer;}
-    operator bool () const { return m_status; }
+    const char   *error   (void) {return "";}
 
     // Standard SID functions
     int_least32_t output  (uint_least8_t bits);
@@ -160,9 +163,6 @@ public:
     void          volume  (uint_least8_t num, uint_least8_t level);
     void          mute    (uint_least8_t num, bool enable);
     void          gain    (int_least8_t) {;}
-
-    // HardSID specific
-    void          flush   (void);
 
     // Must lock the SID before using the standard functions.
     bool          lock    (c64env *env);
@@ -173,9 +173,13 @@ private:
     // writes to SID.
     void event (void);
 
+public:
 #ifdef HAVE_UNIX
     // Support to obtain number of devices
-    static uint devices ();
+    static int  devices ();
+    static int  open    (int &handle, char *error);
+    static void close   (int &handle);
+    static void flush   (int handle);
 #endif
 };
 
