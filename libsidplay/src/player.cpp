@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2002/02/06 20:12:03  s_a_white
+ *  Added sidplay1 random extension for vic reads.
+ *
  *  Revision 1.35  2002/01/29 21:50:33  s_a_white
  *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
  *  config.  Initial code added to support more than two sids.
@@ -256,11 +259,7 @@ int Player::fastForward (uint percent)
 }
 
 int Player::initialise ()
-{
-    m_playerState = sid2_stopped;
-    m_running     = false;
-
-    // Fix the mileage counter if just finished another song.
+{   // Fix the mileage counter if just finished another song.
     mileageCorrect ();
     m_mileage += time ();
 
@@ -641,6 +640,9 @@ void Player::writeMemByte_sidplay (uint_least16_t addr, uint8_t data)
 void Player::envReset (void)
 {
     int i;
+
+    m_playerState = sid2_stopped;
+    m_running     = false;
 
     // Select Sidplay1 compatible CPU or real thing
     cpu = &sid6510;
