@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.5  2000/12/11 19:08:32  s_a_white
  *  AC99 Update.
  *
@@ -25,13 +28,11 @@
 // SPARCstation specific audio interface. (very poor)
 // --------------------------------------------------------------------------
 
-#include "config.h"
-#ifdef HAVE_SUNOS
-
 #include "audiodrv.h"
+#ifdef   HAVE_SUNOS
 
 #ifdef HAVE_EXCEPTIONS
-#include <new>
+#   include <new>
 #endif
 
 #include <errno.h>
@@ -46,34 +47,35 @@
 #include <sys/conf.h>
 
 #if defined(HAVE_SUN_AUDIOIO_H)
-  #include <sun/audioio.h>
-//  #include <sun/dbriio.h>
+#   include <sun/audioio.h>
+//#   include <sun/dbriio.h>
 #elif defined(HAVE_SYS_AUDIOIO_H)
-  #include <sys/audioio.h>
+#   include <sys/audioio.h>
 #else
-  #error Audio driver not supported.
+#   error Audio driver not supported.
 #endif
 
-const char AudioDriver::AUDIODEVICE[] = "/dev/audio";
+const char Audio_SunOS::AUDIODEVICE[] = "/dev/audio";
 
-AudioDriver::AudioDriver()
+
+Audio_SunOS::Audio_SunOS()
 {
     outOfOrder();
 }
 
-AudioDriver::~AudioDriver()
+Audio_SunOS::~Audio_SunOS()
 {
     close();
 }
 
-void AudioDriver::outOfOrder()
+void Audio_SunOS::outOfOrder()
 {
     // Reset everything.
     _errorString = "None";
     _audiofd     = (-1);
 }
 
-void *AudioDriver::open (AudioConfig& cfg)
+void *Audio_SunOS::open (AudioConfig& cfg)
 {
     if ((_audiofd =::open (AUDIODEVICE,O_WRONLY,0)) == (-1))
     {
@@ -165,7 +167,7 @@ void *AudioDriver::open (AudioConfig& cfg)
     return _sampleBuffer;
 }
 
-void *AudioDriver::reset()
+void *Audio_SunOS::reset()
 {
     // Flush output stream.
     if (_audiofd != (-1))
@@ -176,7 +178,7 @@ void *AudioDriver::reset()
     return NULL;
 }
 
-void AudioDriver::close ()
+void Audio_SunOS::close ()
 {
     if (_audiofd != (-1))
     {
@@ -186,7 +188,7 @@ void AudioDriver::close ()
     }
 }
 
-void *AudioDriver::write ()
+void *Audio_SunOS::write ()
 {
     if (_audiofd != (-1))
     {

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
 #ifndef _audio_mmsystem_h_
@@ -24,13 +27,15 @@
 
 #include "config.h"
 #ifdef   HAVE_MMSYSTEM
-#define  AUDIO_HAVE_DRIVER
-#define  AudioDriver Audio_MMSystem
+#   ifndef AudioDriver
+#   define AudioDriver Audio_MMSystem
+#   endif
+#endif
 
 #include <windows.h>
 #include <mmsystem.h>
-
 #include "../AudioBase.h"
+
 
 class Audio_MMSystem: public AudioBase
 {

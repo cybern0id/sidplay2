@@ -17,21 +17,19 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#ifndef AUDIO_directx_h_
-#define AUDIO_directx_h_
+#ifndef audio_directx_h_
+#define audio_directx_h_
 
 #include "config.h"
-#ifdef  HAVE_DIRECTX
-#define AUDIO_HAVE_DRIVER
-#define AudioDriver Audio_DirectX
-
-// Make sure this file is included only if on
-// the correct platform
-#if defined(HAVE_MSWINDOWS) && defined(_WIN32)
-#else
-  #error Audio driver not supported by this platform.
+#ifdef   HAVE_DIRECTX
+#   ifndef AudioDriver
+#   define AudioDriver Audio_DirectX
+#   endif
 #endif
 
 #if DIRECTSOUND_VERSION < 0x0500
@@ -80,4 +78,4 @@ public:  // --------------------------------------------------------- public
 };
 
 #endif // HAVE_DIRECTX
-#endif // AUDIO_directx_h_
+#endif // audio_directx_h_

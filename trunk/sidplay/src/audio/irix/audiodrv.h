@@ -3,25 +3,32 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#include "config.h"
-#ifdef HAVE_IRIX
+#ifndef audio_irix_h_
+#define audio_irix_h_
 
-#ifndef _audiodrv_h_
-#define _audiodrv_h_
-#define AUDIO_HAVE_DRIVER
+#include "config.h"
+#ifdef   HAVE_IRIX
+#   ifndef AudioDriver
+#   define AudioDriver Audio_Irix
+#   endif
+#endif
 
 #include "../AudioBase.h"
 
 #if defined(HAVE_AUDIO_H) && defined(HAVE_DMEDIA_AUDIO_H)
-  #include <audio.h>
-  #include <dmedia/audio.h>
+#   include <audio.h>
+#   include <dmedia/audio.h>
 #else
-  #error Audio driver not supported.
+#   error Audio driver not supported.
 #endif
 
-class AudioDriver: public AudioBase
+
+class Audio_Irix: public AudioBase
 {
 private:  // ------------------------------------------------------- private
     void   outOfOrder ();
@@ -29,8 +36,8 @@ private:  // ------------------------------------------------------- private
     ALconfig _config;
 
 public:  // --------------------------------------------------------- public
-    AudioDriver();
-    ~AudioDriver();
+    Audio_Irix();
+    ~Audio_Irix();
 
     void *open (AudioConfig &cfg);
 	
@@ -44,5 +51,5 @@ public:  // --------------------------------------------------------- public
     void *write ();		
 };
 
-#endif // _audiodrv_h_
 #endif // HAVE_IRIX
+#endif // audio_irix_h_

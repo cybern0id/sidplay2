@@ -3,38 +3,40 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#include "config.h"
-#ifdef HAVE_IRIX
-
+#include "audiodrv.h"
+#ifdef   HAVE_IRIX
 
 #ifdef SID_HAVE_EXCEPTIONS
-#include <new>
+#   include <new>
 #endif
 
 #include <stdio.h>
 
 #include "audiodrv.h"
 
-AudioDriver::AudioDriver()
+Audio_Irix::Audio_Irix()
 {
     outOfOrder();
 }
 
-AudioDriver::~AudioDriver()
+Audio_Irix::~Audio_Irix()
 {
     close();
 }
 
-void AudioDriver::outOfOrder()
+void Audio_Irix::outOfOrder()
 {
     // Reset everything.
     _errorString = "None";
     _audio       = NULL;
 }
 
-void *AudioDriver::open (AudioConfig& cfg)
+void *Audio_Irix::open (AudioConfig& cfg)
 {
     // Copy input parameters. May later be replaced with driver defaults.
     _settings = cfg;
@@ -93,7 +95,7 @@ void *AudioDriver::open (AudioConfig& cfg)
     return (void *) _sampleBuffer;
 }
 
-void *AudioDriver::reset()
+void *Audio_Irix::reset()
 {
     // Flush output stream.
     if (_audio != NULL)
@@ -103,7 +105,7 @@ void *AudioDriver::reset()
     return NULL;
 }
 
-void AudioDriver::close ()
+void Audio_Irix::close ()
 {
     if (_audio != NULL)
     {
@@ -115,7 +117,7 @@ void AudioDriver::close ()
     }
 }
 
-void *AudioDriver::write ()
+void *Audio_Irix::write ()
 {
     if (_audio != NULL)
     {
