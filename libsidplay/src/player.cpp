@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2001/03/09 22:26:36  s_a_white
+ *  Support for updated C64 player.
+ *
  *  Revision 1.15  2001/03/08 22:46:42  s_a_white
  *  playAddr = 0xffff now better supported.
  *
@@ -63,6 +66,7 @@
  *
  ***************************************************************************/
 
+#include <stdio.h>
 #include <string.h>
 #include "config.h"
 #include "sidendian.h"
@@ -90,6 +94,8 @@ const char  *player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported s
 const char  *player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
 const char  *player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 const char  *player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
+const char  *player::ERR_FILTER_DEFINITION     = "SIDPLAYER ERROR: Filter definition is not valid (see docs).";
+
 
 // Set the ICs environment variable to point to
 // this player
@@ -109,11 +115,15 @@ player::player (void)
  _seconds           (0),
  _userLeftVolume    (255),
  _userRightVolume   (255),
- playerState        (_stopped)
+ playerState        (_stopped),
+ cia(false),
+ cia2(true)
 {   // Set the ICs to use this environment
     cpu.setEnvironment  (this);
     cia.setEnvironment  (this);
+    cia2.setEnvironment (this);
     xsid.setEnvironment (this);
+	vic.setEnvironment  (this);
 
     //----------------------------------------------
     // SID Initialise
@@ -150,7 +160,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         clock = SID2_CLOCK_PAL;
         if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
-        clock = SID2_CLOCK_NTSC;
+            clock = SID2_CLOCK_NTSC;
     }
     // If forced change song to be the requested speed
     else if (_forced)
@@ -165,6 +175,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         _cpuFreq = CLOCK_FREQ_PAL;
         tuneInfo.speedString     = TXT_PAL_VBI;
+		vic.chip (MOS6569);
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_PAL_CIA;
     }
@@ -172,6 +183,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     {
         _cpuFreq = CLOCK_FREQ_NTSC;
         tuneInfo.speedString     = TXT_NTSC_VBI;
+		vic.chip (MOS6567R8);
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_NTSC_CIA;
     }
@@ -184,6 +196,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
         tuneInfo.songSpeed   = SIDTUNE_SPEED_CIA_1A;
     }
 
+/*
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
     {
         if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
@@ -193,7 +206,8 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
         cia.write (0x0e, 0x01); // Start the timer
         cia.locked = true;
     }
-    else // SIDTUNE_SPEED_CIA_1A
+*/
+    if (tuneInfo.songSpeed == SIDTUNE_SPEED_CIA_1A)
     {   // Don't reset the CIA if already running.  If we do,
         // will mess up the song.
         if (playerState == _stopped)
@@ -539,6 +553,46 @@ int player::initialise ()
     return 0;
 }
 
+int player::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
+{
+#ifndef HAVE_HARDSID
+	fc_point fc[0x800];
+ 
+	// Make sure there are enough filter points and they are legal
+    if ((points < 2) || (points > 0x800))
+        goto player_loadFilter_error;
+
+    {
+		const sid_fc_t *val, *valp, vals = {-1, 0};
+        // Last check, make sure they are list in numerical order
+        // for both axis
+		val = &vals; // (start)
+        for (int i = 0; i < points; i++)
+        {
+            valp = val;
+            val  = &cutoffs[i];
+            if ((*valp)[0] >  (*val)[0])
+                goto player_loadFilter_error;
+//            if ((*valp)[1] >= (*val)[1])
+//                goto player_loadFilter_error;
+			fc[i][0] = (sound_sample) (*val)[0];
+			fc[i][1] = (sound_sample) (*val)[1];
+        }
+    }
+
+    // function from reSID
+    points--;
+    interpolate (fc, fc, fc + points, fc + points, sid.fc_plotter (), 1.0);
+    interpolate (fc, fc, fc + points, fc + points, sid2.fc_plotter(), 1.0);
+return 0;
+
+player_loadFilter_error:
+    _errorString = ERR_FILTER_DEFINITION;
+	return -1;
+#endif // HAVE_HARDSID
+}
+
+
 int player::loadSong (SidTune *tune)
 {
     _tune = tune;
@@ -566,34 +620,6 @@ int player::loadSong (SidTune *tune)
     return initialise ();
 }
 
-// Makes the next sequence of notes available.  For sidplay compatibility
-// this function should be called from trigger IRQ event
-void player::nextSequence ()
-{
-    if (cpu) // Real IRQ
-        cpu.triggerIRQ ();
-    else // CPU is sleeping, so restart it.
-    {   // Setup the entry point from hardware IRQ
-        if (isKernal)
-            memcpy (&rom[0xfffc], &rom[0xfffe], 2);
-        else
-            memcpy (&ram[0xfffc], &ram[0xfffe], 2);
-        cpu.reset ();
-    }
-
-    // Paged CPU mode moved to interrupt
-    xsid.suppress (false);
-    xsid.suppress (true);
-/*
-    if (_optimiseLevel > 1)
-    {
-        while (cpu)
-            cpu.clock ();
-        xsid.suppress (false);
-    }
-*/
-}
-
 void player::pause (void)
 {
     if (playerState != _stopped)
@@ -618,8 +644,7 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
 
     while (playerState == _playing)
     {   // Allow the cpu to idle for sidplay compatibility
-        if (cpu)
-            cpu.clock ();
+        cpu.clock ();
 
         if (!_optimiseLevel)
         {   // With no optimisation clocking the sids here keeps them
@@ -634,6 +659,8 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
         }
 
         cia.clock  ();
+		cia2.clock ();
+		vic.clock  ();
         clock++;
 
         // Check to see if we need a new sample from reSID
@@ -765,8 +792,12 @@ uint8_t player::readMemByte_playsid (uint_least16_t addr, bool useCache)
     {
         if ( (addr&0xff00) == 0 )
             return readMemByte_plain (addr, false);
-        if ( (addr&0xfff0) == 0xdc00 )   // (ms) CIA 1
+        if ( (addr&0xff00) == 0xdc00 )   // (ms) CIA 1
             return cia.read(addr&0x0f);
+        if ( (addr&0xff00) == 0xdd00 )
+            return cia2.read(addr&0x0f);
+        if ( (addr&0xfc00) == 0xd000 )
+            return vic.read(addr&0x3f);
         return rom[addr];
     }
 
@@ -881,13 +912,25 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
             return;
         }
 
-        if ( (addr&0xfff0) == 0xdc00 )   // (ms) CIA 1
+        if ( (addr&0xff00) == 0xdc00 )   // (ms) CIA 1
         {
             cia.write(addr&0x0f, data);
             return;
         }
 
-        rom[addr] = data;
+        if ( (addr&0xff00) == 0xdd00 )
+        {
+            cia2.write(addr&0x0f, data);
+            return;
+        }
+
+        if ( (addr&0xfc00) == 0xd000 )
+		{
+			vic.write(addr&0x3f, data);
+			return;
+		}
+
+		rom[addr] = data;
         return;
     }
 
@@ -963,10 +1006,12 @@ void player::writeMemByte_sidplay (uint_least16_t addr, uint8_t data, bool useCa
 // These must be available for use:
 void player::envReset (void)
 {
-    cpu.reset ();
-    sid.reset ();
+    cpu.reset  ();
+    sid.reset  ();
     sid2.reset ();
-    cia.reset ();
+    cia.reset  ();
+    cia2.reset ();
+    vic.reset  ();
 
     // Initalise Memory
     memset (ram, 0, 0x10000);
@@ -1039,13 +1084,16 @@ void player::envWriteMemByte (uint_least16_t addr, uint8_t data, bool useCache)
 }
 
 void player::envTriggerIRQ (void)
-{   // Load the next note sequence
-    nextSequence ();
+{
+    cpu.triggerIRQ ();
+	// Start the sample sequence
+    xsid.suppress  (false);
+    xsid.suppress  (true);
 }
 
 void player::envTriggerNMI (void)
-{   // NOT DEFINED
-    ;
+{
+    cpu.triggerNMI ();
 }
 
 void player::envTriggerRST (void)
