@@ -23,6 +23,16 @@
 /* Define if you have the <strstrea.h> header file.  */
 #define SID_HAVE_STRSTREA_H
 
+/* Defines to indicate that resid is in an non standard location.
+   SID_HAVE_LOCAL_RESID indicates that an include path has been used
+   to where the resid directory is located but does not include
+   the resid directory name.
+   SID_HAVE_USER_RESID indicates that a fully qualified include path
+   has been provided that includes the resid directory name and therefore
+   resids include files are available by calling them directly.
+*/
+#define SID_HAVE_LOCAL_RESID
+
 /* And lastly specify operating system and sound driver */
 #define HAVE_MSWINDOWS
 #define HAVE_DIRECTX
