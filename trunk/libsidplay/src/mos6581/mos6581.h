@@ -16,9 +16,15 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef HAVE_MSWINDOWS
+#include "sidconfig.h"
+
+// Rev 1.2 (saw) - Changed to allow resid to be in more than one location
+#ifdef SID_HAVE_LOCAL_RESID
 #   include "resid/sid.h"
 #else
-#   include <resid/sid.h>
+#   ifdef SID_HAVE_USER_RESID
+#       include "sid.h"
+#   else
+#       include <resid/sid.h>
+#   endif
 #endif
-
