@@ -24,9 +24,9 @@
 
 
 SidFilter::SidFilter ()
-:status(false)
+:m_status(false)
 {
-    errorString = "SID Filter: No filter loaded";
+    m_errorString = "SID Filter: No filter loaded";
 }
 
 SidFilter::~SidFilter ()
@@ -37,8 +37,8 @@ SidFilter::~SidFilter ()
 void SidFilter::clear ()
 {
     m_filter.points = 0;
-    status      = false;
-    errorString = "SID Filter: No filter loaded";
+    m_status        = false;
+    m_errorString   = "SID Filter: No filter loaded";
 }
 
 void SidFilter::read (char *filename)
@@ -48,8 +48,8 @@ void SidFilter::read (char *filename)
     // Illegal ini fd
     if (!ini)
     {
-        status      = false;
-        errorString = "SID Filter: Unable to open filter file";
+        m_status      = false;
+        m_errorString = "SID Filter: Unable to open filter file";
         return;
     }
 
@@ -62,12 +62,12 @@ void SidFilter::read (ini_fd_t ini, char *heading)
     int type = 1;
 
     clear ();
-    status = true;
+    m_status = true;
 
     if (ini_locateHeading (ini, heading) < 0)
     {
-        status = false;
-        errorString = "SID Filter: Unable to locate filter section in input file";
+        m_status = false;
+        m_errorString = "SID Filter: Unable to locate filter section in input file";
         return;
     }
 
@@ -84,8 +84,8 @@ void SidFilter::read (ini_fd_t ini, char *heading)
     break;
 
     default:
-        status = false;
-        errorString = "SID Filter: Invalid filter type";
+        m_status = false;
+        m_errorString = "SID Filter: Invalid filter type";
     break;
     }
 }
@@ -130,13 +130,13 @@ return;
 
 SidFilter_readType1_errorDefinition:
     clear ();
-    errorString = "SID Filter: Invalid Type 1 filter definition";
-    status = false;
+    m_errorString = "SID Filter: Invalid Type 1 filter definition";
+    m_status = false;
 return;
 
 SidFilter_readType1_errorMemory:
-    errorString = "SID Filter: Out of memory";
-    status = false;
+    m_errorString = "SID Filter: Out of memory";
+    m_status = false;
 }
 
 void SidFilter::readType2 (ini_fd_t ini)
@@ -160,8 +160,8 @@ return;
 
 SidFilter_readType2_errorDefinition:
     clear ();
-    errorString = "SID Filter: Invalid Type 2 filter definition";
-    status = false;
+    m_errorString = "SID Filter: Invalid Type 2 filter definition";
+    m_status = false;
 }
 
 // Calculate a Type 2 filter (Sidplay 1 Compatible)
@@ -191,7 +191,7 @@ void SidFilter::calcType2 (double fs, double fm, double ft)
 // Get filter
 const sid_filter_t *SidFilter::provide () const
 {
-    if (!status)
+    if (!m_status)
         return NULL;
     return &m_filter;
 }
@@ -199,9 +199,7 @@ const sid_filter_t *SidFilter::provide () const
 // Copy filter from another SidFilter class
 const SidFilter &SidFilter::operator= (const SidFilter &filter)
 {
-    const sid_filter_t *f = filter.provide ();
-    if (f)
-        m_filter = *f;
+    (void) operator= (filter.provide ());
     return filter;
 }
 
@@ -209,5 +207,14 @@ const SidFilter &SidFilter::operator= (const SidFilter &filter)
 const sid_filter_t &SidFilter::operator= (const sid_filter_t &filter)
 {
     m_filter = filter;
+    m_status = true;
+    return filter;
+}
+
+const sid_filter_t *SidFilter::operator= (const sid_filter_t *filter)
+{
+    m_status = false;
+    if (filter)
+        (void) operator= (*filter);
     return filter;
 }

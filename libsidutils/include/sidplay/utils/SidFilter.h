@@ -43,9 +43,9 @@ const float SIDEMU_DEFAULTFILTERFT = (float) 0.05;
 class SID_EXTERN SidFilter
 {
 protected:
-    bool  status;
-    char *errorString;
-    sid_filter_t filter;
+    bool  m_status;
+    char *m_errorString;
+    sid_filter_t m_filter;
 
 protected:
     void readType1 (ini_fd_t ini);
@@ -56,18 +56,14 @@ public:
     SidFilter ();
     ~SidFilter ();
 
-    void  read (char *filename);
-    void  read (ini_fd_t ini, char *heading);
-    void  calcType2 (double fs, double fm, double ft);
-    const sid_filter_t* definition ()
-    {
-        if (!status)
-            return NULL;
-        return &filter;
-    }
+    void                read      (char *filename);
+    void                read      (ini_fd_t ini, char *heading);
+    void                calcType2 (double fs, double fm, double ft);
+    const char*         error     (void) { return m_errorString; }
+    const sid_filter_t* provide   () const;
 
-    operator bool () { return status; }
-
-    const char* error (void)
-    {   return errorString; }
+    operator bool () { return m_status; }
+    const SidFilter&    operator= (const SidFilter    &filter);
+    const sid_filter_t &operator= (const sid_filter_t &filter);
+    const sid_filter_t *operator= (const sid_filter_t *filter);
 };
