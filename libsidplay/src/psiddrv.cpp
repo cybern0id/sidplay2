@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2003/01/15 08:26:11  s_a_white
+ *  Basic restart hooked into via stop vector (only way compatible with real c64).
+ *  Maximum random delay increased to exceed the generation period of both
+ *  the VIC & CIA IRQs.
+ *
  *  Revision 1.25  2002/12/13 22:07:29  s_a_white
  *  C64 code fixed so a theres no decrement before checking the random value.
  *
@@ -124,7 +129,7 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
     {   // Sidplay1 modes require no psid driver
         info.driverAddr   = 0;
         info.driverLength = 0;
-        info.rnddelay     = 0;
+        info.powerOnDelay = 0;
         return 0;
     }
 
@@ -213,9 +218,15 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, sid2_info_t &info)
         addr += 2;
         endian_little16 (&m_ram[addr], playAddr);
         addr += 2;
-        // Below we limit the delay to something sensible.
-        info.rnddelay = (uint_least16_t) (m_rand >> 3) & 0x1FFF;
-        endian_little16 (&m_ram[addr], m_info.rnddelay);
+        // Initialise random number generator
+        info.powerOnDelay = m_cfg.powerOnDelay;
+        // Delays above MAX result in random delays
+        if (info.powerOnDelay > SID2_MAX_POWER_ON_DELAY)
+        {   // Limit the delay to something sensible.
+            info.powerOnDelay = (uint_least16_t) (m_rand >> 3) &
+                                SID2_MAX_POWER_ON_DELAY;
+        }
+        endian_little16 (&m_ram[addr], m_info.powerOnDelay);
         addr += 2;
         m_rand        = m_rand * 13 + 1;
         m_ram[addr++] = iomap (m_tuneInfo.initAddr);
