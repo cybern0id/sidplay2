@@ -297,7 +297,7 @@ install=false
 type=SOURCE
 [General]
 make_options= -j1
-makefiles=sidconfig.h,Makefile.am,src/Makefile.am,src/docs/Makefile.am,src/docs/en/Makefile.am,src/mos6510/Makefile.am,src/mos6510/cycle_based/Makefile.am,src/xsid/Makefile.am,src/sidtune/Makefile.am,src/audio/Makefile.am,src/audio/oss/Makefile.am,src/audio/wav/Makefile.am,src/mos6581/Makefile.am,src/audio/sunos/Makefile.am,include/Makefile.am,
+makefiles=sidconfig.h.in,Makefile.am,src/Makefile.am,src/docs/Makefile.am,src/docs/en/Makefile.am,src/mos6510/Makefile.am,src/mos6510/cycle_based/Makefile.am,src/xsid/Makefile.am,src/sidtune/Makefile.am,src/audio/Makefile.am,src/audio/oss/Makefile.am,src/audio/wav/Makefile.am,src/mos6581/Makefile.am,src/audio/sunos/Makefile.am,include/Makefile.am,
 execute_args=../../Arkanoid.sid
 version_control=None
 author=Simon White
