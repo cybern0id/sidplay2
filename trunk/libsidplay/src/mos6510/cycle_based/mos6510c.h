@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2003/01/17 08:42:09  s_a_white
+ *  Event scheduler phase support.  Better handling the operation of IRQs
+ *  during stolen cycles.
+ *
  *  Revision 1.15  2002/11/28 20:35:06  s_a_white
  *  Reduced number of thrown exceptions when dma occurs.
  *
@@ -69,6 +73,7 @@
 #ifndef _mos6510c_h_
 #define _mos6510c_h_
 
+#include <stdio.h>
 #include "sidtypes.h"
 #include "sidendian.h"
 
@@ -77,30 +82,39 @@ class MOS6510: public C64Environment, public Event
 {
 protected:
     // External signals
-    bool aec; /* Address Controller, blocks all */
-    bool rdy; /* Bus Access, blocks reads */
+    bool aec; /* Address Controller, blocks reads */
     bool m_blocked;
     event_clock_t m_stealingClk;
 
     bool dodump;
     EventContext &eventContext;
-   
+
+    struct ProcessorCycle
+    {
+        void (MOS6510::*func)(void);
+        bool write;
+        ProcessorCycle ()
+            :func(NULL), write(false) { ; }
+    };
+
     // Declare processor operations
     struct ProcessorOperations
     {
-        void         (MOS6510::**cycle)(void);
+        struct ProcessorCycle *cycle;
         uint          cycles;
         uint_least8_t opcode;
+        ProcessorOperations ()
+            :cycle(NULL), cycles (0) { ; }
     };
 
-    void   (MOS6510::*fetchCycle[1]) (void);
+    struct ProcessorCycle       fetchCycle;
+    struct ProcessorCycle      *procCycle;
     struct ProcessorOperations  instrTable[0x100];
     struct ProcessorOperations  interruptTable[3];
     struct ProcessorOperations *instrCurrent;
 
     uint_least16_t instrStartPC;
     uint_least8_t  instrOpcode;
-    void (MOS6510::**procCycle) (void);
     int_least8_t   lastAddrCycle;
     int_least8_t   cycleCount;
 
@@ -152,8 +166,6 @@ protected:
     inline void IRQ1Request      (void);
     inline void IRQ2Request      (void);
     bool        interruptPending (void);
-    void        stealCycle       (bool condition)
-    { if (condition) throw((int_least8_t) -1); }
 
     // Declare Instruction Routines
     virtual void FetchOpcode         (void);
@@ -280,7 +292,6 @@ public:
     virtual void DumpState (void);
     void         debug     (bool enable) {dodump = enable;}
     void         aecSignal (bool state);
-    void         rdySignal (bool state);
 
     // Non-standard functions
     virtual void triggerRST (void);
@@ -295,12 +306,13 @@ public:
 inline void MOS6510::clock (void)
 {
     int_least8_t i = cycleCount++;
-    try {
-        (this->*procCycle[i]) ();
-    } catch (int_least8_t delta) {
-        cycleCount += delta;
-        m_blocked   = true;
+    if (procCycle[i].write || aec)
+        (this->*(procCycle[i].func)) ();
+    else
+    {
+        m_blocked     = true;
         m_stealingClk = eventContext.getTime ();
+        cycleCount--;
         eventContext.cancel (this);
     }
 }

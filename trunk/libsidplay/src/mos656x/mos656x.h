@@ -52,7 +52,6 @@ protected:
 
     // Environment Interface
     virtual void interrupt (bool state) = 0;
-    virtual void busaccess (bool state) = 0;
     virtual void addrctrl  (bool state) = 0;
 
 public:

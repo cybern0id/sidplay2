@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.40  2003/01/17 08:35:46  s_a_white
+ *  Event scheduler phase support.
+ *
  *  Revision 1.39  2002/12/03 23:25:53  s_a_white
  *  Prevent PSID digis from playing in real C64 mode.
  *
@@ -372,7 +375,6 @@ private:
     void interruptIRQ (bool state);
     void interruptNMI (void);
     void interruptRST (void);
-    void signalBA     (bool state) { cpu->rdySignal (state); }
     void signalAEC    (bool state) { cpu->aecSignal (state); }
 
     // PSID driver
