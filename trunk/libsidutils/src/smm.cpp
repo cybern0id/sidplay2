@@ -83,7 +83,11 @@ bool Chunk::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
     {
         uint8_t tmp;
         if (!_read (file, &tmp, sizeof(uint8_t), length))
-            return false;
+        {   // For compatibility with older files that
+            // wrongly didn't pad the last chunk
+            if (!feof (file))
+                return false;
+        }
     }
 
     {   // All compulsory chunks read
@@ -260,17 +264,36 @@ void Err_v0::init (sid2_usage_t &usage)
 
 bool Err_v0::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
 {
-    uint8_t tmp[4];
+    uint8_t tmp[2];
     if (!_read (file, tmp, sizeof(tmp), length))
         return false;
-    usage.flags = endian_big32 (tmp);
+    usage.flags = endian_big16 (tmp);
+
+    // If the block hasn't completed then we have 32 bit flags
+    if (length)
+    {
+        usage.flags <<= 16;
+        if (!_read (file, tmp, sizeof(tmp), length))
+            return false;
+        usage.flags |= endian_big16 (tmp);
+    }
     return Chunk::read (file, usage, length);
 }
 
 bool Err_v0::write (FILE *file, const sid2_usage_t &usage, uint_least32_t &length)
 {
-    uint8_t tmp[4];
-    endian_big32 (tmp, usage.flags);
+    uint8_t tmp[2];
+    uint_least16_t flags = (uint_least16_t) (usage.flags >> 16);
+
+    // For compatibility only write these flags if they are present
+    if (flags)
+    {
+        if (!_write (file, tmp, sizeof(tmp), length))
+            return false;
+    }
+
+    flags = (uint_least16_t) usage.flags;
+    endian_big16 (tmp, flags);
     if (!_write (file, tmp, sizeof(tmp), length))
         return false;
     return Chunk::write (file, usage, length);    
@@ -370,8 +393,8 @@ bool Body::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
         if (!_read (file, &page, sizeof(uint8_t), length))
             return false;
 
-		// Check for a normal information termination byte.  If no extended
-		// information it may optionally be present, else it is compulsory
+        // Check for a normal information termination byte.  If no extended
+        // information it may optionally be present, else it is compulsory
         if (!page && m_pages)
             break;
 
@@ -390,8 +413,7 @@ bool Body::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
         {
             sid_usage_t::memflags_t flags = data.flags[j];
             usage.memory[addr++] = flags & ~SID_EXTENSION;
-			if (SMM_EX_FLAGS)
-                data.extended |= (flags & SID_EXTENSION) != 0;
+            data.extended |= (flags & SID_EXTENSION) != 0;
         }
     }
 
@@ -462,8 +484,16 @@ bool Body_extended_flags::read (FILE *file, sid2_usage_t &usage, uint_least32_t 
 {
     uint8_t *flags = 0;
     int count = 0, extension = 0;
-
     int pages = m_body.m_pages;
+
+    if (!SMM_EX_FLAGS)
+    {   // Skip the extended flags
+        if (fseek (file, (long) length, SEEK_CUR) < 0)
+            return false;
+        length = 0;
+        return Chunk::read (file, usage, length);
+    }
+
     for (int i = 0; i < pages; i++)
     {
         Body::usage_t &data = m_body.m_usage[i];
