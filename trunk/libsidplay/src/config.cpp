@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2002/10/02 19:46:36  s_a_white
+ *  RSID support & fix sid model forced operation.
+ *
  *  Revision 1.27  2002/09/09 18:09:06  s_a_white
  *  Added error message for psid specific flag set in strict real C64 mode.
  *
@@ -124,7 +127,7 @@ int Player::config (const sid2_config_t &cfg)
     }
 
     // Check for base sampling frequency
-    if ((cfg.frequency < 4000) || (cfg.frequency > 96000))
+    if (cfg.frequency < 4000)
     {   // Rev 1.6 (saw) - Added descriptive error
         m_errorString = ERR_UNSUPPORTED_FREQ;
         goto Player_configure_error;
