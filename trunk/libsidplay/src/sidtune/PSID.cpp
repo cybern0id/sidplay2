@@ -32,23 +32,23 @@
 #include "SidTune.h"
 #include "sidendian.h"
 
-struct psidHeader			// all values big-endian
+struct psidHeader            // all values big-endian
 {
-	char id[4];				// 'PSID' (ASCII)
-	uint_least8_t version[2];	// 0x0001 or 0x0002
-	uint_least8_t data[2];		// 16-bit offset to binary data in file
-	uint_least8_t load[2];		// 16-bit C64 address to load file to
-	uint_least8_t init[2];		// 16-bit C64 address of init subroutine
-	uint_least8_t play[2];		// 16-bit C64 address of play subroutine
-	uint_least8_t songs[2];	// number of songs
-	uint_least8_t start[2];	// start song out of [1..256]
-	uint_least8_t speed[4];	// 32-bit speed info
-							// bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
-	char name[32];			// ASCII strings, 31 characters long and
-	char author[32];		// terminated by a trailing zero
-	char copyright[32];		//
-	uint_least8_t flags[2];	// only version 0x0002
-	uint_least8_t reserved[4];	// only version 0x0002
+    char id[4];                // 'PSID' (ASCII)
+    uint_least8_t version[2];    // 0x0001 or 0x0002
+    uint_least8_t data[2];        // 16-bit offset to binary data in file
+    uint_least8_t load[2];        // 16-bit C64 address to load file to
+    uint_least8_t init[2];        // 16-bit C64 address of init subroutine
+    uint_least8_t play[2];        // 16-bit C64 address of play subroutine
+    uint_least8_t songs[2];    // number of songs
+    uint_least8_t start[2];    // start song out of [1..256]
+    uint_least8_t speed[4];    // 32-bit speed info
+                            // bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
+    char name[32];            // ASCII strings, 31 characters long and
+    char author[32];        // terminated by a trailing zero
+    char copyright[32];        //
+    uint_least8_t flags[2];    // only version 0x0002
+    uint_least8_t reserved[4];    // only version 0x0002
 };
 
 const char _sidtune_format[] = "PlaySID one-file format (PSID)";
@@ -60,133 +60,153 @@ const int _sidtune_psid_maxStrLen = 31;
 
 bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 {
-	// Remove any format description or format error string.
-	info.formatString = 0;
+    int clock = SIDTUNE_CLOCK_PAL;
 
-	// Require minimum size to allow access to the first few bytes.
-	// Require a valid ID and version number.
-	const psidHeader* pHeader = (const psidHeader*)buffer;
-	if ( (bufLen<6) ||
-		 (endian_big32((const uint_least8_t*)pHeader->id)!=0x50534944) ||
-		 (endian_big16(pHeader->version)>=3) )
-	{
-		info.formatString = _sidtune_unknown;
-		return false;
-	}
-	// Due to security concerns, input must be at least as long as version 1
-	// header plus 16-bit C64 load address. That is the area which will be
-	// accessed.
-	if ( bufLen < (sizeof(psidHeader)+2) )
-	{
-		info.formatString = _sidtune_truncated;
-		return false;
-	}
+    // Remove any format description or format error string.
+    info.formatString = 0;
 
-	fileOffset        = endian_big16(pHeader->data);
-	info.loadAddr     = endian_big16(pHeader->load);
-	info.initAddr     = endian_big16(pHeader->init);
-	info.playAddr     = endian_big16(pHeader->play);
-	info.songs        = endian_big16(pHeader->songs);
-	info.startSong    = endian_big16(pHeader->start);
-	info.sidChipBase1 = 0xd400;
-	info.sidChipBase2 = 0;
+    // Require minimum size to allow access to the first few bytes.
+    // Require a valid ID and version number.
+    const psidHeader* pHeader = (const psidHeader*)buffer;
+    if ( (bufLen<6) ||
+         (endian_big32((const uint_least8_t*)pHeader->id)!=0x50534944) ||
+         (endian_big16(pHeader->version)>=3) )
+    {
+        info.formatString = _sidtune_unknown;
+        return false;
+    }
+    // Due to security concerns, input must be at least as long as version 1
+    // header plus 16-bit C64 load address. That is the area which will be
+    // accessed.
+    if ( bufLen < (sizeof(psidHeader)+2) )
+    {
+        info.formatString = _sidtune_truncated;
+        return false;
+    }
 
-	if (info.songs > SIDTUNE_MAX_SONGS)
-	{
-		info.songs = SIDTUNE_MAX_SONGS;
-	}
-	
-	// Create the speed/clock setting table.
-	convertOldStyleSpeedToTables(endian_big32(pHeader->speed));
-	
-	info.musPlayer = false;
-	if ( endian_big16(pHeader->version) >= 2 )
-	{
-		if (( endian_big16(pHeader->flags) & 1 ) == 1 )
-		{
-			info.musPlayer = true;
-		}
-	}
-  
-	if ( info.loadAddr == 0 )
-	{
-		uint_least8_t* pData = (uint_least8_t*)buffer + fileOffset;
-		info.loadAddr = endian_16( *(pData+1), *pData );
-		fileOffset += 2;
-	}
-	if ( info.initAddr == 0 )
-	{
-		info.initAddr = info.loadAddr;
-	}
-	
-	// Copy info strings, so they will not get lost.
-	info.numberOfInfoStrings = 3;
-	// Name
-	strncpy(&infoString[0][0],pHeader->name,_sidtune_psid_maxStrLen);
-	info.infoString[0] = &infoString[0][0];
-	// Author
-	strncpy(&infoString[1][0],pHeader->author,_sidtune_psid_maxStrLen);
-	info.infoString[1] = &infoString[1][0];
-	// Copyright
-	strncpy(&infoString[2][0],pHeader->copyright,_sidtune_psid_maxStrLen);
-	info.infoString[2] = &infoString[2][0];
-	
-	info.formatString = _sidtune_format;
-	return true;
+    fileOffset        = endian_big16(pHeader->data);
+    info.loadAddr     = endian_big16(pHeader->load);
+    info.initAddr     = endian_big16(pHeader->init);
+    info.playAddr     = endian_big16(pHeader->play);
+    info.songs        = endian_big16(pHeader->songs);
+    info.startSong    = endian_big16(pHeader->start);
+    info.sidChipBase1 = 0xd400;
+    info.sidChipBase2 = 0;
+
+    if (info.songs > SIDTUNE_MAX_SONGS)
+    {
+        info.songs = SIDTUNE_MAX_SONGS;
+    }
+
+    info.musPlayer = false;
+    if ( endian_big16(pHeader->version) >= 2 )
+    {
+        uint_least16_t flags = endian_big16(pHeader->flags);
+        if (flags & 1)
+        {
+            info.musPlayer = true;
+            flags ^= 2;
+        }
+
+        clock = SIDTUNE_CLOCK_PAL;
+        if (flags & 2)
+            clock = SIDTUNE_CLOCK_NTSC;
+
+        if (flags & 4)
+            info.sidRevision = SIDTUNE_SID_8580;
+    }
+
+    // Create the speed/clock setting table.
+    convertOldStyleSpeedToTables(endian_big32(pHeader->speed), clock);
+
+
+    if ( info.loadAddr == 0 )
+    {
+        uint_least8_t* pData = (uint_least8_t*)buffer + fileOffset;
+        info.loadAddr = endian_16( *(pData+1), *pData );
+        fileOffset += 2;
+    }
+    if ( info.initAddr == 0 )
+    {
+        info.initAddr = info.loadAddr;
+    }
+    
+    // Copy info strings, so they will not get lost.
+    info.numberOfInfoStrings = 3;
+    // Name
+    strncpy(&infoString[0][0],pHeader->name,_sidtune_psid_maxStrLen);
+    info.infoString[0] = &infoString[0][0];
+    // Author
+    strncpy(&infoString[1][0],pHeader->author,_sidtune_psid_maxStrLen);
+    info.infoString[1] = &infoString[1][0];
+    // Copyright
+    strncpy(&infoString[2][0],pHeader->copyright,_sidtune_psid_maxStrLen);
+    info.infoString[2] = &infoString[2][0];
+    
+    info.formatString = _sidtune_format;
+    return true;
 }
 
 
 bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBuffer)
 {
-	psidHeader myHeader;
-	endian_big32((uint_least8_t*)myHeader.id,0x50534944);  // 'PSID'
-	endian_big16(myHeader.version,2);
-	endian_big16(myHeader.data,sizeof(psidHeader));
-	endian_big16(myHeader.load,0);
-	endian_big16(myHeader.init,info.initAddr);
-	endian_big16(myHeader.play,info.playAddr);
-	endian_big16(myHeader.songs,info.songs);
-	endian_big16(myHeader.start,info.startSong);
+    psidHeader myHeader;
+    endian_big32((uint_least8_t*)myHeader.id,0x50534944);  // 'PSID'
+    endian_big16(myHeader.version,2);
+    endian_big16(myHeader.data,sizeof(psidHeader));
+    endian_big16(myHeader.load,0);
+    endian_big16(myHeader.init,info.initAddr);
+    endian_big16(myHeader.play,info.playAddr);
+    endian_big16(myHeader.songs,info.songs);
+    endian_big16(myHeader.start,info.startSong);
 
-	uint_least32_t speed = 0;
-	int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
-	for (int s = 0; s < maxBugSongs; s++)
-	{
-		if (songSpeed[s] == SIDTUNE_SPEED_CIA_1A)
-		{
-			speed |= (1<<s);
-		}
-	}
-	endian_big32(myHeader.speed,speed);
+    uint_least32_t speed = 0;
+    int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
+    for (int s = 0; s < maxBugSongs; s++)
+    {
+        if (songSpeed[s] == SIDTUNE_SPEED_CIA_1A)
+        {
+            speed |= (1<<s);
+        }
+    }
+    endian_big32(myHeader.speed,speed);
 
-	uint_least16_t tmpFlags = 0;
-	if ( info.musPlayer )
-	{
-		tmpFlags |= 1;
-	}
-	endian_big16(myHeader.flags,tmpFlags);
-	endian_big32(myHeader.reserved,0);
-	for ( int i = 0; i < 32; i++ )
-	{
-		myHeader.name[i] = 0;
-		myHeader.author[i] = 0;
-		myHeader.copyright[i] = 0;
-	}
-	strncpy( myHeader.name, info.infoString[0], _sidtune_psid_maxStrLen);
-	strncpy( myHeader.author, info.infoString[1], _sidtune_psid_maxStrLen);
-	strncpy( myHeader.copyright, info.infoString[2], _sidtune_psid_maxStrLen);
-	fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );
-	
-	// Save C64 lo/hi load address (little-endian).
-	uint_least8_t saveAddr[2];
-	saveAddr[0] = info.loadAddr & 255;
-	saveAddr[1] = info.loadAddr >> 8;
-	fMyOut.write( (char*)saveAddr, 2 );  // !cast!
-	// Data starts at: bufferaddr + fileoffset
-	// Data length: datafilelen - fileoffset
-	fMyOut.write( (const char*)dataBuffer + fileOffset, info.dataFileLen - fileOffset );  // !cast!
-	if ( !fMyOut )
-		return false;
-	else
-		return true;
+    uint_least16_t tmpFlags = 0;
+    if ( info.clockSpeed == SIDTUNE_CLOCK_NTSC )
+        tmpFlags |= 2;
+
+    if ( info.musPlayer )
+    {
+        tmpFlags |= 1;
+        tmpFlags ^= 2;
+    }
+
+    if ( info.sidRevision == SIDTUNE_SID_8580 )
+        tmpFlags |= 4;
+
+    endian_big16(myHeader.flags,tmpFlags);
+    endian_big32(myHeader.reserved,0);
+    for ( int i = 0; i < 32; i++ )
+    {
+        myHeader.name[i] = 0;
+        myHeader.author[i] = 0;
+        myHeader.copyright[i] = 0;
+    }
+    strncpy( myHeader.name, info.infoString[0], _sidtune_psid_maxStrLen);
+    strncpy( myHeader.author, info.infoString[1], _sidtune_psid_maxStrLen);
+    strncpy( myHeader.copyright, info.infoString[2], _sidtune_psid_maxStrLen);
+    fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );
+    
+    // Save C64 lo/hi load address (little-endian).
+    uint_least8_t saveAddr[2];
+    saveAddr[0] = info.loadAddr & 255;
+    saveAddr[1] = info.loadAddr >> 8;
+    fMyOut.write( (char*)saveAddr, 2 );  // !cast!
+    // Data starts at: bufferaddr + fileoffset
+    // Data length: datafilelen - fileoffset
+    fMyOut.write( (const char*)dataBuffer + fileOffset, info.dataFileLen - fileOffset );  // !cast!
+    if ( !fMyOut )
+        return false;
+    else
+        return true;
 }
