@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/12/16 22:12:24  s_a_white
+ *  Simulate serial input from data port A to prevent kernel lockups.
+ *
  *  Revision 1.9  2002/11/20 22:50:27  s_a_white
  *  Reload count when timers are stopped
  *
@@ -122,8 +125,10 @@ uint8_t MOS6526::read (uint_least8_t addr)
     case 0x0: // Simulate a serial port
         dpa = ((dpa << 1) | (dpa >> 7)) & 0xff;
         if (dpa & 0x80)
-            return 0xc0;
-        return 0;
+            return 0xff;
+        return 0x3f;
+    case 0x1:
+        return 0xff;
     case 0x4: return endian_16lo8 (ta);
     case 0x5: return endian_16hi8 (ta);
     case 0x6: return endian_16lo8 (tb);
@@ -193,7 +198,8 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x21) == 0x01)
         {   // Active
-            event_context.schedule (&event_ta, (event_clock_t) ta + 1);
+            event_context.schedule (&event_ta, (event_clock_t) ta + 1,
+                                    EVENT_CLOCK_PHI1);
         } else
         {   // Inactive
             ta = ta_latch;
@@ -212,7 +218,8 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x61) == 0x01)
         {   // Active
-            event_context.schedule (&event_tb, (event_clock_t) tb + 1);
+            event_context.schedule (&event_tb, (event_clock_t) tb + 1,
+                                    EVENT_CLOCK_PHI1);
         } else
         {   // Inactive
             tb = tb_latch;
@@ -266,7 +273,8 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        event_context.schedule (&event_ta, (event_clock_t) ta + 1);
+        event_context.schedule (&event_ta, (event_clock_t) ta + 1,
+                                EVENT_CLOCK_PHI1);
     }
     trigger (INTERRUPT_TA);
     
@@ -313,7 +321,8 @@ void MOS6526::tb_event (void)
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        event_context.schedule (&event_tb, (event_clock_t) tb + 1);
+        event_context.schedule (&event_tb, (event_clock_t) tb + 1,
+                                EVENT_CLOCK_PHI1);
     }
     trigger (INTERRUPT_TB);
 }
