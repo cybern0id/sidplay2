@@ -1,0 +1,21 @@
+TODO: <sidplay2>
+
+*Add configuration file support.
+
+*Add ANSI consoe support <Done in experimental, requires configuration file
+ for real release>
+
+*Find out why there is a pause after a seconds or so play and try to correct.
+
+*Find out why when you step over the Linux sound write function the soundcard
+ plays rubbish (bug)?
+
+*Take audiodrvs from sidplay.
+ Linux (OSS only) <Done>
+ DirectX <Done>
+ Windows MMSYSTEM <Done>
+ SPARC <Done>
+ SGI
+ HPUX <Done>
+
+*Anyone want to provide support for other music formats? <IFF AIFF?>
