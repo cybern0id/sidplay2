@@ -296,9 +296,11 @@ class SID_EXTERN SidTune
 
     virtual LoadStatus MUS_fileSupport     (Buffer_sidtt<const uint_least8_t>& musBuf,
                                             Buffer_sidtt<const uint_least8_t>& strBuf);
-    LoadStatus         MUS_load            (Buffer_sidtt<const uint_least8_t>& musBuf);
     LoadStatus         MUS_load            (Buffer_sidtt<const uint_least8_t>& musBuf,
-                                            Buffer_sidtt<const uint_least8_t>& strBuf);
+                                            bool init = false);
+    LoadStatus         MUS_load            (Buffer_sidtt<const uint_least8_t>& musBuf,
+                                            Buffer_sidtt<const uint_least8_t>& strBuf,
+                                            bool init = false);
     virtual bool       MUS_detect          (const void* buffer, const uint_least32_t bufLen,
                                             uint_least32_t& voice3Index);
     virtual bool       MUS_mergeParts      (Buffer_sidtt<const uint_least8_t>& musBuf,
