@@ -27,9 +27,9 @@
 #include <string.h>
 #include <strstream>
 
-#ifdef __QNXNTO__
+#if defined(HAVE_STRINGS_H)
 #   include <strings.h>
-#endif // __QNXNTO__
+#endif
 
 #if defined(HAVE_STRCASECMP)
 #   define MYSTRICMP strcasecmp
