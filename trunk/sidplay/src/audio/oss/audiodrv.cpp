@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/18 18:36:16  s_a_white
+ *  Support for multiple drivers added.  C standard update applied (There
+ *  should be no spaces before #)
+ *
  *  Revision 1.1  2001/01/08 16:41:43  s_a_white
  *  App and Library Seperation
  *
@@ -216,7 +220,7 @@ void *Audio_OSS::open (AudioConfig &cfg)
 
     ioctl (_audiofd, SNDCTL_DSP_GETBLKSIZE, &temp);
     cfg.bufSize = (unsigned) temp;
-#ifdef SID_HAVE_EXCEPTIONS
+#ifdef HAVE_EXCEPTIONS
     _sampleBuffer = new(nothrow) int_least8_t[cfg.bufSize];
 #else
     _sampleBuffer = new int_least8_t[cfg.bufSize];
