@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/08/20 19:21:53  s_a_white
+ *  Updated version information.
+ *
  *  Revision 1.4  2002/08/09 18:11:35  s_a_white
  *  Added backwards compatibility support for older hardsid.dll.
  *
@@ -187,10 +190,11 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
     for (int i = 0; i < size; i++)
     {
         HardSID *sid = (HardSID *) sidobjs[i];
-        if (!sid->lock (env))
-            continue;
-        sid->model (model);
-        return sid;
+        if (sid->lock (env))
+		{
+            sid->model (model);
+            return sid;
+		}
     }
     // Unable to locate free SID
     m_status = false;
@@ -202,14 +206,15 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 void HardSIDBuilder::unlock (sidemu *device)
 {
     int size = sidobjs.size ();
-    // Maek sure this is our SID
+    // Make sure this is our SID
     for (int i = 0; i < size; i++)
     {
         HardSID *sid = (HardSID *) sidobjs[i];
-        if (sid != device)
-            continue;
-        // Unlock it
-        sid->lock (NULL);
+        if (sid == device)
+		{   // Unlock it
+            sid->lock (NULL);
+			break;
+		}
     }
 }
 
