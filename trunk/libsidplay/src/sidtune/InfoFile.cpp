@@ -284,7 +284,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
             if ( !(hasInitAddr || hasAddress) )
                 return LOAD_ERROR; // Error set above
             // Allow user to provide single address
-            if ( hasAddress )
+            if ( !hasAddress )
                 info.loadAddr = 0;
             else if ( info.loadAddr || info.playAddr )
             {
