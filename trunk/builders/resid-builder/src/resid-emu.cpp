@@ -39,7 +39,8 @@ ReSID::ReSID (sidbuilder *builder)
 #endif
  m_gain(100),
  m_status(true),
- m_locked(false)
+ m_locked(false),
+ m_optimisation(0)
 {
     char *p = m_credit;
     m_error = "N/A";
@@ -129,8 +130,17 @@ uint8_t ReSID::read (uint_least8_t addr)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
-    if (cycles)
-        m_sid.clock (cycles);
+    if (m_optimisation)
+    {
+        if (cycles)
+            m_sid.clock (cycles);
+    }
+    else
+    {
+        while(cycles--)
+            m_sid.clock ();
+         
+    }
     return m_sid.read (addr);
 }
 
@@ -138,8 +148,17 @@ void ReSID::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
-    if (cycles)
-        m_sid.clock (cycles);
+    if (m_optimisation)
+    {
+        if (cycles)
+            m_sid.clock (cycles);
+    }
+    else
+    {
+        while(cycles--)
+            m_sid.clock ();
+         
+    }
     m_sid.write (addr, data);
 }
 
@@ -147,8 +166,17 @@ int_least32_t ReSID::output (uint_least8_t bits)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
-    if (cycles)
-        m_sid.clock (cycles);
+    if (m_optimisation)
+    {
+        if (cycles)
+            m_sid.clock (cycles);
+    }
+    else
+    {
+        while(cycles--)
+            m_sid.clock ();
+         
+    }
     return m_sid.output (bits) * m_gain / 100;
 }
 
@@ -204,4 +232,10 @@ void ReSID::model (sid2_model_t model)
         m_sid.set_chip_model (RESID::MOS8580);
     else
         m_sid.set_chip_model (RESID::MOS6581);
+}
+
+// Set optimisation level
+void ReSID::optimisation (uint_least8_t level)
+{
+    m_optimisation = level;
 }
