@@ -1975,7 +1975,8 @@ rm -f conftest*
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidplay2_incdirs="/usr/include /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidplay2/include \
+                             /usr/local/lib/sidplay2/include"
         
     libsidplay2_foundincdir=NO
     for i in $libsidplay2_incdirs;
@@ -1993,7 +1994,7 @@ rm -f conftest*
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
-        libsidplay2_libdirs="/usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
         
     libsidplay2_foundlibdir=NO
     for i in $libsidplay2_libdirs;
@@ -2033,14 +2034,14 @@ rm -f conftest*
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat > conftest.$ac_ext <<EOF
-#line 2037 "configure"
+#line 2038 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int main() {
 sidplay2 *player;
 ; return 0; }
 EOF
-if { (eval echo configure:2044: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2045: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   sid_libsidplay2_works=yes
 else
@@ -2091,14 +2092,14 @@ Please check your installation!
 
 
 echo $ac_n "checking whether byte ordering is bigendian""... $ac_c" 1>&6
-echo "configure:2095: checking whether byte ordering is bigendian" >&5
+echo "configure:2096: checking whether byte ordering is bigendian" >&5
 if eval "test \"`echo '$''{'ac_cv_c_bigendian'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat > conftest.$ac_ext <<EOF
-#line 2102 "configure"
+#line 2103 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2109,11 +2110,11 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2113: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2114: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat > conftest.$ac_ext <<EOF
-#line 2117 "configure"
+#line 2118 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -2124,7 +2125,7 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:2128: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2129: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_c_bigendian=yes
 else
@@ -2144,7 +2145,7 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 2148 "configure"
+#line 2149 "configure"
 #include "confdefs.h"
 #ifdef __cplusplus
 extern "C" void exit(int);
@@ -2160,7 +2161,7 @@ main () {
   exit (u.c[sizeof (long) - 1] == 1);
 }
 EOF
-if { (eval echo configure:2164: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:2165: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_c_bigendian=no
 else
@@ -2186,20 +2187,20 @@ fi
 
 
     echo $ac_n "checking whether nothrow allocator is available""... $ac_c" 1>&6
-echo "configure:2190: checking whether nothrow allocator is available" >&5
+echo "configure:2191: checking whether nothrow allocator is available" >&5
     if eval "test \"`echo '$''{'test_cv_have_exceptions'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   
         cat > conftest.$ac_ext <<EOF
-#line 2196 "configure"
+#line 2197 "configure"
 #include "confdefs.h"
 #include <new>
 int main() {
 char* buf = new(nothrow) char[1024];
 ; return 0; }
 EOF
-if { (eval echo configure:2203: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:2204: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   test_cv_have_exceptions=yes
 else

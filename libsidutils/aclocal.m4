@@ -169,12 +169,13 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        libsidplay2_incdirs="/usr/include /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs="$prefix/include /usr/include /usr/local/include /usr/lib/sidplay2/include \
+                             /usr/local/lib/sidplay2/include"
         SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
-        libsidplay2_libdirs="/usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs="$prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
         SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
 
@@ -294,6 +295,8 @@ AC_DEFUN(CONFIG_LIBTOOL,
     CC=$save_cc
     CFLAGS=$save_cflags
 ])
+
+
 
 
 # serial 40 AC_PROG_LIBTOOL
