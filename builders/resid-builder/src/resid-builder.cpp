@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/01/29 21:58:28  s_a_white
+ *  Moved out sid emulation to a private header file.
+ *
  *  Revision 1.3  2001/12/11 19:33:18  s_a_white
  *  More GCC3 Fixes.
  *
@@ -31,7 +34,7 @@
 
 #include "config.h"
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include "resid.h"
@@ -68,7 +71,7 @@ uint ReSIDBuilder::create (uint sids)
 	for (count = 0; count < sids; count++)
 	{
 #   ifdef HAVE_EXCEPTIONS
-	    sid = new(nothrow) ReSID(this);
+	    sid = new(std::nothrow) ReSID(this);
 #   else
 	    sid = new ReSID(this);
 #   endif

@@ -233,7 +233,7 @@ const udword_ppt PP20::decompress(const void* source,
 	// Allocate memory for output data.
 	ubyte_ppt* dest;
 #ifdef PP20_HAVE_EXCEPTIONS
-	if (( dest = new(nothrow) ubyte_ppt[outputLen]) == 0 )
+    if (( dest = new(std::nothrow) ubyte_ppt[outputLen]) == 0 )
 #else
 	if (( dest = new ubyte_ppt[outputLen]) == 0 )
 #endif

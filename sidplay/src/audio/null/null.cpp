@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.5  2001/08/21 21:57:14  jpaana
  *  Don't try to resize the buffer if the size is given (confuses other audiodrivers)
  *
@@ -38,7 +41,8 @@
 #include "null.h"
 #include "config.h"
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
+#   define nothrow std::nothrow
 #endif
 
 Audio_Null::Audio_Null ()
@@ -69,7 +73,7 @@ void *Audio_Null::open (AudioConfig &cfg, const char *)
 
     // We need to make a buffer for the user
 #if defined(HAVE_EXCEPTIONS)
-    _sampleBuffer = new(nothrow) uint_least8_t[bufSize];
+    _sampleBuffer = new(std::nothrow) uint_least8_t[bufSize];
 #else
     _sampleBuffer = new uint_least8_t[bufSize];
 #endif

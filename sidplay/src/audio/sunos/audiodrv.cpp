@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/01/10 19:04:01  s_a_white
+ *  Interface changes for audio drivers.
+ *
  *  Revision 1.3  2001/12/11 19:38:13  s_a_white
  *  More GCC3 Fixes.
  *
@@ -39,7 +42,7 @@
 #ifdef   HAVE_SUNOS
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include <errno.h>
@@ -165,7 +168,7 @@ void *Audio_SunOS::open (AudioConfig& cfg, const char *)
 
     // Allocate memory same size as buffer
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(nothrow) int_least8_t[myaudio_info.play.buffer_size];
+    _sampleBuffer = new(std::nothrow) int_least8_t[myaudio_info.play.buffer_size];
 #else
     _sampleBuffer = new int_least8_t[myaudio_info.play.buffer_size];
 #endif

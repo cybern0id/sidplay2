@@ -26,7 +26,7 @@
 #include "sidendian.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 
 static const char _sidtune_txt_format_mus[] = "C64 Sidplayer format (MUS)";
@@ -626,7 +626,7 @@ bool SidTune::MUS_mergeParts(Buffer_sidtt<const uint8_t>& musBuf,
     }
 
 #ifdef HAVE_EXCEPTIONS
-    if ( !mergeBuf.assign(new(nothrow) uint8_t[mergeLen],mergeLen) )
+    if ( !mergeBuf.assign(new(std::nothrow) uint8_t[mergeLen],mergeLen) )
 #else
     if ( !mergeBuf.assign(new uint8_t[mergeLen],mergeLen) )
 #endif

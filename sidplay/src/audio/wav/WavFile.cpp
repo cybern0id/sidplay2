@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/01/10 18:57:01  s_a_white
+ *  Interface changes and fixes for bigendian machines.
+ *
  *  Revision 1.8  2001/12/11 19:38:13  s_a_white
  *  More GCC3 Fixes.
  *
@@ -53,7 +56,7 @@
 #include "WavFileDefs.h"
 
 #ifdef WAV_HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 
 #if defined(WAV_HAVE_IOS_OPENMODE)
@@ -107,7 +110,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
 
     // We need to make a buffer for the user
 #if defined(WAV_HAVE_EXCEPTIONS)
-    _sampleBuffer = new(nothrow) uint_least8_t[bufSize];
+    _sampleBuffer = new(std::nothrow) uint_least8_t[bufSize];
 #else
     _sampleBuffer = new uint_least8_t[bufSize];
 #endif

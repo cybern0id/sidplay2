@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.5  2001/11/21 00:04:18  s_a_white
  *  Buffer alignment issues fixed.
  *
@@ -39,7 +42,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }

@@ -26,7 +26,7 @@
 #include "PP20.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 #include <fstream.h>
 #include <iostream.h>
@@ -292,7 +292,7 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
         fileLen = (uint_least32_t)myIn.tellg();
 #endif
 #ifdef HAVE_EXCEPTIONS
-        if ( !fileBuf.assign(new(nothrow) uint_least8_t[fileLen],fileLen) )
+        if ( !fileBuf.assign(new(std::nothrow) uint_least8_t[fileLen],fileLen) )
 #else
         if ( !fileBuf.assign(new uint_least8_t[fileLen],fileLen) )
 #endif
@@ -417,7 +417,7 @@ void SidTune::init()
     // Not used!!!
     info.numberOfCommentStrings = 1;
 #ifdef HAVE_EXCEPTIONS
-    info.commentString = new(nothrow) char* [info.numberOfCommentStrings];
+    info.commentString = new(std::nothrow) char* [info.numberOfCommentStrings];
 #else
     info.commentString = new char* [info.numberOfCommentStrings];
 #endif
@@ -458,7 +458,7 @@ void SidTune::getFromStdIn()
     info.statusString = SidTune::txt_notEnoughMemory;
     uint_least8_t* fileBuf;
 #ifdef HAVE_EXCEPTIONS
-    if ( 0 == (fileBuf = new(nothrow) uint_least8_t[SIDTUNE_MAX_FILELEN]) )
+    if ( 0 == (fileBuf = new(std::nothrow) uint_least8_t[SIDTUNE_MAX_FILELEN]) )
 #else
     if ( 0 == (fileBuf = new uint_least8_t[SIDTUNE_MAX_FILELEN]) )
 #endif
@@ -496,7 +496,7 @@ void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least3
 
     uint_least8_t* tmpBuf;
 #ifdef HAVE_EXCEPTIONS
-    if ( 0 == (tmpBuf = new(nothrow) uint_least8_t[bufferLen]) )
+    if ( 0 == (tmpBuf = new(std::nothrow) uint_least8_t[bufferLen]) )
 #else
     if ( 0 == (tmpBuf = new uint_least8_t[bufferLen]) )
 #endif
@@ -631,7 +631,7 @@ bool SidTune::createNewFileName(Buffer_sidtt<char>& destString,
     uint_least32_t newLen = strlen(sourceName)+strlen(sourceExt)+1;
     // Get enough memory, so we can appended the extension.
 #ifdef HAVE_EXCEPTIONS
-    newBuf.assign(new(nothrow) char[newLen],newLen);
+    newBuf.assign(new(std::nothrow) char[newLen],newLen);
 #else
     newBuf.assign(new char[newLen],newLen);
 #endif

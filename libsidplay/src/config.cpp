@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2002/03/03 22:01:58  s_a_white
+ *  New clock speed & sid model interface.
+ *
  *  Revision 1.20  2002/02/18 21:59:10  s_a_white
  *  Added two new clock modes (FIXED).  Seems to be a requirement for
  *  HVSC/sidplayw.
@@ -85,7 +88,7 @@
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 SIDPLAY2_NAMESPACE_START
@@ -410,7 +413,7 @@ int Player::environment (sid2_env_t env)
         }
 
 #ifdef HAVE_EXCEPTIONS
-        m_ram = new(nothrow) uint8_t[0x10000];
+        m_ram = new(std::nothrow) uint8_t[0x10000];
 #else
         m_ram = new uint8_t[0x10000];
 #endif
@@ -427,7 +430,7 @@ int Player::environment (sid2_env_t env)
         else
         {
 #ifdef HAVE_EXCEPTIONS
-            m_rom = new(nothrow) uint8_t[0x10000];
+            m_rom = new(std::nothrow) uint8_t[0x10000];
 #else
             m_rom = new uint8_t[0x10000];
 #endif

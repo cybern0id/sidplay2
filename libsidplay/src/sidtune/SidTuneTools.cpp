@@ -21,7 +21,7 @@
 #include "SidTuneTools.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 #include <ctype.h>
 #include <string.h>
@@ -31,7 +31,7 @@ char* SidTuneTools::myStrDup(const char *source)
 {
 	char *dest;
 #ifdef HAVE_EXCEPTIONS
-	if ( (dest = new(nothrow) char[strlen(source)+1]) != 0)
+	if ( (dest = new(std::nothrow) char[strlen(source)+1]) != 0)
 #else
 	if ( (dest = new char[strlen(source)+1]) != 0)
 #endif

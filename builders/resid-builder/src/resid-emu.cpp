@@ -19,7 +19,7 @@
 #include "config.h"
 
 #if HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include "resid.h"
@@ -32,7 +32,7 @@ ReSID::ReSID (sidbuilder *builder)
 :sidemu(builder),
  m_context(NULL),
 #ifdef HAVE_EXCEPTIONS
- m_sid(*(new(nothrow) RESID::SID)),
+ m_sid(*(new(std::nothrow) RESID::SID)),
 #else
  m_sid(*(new RESID::SID)),
 #endif

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2002/01/28 22:35:20  s_a_white
+ *  Initial Release.
+ *
  *
  ***************************************************************************/
 
@@ -23,11 +26,12 @@
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include "hardsid.h"
 #include "hardsid-emu.h"
+
 
 #ifdef HAVE_MSWINDOWS
 //**************************************************************************
@@ -89,7 +93,7 @@ uint HardSIDBuilder::create (uint sids)
     for (count = 0; count < sids; count++)
     {
 #   ifdef HAVE_EXCEPTIONS
-        sid = new(nothrow) HardSID(this);
+        sid = new(std::nothrow) HardSID(this);
 #   else
         sid = new HardSID(this);
 #   endif
