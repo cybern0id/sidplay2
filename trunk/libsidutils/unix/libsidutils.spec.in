@@ -16,7 +16,7 @@ Group:          System/Libraries
 URL:            http://sidplay2.sourceforge.net/
 BuildRoot:      %{_tmppath}/%{name}-buildroot
 Prefix:         %{_prefix}
-Requires:       libsidplay >= %{libsidplay2}
+Requires:       libsidplay2 >= %{libsidplay2}
 BuildRequires:  libsidplay2-devel >= %{libsidplay2}
 
 %description
