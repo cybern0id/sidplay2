@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2003/02/20 21:12:19  s_a_white
+ *  Switching to NMI during BRK now occurs correctly.
+ *
  *  Revision 1.36  2003/02/20 19:00:20  s_a_white
  *  Code tidy
  *
@@ -2241,7 +2244,7 @@ MOS6510::MOS6510 (EventContext *context)
                 if (cycleCount)
                 {
 #ifdef HAVE_EXCEPTIONS
-                    instr->cycle = new(std::nothrow) (ProcessorCycle[cycleCount]);
+                    instr->cycle = new(std::nothrow) ProcessorCycle[cycleCount];
 #else
                     instr->cycle = new ProcessorCycle[cycleCount];
 #endif
@@ -2334,7 +2337,7 @@ MOS6510::MOS6510 (EventContext *context)
                 if (cycleCount)
                 {
 #ifdef HAVE_EXCEPTIONS
-                    instr->cycle = new(std::nothrow) (ProcessorCycle[cycleCount]);
+                    instr->cycle = new(std::nothrow) ProcessorCycle[cycleCount];
 #else
                     instr->cycle = new ProcessorCycle[cycleCount];
 #endif
