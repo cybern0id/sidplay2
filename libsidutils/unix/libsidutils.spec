@@ -1,5 +1,5 @@
 %define name    libsidutils
-%define version 1.0.0
+%define version 1.0.1
 %define release 1
 %define major   1
 
@@ -63,7 +63,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
-* Wed Apr 10 2001 Simon White <s_a_white@email.com> 1.0.0-1
+* Wed Apr 10 2001 Simon White <s_a_white@email.com> 1.0.1-1
 - Use non Mandrake specific release number.  Bug fixes in INI
   file parser.
 

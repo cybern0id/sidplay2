@@ -63,15 +63,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
-* Wed Apr 10 2001 Simon White <s_a_white@email.com> @VERSION@-1
+* Wed Apr 10 2001 Simon White <s_a_white@email.com> 1.0.1-1
 - Use non Mandrake specific release number.  Bug fixes in INI
   file parser.
 
-* Wed Apr 4 2001 Simon White <s_a_white@email.com> @VERSION@-2mdk
+* Wed Apr 4 2001 Simon White <s_a_white@email.com> 1.0.0-2mdk
 - Updated --prefix and make install so la file does not end up with
   a bad install path.
 
-* Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1mdk
+* Sun Apr 1 2001 Simon White <s_a_white@email.com> 1.0.0-1mdk
 - First spec file.
 
 # end of file
