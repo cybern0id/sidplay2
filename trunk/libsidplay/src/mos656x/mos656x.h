@@ -52,10 +52,29 @@ public:
 };
 
 
+/***************************************************************************
+ * Inline functions
+ **************************************************************************/
+
+enum
+{
+    MOS656X_INTERRUPT_RST     = 1 << 0,
+    MOS656X_INTERRUPT_REQUEST = 1 << 7
+};
+
 inline void MOS656X::clock ()
 {
     if (!--cycle)
         rasterClock ();
+}
+
+inline void MOS656X::rasterClock ()
+{
+    raster_y++;
+    raster_y %= rasters;
+    cycle = cycles;
+    if (raster_y == raster_irq)
+        trigger (MOS656X_INTERRUPT_RST);
 }
 
 #endif // _mos656x_h_

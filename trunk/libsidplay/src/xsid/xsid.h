@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/03/19 23:40:46  s_a_white
+ *  Better support for global debug.
+ *
  *  Revision 1.10  2001/03/09 22:27:13  s_a_white
  *  Speed optimisation update.
  *
@@ -177,18 +180,6 @@ public:
     operator bool()  const { return (active); }
 };
 
-inline void channel::clock ()
-{   // Emulate a CIA timer
-    if (!cycleCount)
-        return;
-
-    // Optimisation to prevent _clock being
-    // called un-necessarily.
-    cycles++;
-    if (--cycleCount)
-        return;
-    (this->*_clock) ();
-}
 
 class XSID: public C64Environment
 {
@@ -237,40 +228,22 @@ public:
     bool updateSidData0x18 (uint8_t data);
 };
 
-inline void XSID::clock (uint_least16_t delta_t)
-{
-    if (ch4 || ch5)
-    {
-        if (delta_t == 1)
-        {
-            ch4.clock ();
-            ch5.clock ();
-        }
-        else
-        {
-            ch4.clock (delta_t);
-            ch5.clock (delta_t);
-        }
 
-        if (!_sidSamples)
-            return;
+/***************************************************************************
+ * Inline functions
+ **************************************************************************/
 
-        if (ch4.hasChanged () || ch5.hasChanged ())
-            setSidData0x18 ();
-        wasRunning = true;
-    }
-    else if (wasRunning)
-    {   // Rev 2.0.5 (saw) - Changed to restore volume different depending on mode
-        // Normally after samples volume should be restored to half volume,
-        // however, Galway Tunes sound horrible and seem to require setting back to
-        // the original volume.  Setting back to the original volume for normal
-        // samples can have nasty pulsing effects
-        if (ch4.isGalway ())
-            envWriteMemByte (sidAddr0x18, sidData0x18);
-        else
-            setSidData0x18 ();
-        wasRunning = false;
-    }
+inline void channel::clock ()
+{   // Emulate a CIA timer
+    if (!cycleCount)
+        return;
+
+    // Optimisation to prevent _clock being
+    // called un-necessarily.
+    cycles++;
+    if (--cycleCount)
+        return;
+    (this->*_clock) ();
 }
 
 #endif // _xsid_h_

@@ -17,24 +17,19 @@
 
 #include "mos656x.h"
 
-enum
-{
-    INTERRUPT_RST     = 1 << 0,
-    INTERRUPT_REQUEST = 1 << 7
-};
 
 MOS656X::MOS656X ()
 {
-    reset ();
     chip  (MOS6569);
+    reset ();
 }
 
 void MOS656X::reset ()
 {
     icr        = idr = 0;
-    raster_y   = 0xffff;
+    raster_y   = rasters;
     raster_irq = 0;
-    cycle      = 1;
+    cycle      = cycles;
 }
 
 void MOS656X::chip (mos656x_model_t model)
@@ -92,7 +87,7 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         uint_least16_t raster_new = (raster_irq & 0xff) |
                                     ((uint_least16_t) (data & 0x80) << 1); 
         if ((raster_irq != raster_new) && (raster_y == raster_new))
-            trigger (INTERRUPT_RST);
+            trigger (MOS656X_INTERRUPT_RST);
         raster_irq = raster_new;
         break;
     }
@@ -101,7 +96,7 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
     {
         uint_least16_t raster_new = (raster_irq & 0xff00) | data;
         if ((raster_irq != raster_new) && (raster_y == raster_new))
-            trigger (INTERRUPT_RST);
+            trigger (MOS656X_INTERRUPT_RST);
         raster_irq = raster_new;
         break;
     }
@@ -124,7 +119,7 @@ void MOS656X::trigger (int interrupt)
 {
     if (!interrupt)
     {   // Clear any requested IRQs
-        if (idr & INTERRUPT_REQUEST)
+        if (idr & MOS656X_INTERRUPT_REQUEST)
         {
             idr = 0;
             envClearIRQ ();
@@ -135,19 +130,10 @@ void MOS656X::trigger (int interrupt)
     idr |= interrupt;
     if (icr & idr)
     {
-        if (!(idr & INTERRUPT_REQUEST))
+        if (!(idr & MOS656X_INTERRUPT_REQUEST))
         {
-            idr |= INTERRUPT_REQUEST;
+            idr |= MOS656X_INTERRUPT_REQUEST;
             envTriggerIRQ ();
         }
     }
-}
-
-void MOS656X::rasterClock ()
-{
-    raster_y++;
-    raster_y %= rasters;
-    cycle = cycles;
-    if (raster_y == raster_irq)
-        trigger (INTERRUPT_RST);
 }
