@@ -56,7 +56,7 @@ cd resid-%{resid}
 %make
 cd ..
 cd resid-builder-%{residbld}
-%configure --with-sidplay2=$PWD/.. --with-resid=$PWD/../resid-%{resid}
+%configure --with-resid=$PWD/../resid-%{resid} --libdir=%{_libdir}
 %make
 cd ..
 
