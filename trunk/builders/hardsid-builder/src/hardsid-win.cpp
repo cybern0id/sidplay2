@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/01/30 00:29:18  s_a_white
+ *  Added realtime delays even when there is no accesses to
+ *  the sid.  Prevents excessive CPU usage.
+ *
  *  Revision 1.2  2002/01/29 21:47:35  s_a_white
  *  Constant fixed interval delay added to prevent emulation going fast when
  *  there are no writes to the sid.
@@ -95,7 +99,7 @@ void HardSID::write (const uint_least8_t addr, const uint8_t data)
                  (BYTE) addr, (BYTE) data);
 }
 
-void HardSID::reset (void)
+void HardSID::reset (uint8_t)
 {   // Ok if no fifo, otherwise need hardware
     // reset to clear out fifo.
     
