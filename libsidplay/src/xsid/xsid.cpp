@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2002/07/17 21:19:54  s_a_white
+ *  Minor non sid sample mode fixes.
+ *
  *  Revision 1.19  2002/02/21 20:26:13  s_a_white
  *  Nolonger default to Galway Mode when Noise samples init incorrectly. Fixes
  *  VARIOUS/S-Z/Zyron/Bouncy_Balls.sid (HVSC).
@@ -219,8 +222,8 @@ void channel::sampleInit ()
 #endif // XSID_DEBUG
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0);
-    m_context.schedule (&sampleEvent, cycleCount);
+    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
+    m_context.schedule (&sampleEvent, cycleCount, EVENT_CLOCK_PHI1);
 }
 
 void channel::sampleClock ()
@@ -260,8 +263,8 @@ void channel::sampleClock ()
     sample  = sampleCalculate ();
     cycles += cycleCount;
     // Schedule a sample update
-    m_context.schedule (&sampleEvent, cycleCount);
-    m_context.schedule (&m_xsid, 0);
+    m_context.schedule (&sampleEvent, cycleCount, EVENT_CLOCK_PHI1);
+    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
 }
 
 int8_t channel::sampleCalculate ()
@@ -336,8 +339,8 @@ void channel::galwayInit()
 #endif
 
     // Schedule a sample update
-    m_context.schedule (&m_xsid, 0);
-    m_context.schedule (&galwayEvent, cycleCount);
+    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
+    m_context.schedule (&galwayEvent, cycleCount, EVENT_CLOCK_PHI1);
 }
 
 void channel::galwayClock ()
@@ -368,8 +371,8 @@ void channel::galwayClock ()
     galVolume &= 0x0f;
     sample     = (int8_t) galVolume - 8;
     cycles    += cycleCount;
-    m_context.schedule (&galwayEvent, cycleCount);
-    m_context.schedule (&m_xsid, 0);
+    m_context.schedule (&galwayEvent, cycleCount, EVENT_CLOCK_PHI1);
+    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
 }
 
 void channel::galwayTonePeriod ()
@@ -394,7 +397,7 @@ void channel::silence ()
     sample = 0;
     m_context.cancel   (&sampleEvent);
     m_context.cancel   (&galwayEvent);
-    m_context.schedule (&m_xsid, 0);
+    m_context.schedule (&m_xsid, 0, EVENT_CLOCK_PHI1);
 }
 
 

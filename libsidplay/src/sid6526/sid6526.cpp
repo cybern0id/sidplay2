@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/10/02 19:48:15  s_a_white
+ *  Make CIA control register reflect that the timer cannot be disabled.
+ *
  *  Revision 1.6  2002/03/11 18:00:29  s_a_white
  *  Better mirror sidplay1s handling of random numbers.
  *
@@ -116,7 +119,8 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             cra &= (~0x10);
             ta   = ta_latch;
         }
-        m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1);
+        m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
+                                 EVENT_CLOCK_PHI1);
     break;
     default:
     break;
@@ -127,6 +131,7 @@ void SID6526::event (void)
 {   // Timer Modes
     m_accessClk = m_eventContext.getTime ();
     ta = ta_latch;
-    m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1);
+    m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
+                             EVENT_CLOCK_PHI1);
     m_env.interruptIRQ (true);
 }

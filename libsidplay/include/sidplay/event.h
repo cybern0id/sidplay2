@@ -23,11 +23,13 @@
 #include "sidtypes.h"
 
 typedef uint_fast32_t event_clock_t;
+typedef enum {EVENT_CLOCK_PHI1 = 0, EVENT_CLOCK_PHI2} event_phase_t;
 #define EVENT_CONTEXT_MAX_PENDING_EVENTS 0x100
 
 class SID_EXTERN Event
 {
 private:
+    friend  class EventContext;
     friend  class EventScheduler;
     const   char * const m_name;
     event_clock_t m_clk;
@@ -52,8 +54,10 @@ public:
 class EventContext
 {
 public:
+    bool         pending  (Event *event) { return event->m_pending; }
     virtual void cancel   (Event *event) = 0;
-    virtual void schedule (Event *event, event_clock_t cycles) = 0;
+    virtual void schedule (Event *event, event_clock_t cycles,
+                           event_phase_t phase) = 0;
     virtual event_clock_t getTime (void) const = 0;
     virtual event_clock_t getTime (event_clock_t clock) const = 0;
 };
@@ -66,6 +70,7 @@ private:
     event_clock_t  m_eventClk, m_schedClk;
     uint  m_pendingEventClk;
     uint  m_pendingEventCount;
+    event_phase_t m_phase;
 
     class SID_EXTERN EventDummy: public Event
     {
@@ -116,7 +121,8 @@ public:
     EventScheduler (const char * const name);
     void cancel    (Event *event);
     void reset     (void);
-    void schedule  (Event *event, event_clock_t cycles);
+    void schedule  (Event *event, event_clock_t cycles,
+                    event_phase_t phase);
 
     void clock (void)
     {
@@ -125,14 +131,15 @@ public:
             event_clock_t delta = m_pendingEventClk - m_eventClk;
             m_schedClk  += delta;
             m_eventClk  += delta;
+            m_phase      = (event_phase_t) (m_pendingEventClk & 1);
             dispatch ();
         }
     }
 
     event_clock_t getTime (void) const
-    {   return m_schedClk; }
+    {   return m_schedClk >> 1; }
     event_clock_t getTime (event_clock_t clock) const
-    {   return m_schedClk - clock; }
+    {   return (m_schedClk - (clock << 1)) >> 1; }
 };
 
 #endif // _event_h_

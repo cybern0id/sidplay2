@@ -50,7 +50,7 @@ void MOS656X::reset ()
     raster_y     = yrasters - 1;
     raster_x     = xrasters - 1;
     bad_lines_enabled = false;
-    event_context.schedule (this, 1);
+    event_context.schedule (this, 1, EVENT_CLOCK_PHI1);
     m_accessClk  = 0;
 }
 
@@ -122,7 +122,7 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
             break;
 
 		// In line $30, the DEN bit controls if Bad Lines can occur
-		if (raster_y == 0x30 && data & 0x10)
+		if ((raster_y == first_dma_line) && (data & 0x10))
 			bad_lines_enabled = true;
  
 		// Bad Line condition?
@@ -136,7 +136,7 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         {
             busaccess(false);
             if (raster_x < 52)
-                event_context.schedule (this, 3);
+                event_context.schedule (this, 3, EVENT_CLOCK_PHI1);
         }
         break;
 
@@ -252,5 +252,5 @@ void MOS656X::event (void)
 
     raster_x += delay;
     raster_x %= xrasters;
-    event_context.schedule (this, delay);
+    event_context.schedule (this, delay, EVENT_CLOCK_PHI1);
 }
