@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2000/12/11 19:03:16  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #include <stdio.h>
@@ -81,8 +84,8 @@ void MOS6510::DumpState (void)
     printf("%02x ",   Register_Y);
     printf("01%02x ", endian_16lo8 (Register_StackPointer));
 
-    printf("%02x ", envReadMemByte (0));
-    printf("%02x ", envReadMemByte (1));
+    printf("%02x ", envReadMemDataByte (0));
+    printf("%02x ", envReadMemDataByte (1));
 
     if (getFlagN()) printf ("1"); else printf ("0");
     if (getFlagV()) printf ("1"); else printf ("0");
