@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2002/03/03 22:02:36  s_a_white
+ *  Sidplay2 PSID driver length now exported.
+ *
  *  Revision 1.11  2002/02/17 12:41:18  s_a_white
  *  Fixed to not so easily break when C64 code is modified.
  *
@@ -22,7 +25,7 @@
  *  Improved compatibilty with older sidplay1 modes.
  *
  *  Revision 1.9  2002/01/29 21:50:33  s_a_white
- *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
+ *  Auto switching to a better emulation mode.  tuneInfo reloaded after a
  *  config.  Initial code added to support more than two sids.
  *
  *  Revision 1.8  2001/12/21 21:54:14  s_a_white
@@ -68,25 +71,25 @@ const char *Player::ERR_PSIDDRV_RELOC    = "ERROR: Failed whilst relocating psid
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
-int Player::psidDrvInstall ()
+int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
 {
     uint_least16_t relocAddr;
     
     // Check if we need to find the reloc addr
-    if ((m_tuneInfo.relocStartPage == 0) ||
-        (m_tuneInfo.relocPages    == 0))
+    if ((tuneInfo.relocStartPage == 0) ||
+        (tuneInfo.relocPages     == 0))
     {
-        psidRelocAddr ();
+        psidRelocAddr (tuneInfo);
     }
 
-    if ((m_tuneInfo.relocStartPage == 0xff) ||
-        (m_tuneInfo.relocPages < 1))
+    if ((tuneInfo.relocStartPage == 0xff) ||
+        (tuneInfo.relocPages < 1))
     {
         m_errorString = ERR_PSIDDRV_NO_SPACE;
         return -1;
     }
 
-    relocAddr = m_tuneInfo.relocStartPage << 8;
+    relocAddr = tuneInfo.relocStartPage << 8;
 
     {   // Place psid driver into ram
         uint8_t psid_driver[] = {
@@ -131,7 +134,7 @@ int Player::psidDrvInstall ()
 
         // Support older modes ability to ignore the IRQ
         // vectors if valid play
-        if ((m_info.environment != sid2_envR) && m_tuneInfo.playAddr)
+        if ((m_info.environment != sid2_envR) && tuneInfo.playAddr)
         {   // Get the addr of the sidplay vector
             uint_least16_t addr = endian_little16(&reloc_driver[13]);
             // Get the irqjob vector
@@ -144,7 +147,7 @@ int Player::psidDrvInstall ()
     }
 
     {   // Setup the Initial entry point
-        uint_least16_t playAddr = m_tuneInfo.playAddr;
+        uint_least16_t playAddr = tuneInfo.playAddr;
         uint_least16_t addr;
 
         // Check to make sure the play address is legal
@@ -154,14 +157,14 @@ int Player::psidDrvInstall ()
         // Tell C64 about song, 1st 3 locations reserved for
         // contain jmp addr
         addr = relocAddr;
-        m_ram[addr++] = (uint8_t) m_tuneInfo.currentSong;
-        if (m_tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
+        m_ram[addr++] = (uint8_t) tuneInfo.currentSong;
+        if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
             m_ram[addr] = 0;
         else // SIDTUNE_SPEED_CIA_1A
             m_ram[addr] = 1;
 
         addr++;
-        endian_little16 (&m_ram[addr], m_tuneInfo.initAddr);
+        endian_little16 (&m_ram[addr], tuneInfo.initAddr);
         addr += 2;
         endian_little16 (&m_ram[addr], playAddr);
     }
@@ -169,11 +172,11 @@ int Player::psidDrvInstall ()
 }
 
 
-void Player::psidRelocAddr ()
+void Player::psidRelocAddr (SidTuneInfo &tuneInfo)
 {
     // Start and end pages.
-    int startp =  m_tuneInfo.loadAddr >> 8;
-    int endp   = (m_tuneInfo.loadAddr + (m_tuneInfo.c64dataLen - 1)) >> 8;
+    int startp =  tuneInfo.loadAddr >> 8;
+    int endp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
     // Used memory ranges.
     bool pages[256];
@@ -192,23 +195,23 @@ void Player::psidRelocAddr ()
 
     {   // Find largest free range.
         int relocPages, lastPage = 0;
-        m_tuneInfo.relocPages = 0;
+        tuneInfo.relocPages = 0;
         for (size_t page = 0; page < sizeof(pages)/sizeof(*pages); page++)
         {
             if (pages[page] == false)
                 continue;
             relocPages = page - lastPage;
-            if (relocPages > m_tuneInfo.relocPages)
+            if (relocPages > tuneInfo.relocPages)
             {
-                m_tuneInfo.relocStartPage = lastPage;
-                m_tuneInfo.relocPages     = relocPages;
+                tuneInfo.relocStartPage = lastPage;
+                tuneInfo.relocPages     = relocPages;
             }
             lastPage = page + 1;
         }
     }
 
-    if (m_tuneInfo.relocPages    == 0x00)
-        m_tuneInfo.relocStartPage = 0xff;
+    if (tuneInfo.relocPages    == 0x00)
+        tuneInfo.relocStartPage = 0xff;
 }
 
 SIDPLAY2_NAMESPACE_STOP

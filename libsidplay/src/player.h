@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2002/03/03 22:01:58  s_a_white
+ *  New clock speed & sid model interface.
+ *
  *  Revision 1.25  2002/01/29 21:50:33  s_a_white
  *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
  *  config.  Initial code added to support more than two sids.
@@ -260,6 +263,7 @@ private:
     int       sidCreate      (sidbuilder *builder, sid2_model_t model,
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
+    void      reset          ();
 
     uint8_t readMemByte_player    (uint_least16_t addr);
     uint8_t readMemByte_plain     (uint_least16_t addr);
@@ -280,7 +284,8 @@ private:
     {   return m_ram[addr]; }
 
     // Environment Function entry Points
-    inline void    envReset           (void);
+    void           envReset           (bool safe);
+    inline void    envReset           (void) { envReset (true); }
     inline uint8_t envReadMemByte     (uint_least16_t addr);
     inline void    envWriteMemByte    (uint_least16_t addr, uint8_t data);
     inline bool    envCheckBankJump   (uint_least16_t addr);
@@ -323,8 +328,8 @@ private:
     void interruptRST (void);
 
     // PSID driver
-    int  psidDrvInstall (void);
-    void psidRelocAddr  (void);
+    int  psidDrvInstall (SidTuneInfo &tuneInfo);
+    void psidRelocAddr  (SidTuneInfo &tuneInfo);
 
 public:
     Player ();
