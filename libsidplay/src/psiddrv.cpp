@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2004/02/18 20:19:03  s_a_white
+ *  Decrement tune number before passing it to the psid code.  Setup default
+ *  processor status register flags.
+ *
  *  Revision 1.32  2004/02/16 23:25:49  s_a_white
  *  Fixed test for RSIDs.
  *
@@ -267,7 +271,23 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         m_rand  = m_rand * 13 + 1;
         *addr++ = iomap (m_tuneInfo.initAddr);
         *addr++ = iomap (m_tuneInfo.playAddr);
-        *addr++ = m_ram[0x02a6]; // PAL/NTSC flag
+        addr[1] = (addr[0] = m_ram[0x02a6]); // PAL/NTSC flag
+        addr++;
+
+        // Add the required tune speed
+        switch ((m_tune->getInfo()).clockSpeed)
+        {
+        case SIDTUNE_CLOCK_PAL:
+            *addr++ = 1;
+            break;
+        case SIDTUNE_CLOCK_NTSC:
+            *addr++ = 0;
+            break;
+        default: // UNKNOWN or ANY
+            addr++;
+            break;
+        }
+
         // Default processor register flags on calling init
         if (tuneInfo.compatibility >= SIDTUNE_COMPATIBILITY_R64)
             *addr++ = 0;
