@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/03/19 23:41:51  s_a_white
+ *  Better support for global debug.
+ *
  *  Revision 1.2  2000/12/11 19:03:16  s_a_white
  *  AC99 Update.
  *
@@ -30,7 +33,7 @@
 #define MOS6510_ACCURATE_CYCLES
 #define MOS6510_SIDPLAY
 //#define MOS6510_STATE_6510
-//#define MOS6510_DEBUG 1
+#define MOS6510_DEBUG 1
 
 // Support global debug option
 #ifdef DEBUG
