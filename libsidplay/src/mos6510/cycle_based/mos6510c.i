@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2001/08/10 20:05:50  s_a_white
+ *  Fixed RMW instructions which broke due to the optimisation.
+ *
  *  Revision 1.17  2001/08/05 15:46:02  s_a_white
  *  No longer need to check on which cycle an instruction ends or when to print
  *  debug information.
@@ -2391,6 +2394,9 @@ void MOS6510::Initialise (void)
 
     // Set PC to some value
     Register_ProgramCounter = 0;
+    // IRQs pending check
+    if (interrupts.irqs)
+        interrupts.pending |= iIRQ;
 }
 
 //-------------------------------------------------------------------------//
