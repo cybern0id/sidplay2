@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/02/17 16:34:39  s_a_white
+ *  New reset interface
+ *
  *  Revision 1.17  2001/11/16 19:22:04  s_a_white
  *  Removed compiler warning for unused parameter.
  *
@@ -69,28 +72,18 @@ Confirmed by Warren Pilkington using the tune Turbo Outrun:
 A new sample must interrupt an existing sample running on the same channel.
 
 Confirmed by Michael Schwendt and Antonia Vera using the tune Game Over:
-A Galway noise sequence cannot interrupt another.  However the last of
-these new requested sequences will be played after the current sequence
-ends.
-
-Confirmed by Michael Schwendt using the tune Game Over:
-Galway noise cannot interrupt a sample sequence.  However the last of
-these new requested sequences will be played after the current sequence
-ends.
-
-Confirmed by Michael Schwendt using the tune Game Over:
-A sample sequence cannot interrupt Galway Noise.  However the last of
-these new requested sequences will be played after the current sequence
-ends.
+A Galway Sample or Noise sequence cannot interrupt any other.  However
+the last of these new requested sequences will be played after the current
+sequence ends.
 
 Lastly playing samples through the SIDs volume is not as clean as playing
 them on their own channel.  Playing through the SID will effect the volume
 of the other channels and this will be most noticable at low frequencies.
-These effects are however be present in the oringial SID music.
+These effects are however present in the original SID music.
 
 Some SIDs put values directly into the volume register.  Others play samples
 with respect to the current volume.  We can't for definate know which the author
-has chosen originally.  We must just make a guess based on what the the volume
+has chosen originally.  We must just make a guess based on what the volume
 is initially at the start of a sample sequence and from the details xSID has been
 programmed with.
 */

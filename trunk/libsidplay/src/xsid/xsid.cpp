@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/02/17 16:34:39  s_a_white
+ *  New reset interface
+ *
  *  Revision 1.17  2002/01/28 19:31:42  s_a_white
  *  PSID sample improvements.
  *
@@ -122,22 +125,25 @@ inline int8_t channel::output ()
 void channel::checkForInit ()
 {   // Check to see mode of operation
     // See xsid documentation
-    uint8_t state = reg[convertAddr (0x1d)];
-
-    if (!state)
-        return;
-    if (state == 0xfd)
+    switch (reg[convertAddr (0x1d)])
     {
+    case 0xFF:
+    case 0xFE:
+    case 0xFC:
+        sampleInit ();
+		break;
+    case 0xFD:
         if (!active)
             return;
         free (); // Stop
         // Calculate the sample offset
         m_xsid.sampleOffsetCalc ();
-    }
-    else if (state < 0xfc)
+		break;
+    case 0x00:
+        break;
+    default:
         galwayInit ();
-    else // if (state >= 0xfc)
-        sampleInit ();
+    }
 }
 
 void channel::sampleInit ()
@@ -165,7 +171,12 @@ void channel::sampleInit ()
     samScale      = reg[convertAddr  (0x5f)];
     r             = &reg[convertAddr (0x5d)];
     samPeriod     = endian_16 (r[1], r[0]) >> samScale;
-    if (!samPeriod) return;
+    if (!samPeriod)
+    {   // Stop this channel
+        reg[convertAddr (0x1d)] = 0xfd;
+        checkForInit ();
+        return;
+    }
 
     // Load the other parameters
     samNibble     = 0;
@@ -224,15 +235,15 @@ void channel::sampleClock ()
         address      = samRepeatAddr;
         if (address >= samEndAddr)
         {   // The sequence has completed
-            uint8_t *status = &reg[convertAddr (0x1d)];
-            if (!*status)
-                *status  = 0xfd;
-            if (*status != 0xfd)
-                active   = false;
+            uint8_t &status = reg[convertAddr (0x1d)];
+            if (!status)
+                status = 0xfd;
+            if (status != 0xfd)
+                active = false;
 #ifdef XSID_DEBUG
             printf ("XSID [%s]: Sample Stop (%lu Cycles, %lu Outputs)\n",
                     m_name, cycles, outputs);
-            if (*status != 0xfd)
+            if (status != 0xfd)
                 printf ("XSID [%s]: Starting Delayed Sequence\n", m_name);
 #endif
             checkForInit ();
@@ -282,11 +293,6 @@ int8_t channel::sampleCalculate ()
 void channel::galwayInit()
 {
     uint8_t *r;
-
-    // If mode was HUELS, then it's
-    // gonna become GALWAY and we should
-    // not interrupt current sample
-    mode = FM_GALWAY;
     if (active)
         return;
 
@@ -336,15 +342,15 @@ void channel::galwayClock ()
         cycleCount = samPeriod;
     else if (galTones == 0xff)
     {   // The sequence has completed
-        uint8_t *status = &reg[convertAddr (0x1d)];
-        if (!*status)
-            *status  = 0xfd;
-        if (*status != 0xfd)
-            active   = false;
+        uint8_t &status = reg[convertAddr (0x1d)];
+        if (!status)
+            status = 0xfd;
+        if (status != 0xfd)
+            active = false;
 #ifdef XSID_DEBUG
         printf ("XSID [%s]: Galway Stop (%lu Cycles, %lu Outputs)\n",
                 m_name, cycles, outputs);
-        if (*status != 0xfd)
+        if (status != 0xfd)
             printf ("XSID [%s]: Starting Delayed Sequence\n", m_name);
 #endif
         checkForInit ();
