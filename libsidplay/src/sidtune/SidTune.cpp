@@ -23,7 +23,7 @@
 #include "PP20.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new>
+#include <new.h>
 #endif
 #include <fstream.h>
 #include <iostream.h>

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2001/11/16 19:21:03  s_a_white
+ *  Sign fixes.
+ *
  *  Revision 1.20  2001/10/28 21:31:26  s_a_white
  *  Removed kernel debuging code.
  *
@@ -100,7 +103,7 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 // Microsoft Visual C++ Version Number to work around compiler bug

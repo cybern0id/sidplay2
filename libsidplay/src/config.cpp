@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/11/23 22:59:59  s_a_white
+ *  Added new header
+ *
  *  Revision 1.9  2001/10/02 18:27:55  s_a_white
  *  Updated to use new sidbuilder classes.
  *
@@ -48,7 +51,7 @@
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 // An instance of this structure is used to transport emulator settings
