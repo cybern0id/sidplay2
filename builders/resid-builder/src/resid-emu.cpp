@@ -185,12 +185,16 @@ void ReSID::filter (bool enable)
     m_sid.enable_filter (enable);
 }
 
-void ReSID::voice (uint_least8_t num, uint_least8_t volume,
-                   bool mute)
-{   // At this time only mute is supported
-    m_sid.mute (num, mute);
+void ReSID::volume (uint_least8_t num, uint_least8_t volume)
+{
+    // Not yet supported
 }
     
+void ReSID::mute (uint_least8_t num, bool enable)
+{
+    m_sid.mute (num, enable);
+}
+
 void ReSID::gain (int_least8_t percent)
 {
     // 0 to 99 is loss, 101 - 200 is gain

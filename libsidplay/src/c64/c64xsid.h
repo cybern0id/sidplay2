@@ -76,14 +76,20 @@ public:
     int_least32_t output (uint_least8_t bits)
     {   return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100); }
 
-    void voice (uint_least8_t num, uint_least8_t vol,
-                bool mute)
+    void volume (uint_least8_t num, uint_least8_t vol)
+    {
+        m_sid->volume (num, vol);
+    }
+
+    void mute (uint_least8_t num, bool mute)
     {
         if (num == 3)
-            XSID::mute (mute);
+            XSID::mute  (mute);
         else
-            m_sid->voice (num, vol, mute);
+            m_sid->mute (num, mute);
     }
+
+    void mute (bool mute) { XSID::mute (mute); }
 
     void gain (int_least8_t percent)
     {

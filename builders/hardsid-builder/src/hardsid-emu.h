@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2004/03/18 20:50:21  s_a_white
+ *  Indicate the 2.07 extensions.
+ *
  *  Revision 1.7  2003/10/28 00:15:16  s_a_white
  *  Get time with respect to correct clock phase.
  *
@@ -151,8 +154,8 @@ public:
     int_least32_t output  (uint_least8_t bits);
     void          filter  (bool enable);
     void          model   (sid2_model_t model) {;}
-    void          voice   (uint_least8_t num, uint_least8_t volume,
-                           bool mute);
+    void          volume  (uint_least8_t num, uint_least8_t level);
+    void          mute    (uint_least8_t num, bool enable);
     void          gain    (int_least8_t) {;}
 
     // HardSID specific
