@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/09/01 11:12:22  s_a_white
+ *  Fixes sidplay1 environment modes.
+ *
  *  Revision 1.1  2001/07/27 12:12:23  s_a_white
  *  Initial release.
  *
@@ -130,16 +133,14 @@ getsong     ldx playnum
             beq run
             lda #$37
             sta $01
+            ; Kick of sidplay2 optimisation
 run         brk
             ; This is just incase the song has defined BRK
             ; to point to a handler ending in RTI
             nop 
-
-            ; Entry from real C64
-brkjob      ldx #$ff
-            txs
-            cli
-            brk
+            
+brkjob      ; Entry from real C64
+idle        jmp idle
 
 irqjob      lda $01
             ldx iomap
