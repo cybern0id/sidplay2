@@ -74,20 +74,15 @@ bool ReSID::filter (const sid_filter_t *filter)
         m_sid.fc_default (f0, points);
     }
     else
-    {
-        const sid_fc_t * const cutoff = filter->cutoff;
+    {   // Make sure there are enough filter points and they are legal
         points = filter->points;
- 
-        // Make sure there are enough filter points and they are legal
         if ((points < 2) || (points > 0x800))
             return false;
 
         {
-            const sid_fc_t *fin, *fprev;
             const sid_fc_t  fstart = {-1, 0};
+            const sid_fc_t *fprev  = &fstart, *fin = filter->cutoff;
             RESID::fc_point *fout = fc;
-            fprev = &fstart;
-            fin   = cutoff;
             // Last check, make sure they are list in numerical order
             // for both axis
             while (points-- > 0)
