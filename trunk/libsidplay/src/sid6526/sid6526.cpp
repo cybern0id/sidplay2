@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/01/17 08:37:12  s_a_white
+ *  Event scheduler phase support.
+ *
  *  Revision 1.7  2002/10/02 19:48:15  s_a_white
  *  Make CIA control register reflect that the timer cannot be disabled.
  *
@@ -56,15 +59,19 @@ SID6526::SID6526 (c64env *env)
  m_taEvent(*this)
 {
     clock (0xffff);
-    reset ();
+    reset (false);
 }
 
-void SID6526::reset (void)
+void SID6526::reset (bool seed)
 {
     locked = false;
     ta   = ta_latch = m_count;
     cra  = 0;
-    rnd += time(NULL) & 0xff;
+    // Initialise random number generator
+    if (seed)
+        rnd = 0;
+    else
+        rnd += time(NULL) & 0xff;
     m_accessClk = 0;
 }
 

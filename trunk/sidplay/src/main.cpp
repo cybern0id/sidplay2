@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2002/03/11 18:02:56  s_a_white
+ *  Display errors like sidplay1.
+ *
  *  Revision 1.26  2002/01/30 00:33:00  s_a_white
  *  Error message now multiline.
  *
@@ -143,7 +146,10 @@ main_restart:
         if (!player.play ())
             break;
     }
+
+#ifndef HAVE_MSWINDOWS
     cerr << endl;
+#endif
 
 #ifdef HAVE_UNIX
     keyboard_disable_raw ();

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/11/06 19:08:46  s_a_white
+ *  Added --none to command line for selecting no sid (debug purposes).
+ *
  *  Revision 1.8  2002/09/23 21:49:58  s_a_white
  *  Display error message on engine configuration failure.
  *
@@ -276,6 +279,11 @@ bool ConsolePlayer::args (int argc, char *argv[])
                     m_verboseLevel = 1;
                 else
                     m_verboseLevel = atoi(&argv[i][2]);
+            }
+            else if (strncmp (&argv[i][1], "-crc", 4) == 0)
+            {
+                m_crc = true;
+                m_engCfg.powerOnDelay = 0;
             }
 
             // File format conversions

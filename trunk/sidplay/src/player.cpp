@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2003/01/20 16:26:18  s_a_white
+ *  Updated for new event scheduler interface.
+ *
  *  Revision 1.20  2003/01/14 20:37:10  s_a_white
  *  Updated previous song select timeout to 4 seconds.
  *
@@ -109,7 +112,8 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_outfile(NULL),
  m_context(NULL),
  m_quietLevel(0),
- m_verboseLevel(0)
+ m_verboseLevel(0),
+ m_crc(false)
 {   // Other defaults
     m_filename       = "";
     m_filter.enabled = true;
@@ -484,9 +488,6 @@ void ConsolePlayer::close ()
     // end up in a suitable location
     if ((m_iniCfg.console ()).ansi)
         cerr << '\x1b' << "[0m";
-#ifndef HAVE_MSWINDOWS
-    cerr << endl;
-#endif
 }
 
 // Flush any hardware sid fifos so all music is played
@@ -538,6 +539,16 @@ bool ConsolePlayer::play ()
         if (_kbhit ())
             decodeKeys ();
         return true;
+    case playerExit:
+        m_engine.stop ();
+        if (m_quietLevel < 2)
+            cerr << endl;
+        if (m_crc)
+        {
+            cout << setw(8) << setfill('0') << hex
+                 << (m_engine.info ()).sid2crc << " : "
+                 << m_filename << endl;
+        }
     default:
 #ifdef HAVE_TSID
         if (m_tsid)

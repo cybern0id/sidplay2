@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/01/29 08:11:43  s_a_white
+ *  TSID filename fix
+ *
  *  Revision 1.5  2002/01/28 19:40:50  s_a_white
  *  Added TSID support.
  *
@@ -121,6 +124,7 @@ private:
     // Display parameters
     uint_least8_t      m_quietLevel;
     uint_least8_t      m_verboseLevel;
+    bool               m_crc;
 
     struct m_filter_t
     {
