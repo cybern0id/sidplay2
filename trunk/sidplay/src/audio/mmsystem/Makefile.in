@@ -92,7 +92,8 @@ noinst_LIBRARIES = libmmsystem.a
 
 libmmsystem_a_SOURCES = mmsystem.cpp mmsystem.h
 
-INCLUDES = -I.. -I-
+DEFAULT_INCLUDES = 
+DEFS = @DEFS@ -I$(top_srcdir)/include
 subdir = src/audio/mmsystem
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -103,9 +104,6 @@ libmmsystem_a_AR = $(AR) cru
 libmmsystem_a_LIBADD =
 am_libmmsystem_a_OBJECTS = mmsystem.$(OBJEXT)
 libmmsystem_a_OBJECTS = $(am_libmmsystem_a_OBJECTS)
-
-DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
