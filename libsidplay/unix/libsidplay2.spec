@@ -4,12 +4,18 @@
 %define version  2.1.0
 %define frelease 1
 %define release  %{frelease}
+%define resid    0.12
+%define residbld 1.0.0
+%define builders %{_libdir}/sidplay/builders
 
 Summary:        A Commodore 64 music player and SID chip emulator library.
 Name:           %{name}
 Version:        %{version}
 Release:        %{release}
 Source:         %{oname}-%{version}-%{frelease}.tar.bz2
+Source1:        resid-%{resid}.tar.bz2
+Source2:        resid-builder-%{residbld}-1.tar.bz2
+Patch:          resid-%{resid}-p1.patch.bz2
 Copyright:      GPL
 Group:          System/Libraries
 URL:            http://sidplay2.sourceforge.net/
@@ -22,7 +28,9 @@ developed by Simon White. This library provides no internal
 SID emulation. Instead a means to drive any external SID hardware or
 emulation has been provided using the SID Builder Classes.
 
-SID Builder Classes can be obtained from the SIDPlay2 homepage.
+A ReSID Builder Class using a modified version of ReSID %{resid}
+is included in this package. Alternative/updated classes can be
+obtained from the SIDPlay2 homepage.
 
 %package devel
 Summary:        Development headers and libraries for %{name}
@@ -36,14 +44,27 @@ for developing applications to use %{name}.
 
 %prep
 rm -rf $RPM_BUILD_ROOT 
-%setup -q -n %{oname}-%{version}
+%setup -q -n %{oname}-%{version} -a 1 -a 2
+%patch -p0
+touch resid-%{resid}/*
 
 %build
 %configure
 %make
+cd resid-%{resid}
+%configure --disable-shared
+%make
+cd ..
+cd resid-builder-%{residbld}
+%configure --with-sidplay2=$PWD/.. --with-resid=$PWD/../resid-%{resid}
+%make
+cd ..
 
 %install
 %makeinstall
+cd resid-builder-%{residbld}
+%makeinstall libdir=$RPM_BUILD_ROOT%{builders}
+cd ..
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -64,6 +85,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.la
 %{_libdir}/*.a
 %{_libdir}/*.so
+%{builders}/*.la
+%{builders}/*.a
 
 %changelog
 * Fri Nov 23 2001 Simon White <s_a_white@email.com> 2.1.0-1
