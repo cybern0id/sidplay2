@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2000/12/13 17:53:01  s_a_white
+ *  Fixes some of the endian calls.
+ *
  *  Revision 1.3  2000/12/12 19:39:15  s_a_white
  *  Removed bad const.
  *
@@ -30,9 +33,9 @@
 #include "config.h"
 #include "sidtypes.h"
 
-#if defined(WORDS_BIGENDIAN)
+#if defined(SID_WORDS_BIGENDIAN)
 /* byte-order: HIHI..3210..LO */
-#elif defined(WORDS_LITTLEENDIAN)
+#elif defined(SID_WORDS_LITTLEENDIAN)
 /* byte-order: LO..0123..HIHI */
 #else
   #error Please check source code configuration!
@@ -53,7 +56,7 @@ Labeling:
 inline void endian_16lo8 (uint_least16_t &word, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint8_t *) &word)[0] = byte;
 #   else
     ((uint8_t *) &word)[1] = byte;
@@ -74,7 +77,7 @@ inline uint8_t endian_16lo8 (uint_least16_t word)
 inline void endian_16hi8 (uint_least16_t &word, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint8_t *) &word)[1] = byte;
 #   else
     ((uint8_t *) &word)[0] = byte;
@@ -89,7 +92,7 @@ inline void endian_16hi8 (uint_least16_t &word, uint8_t byte)
 inline uint8_t endian_16hi8 (uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     return ((uint8_t *) &word)[1];
 #   else
     return ((uint8_t *) &word)[0];
@@ -123,7 +126,7 @@ inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
     *((uint_least16_t *) ptr) = word;
 #else
-#   if defined(WORDS_BIGENDIAN)
+#   if defined(SID_WORDS_BIGENDIAN)
     ptr[0] = endian_16hi8 (word);
     ptr[1] = endian_16lo8 (word);
 #   else
@@ -137,7 +140,7 @@ inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
 inline uint_least16_t endian_little16 (const uint8_t ptr[2])
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_LITTLEENDIAN)
+    defined(SID_WORDS_LITTLEENDIAN)
     return *((uint_least16_t *) ptr);
 #else
     return endian_16 (ptr[1], ptr[0]);
@@ -148,7 +151,7 @@ inline uint_least16_t endian_little16 (const uint8_t ptr[2])
 inline void endian_little16 (uint8_t ptr[2], uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_LITTLEENDIAN)
+    defined(SID_WORDS_LITTLEENDIAN)
     *((uint_least16_t *) ptr) = word;
 #else
     ptr[0] = endian_16lo8 (word);
@@ -160,7 +163,7 @@ inline void endian_little16 (uint8_t ptr[2], uint_least16_t word)
 inline uint_least16_t endian_big16 (const uint8_t ptr[2])
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_BIGENDIAN)
+    defined(SID_WORDS_BIGENDIAN)
     return *((uint_least16_t *) ptr);
 #else
     return endian_16 (ptr[0], ptr[1]);
@@ -171,7 +174,7 @@ inline uint_least16_t endian_big16 (const uint8_t ptr[2])
 inline void endian_big16 (uint8_t ptr[2], uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_BIGENDIAN)
+    defined(SID_WORDS_BIGENDIAN)
     *((uint_least16_t *) ptr) = word;
 #else
     ptr[0] = endian_16hi8 (word);
@@ -187,7 +190,7 @@ inline void endian_big16 (uint8_t ptr[2], uint_least16_t word)
 inline void endian_32lo16 (uint_least32_t &dword, uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint_least16_t *) &dword)[0] = word;
 #   else
     ((uint_least16_t *) &dword)[1] = word;
@@ -208,7 +211,7 @@ inline uint_least16_t endian_32lo16 (uint_least32_t dword)
 inline void endian_32hi16 (uint_least32_t &dword, uint_least16_t word)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint_least16_t *) &dword)[1] = word;
 #   else
     ((uint_least16_t *) &dword)[0] = word;
@@ -223,7 +226,7 @@ inline void endian_32hi16 (uint_least32_t &dword, uint_least16_t word)
 inline uint_least16_t endian_32hi16 (uint_least32_t dword)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     return ((uint_least16_t *) &dword)[1];
 #   else
     return ((uint_least16_t *) &dword)[0];
@@ -237,7 +240,7 @@ inline uint_least16_t endian_32hi16 (uint_least32_t dword)
 inline void endian_32lo8 (uint_least32_t &dword, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint8_t *) &dword)[0] = byte;
 #   else
     ((uint8_t *) &dword)[3] = byte;
@@ -258,7 +261,7 @@ inline uint8_t endian_32lo8 (uint_least32_t dword)
 inline void endian_32hi8 (uint_least32_t &dword, uint8_t byte)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     ((uint8_t *) &dword)[1] = byte;
 #   else
     ((uint8_t *) &dword)[2] = byte;
@@ -273,7 +276,7 @@ inline void endian_32hi8 (uint_least32_t &dword, uint8_t byte)
 inline uint8_t endian_32hi8 (uint_least32_t dword)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS)
-#   if defined(WORDS_LITTLEENDIAN)
+#   if defined(SID_WORDS_LITTLEENDIAN)
     return ((uint8_t *) &dword)[1];
 #   else
     return ((uint8_t *) &dword)[2];
@@ -321,7 +324,7 @@ inline uint_least32_t endian_32 (uint8_t hihi, uint8_t hilo, uint8_t hi, uint8_t
 inline uint_least32_t endian_little32 (const uint8_t ptr[4])
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_LITTLEENDIAN)
+    defined(SID_WORDS_LITTLEENDIAN)
     return *((uint_least32_t *) ptr);
 #else
     return endian_32 (ptr[3], ptr[2], ptr[1], ptr[0]);
@@ -332,7 +335,7 @@ inline uint_least32_t endian_little32 (const uint8_t ptr[4])
 inline void endian_little32 (uint8_t ptr[4], uint_least32_t dword)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_LITTLEENDIAN)
+    defined(SID_WORDS_LITTLEENDIAN)
     *((uint_least32_t *) ptr) = dword;
 #else
     uint_least16_t word;
@@ -348,7 +351,7 @@ inline void endian_little32 (uint8_t ptr[4], uint_least32_t dword)
 inline uint_least32_t endian_big32 (const uint8_t ptr[4])
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_BIGENDIAN)
+    defined(SID_WORDS_BIGENDIAN)
     return *((uint_least32_t *) ptr);
 #else
     return endian_32 (ptr[0], ptr[1], ptr[2], ptr[3]);
@@ -359,7 +362,7 @@ inline uint_least32_t endian_big32 (const uint8_t ptr[4])
 inline void endian_big32 (uint8_t ptr[4], uint_least32_t dword)
 {
 #if defined(SID_OPTIMISE_MEMORY_ACCESS) && \
-    defined(WORDS_BIGENDIAN)
+    defined(SID_WORDS_BIGENDIAN)
     *((uint_least32_t *) ptr) = dword;
 #else
     uint_least16_t word;
