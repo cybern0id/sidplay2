@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2001/07/25 17:01:13  s_a_white
+ *  Support for new configuration interface.
+ *
  *  Revision 1.23  2001/07/14 16:46:16  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -137,22 +140,22 @@ Player::Player (void)
  cpu   (&sid6510),
  mos6581_1 (this),
  mos6581_2 (this),
- xsid  (this, &mos6581_1),
- cia   (this),
- cia2  (this),
- vic   (this),
- m_builder (NULL),
- mixerEvent(this),
- rtc    (&eventContext),
+ xsid (this, &mos6581_1),
+ cia  (this),
+ cia2 (this),
+ vic  (this),
+ mixerEvent (this),
+ rtc        (&eventContext),
+ m_builder  (NULL),
  m_tune (NULL),
  m_ram  (NULL),
  m_rom  (NULL),
  m_errorString       (TXT_NA),
  m_fastForwardFactor (1.0),
- m_sampleCount       (0),
  m_mileage           (0),
  m_playerState       (sid2_stopped),
- m_running           (false)
+ m_running           (false),
+ m_sampleCount       (0)
 {   // Set the ICs to use this environment
     sid6510.setEnvironment (this);
     mos6510.setEnvironment (this);

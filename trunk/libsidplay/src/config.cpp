@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/07/27 12:12:23  s_a_white
+ *  Initial release.
+ *
  ***************************************************************************/
 
 #include "sid2types.h"
@@ -203,7 +206,7 @@ Player_configure_error:
 // Clock speed changes due to loading a new song
 float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
 {
-    float64_t cpuFreq;
+    float64_t cpuFreq = SID2_CLOCK_PAL;
 
     // Mirror a real C64
     if (m_tuneInfo.playAddr == 0xffff)
@@ -238,7 +241,7 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
         else if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
             m_tuneInfo.speedString = TXT_PAL_VBI_FIXED;
     }
-    else if (clock == SID2_CLOCK_NTSC)
+    else // if (clock == SID2_CLOCK_NTSC)
     {
         cpuFreq = CLOCK_FREQ_NTSC;
         m_tuneInfo.speedString = TXT_NTSC_VBI;
