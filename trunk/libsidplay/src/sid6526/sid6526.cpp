@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/03/11 18:00:29  s_a_white
+ *  Better mirror sidplay1s handling of random numbers.
+ *
  *  Revision 1.5  2002/03/03 22:03:49  s_a_white
  *  Tidy.
  *
@@ -107,7 +110,7 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             ta = ta_latch;
     break;
     case 0x0e:
-        cra = data;
+        cra = data | 0x01;
         if (data & 0x10)
         {
             cra &= (~0x10);
