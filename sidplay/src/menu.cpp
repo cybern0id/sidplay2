@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/01/31 17:07:45  s_a_white
+ *  Support of specifing max sids writes forming sid2crc and experimental
+ *  TSID2 library support.
+ *
  *  Revision 1.11  2003/10/28 00:26:00  s_a_white
  *  Display power on cycles count for a loaded song.
  *
@@ -288,9 +292,9 @@ void ConsolePlayer::menu ()
             cerr << " (forced)";
         cerr << endl;
 
-        consoleTable  (tableMiddle);
         if (m_verboseLevel > 1)
         {
+            consoleTable  (tableMiddle);
             consoleColour (yellow, true);
             cerr << " Delay        : ";
             consoleColour (white, false);
