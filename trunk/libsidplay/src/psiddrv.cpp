@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2002/07/21 19:39:40  s_a_white
+ *  Proper error handling of reloc info overlapping load image.
+ *
  *  Revision 1.15  2002/07/18 18:37:42  s_a_white
  *  Buffer overflow fixes for tunes providing bad reloc information.
  *
@@ -83,7 +86,8 @@ const char *Player::ERR_PSIDDRV_BAD_PAGES = "ERROR: Tune contains bad relocation
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
-int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
+int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
+                            uint_least16_t &drvLength)
 {
     uint_least16_t relocAddr;
     int startlp = tuneInfo.loadAddr >> 8;
@@ -156,11 +160,11 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
 
         // Adjust size to not included initialisation data.
         reloc_size -= 17;
-        m_info.driverAddr   = relocAddr;
-        m_info.driverLength = (uint_least16_t) reloc_size;
+        drvAddr   = relocAddr;
+        drvLength = (uint_least16_t) reloc_size;
         // Round length to end of page
-        m_info.driverLength += 0xff;
-        m_info.driverLength &= 0xff00;
+        drvLength += 0xff;
+        drvLength &= 0xff00;
 
         m_ram[0x310] = JMPw;
         memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2002/07/21 19:39:41  s_a_white
+ *  Proper error handling of reloc info overlapping load image.
+ *
  *  Revision 1.30  2002/07/20 08:34:52  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -155,6 +158,7 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
+    static const char  *ERR_PSID_SPECIFIC_FLAG;
     static const char  *credit[10]; // 10 credits max
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
@@ -341,7 +345,8 @@ private:
     void interruptRST (void);
 
     // PSID driver
-    int  psidDrvInstall (SidTuneInfo &tuneInfo);
+    int  psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
+                         uint_least16_t &drvLength);
     void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
 
 public:
