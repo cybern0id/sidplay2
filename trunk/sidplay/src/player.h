@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/12/05 22:22:48  s_a_white
+ *  Added playerFast flag.
+ *
  *  Revision 1.3  2001/12/03 19:17:34  s_a_white
  *  Corrected spelling of BUILDER.
  *
@@ -42,6 +45,10 @@
 #include <sidplay/utils/SidDatabase.h>
 #include "audio/AudioDrv.h"
 #include "IniConfig.h"
+
+#ifdef HAVE_TSID
+#   include <tsid/tsid.h>
+#endif
 
 typedef enum {black, red, green, yellow, blue, magenta, cyan, white}
     player_colour_t;
@@ -91,6 +98,9 @@ private:
 #endif
 #ifdef HAVE_HARDSID_BUILDER
     static const char  HARDSID_ID[];
+#endif
+#ifdef HAVE_TSID
+    TSID               m_tsid;
 #endif
 
     const char* const  m_name; 
