@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/12/11 19:24:15  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.12  2001/09/17 19:03:58  s_a_white
  *  2.1.0 interface stabalisation.
  *
@@ -72,9 +75,9 @@
 
 sidplay2::sidplay2 ()
 #ifdef HAVE_EXCEPTIONS
-: sidplayer (*(new(nothrow) Player))
+: sidplayer (*(new(nothrow) SIDPLAY2_NAMESPACE::Player))
 #else
-: sidplayer (*(new Player))
+: sidplayer (*(new SIDPLAY2_NAMESPACE::Player))
 #endif
 {
 }
