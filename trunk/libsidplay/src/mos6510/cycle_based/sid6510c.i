@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2002/11/01 17:35:27  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.22  2002/10/15 23:52:14  s_a_white
  *  Fix sidplay2 cpu sleep optimisation and NMIs.
  *
@@ -186,6 +189,23 @@ void SID6510::reset ()
     MOS6510::reset ();
 }
 
+void SID6510::sleep ()
+{   // Simulate a delay for JMPw
+    m_delayClk = eventContext.getTime ();
+	m_sleeping = true;
+    procCycle  = delayCycle;
+    cycleCount = 0;
+
+    // Check for outstanding interrupts
+    if (interrupts.irqs)
+    {
+        interrupts.irqs--;
+        triggerIRQ ();
+    }
+    else if (interrupts.pending)
+        m_sleeping = false;
+}
+
 void SID6510::FetchOpcode (void)
 {
     if (m_mode == sid2_envR)
@@ -221,9 +241,7 @@ void SID6510::FetchOpcode (void)
 //**************************************************************************************
 void SID6510::sid_brk (void)
 {
-    uint_least16_t pc = Register_ProgramCounter;
-    if ( (m_mode == sid2_envR) &&
-         ((Register_StackPointer & 0xFF) != 0xFF) )
+    if (m_mode == sid2_envR)
     {
         MOS6510::PushHighPC ();
         return;
@@ -233,46 +251,20 @@ void SID6510::sid_brk (void)
 #if !defined(NO_RTS_UPON_BRK)
     sid_rts ();
 #endif
-
-    if (m_mode == sid2_envR)
-    {   // Sid tunes end by wrapping the stack.  For compatibilty it
-        // has to be handled.
-        m_sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
-        m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
-    }
-
-    if (!m_sleeping)
-    {
-        MOS6510::FetchOpcode ();
-        return;
-    }
-
-    Initialise ();
-
-    // Simulate a delay for JMPw
-    m_delayClk = eventContext.getTime ();
-    procCycle  = delayCycle;
-
-    // Remember where the BRK optimisation
-    // exists in memory and rely on it next time
-    Register_ProgramCounter = pc - 2;
-
-    // Check for outstanding interrupts
-    if (interrupts.irqs)
-    {
-        interrupts.irqs--;
-        triggerIRQ ();
-    }
-    else if (interrupts.pending)
-        m_sleeping = false;
 }
 
 void SID6510::sid_jmp (void)
 {   // For sidplay compatibility, inherited from environment
     if (m_mode == sid2_envR)
-    {
-        jmp_instr ();
-        return;
+    {   // If a busy loop then just sleep
+        if (Cycle_EffectiveAddress != instrStartPC)
+			jmp_instr ();
+		else
+		{
+            Register_ProgramCounter = Cycle_EffectiveAddress;
+		    sleep ();
+		}
+		return;
     }
 
     if (envCheckBankJump (Cycle_EffectiveAddress))

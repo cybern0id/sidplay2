@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2002/11/01 17:35:27  s_a_white
+ *  Frame based support for old sidplay1 modes.
+ *
  *  Revision 1.12  2002/03/12 18:47:13  s_a_white
  *  Made IRQ in sidplay1 compatibility modes behaves like JSR.  This fixes tunes
  *  that have kernel switched out.
@@ -84,6 +87,7 @@ public:
     void triggerRST (void);
     void triggerNMI (void);
     void triggerIRQ (void);
+    void sleep      (void);
 
 protected:
     void FetchOpcode (void);
