@@ -1,5 +1,5 @@
 
-sidplayincludedir = $(includedir)/sidplay2
+sidplayincludedir = $(includedir)/sidplay
 
 sidplayinclude_HEADERS = SidTune.h SidTuneCfg.h \
 Buffer.h SmartPtr.h
