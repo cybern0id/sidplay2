@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2001/08/10 20:03:19  s_a_white
+ *  Added RTC reset.
+ *
  *  Revision 1.15  2001/07/25 17:01:13  s_a_white
  *  Support for new configuration interface.
  *
@@ -139,10 +142,10 @@ private:
     class EventRTC: public Event
     {
     private:
+        EventContext &m_eventContext;
         event_clock_t m_seconds;
         float64_t     m_period;
         float64_t     m_fclk;
-        EventContext &m_eventContext;
 
         void event (void)
         {
