@@ -53,7 +53,7 @@ struct psidHeader           // all values big-endian
                             // bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
     char name[32];          // ASCII strings, 31 characters long and
     char author[32];        // terminated by a trailing zero
-    char copyright[32];     //
+    char released[32];      //
     uint8_t flags[2];       // only version 0x0002
     uint8_t relocStartPage; // only version 0x0002B
     uint8_t relocPages;     // only version 0x0002B
@@ -246,8 +246,8 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
     // Author
     strncpy(&infoString[1][0],pHeader->author,_sidtune_psid_maxStrLen);
     info.infoString[1] = &infoString[1][0];
-    // Copyright
-    strncpy(&infoString[2][0],pHeader->copyright,_sidtune_psid_maxStrLen);
+    // Released
+    strncpy(&infoString[2][0],pHeader->released,_sidtune_psid_maxStrLen);
     info.infoString[2] = &infoString[2][0];
     return true;
 }
@@ -293,11 +293,11 @@ bool SidTune::PSID_fileSupportSave(std::ofstream& fMyOut, const uint_least8_t* d
     {
         myHeader.name[i] = 0;
         myHeader.author[i] = 0;
-        myHeader.copyright[i] = 0;
+        myHeader.released[i] = 0;
     }
     strncpy( myHeader.name, info.infoString[0], _sidtune_psid_maxStrLen);
     strncpy( myHeader.author, info.infoString[1], _sidtune_psid_maxStrLen);
-    strncpy( myHeader.copyright, info.infoString[2], _sidtune_psid_maxStrLen);
+    strncpy( myHeader.released, info.infoString[2], _sidtune_psid_maxStrLen);
 
     if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
     {
