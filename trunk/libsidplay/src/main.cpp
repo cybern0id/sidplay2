@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
     bool          verboseOutput = false;
     bool          force2SID     = false;
     int           i             = 1;
-    int           optimiseLevel = 0;
+    // Rev 1.9 (saw) - Default now obtained from sidplayer.h
+    int           optimiseLevel = SIDPLAYER_DEFAULT_OPTIMISATION;
     clock_sidt    clockSpeed    = SID_TUNE_CLOCK;
 
     // (ms) Opposite of verbose output.
