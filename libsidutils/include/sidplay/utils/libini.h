@@ -16,19 +16,6 @@
  *                                                                         *
  ***************************************************************************/
 
-/***************************************************************************
- * To generate a swig wrapper use:
- *
- *     swig -<lang> -module <lang>ini -o libini_<lang>.c
- * e.g:
- *     swig -tcl -module tclini -o libini_tcl.c
- *
- * The resulting c file must be built as a runtime loadable library and
- * linked against the core ini library.  For importing the code use:
- *     TCL:  load libtclini
- *     PERL: use perlini; require perlini;
- ***************************************************************************/
-
 #ifndef _libini_h_
 #define _libini_h_
 
@@ -36,7 +23,7 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
+#include <string.h>
 
 #define INI_ADD_EXTRAS
 #define INI_ADD_LIST_SUPPORT
@@ -52,11 +39,11 @@ extern "C" {
 #define INI_STATIC
 #endif /* SWIG */
 
-//#ifdef _WINDOWS
-//#   define INI_LINKAGE __stdcall
-//#else
+/*#ifdef _WINDOWS
+#   define INI_LINKAGE __stdcall
+#else*/
 #   define INI_LINKAGE 
-//#endif
+/*#endif*/
 
 /* DLL building support on win32 hosts */
 #ifndef INI_EXTERN
@@ -142,6 +129,7 @@ INI_EXTERN int INI_LINKAGE ini_readInt     (ini_fd_t fd, int *value);
 
 #ifdef SWIG
 %{
+#include <stdio.h>
 #include <libini.h>
 #define INI_STATIC static
 typedef struct

@@ -187,7 +187,7 @@ int INI_LINKAGE ini_listLength (ini_fd_t fd)
 
 
 /********************************************************************************************************************
- * Function          : ini_listDelims
+ * Function          : __ini_listDelims
  * Parameters        : ini - pointer to ini file database.  delims - string of delimitor chars
  * Returns           : -1 for Error or 0 for success
  * Globals Used      :
@@ -197,9 +197,8 @@ int INI_LINKAGE ini_listLength (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int INI_LINKAGE ini_listDelims (ini_fd_t fd, const char *delims)
+int __ini_listDelims (struct ini_t *ini, const char *delims)
 {
-    ini_t *ini = (ini_t *) fd;
     if (ini->listDelims)
         free (ini->listDelims);
     ini->listDelims = NULL;
@@ -222,6 +221,23 @@ int INI_LINKAGE ini_listDelims (ini_fd_t fd, const char *delims)
         ini->list = NULL;
     }
     return 0;
+}
+
+
+/********************************************************************************************************************
+ * Function          : ini_listDelims
+ * Parameters        : fd - pointer to ini file database.  delims - string of delimitor chars
+ * Returns           : -1 for Error or 0 for success
+ * Globals Used      :
+ * Globals Modified  :
+ * Description       : Sets the delimiters used for list accessing, (default delim is NULL)
+ ********************************************************************************************************************
+ *  Rev   |   Date   |  By   | Comment
+ * ----------------------------------------------------------------------------------------------------------------
+ ********************************************************************************************************************/
+int INI_LINKAGE ini_listDelims (ini_fd_t fd, const char *delims)
+{
+    return __ini_listDelims ((ini_t *) fd, delims);
 }
 
 
