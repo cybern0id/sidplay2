@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/01/06 21:28:27  s_a_white
+ *  Initial TOD support (code taken from vice)
+ *
  *  Revision 1.12  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -92,6 +95,11 @@ protected:
     // Timer B
     uint8_t crb;
     uint_least16_t tb, tb_latch;
+
+    // Serial Data Registers
+    uint8_t sdr_out;
+    bool    sdr_buffered;
+    int     sdr_count;
 
     uint8_t icr, idr; // Interrupt Control Register
     event_clock_t m_accessClk;
