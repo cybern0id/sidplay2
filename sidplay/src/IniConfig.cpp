@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/07/14 16:52:56  s_a_white
+ *  Removed warning.
+ *
  *  Revision 1.6  2001/07/03 17:50:14  s_a_white
  *  External filter no longer supported.  This filter is needed internally by the
  *  library.
@@ -148,7 +151,7 @@ IniCofig_readString_error:
 
 bool IniConfig::readBool (ini_fd_t ini, char *key, bool &boolean)
 {
-    int  i   = -1;
+    int  i   = boolean;
     bool ret = readInt (ini, key, i);
     if (!ret)
         return false;
@@ -302,6 +305,8 @@ bool IniConfig::readEmulation (ini_fd_t ini)
         ret &= readInt (ini, "ClockSpeed", clockSpeed);
         if (clockSpeed != -1)
         {
+            if (clockSpeed < 0 || clockSpeed > 1)
+                ret = false;
             emulation_s.clockSpeed = SID2_CLOCK_PAL;
             if (clockSpeed)
                 emulation_s.clockSpeed = SID2_CLOCK_NTSC;
@@ -311,13 +316,19 @@ bool IniConfig::readEmulation (ini_fd_t ini)
     ret &= readBool (ini, "ForceSongSpeed", emulation_s.clockForced);
 
     {
-        bool mos8580 = false;
-        ret &= readBool (ini, "MOS8580", mos8580);
-        if (mos8580)
-            emulation_s.sidModel = SID2_MOS8580;
+        int mos8580 = -1;
+        ret &= readInt (ini, "MOS8580", mos8580);
+        if (mos8580 != -1)
+        {
+            if (mos8580 < 0 || mos8580 > 1)
+                ret = false;
+            emulation_s.sidModel = SID2_MOS6581;
+            if (mos8580)
+                emulation_s.sidModel = SID2_MOS8580;
+        }
     }
 
-    ret &= readBool (ini, "UseFilter",    emulation_s.filter);
+    ret &= readBool (ini, "UseFilter", emulation_s.filter);
 
     {
         int optimiseLevel = -1;
