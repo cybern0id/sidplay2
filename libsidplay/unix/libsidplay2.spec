@@ -1,6 +1,6 @@
 %define name    libsidplay
-%define version 2.0.7
-%define release 3
+%define version 2.1.0
+%define release 4
 %define major   2
 %define residversion 0.11
 
