@@ -113,6 +113,7 @@ src/sidtune/Makefile \
 src/xsid/Makefile \
 unix/Makefile \
 unix/libsidplay2.spec \
+unix/libsidplay2.qpg \
 unix/libsidplay2.pc \
 unix/sidconfig.h \
 )
