@@ -24,7 +24,7 @@
 #include "Buffer.h"
 #include "SmartPtr.h"
 
-class ofstream;  // <fstream.h>
+#include <fstream.h>
 
 const uint_least16_t SIDTUNE_MAX_SONGS = 256;
 // Also PSID file format limit.
