@@ -16,6 +16,12 @@
  *                                                                         *
  ***************************************************************************/
 
+// References below are from:
+//     The MOS 6567/6569 video controller (VIC-II)
+//     and its application in the Commodore 64
+//     http://www.uni-mainz.de/~bauec002/VIC-Article.gz
+
+
 #include <string.h>
 #include "sidendian.h"
 #include "mos656x.h"
@@ -46,9 +52,10 @@ MOS656X::MOS656X (EventContext *context)
 :Event("VIC Raster"),
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
- sprite_enable(regs[0x13])
+ sprite_enable(regs[0x15]),
+ sprite_y_expansion(regs[0x17])
 {
-    chip  (MOS6569);
+    chip (MOS6569);
 }
 
 void MOS656X::reset ()
@@ -63,7 +70,9 @@ void MOS656X::reset ()
     vblanking    = lp_triggered = false;
     lpx          = lpy = 0;
     sprite_dma   = 0;
+    sprite_expand_y = 0xff;
     memset (regs, 0, sizeof (regs));
+    memset (sprite_mc_base, 0, sizeof (sprite_mc_base));
     event_context.schedule (this, 0, m_phase);
 }
 
@@ -171,6 +180,10 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         endian_16lo8 (raster_irq, data);
         break;
 
+    case 0x17:
+        sprite_expand_y |= ~data; // 3.8.1-1
+        break;
+
     case 0x19: // IRQ flags
         idr &= ((~data & 0x0f) | 0x80);
         if (idr == 0x80)
@@ -222,13 +235,18 @@ void MOS656X::event (void)
     {
     case 0:
     {   // Calculate sprite DMA
-        uint8_t mask = 1;
         uint8_t y    = raster_y & 0xff;
-        sprite_dma   = 0;
+        uint8_t mask = 1;
         for (unsigned int i=1; i<0x10; i+=2, mask<<=1)
-        {
+        {   // 3.8.1-3
             if ((sprite_enable & mask) && (y == regs[i]))
+            {
                 sprite_dma |= mask;
+                sprite_mc_base[i >> 1] = 0;
+                if (sprite_y_expansion & mask)
+                    sprite_expand_y &= ~mask;
+            } else if (sprite_y_expansion & mask)
+                sprite_expand_y ^= mask; // 3.8.1-2
         }
 
         delay = 2;
@@ -375,7 +393,30 @@ void MOS656X::event (void)
         {   // DMA starts on cycle 23
             addrctrl (false);
         }
-        delay = xrasters - cycle;
+        delay = 23 - cycle;
+        break;
+    }
+
+    case 23:
+    {   // 3.8.1-7
+        for (unsigned int i=0; i<8; i++)
+        {
+            if (sprite_expand_y & (1 << i))
+                sprite_mc_base[i] += 2;
+        }
+        break;
+    }
+
+    case 24:
+    {
+        uint8_t mask = 1;
+        for (unsigned int i=0; i<8; i++, mask<<=1)
+        {   // 3.8.1-8
+            if (sprite_expand_y & mask)
+                sprite_mc_base[i]++;
+            if ((sprite_mc_base[i] & 0x3f) == 0x3f)
+                sprite_dma &= ~mask;
+        }
         break;
     }
 
@@ -384,7 +425,9 @@ void MOS656X::event (void)
         // Deliberate run on
 
     default:
-        if (cycle < 63)
+        if (cycle < 23)
+            delay = 23 - cycle;
+        else if (cycle < 63)
             delay = 63 - cycle;
         else
             delay = xrasters - cycle;
