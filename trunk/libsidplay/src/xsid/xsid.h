@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/03/25 19:51:23  s_a_white
+ *  Performance update.
+ *
  *  Revision 1.11  2001/03/19 23:40:46  s_a_white
  *  Better support for global debug.
  *
@@ -200,7 +203,7 @@ private:
 
 private:
     void   checkForInit     (channel *ch);
-    void   setSidData0x18   (bool cached = false);
+    inline void   setSidData0x18   (bool cached = false);
     int8_t sampleOutput     (void);
     void   sampleOffsetCalc (void);
 
@@ -225,7 +228,7 @@ public:
     void setSidBaseAddr (uint_least16_t addr)
     {   sidAddr0x18 = addr + 0x18; }
     // Return whether we care it was changed.
-    bool updateSidData0x18 (uint8_t data);
+    inline bool updateSidData0x18 (uint8_t data);
 };
 
 
