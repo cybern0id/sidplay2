@@ -176,7 +176,7 @@ MD5::process(const md5_byte_t data[64])
     const md5_byte_t *xp = data;
     for (int i = 0; i < 16; ++i, xp += 4)
     {
-        tmpBuf[i] = xp[0]&0xFF + ((xp[1]&0xFF)<<8) + 
+        tmpBuf[i] = (xp[0]&0xFF) + ((xp[1]&0xFF)<<8) + 
                     ((xp[2]&0xFF)<<16) + ((xp[3]&0xFF)<<24);
     }
     X = tmpBuf;
