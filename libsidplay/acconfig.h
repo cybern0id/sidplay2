@@ -4,9 +4,6 @@
 
 /* @FOO@ : Define or undefine value FOO as appropriate. */
 
-/* Operating System */
-#define HAVE_UNIX
-
 /* Define if your C++ compiler implements exception-handling.  */
 #undef HAVE_EXCEPTIONS
 
