@@ -26,12 +26,6 @@ dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
-dnl Check for hardsid card.
-CHECK_HARDSID
-if test "$sid_have_hardsid" = yes; then
-    AC_DEFINE(HAVE_HARDSID)
-fi
-
 dnl Checks for libraries.
 SID_PATH_LIBRESID
 

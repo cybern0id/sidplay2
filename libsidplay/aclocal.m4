@@ -337,33 +337,6 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
 
 
 dnl -------------------------------------------------------------------------
-dnl Try to find Hardsid.  If so add support for it.
-dnl $sid_have_hardsid will be "yes" or "no"
-dnl -------------------------------------------------------------------------
-
-AC_DEFUN(CHECK_HARDSID,
-[
-    AC_MSG_CHECKING([for hardsid soundcard])
-    AC_TRY_RUN(
-        [#include <sys/types.h>
-         #include <sys/stat.h>
-         #include <fcntl.h>
-         #include <unistd.h>
-         int main () {
-             int fd = open ("/dev/sid0", O_RDWR);
-             if (fd < 0) return -1;
-             close (fd);
-             return 0;
-         }
-        ],
-        [sid_have_hardsid=yes],
-        [sid_have_hardsid=no]
-    )
-    AC_MSG_RESULT($sid_have_hardsid)
-])
-
-
-dnl -------------------------------------------------------------------------
 dnl Pass C++ compiler options to libtool which supports C only.
 dnl -------------------------------------------------------------------------
 
