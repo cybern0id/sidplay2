@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2000/12/13 17:56:24  s_a_white
+ *  Interrupt vector address changed from 0x315 to 0x314.
+ *
  *  Revision 1.3  2000/12/13 12:00:25  mschwendt
  *  Corrected order of members in member initializer-list.
  *
@@ -866,10 +869,18 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
         if ((addr & 0xff00) == _sidAddress[1])
         {
             sid2.write ((uint8_t) addr, data);
-            if (useCache)
+            // Prevent samples getting to both sids
+            // if they are exist at same address for
+            // mono to stereo sid conversion.
+            if (!useCache)
+                return;
+            else
                 rom[addr] = data;
-            // Support mono to stereo conversion
-            if ((_sidAddress[1] != _sidAddress[0]) || !useCache)
+
+            // Prevent other sid register write accessing
+            // the other sid if not doing mono to stereo
+            // conversion.
+            if (_sidAddress[1] != _sidAddress[0])
                 return;
         }
 
