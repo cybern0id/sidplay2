@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/12/01 20:16:23  s_a_white
+ *  Player changed to ConsolePlayer.
+ *
  *  Revision 1.1  2001/11/27 19:10:44  s_a_white
  *  Initial Release.
  *
@@ -198,7 +201,7 @@ void ConsolePlayer::menu ()
         cerr << "Filter = "
              << ((m_filter.enabled == true) ? "Yes" : "No");
         cerr << ", Model = "
-             << ((info.tuneInfo->sidRev8580) ? "8580" : "6581")
+             << (info.tuneInfo->sidModel == SID2_MOS8580 ? "8580" : "6581")
              << endl;
         consoleTable  (tableMiddle);
         consoleColour (yellow, true);

@@ -49,8 +49,19 @@ const uint_least32_t SIDTUNE_MAX_FILELEN = 65536+2+0x7C;
 const int SIDTUNE_SPEED_VBI = 0;        // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
 
-const int SIDTUNE_CLOCK_PAL = 0;        // These are also used in the
-const int SIDTUNE_CLOCK_NTSC = 1;       // emulator engine!
+const int SIDTUNE_CLOCK_UNKNOWN = 0;
+const int SIDTUNE_CLOCK_PAL     = 1;    // These are also used in the
+const int SIDTUNE_CLOCK_NTSC    = 2;    // emulator engine!
+const int SIDTUNE_CLOCK_ANY     =
+    SIDTUNE_CLOCK_PAL |
+    SIDTUNE_CLOCK_NTSC;                 // Compatible at both speeds
+
+const int SIDTUNE_SIDMODEL_UNKNOWN = 0;
+const int SIDTUNE_SIDMODEL_6581    = 1; // These are also used in the
+const int SIDTUNE_SIDMODEL_8580    = 2; // emulator engine!
+const int SIDTUNE_SIDMODEL_ANY     =
+    SIDTUNE_SIDMODEL_6581 |
+    SIDTUNE_SIDMODEL_8580;              // Compatible on all sid revisions
 
 #ifndef _SidTune_cpp_
 // Required to export template
@@ -100,7 +111,7 @@ struct TuneInfo
     uint_least8_t relocStartPage;  // First available page for relocation
     uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
-    bool sidRev8580;               // Sid revision is 8580? If not it's 6581
+    int  sidModel;                 // Sid Model required for this sid
     bool samples;                  // PSID specific samples present
     bool fixLoad;                // whether load address might be duplicate
     uint_least16_t songLength;        // --- not yet supported ---
