@@ -46,41 +46,76 @@
 #undef DISABLE_RESID
 
 
-/* Define if you support file names longer than 14 characters.  */
-#undef HAVE_LONG_FILE_NAMES
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
 
 /* Define if the C++ compiler supports BOOL */
 #undef HAVE_BOOL
 
-/* The number of bytes in a char.  */
-#undef SIZEOF_CHAR
+#undef VERSION
 
-/* The number of bytes in a int.  */
-#undef SIZEOF_INT
+#undef PACKAGE
 
-/* The number of bytes in a long int.  */
-#undef SIZEOF_LONG_INT
+/* Define if you need the GNU extensions to compile */
+#undef _GNU_SOURCE
 
-/* The number of bytes in a short int.  */
-#undef SIZEOF_SHORT_INT
 
-/* Define if you have the <stdbool.h> header file.  */
+/* Define if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if you support file names longer than 14 characters. */
+#undef HAVE_LONG_FILE_NAMES
+
+/* Define if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if you have the <stdbool.h> header file. */
 #undef HAVE_STDBOOL_H
 
-/* Define if you have the <stdint.h> header file.  */
+/* Define if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
 
 /* Name of package */
 #undef PACKAGE
 
+/* The size of a `char', as computed by sizeof. */
+#undef SIZEOF_CHAR
+
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `long int', as computed by sizeof. */
+#undef SIZEOF_LONG_INT
+
+/* The size of a `short int', as computed by sizeof. */
+#undef SIZEOF_SHORT_INT
+
+/* Define if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
 /* Version number of package */
 #undef VERSION
 
+/* Define if your processor stores words with the most significant byte first
+   (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
 #endif /* _config_h_ */

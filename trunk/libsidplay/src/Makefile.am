@@ -16,7 +16,7 @@ libsidplay2_la_LIBADD  = ./c64/libc64.la \
 ./mos6510/libmos6510.la ./mos6526/libmos6526.la \
 ./mos656x/libmos656x.la ./xsid/libxsid.la \
 ./sidtune/libsidtune.la ./sid6526/libsid6526.la \
-$(RESID_LDADD) -lresid -lstdc++
+$(RESID_LDADD) -lresid
 
 # We substitute the libtool-specific library version in configure.in.
 libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)

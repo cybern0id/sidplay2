@@ -85,31 +85,19 @@ am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
 
-noinst_LTLIBRARIES = libsidtune.la
+noinst_LTLIBRARIES = libsid6526.la
 
-libsidtune_la_SOURCES = IconInfo.cpp \
-InfoFile.cpp \
-MUS.cpp \
-PP20.cpp \
-PP20.h \
-PP20_Defs.h \
-PSID.cpp \
-SidTune.cpp \
-SidTuneCfg.h \
-SidTuneTools.cpp \
-SidTuneTools.h
-
-subdir = src/sidtune
+libsid6526_la_SOURCES = sid6526.cpp sid6526.h
+subdir = src/sid6526
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
-libsidtune_la_LDFLAGS =
-libsidtune_la_LIBADD =
-am_libsidtune_la_OBJECTS = IconInfo.lo InfoFile.lo MUS.lo PP20.lo \
-	PSID.lo SidTune.lo SidTuneTools.lo
-libsidtune_la_OBJECTS = $(am_libsidtune_la_OBJECTS)
+libsid6526_la_LDFLAGS =
+libsid6526_la_LIBADD =
+am_libsid6526_la_OBJECTS = sid6526.lo
+libsid6526_la_OBJECTS = $(am_libsid6526_la_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
@@ -117,10 +105,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/unix/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/IconInfo.Plo $(DEPDIR)/InfoFile.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/MUS.Plo $(DEPDIR)/PP20.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/PSID.Plo $(DEPDIR)/SidTune.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/SidTuneTools.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/sid6526.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -138,9 +123,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libsidtune_la_SOURCES)
+DIST_SOURCES = $(libsid6526_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(libsidtune_la_SOURCES)
+SOURCES = $(libsid6526_la_SOURCES)
 
 all: all-am
 
@@ -157,7 +142,7 @@ distclean-libtool:
 	-rm -f libtool
 $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/sidtune/Makefile
+	  $(AUTOMAKE) --gnu  src/sid6526/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
@@ -165,8 +150,8 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 clean-noinstLTLIBRARIES:
 	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-libsidtune.la: $(libsidtune_la_OBJECTS) $(libsidtune_la_DEPENDENCIES) 
-	$(CXXLINK)  $(libsidtune_la_LDFLAGS) $(libsidtune_la_OBJECTS) $(libsidtune_la_LIBADD) $(LIBS)
+libsid6526.la: $(libsid6526_la_OBJECTS) $(libsid6526_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libsid6526_la_LDFLAGS) $(libsid6526_la_OBJECTS) $(libsid6526_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -174,13 +159,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/IconInfo.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/InfoFile.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/MUS.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/PP20.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/PSID.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SidTune.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/SidTuneTools.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/sid6526.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)

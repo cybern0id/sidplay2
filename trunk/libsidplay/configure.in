@@ -28,6 +28,7 @@ CONFIG_LIBTOOL
 
 dnl Checks for libraries.
 SID_PATH_LIBRESID
+SID_EXTENDED_LIBRESID
 
 dnl Checks for header files.
 
@@ -100,6 +101,7 @@ src/mos6510/Makefile \
 src/mos6526/Makefile \
 src/mos656x/Makefile \
 src/mos6581/Makefile \
+src/sid6526/Makefile \
 src/sidtune/Makefile \
 src/sid6526/Makefile \
 src/xsid/Makefile
