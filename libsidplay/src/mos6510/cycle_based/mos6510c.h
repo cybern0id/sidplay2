@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2004/03/06 21:07:12  s_a_white
+ *  Don't start a new cycle stealing sequence if one is already started!  This can
+ *  happen if an interrupt occurs during an optimised sleep.
+ *
  *  Revision 1.22  2004/02/29 14:33:59  s_a_white
  *  If an interrupt occurs during a branch instruction but after the decision
  *  has occured then it should not be delayed.
@@ -118,9 +122,9 @@ protected:
     struct ProcessorCycle
     {
         void (MOS6510::*func)(void);
-        bool write;
+        bool nosteal;
         ProcessorCycle ()
-            :func(NULL), write(false) { ; }
+            :func(NULL), nosteal(false) { ; }
     };
 
     // Declare processor operations
@@ -331,7 +335,7 @@ public:
 inline void MOS6510::clock (void)
 {
     int_least8_t i = cycleCount++;
-    if (procCycle[i].write || aec)
+    if (procCycle[i].nosteal || aec)
     {
         (this->*(procCycle[i].func)) ();
         return;
