@@ -1,6 +1,6 @@
 #!/bin/sh
 pwd=`pwd`
-resid="resid-0.15"
+resid="resid-0.16"
 dirs="libsidplay libsidutils builders/resid-builder builders/hardsid-builder"
 
 cat >builders/Makefile.am <<EOF
