@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/02/17 17:24:50  s_a_white
+ *  Updated for new reset interface.
+ *
  *  Revision 1.2  2002/01/29 21:47:35  s_a_white
  *  Constant fixed interval delay added to prevent emulation going fast when
  *  there are no writes to the sid.
@@ -42,9 +45,11 @@ typedef void (CALLBACK* HsidDLL2_Delay_t)   (BYTE deviceID, WORD cycles);
 typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
 typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
 typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
+typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
 typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
-typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID, BYTE volume);
 typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
 typedef void (CALLBACK* HsidDLL2_Sync_t)    (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Write_t)   (BYTE deviceID, WORD cycles, BYTE SID_reg, BYTE data);
@@ -57,6 +62,8 @@ struct HsidDLL2
     HsidDLL2_Devices_t Devices;
     HsidDLL2_Filter_t  Filter;
     HsidDLL2_Flush_t   Flush;
+    HsidDLL2_Lock_t    Lock;
+    HsidDLL2_Unlock_t  Unlock;
     HsidDLL2_Mute_t    Mute;
     HsidDLL2_MuteAll_t MuteAll;
     HsidDLL2_Reset_t   Reset;
@@ -100,7 +107,6 @@ private:
     bool           muted[HARDSID_VOICES];
     uint           m_instance;
     bool           m_status;
-    bool           m_locked;    
 
 public:
     HardSID  (sidbuilder *builder);
@@ -110,25 +116,24 @@ public:
     const char   *credits (void) {return credit;}
     void          reset   () { sidemu::reset (); }
     void          reset   (uint8_t volume);
-    uint8_t       read    (const uint_least8_t addr);
-    void          write   (const uint_least8_t addr, const uint8_t data);
+    uint8_t       read    (uint_least8_t addr);
+    void          write   (uint_least8_t addr, uint8_t data);
     const char   *error   (void) {return m_errorBuffer;}
     operator bool () const { return m_status; }
 
     // Standard SID functions
-    int_least32_t output  (const uint_least8_t bits);
-    void          filter  (const bool enable);
-    void          model   (const sid2_model_t model) {;}
-    void          voice   (const uint_least8_t num, const uint_least8_t volume,
-                           const bool mute);
-    void          gain    (const int_least8_t) {;}
+    int_least32_t output  (uint_least8_t bits);
+    void          filter  (bool enable);
+    void          model   (sid2_model_t model) {;}
+    void          voice   (uint_least8_t num, uint_least8_t volume,
+                           bool mute);
+    void          gain    (int_least8_t) {;}
 
     // HardSID specific
     void          flush   (void);
 
     // Must lock the SID before using the standard functions.
-    void lock (c64env *env);
-    bool lock (void) const { return m_locked; }
+    bool          lock    (c64env *env);
 
 private:
     // Fixed interval timer delay to prevent sidplay2
@@ -137,7 +142,7 @@ private:
     void event (void);
 };
 
-inline int_least32_t HardSID::output (const uint_least8_t bits)
+inline int_least32_t HardSID::output (uint_least8_t bits)
 {   // Not supported, should return samples off card...???
     return 0;
 }

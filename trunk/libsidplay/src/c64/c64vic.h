@@ -29,7 +29,7 @@ private:
     c64env &m_env;
 
 protected:
-    void interrupt (const bool state)
+    void interrupt (bool state)
     {
         m_env.interruptIRQ (state);
     }

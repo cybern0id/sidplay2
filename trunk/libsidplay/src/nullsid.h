@@ -27,16 +27,16 @@ public:
 
     // Standard component functions
     void    reset (uint8_t) { ; }
-    uint8_t read  (const uint_least8_t) { return 0; }
-    void    write (const uint_least8_t, const uint8_t) { ; }
+    uint8_t read  (uint_least8_t) { return 0; }
+    void    write (uint_least8_t, uint8_t) { ; }
     const   char *credits (void) { return ""; }
     const   char *error   (void) { return ""; }
 
     // Standard SID functions
-    int_least32_t output (const uint_least8_t) { return 0; }
-    void          voice  (const uint_least8_t, const uint_least8_t,
-                          const bool) { ; }
-    void          gain   (const int_least8_t) { ; }
+    int_least32_t output (uint_least8_t) { return 0; }
+    void          voice  (uint_least8_t, uint_least8_t,
+                          bool) { ; }
+    void          gain   (int_least8_t) { ; }
 };
 
 #endif // _nullsid_h_

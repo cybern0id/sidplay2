@@ -38,16 +38,16 @@ public:
     // Standard component functions
     void            reset () { reset (0); }
     virtual void    reset (uint8_t volume) = 0;
-    virtual uint8_t read  (const uint_least8_t addr) = 0;
-    virtual void    write (const uint_least8_t addr, const uint8_t data) = 0;
+    virtual uint8_t read  (uint_least8_t addr) = 0;
+    virtual void    write (uint_least8_t addr, uint8_t data) = 0;
     virtual const   char *credits (void) = 0;
 
     // Standard SID functions
-    virtual int_least32_t output  (const uint_least8_t bits) = 0;
-    virtual void          voice   (const uint_least8_t num,
-                                   const uint_least8_t vol,
-                                   const bool mute) = 0;
-    virtual void          gain    (const int_least8_t precent) = 0;
+    virtual int_least32_t output  (uint_least8_t bits) = 0;
+    virtual void          voice   (uint_least8_t num,
+                                   uint_least8_t vol,
+                                   bool mute) = 0;
+    virtual void          gain    (int_least8_t precent) = 0;
     sidbuilder           *builder (void) const { return m_builder; }
 };
 
@@ -70,7 +70,7 @@ public:
     virtual  void         unlock  (sidemu *device) = 0;
     const    char        *name    (void) const { return m_name; }
     virtual  const  char *error   (void) const = 0;
-    virtual const   char *credits (void) = 0;
+    virtual  const  char *credits (void) = 0;
     operator bool() const { return m_status; }
 };
 

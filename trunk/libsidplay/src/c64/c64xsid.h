@@ -51,10 +51,10 @@ public:
         m_sid->reset (volume);
     }
 
-    uint8_t read (const uint_least8_t addr)
+    uint8_t read (uint_least8_t addr)
     {   return m_sid->read (addr); }
 
-    void write   (const uint_least8_t addr, const uint8_t data)
+    void write (uint_least8_t addr, uint8_t data)
     {
         if (addr == 0x18)
             XSID::storeSidData0x18 (data);
@@ -62,17 +62,17 @@ public:
             m_sid->write (addr, data);
     }
 
-    void write16 (const uint_least16_t addr, const uint8_t data)
+    void write16 (uint_least16_t addr, uint8_t data)
     {
         XSID::write (addr, data);
     }
 
     // Standard SID interface
-    int_least32_t output (const uint_least8_t bits)
+    int_least32_t output (uint_least8_t bits)
     {   return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100); }
 
-    void voice  (const uint_least8_t num, const uint_least8_t vol,
-        const bool mute)
+    void voice (uint_least8_t num, uint_least8_t vol,
+                bool mute)
     {
         if (num == 3)
             XSID::mute (mute);
@@ -80,7 +80,7 @@ public:
             m_sid->voice (num, vol, mute);
     }
 
-    void gain  (const int_least8_t percent)
+    void gain (int_least8_t percent)
     {
         // 0 to 99 is loss, 101 - 200 is gain
         m_gain  = percent;

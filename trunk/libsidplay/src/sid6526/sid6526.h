@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/03/11 18:00:29  s_a_white
+ *  Better mirror sidplay1s handling of random numbers.
+ *
  *  Revision 1.1  2001/09/01 11:11:19  s_a_white
  *  This is the old fake6526 code required for sidplay1 environment modes.
  *
@@ -64,8 +67,8 @@ public:
 
     //Common:
     void    reset (void);
-    uint8_t read  (const uint_least8_t addr);
-    void    write (const uint_least8_t addr, const uint8_t data);
+    uint8_t read  (uint_least8_t addr);
+    void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
     const   char *error   (void) {return "";}
 

@@ -54,16 +54,16 @@ public:
     // Standard component functions
     const char   *credits (void) {return m_credit;}
     void          reset   (uint8_t volume);
-    uint8_t       read    (const uint_least8_t addr);
-    void          write   (const uint_least8_t addr, const uint8_t data);
+    uint8_t       read    (uint_least8_t addr);
+    void          write   (uint_least8_t addr, uint8_t data);
     const char   *error   (void) {return m_error;}
 
     // Standard SID functions
-    int_least32_t output  (const uint_least8_t bits);
-    void          filter  (const bool enable);
-    void          voice   (const uint_least8_t num, const uint_least8_t volume,
-                           const bool mute);
-    void          gain    (const int_least8_t precent);
+    int_least32_t output  (uint_least8_t bits);
+    void          filter  (bool enable);
+    void          voice   (uint_least8_t num, uint_least8_t volume,
+                           bool mute);
+    void          gain    (int_least8_t precent);
 
     operator bool () { return m_status; }
     static   int  devices (char *error);

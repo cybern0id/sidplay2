@@ -33,7 +33,7 @@ private:
     c64env &m_env;
 
 protected:
-    void interrupt (const bool state)
+    void interrupt (bool state)
     {
         m_env.interruptIRQ (state);
     }
@@ -54,7 +54,7 @@ private:
     c64env &m_env;
 
 protected:
-    void interrupt (const bool state)
+    void interrupt (bool state)
     {
         if (state)
             m_env.interruptNMI ();

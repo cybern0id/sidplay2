@@ -119,7 +119,7 @@ void ReSID::reset (uint8_t volume)
     m_sid.write (0x18, volume);
 }
 
-uint8_t ReSID::read (const uint_least8_t addr)
+uint8_t ReSID::read (uint_least8_t addr)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk);
     m_accessClk += cycles;
@@ -128,7 +128,7 @@ uint8_t ReSID::read (const uint_least8_t addr)
     return m_sid.read (addr);
 }
 
-void ReSID::write (const uint_least8_t addr, const uint8_t data)
+void ReSID::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk);
     m_accessClk += cycles;
@@ -137,7 +137,7 @@ void ReSID::write (const uint_least8_t addr, const uint8_t data)
     m_sid.write (addr, data);
 }
 
-int_least32_t ReSID::output (const uint_least8_t bits)
+int_least32_t ReSID::output (uint_least8_t bits)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk);
     m_accessClk += cycles;
@@ -146,18 +146,18 @@ int_least32_t ReSID::output (const uint_least8_t bits)
     return m_sid.output (bits) * m_gain / 100;
 }
 
-void ReSID::filter (const bool enable)
+void ReSID::filter (bool enable)
 {
 	m_sid.enable_filter (enable);
 }
 
-void ReSID::voice (const uint_least8_t num, const uint_least8_t volume,
-                   const bool mute)
+void ReSID::voice (uint_least8_t num, uint_least8_t volume,
+                   bool mute)
 {   // At this time only mute is supported
 	m_sid.mute (num, mute);
 }
     
-void ReSID::gain (const int_least8_t percent)
+void ReSID::gain (int_least8_t percent)
 {
     // 0 to 99 is loss, 101 - 200 is gain
     m_gain  = percent;
