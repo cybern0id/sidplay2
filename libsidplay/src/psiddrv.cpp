@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2003/07/16 20:42:45  s_a_white
+ *  Some initialisation code from the psiddrv is required to start basic tunes.
+ *
  *  Revision 1.29  2003/07/16 06:57:52  s_a_white
  *  Added support for c64 basic tunes.
  *
@@ -210,8 +213,11 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         // If not a basic tune then the psiddrv must install
         // interrupt hooks and trap programs trying to restart basic
         if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_BASIC)
-        {
-            memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
+        {   // Only install irq handle for RSID tunes
+            if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_R64)
+                memcpy (&m_ram[0x0314], &reloc_driver[2], 2);
+            else
+                memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
 
             // Experimental restart basic trap
             uint_least16_t addr;
