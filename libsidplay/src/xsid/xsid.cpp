@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2001/10/02 18:03:03  s_a_white
+ *  Support updated sidbuilder class interface.
+ *
  *  Revision 1.15  2001/09/17 18:36:41  s_a_white
  *  Changed object construction to prevent multiple resets.
  *
@@ -557,11 +560,11 @@ bool XSID::storeSidData0x18 (uint8_t data)
     if (ch4 || ch5)
     {   // Force volume to be changed at next clock
         sampleOffsetCalc ();
-        setSidData0x18   ();
 #if XSID_DEBUG
         printf ("XSID: SID Volume Changed Externally (Corrected).\n");
 #endif
         return true;
     }
+    writeMemByte (sidData0x18);
     return false;
 }
