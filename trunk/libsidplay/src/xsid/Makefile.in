@@ -78,7 +78,7 @@ VERSION = @VERSION@
 noinst_LTLIBRARIES = libxsid.la
 
 libxsid_la_SOURCES = xsid.cpp xsid.h
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
 LTLIBRARIES =  $(noinst_LTLIBRARIES)

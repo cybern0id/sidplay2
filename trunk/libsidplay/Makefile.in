@@ -85,15 +85,14 @@ sidplayincludedir = $(includedir)/sidplay2
 
 sidplayinclude_HEADERS = sidconfig.h
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  sidconfig.h
 HEADERS =  $(sidplayinclude_HEADERS)
 
 DIST_COMMON =  README ./stamp-h.in AUTHORS COPYING ChangeLog INSTALL \
 Makefile.am Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 \
-config.guess config.h.in config.sub configure configure.in install-sh \
-ltconfig ltmain.sh missing mkinstalldirs sidconfig.h.in
+config.h.in configure configure.in sidconfig.h.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
