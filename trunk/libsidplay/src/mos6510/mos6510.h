@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/07/14 16:47:21  s_a_white
+ *  Sync with sidbuilder class project.
+ *
  *  Revision 1.4  2001/07/14 13:04:34  s_a_white
  *  Accumulator is now unsigned, which improves code readability.
  *
@@ -39,7 +42,7 @@
 #define MOS6510_VERSION "1.08"
 #define MOS6510_DATE    "23th May 2000"
 #define MOS6510_AUTHOR  "Simon White"
-#define MOS6510_EMAIL   "s_a_white@email.com"
+#define MOS6510_EMAIL   S_A_WHITE_EMAIL
 #define MOS6510_INTERRUPT_DELAY 2
 
 #include "opcodes.h"
