@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/08 16:50:31  s_a_white
+ *  Re-Added file log tracking.
+ *
  *  Revision 1.1  2000/12/13 19:50:12  s_a_white
  *  Initial revision
  *
@@ -106,6 +109,9 @@ static struct sidplayer_t
     uint_least8_t *buffer;
     uint_least32_t bufferSize;
     char          *filename;
+    SidTune        song;
+
+    sidplayer_t () : song(0) {}
 } sidplayer;
 
 
@@ -199,13 +205,15 @@ void sid_play (char *filename)
 
     sid_ip.filename        = filename;
     sidplayer.selectedSong = 0;
-    pthread_mutex_lock   (&lib_mutex);
-    ret = sidplayer.lib.loadSong (filename, sidplayer.selectedSong);
+    pthread_mutex_lock  (&lib_mutex);
+    sidplayer.song.load (filename);
 
-    if (!(ret < 0))
+    if (sidplayer.song)
     {   // Get tune number we ended up on
         sid2_playerInfo_t playerInfo;
-        sidplayer.lib.getInfo (&playerInfo);
+        sidplayer.song.selectSong (sidplayer.selectedSong);
+        sidplayer.lib.loadSong    (&sidplayer.song);
+        sidplayer.lib.getInfo     (&playerInfo);
         sidplayer.selectedSong = playerInfo.tuneInfo.currentSong;
     }
     pthread_mutex_unlock (&lib_mutex);
@@ -280,7 +288,8 @@ void sid_subtune (int tune)
         if (sidplayer.selectedSong > playerInfo.tuneInfo.songs)
             sidplayer.selectedSong = 1;
     }
-    (void) sidplayer.lib.loadSong (sidplayer.selectedSong);
+    sidplayer.song.selectSong (sidplayer.selectedSong);
+    sidplayer.lib.loadSong    (&sidplayer.song);
 
     {   // Get tune number we ended up on
         sid2_playerInfo_t playerInfo;
