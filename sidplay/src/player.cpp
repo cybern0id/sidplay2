@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2003/02/22 09:41:59  s_a_white
+ *  Made crcs be printed for every subtune automatically.
+ *
  *  Revision 1.22  2003/02/20 18:50:44  s_a_white
  *  sid2crc support.
  *
@@ -488,13 +491,15 @@ void ConsolePlayer::close ()
     m_engine.load   (NULL);
     m_engine.config (m_engCfg);
 
-    // Correctly leave ansi mode and get prompt to
-    // end up in a suitable location
-    if ((m_iniCfg.console ()).ansi)
-        cerr << '\x1b' << "[0m";
+    if (m_quietLevel < 2)
+    {   // Correctly leave ansi mode and get prompt to
+        // end up in a suitable location
+        if ((m_iniCfg.console ()).ansi)
+            cerr << '\x1b' << "[0m";
 #ifndef HAVE_MSWINDOWS
-    cerr << endl;
+        cerr << endl;
 #endif
+    }
 }
 
 // Flush any hardware sid fifos so all music is played
@@ -542,8 +547,9 @@ bool ConsolePlayer::play ()
         // Deliberate run on
     case playerPaused:
         // Check for a keypress (approx 250ms rate, but really depends
-        // on music buffer sizes)
-        if (_kbhit ())
+        // on music buffer sizes).  Don't do this for high quiet levels
+        // as chances are we are under remote control.
+        if ((m_quietLevel < 2) && _kbhit ())
             decodeKeys ();
         return true;
     default:
