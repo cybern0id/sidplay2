@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2002/01/14 23:18:56  s_a_white
+ *  Make sure xsid releases the old sid emulation when there are errors gaining
+ *  a new one.
+ *
  *  Revision 1.13  2001/12/20 20:15:23  s_a_white
  *  Fixed bad environment initialisation when switching to legacy modes.
  *
@@ -263,18 +267,34 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
         forced = true;
 
     // Detect the Correct Song Speed
-    if (clock == SID2_CLOCK_CORRECT)
+    switch (clock)
     {
+    case SID2_CLOCK_PAL_DEFAULT:
         clock = SID2_CLOCK_PAL;
-        if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
-            clock = SID2_CLOCK_NTSC;
-    }
-    // If forced change song to be the requested speed
-    else if (forced)
-    {
         m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        if (clock == SID2_CLOCK_NTSC)
+        if ((m_tune->getInfo()).clockSpeed == SIDTUNE_CLOCK_NTSC)
+        {
+            clock = SID2_CLOCK_NTSC;
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        }
+        break;
+    case SID2_CLOCK_NTSC_DEFAULT:
+        clock = SID2_CLOCK_NTSC;
+        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        if ((m_tune->getInfo()).clockSpeed == SIDTUNE_CLOCK_PAL)
+        {
+            clock = SID2_CLOCK_PAL;
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+        }
+        break;
+    default:
+        if (forced)
+        {
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+            if (clock == SID2_CLOCK_NTSC)
+                m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+        }
+        break;
     }
 
     if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
@@ -409,14 +429,14 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
     // Make xsid forget it's emulation
     xsid.emulation (&nullsid);
 
-	{   // Release old sids
-		sidbuilder *b;
-		b = sid1->builder ();
-		if (b)
-			b->unlock (sid1);
-		b = sid2->builder ();
-		if (b)
-		   b->unlock (sid2);
+    {   // Release old sids
+        sidbuilder *b;
+        b = sid1->builder ();
+        if (b)
+            b->unlock (sid1);
+        b = sid2->builder ();
+        if (b)
+           b->unlock (sid2);
     }
 
     if (!builder)
@@ -426,17 +446,26 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
     }
     else
     {
-        if (model == SID2_MODEL_CORRECT)
-        {   // Base selection on song
+        switch (model)
+        {
+        case SID2_MOS6581_DEFAULT:
             model = SID2_MOS6581;
-            if ((m_tune->getInfo()).sidRev8580)
+            if ((m_tune->getInfo()).sidModel == SIDTUNE_SIDMODEL_8580)
                 model = SID2_MOS8580;
+            break;
+        case SID2_MOS8580_DEFAULT:
+            model = SID2_MOS8580;
+            if ((m_tune->getInfo()).sidModel == SIDTUNE_SIDMODEL_6581)
+                model = SID2_MOS6581;
+            break;
+        default:
+            break;
         }
 
         // Set the tunes sid model
-        m_tuneInfo.sidRev8580 = false;
+        m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
         if (model == SID2_MOS8580)
-            m_tuneInfo.sidRev8580 = true;
+            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
 
         // Get first SID emulation
         sid1 = builder->lock (this, model);

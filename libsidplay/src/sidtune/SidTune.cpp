@@ -385,16 +385,16 @@ void SidTune::init()
     info.musPlayer = false;
     info.fixLoad = false;
     info.songSpeed = SIDTUNE_SPEED_VBI;
-    info.clockSpeed = SIDTUNE_CLOCK_PAL;
+    info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
     info.songLength = 0;
-    info.sidRev8580 = false;
-	info.relocStartPage = 0;
-	info.relocPages = 0;
+    info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
+    info.relocStartPage = 0;
+    info.relocPages = 0;
 
     for ( uint_least16_t si = 0; si < SIDTUNE_MAX_SONGS; si++ )
     {
-        songSpeed[si] = SIDTUNE_SPEED_VBI;
-        clockSpeed[si] = SIDTUNE_CLOCK_PAL;
+        songSpeed[si] = info.songSpeed;
+        clockSpeed[si] = info.clockSpeed;
         songLength[si] = 0;
     }
 
