@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2005/01/12 22:11:11  s_a_white
+ *  Updated to support new ioctls so we can find number of installed sid devices.
+ *
  *  Revision 1.16  2004/11/04 12:34:42  s_a_white
  *  Newer versions of the hardsid driver allow /dev/sid to be opened multiple
  *  times rather than providing seperate /dev/sid<n> entries.
@@ -139,7 +142,9 @@ HardSID::HardSID (sidbuilder *builder)
                 return;
             }
             // Check to see if a sid is allocated to the stream
-            if (ioctl (m_handle, HSID_IOCTL_ALLOCATED, 0) < 0)
+            // Allow errors meaning call is not supported, so
+            // must have a sid
+            if (ioctl (m_handle, HSID_IOCTL_ALLOCATED, 0) == 0)
             {
                 close (m_handle);
                 m_handle = -1;
