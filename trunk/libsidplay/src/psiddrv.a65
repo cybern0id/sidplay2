@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/02/04 23:50:48  s_a_white
+ *  Improved compatibilty with older sidplay1 modes.
+ *
  *  Revision 1.4  2001/12/17 23:43:29  s_a_white
  *  Fix for real C64 tunes where BRK handler is run.
  *
@@ -186,8 +189,9 @@ bas_on      lda #$37
             rts
 
             ; sidplay compatibilty irq
-sidplay     ldx #0
-            ldy #0
+sidplay     lda #0
+            tax
+            tay
             jsr irqvec
             pla
             jmp setiomap
