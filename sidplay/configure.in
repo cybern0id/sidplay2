@@ -14,17 +14,7 @@ AC_PROG_CXX
 
 dnl Initialise Libtool.
 AC_LIBTOOL_WIN32_DLL
-CONFIG_LIBTOOL
-
-dnl Find pkg-config
-AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-if test "$PKG_CONFIG" = no; then
-  AC_MSG_ERROR([*** pkg-config not found. See http://pkgconfig.sourceforge.net])
-fi
-
-if ! pkg-config --atleast-pkgconfig-version 0.5 ; then
-  AC_MSG_ERROR([*** pkg-config too old; version 0.5 or better required.])
-fi
+MY_CONFIG_LIBTOOL
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
@@ -94,35 +84,25 @@ dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
 
 dnl Check for nothrow allocator.
-CHECK_EXCEPTIONS
+MY_CHECK_EXCEPTIONS
 
 dnl Check ANSI C++ ios features
-CHECK_IOS_BIN
-CHECK_IOS_OPENMODE
+MY_CHECK_IOS_BIN
+MY_CHECK_IOS_OPENMODE
 
 dnl Check for libsidplay2 libraries
-LIBSIDPLAY2_REQUIRED_VERSION=2.1.0
-LIBSIDPLAY2_FIND
-LIBSIDUTILS_REQUIRED_VERSION=1.0.2
-LIBSIDUTILS_FIND
-BUILDERS_FIND
+SID2_FIND_LIBSIDPLAY2
+SID2_FIND_LIBSIDUTILS
 
-dnl See what emulations we have
-BUILDERS_AVAILABLE=NO
-BUILDERS_FIND_RESID
-BUILDERS_FIND_HARDSID
-
-if test "$BUILDERS_AVAILABLE" = NO; then
-    AC_MSG_ERROR([
-No builder modules were found in the sidbuilders
-install dir.  Please check your installation!
-    ]);
-fi
+# Find sid builder emulations
+SID2_FIND_BUILDERS
 
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -DHAVE_UNIX -Wall -I\$(top_srcdir)/include \
-\$(LIBSIDPLAY2_CXXFLAGS) \$(LIBSIDUTILS_CXXFLAGS) \
-\$(BUILDERS_CXXFLAGS)"
+\$(LIBSIDPLAY2_CXXFLAGS) \$(LIBSIDUTILS_CXXFLAGS)"
+
+ACLOCAL_AMFLAGS="-I unix"
+AC_SUBST(ACLOCAL_AMFLAGS)
 
 AC_OUTPUT(
 Makefile \
