@@ -79,7 +79,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src include 
 
-EXTRA_DIST = win libsidplay.lsm Makefile.dist sidconfig.h.in
+EXTRA_DIST = scripts win libsidplay.lsm Makefile.dist sidconfig.h.in
 
 sidplayincludedir = $(includedir)/sidplay2
 
