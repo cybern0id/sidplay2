@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.81  2004/06/26 11:01:55  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *  Merged sidplay2/w volume/mute changes and removed unecessary cpu
+ *  emulation.
+ *
  *  Revision 1.80  2004/05/26 19:42:44  s_a_white
  *  Fixed exceed c64 data memory check.
  *
@@ -775,8 +780,8 @@ uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
         case 0xd:
             if (isIO)
                 return readMemByte_io (addr);
-            else if (isChar)
-                return m_rom[addr];
+            else if (isChar) // Internal relocated to free ROM
+                return m_rom[addr & 0x4fff];
             else
                 return m_ram[addr];
         break;
@@ -967,7 +972,9 @@ void Player::reset (void)
     if (m_info.environment == sid2_envR)
     {
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
-        memcpy (&m_rom[0xd000], character, sizeof (character));
+        // ROM should be at 0xd000 but have internally relocated
+        // it here to unused ROM space (does not effect C64 progs)
+        memcpy (&m_rom[0x4000], character, sizeof (character));
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         m_rom[0xfdc4] = 0xea; // Ingore sid volume reset to avoid DC
