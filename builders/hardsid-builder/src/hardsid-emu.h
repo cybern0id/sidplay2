@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/07/20 08:36:24  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.3  2002/02/17 17:24:50  s_a_white
  *  Updated for new reset interface.
  *
@@ -39,21 +42,27 @@
 
 #include <windows.h>
 
+#define HSID_VERSION_MIN (WORD) 0x0200
+#define HSID_VERSION_204 (WORD) 0x0204
+
 //**************************************************************************
 // Version 2 Interface
 typedef void (CALLBACK* HsidDLL2_Delay_t)   (BYTE deviceID, WORD cycles);
 typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
 typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
 typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
-typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
-typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
 typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
-typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID, BYTE volume);
+typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
 typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
 typedef void (CALLBACK* HsidDLL2_Sync_t)    (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Write_t)   (BYTE deviceID, WORD cycles, BYTE SID_reg, BYTE data);
 typedef WORD (CALLBACK* HsidDLL2_Version_t) (void);
+
+// Version 2.04 Extensions
+typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
 
 struct HsidDLL2
 {
@@ -67,10 +76,11 @@ struct HsidDLL2
     HsidDLL2_Mute_t    Mute;
     HsidDLL2_MuteAll_t MuteAll;
     HsidDLL2_Reset_t   Reset;
+    HsidDLL2_Reset2_t  Reset2;
     HsidDLL2_Read_t    Read;
     HsidDLL2_Sync_t    Sync;
     HsidDLL2_Write_t   Write;
-    HsidDLL2_Version_t Version;
+    WORD               Version;
 };
 
 #endif // HAVE_MSWINDOWS
@@ -107,6 +117,7 @@ private:
     bool           muted[HARDSID_VOICES];
     uint           m_instance;
     bool           m_status;
+    bool           m_locked;
 
 public:
     HardSID  (sidbuilder *builder);

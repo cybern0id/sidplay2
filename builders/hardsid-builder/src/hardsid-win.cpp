@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/07/20 08:36:24  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.4  2002/02/17 17:24:51  s_a_white
  *  Updated for new reset interface.
  *
@@ -50,7 +53,8 @@ HardSID::HardSID (sidbuilder *builder)
  Event("HardSID Delay"),
  m_eventContext(NULL),
  m_instance(sid++),
- m_status(false)
+ m_status(false),
+ m_locked(false)
 {   
     *m_errorBuffer = '\0';
     if (m_instance >= hsid2.Devices ())
@@ -106,7 +110,11 @@ void HardSID::reset (uint8_t volume)
     // reset to clear out fifo.
     
     m_accessClk = 0;
-    hsid2.Reset ((BYTE) m_instance, volume);
+    if (hsid2.Version >= HSID_VERSION_204)
+        hsid2.Reset2 ((BYTE) m_instance, volume);
+    else
+        hsid2.Reset  ((BYTE) m_instance);
+
     if (m_eventContext != NULL)
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
@@ -124,14 +132,22 @@ bool HardSID::lock (c64env *env)
 {
     if (env == NULL)
     {
-        hsid2.Unlock (m_instance);
+        if (hsid2.Version >= HSID_VERSION_204)
+            hsid2.Unlock (m_instance);
+        m_locked = false;
         m_eventContext->cancel (this);
         m_eventContext = NULL;
     }
     else
     {
-        if (hsid2.Lock (m_instance) == FALSE)
-            return false;
+        if (hsid2.Version >= HSID_VERSION_204)
+        {
+            if (hsid2.Lock (m_instance) == FALSE)
+                return false;
+        }
+        else if (m_locked)
+            return FALSE;
+        m_locked = true;
         m_eventContext = &env->context ();
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
     }
