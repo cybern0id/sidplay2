@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2000/12/13 12:00:25  mschwendt
+ *  Corrected order of members in member initializer-list.
+ *
  *  Revision 1.2  2000/12/12 22:50:15  s_a_white
  *  Bug Fix #122033.
  *
@@ -564,7 +567,7 @@ void player::nextSequence ()
     {
         if (isKernal)
         {   // Setup the entry point from hardware IRQ
-            playAddr = endian_little16 (&ram[0x0315]);
+            playAddr = endian_little16 (&ram[0x0314]);
         }
         else
         {   // Setup the entry point from software IRQ
