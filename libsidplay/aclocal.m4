@@ -4787,6 +4787,71 @@ Please check your installation!
     fi
 ])
 
+
+dnl -------------------------------------------------------------------------
+dnl Find library on the system.  This is used to find libraries that are not
+dnl built/installed.  The include, lib path must be provided individually and it
+dnl is not possible to validate the library path.
+dnl $1 - library
+dnl $2 - library header
+dnl [$3 - used header]
+dnl -------------------------------------------------------------------------
+AC_DEFUN(MY_FIND_LIB_NO_CHECK,
+[
+    AC_MSG_CHECKING([for $1 library and headers])
+
+    my_libdir=""
+    my_includedir=""
+    my_uname=LIB`echo $1 | tr [a-z] [A-Z]`
+
+    AC_ARG_WITH($1-includes,
+        [  --with-$1-includes=DIR
+            where the $1 includes are located],
+        [my_includedir="$withval"]
+    )
+
+    AC_ARG_WITH($1-library,
+        [  --with-$1-library=DIR
+            where the $1 library is installed],
+        [my_libdir="$withval"]
+    )
+
+    dnl Both paths must be provided
+    if test "$my_libdir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 library path not supplied!
+        ])
+    fi
+
+    if test "$my_includedir" = ""; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 include path not supplied!
+        ])
+    fi
+
+    dnl Check the include path
+    my_dirs="$my_includedir"
+    MY_FIND_FILE($2,$my_dirs,my_includedir,my_header)
+
+    if test "$my_includedir" = NO; then
+        AC_MSG_RESULT(no)
+        AC_MSG_ERROR([
+$1 headers not found!
+        ])
+    fi
+
+    AC_MSG_RESULT(yes)
+    eval ${my_uname}_CXXFLAGS=\"-I$my_includedir\"
+    eval ${my_uname}_LDFLAGS=\"$my_libdir/lib$1.la\"
+
+    dnl Optional parameter - return used header
+    if test "$3" != ""; then
+        $3=$my_header
+    fi
+])
+
 dnl AC_CREATE_STDINT_H [( HEADER-TO-GENERATE [, HEDERS-TO-CHECK])] -*- sh -*-
 dnl
 dnl the "ISO C9X: 7.18 Integer types <stdint.h>" section requires the
@@ -4819,7 +4884,7 @@ dnl Remember, if the system already had a valid <stdint.h>, the generated
 dnl file will include it directly. No need for fuzzy HAVE_STDINT_H things...
 dnl
 dnl (this file is part of the http://ac-archive.sf.net/gstdint project)
-dnl @version $Id: aclocal.m4,v 1.25 2002-11-04 22:24:15 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.26 2002-12-23 19:57:34 s_a_white Exp $
 dnl @author  Guido Draheim <guidod@gmx.de>       STATUS: used on new platforms
 
 AC_DEFUN([AC_CREATE_STDINT_H],
@@ -5338,7 +5403,7 @@ dnl      AC_COMPILE_CHECK_SIZEOF(ptrdiff_t, $headers)
 dnl      AC_COMPILE_CHECK_SIZEOF(off_t, $headers)
 dnl
 dnl @author Kaveh Ghazi <ghazi@caip.rutgers.edu>
-dnl @version $Id: aclocal.m4,v 1.25 2002-11-04 22:24:15 s_a_white Exp $
+dnl @version $Id: aclocal.m4,v 1.26 2002-12-23 19:57:34 s_a_white Exp $
 dnl
 AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 [changequote(<<, >>)dnl
