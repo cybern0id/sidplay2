@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2002/01/16 08:23:45  s_a_white
+ *  Force a clock speed when unknown.
+ *
  *  Revision 1.15  2002/01/15 19:12:54  s_a_white
  *  PSID2NG update.
  *
@@ -430,11 +433,6 @@ int Player::environment (sid2_env_t env)
 int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
 {
     sidemu *sid1 = xsid.emulation ();
-
-    // If we are already using the emulation
-    // then don't change
-    if (builder == sid1->builder ())
-        return 0;
 
     // Make xsid forget it's emulation
     xsid.emulation (&nullsid);
