@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2001/10/02 18:26:36  s_a_white
+ *  Removed ReSID support and updated for new scheduler.
+ *
  *  Revision 1.29  2001/09/17 19:02:38  s_a_white
  *  Now uses fixed point maths for sample output and rtc.
  *
@@ -149,8 +152,8 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:m_scheduler ("SIDPlay 2"),
- c64env  (&m_scheduler),
+:c64env  (&m_scheduler),
+ m_scheduler ("SIDPlay 2"),
  sid6510 (&m_scheduler),
  mos6510 (&m_scheduler),
  cpu     (&sid6510),
