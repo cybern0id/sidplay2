@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2001/03/25 19:48:13  s_a_white
+ *  xsid.reset added.
+ *
  *  Revision 1.18  2001/03/22 22:45:20  s_a_white
  *  Re-ordered initialisations to match defintions.
  *
@@ -73,7 +76,6 @@
  *
  ***************************************************************************/
 
-#include <stdio.h>
 #include <string.h>
 #include "config.h"
 #include "sidendian.h"
