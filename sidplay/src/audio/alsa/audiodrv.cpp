@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 21:23:23  s_a_white
+ *  Replaced SID_HAVE_EXCEPTIONS with HAVE_EXCEPTIONS in new
+ *  drivers.
+ *
  *  Revision 1.2  2001/01/18 18:35:41  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -124,9 +128,9 @@ void *Audio_ALSA::open (AudioConfig &cfg)
 
     tmpCfg.bufSize = setup.buf.block.frag_size;
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(nothrow) ubyte_sidt[tmpCfg.bufSize];
+    _sampleBuffer = new(nothrow) int_least8_t[tmpCfg.bufSize];
 #else
-    _sampleBuffer = new ubyte_sidt[tmpCfg.bufSize];
+    _sampleBuffer = new int_least8_t[tmpCfg.bufSize];
 #endif
 
     if (!_sampleBuffer)
