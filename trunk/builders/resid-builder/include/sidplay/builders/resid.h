@@ -33,11 +33,13 @@
 // Create the SID builder object
 class ReSIDBuilder: public sidbuilder
 {
+protected:
+    std::vector<sidemu *> sidobjs;
+
 private:
     static const char  *ERR_FILTER_DEFINITION;
     char        m_errorBuffer[100];
     const char *m_error;
-    std::vector<sidemu *> sidobjs;
 
 public:
     ReSIDBuilder  (const char * const name);
