@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2003/01/21 19:26:16  s_a_white
+ *  Pending interrupt check is one cycle to late.  Adjust the interrupt delay tests
+ *  to compensate.
+ *
  *  Revision 1.33  2003/01/20 23:10:48  s_a_white
  *  Fixed RMW instructions to perform memory re-write on the correct cycle.
  *
@@ -2233,7 +2237,7 @@ MOS6510::MOS6510 (EventContext *context)
 #ifdef HAVE_EXCEPTIONS
                     instr->cycle = new(std::nothrow) (ProcessorCycle[cycleCount]);
 #else
-                    instr->cycle = new (ProcessorCycle[cycleCount]) (void));
+                    instr->cycle = new ProcessorCycle[cycleCount];
 #endif
                     if (!instr->cycle)
                         goto MOS6510_MemAllocFailed;
@@ -2326,7 +2330,7 @@ MOS6510::MOS6510 (EventContext *context)
 #ifdef HAVE_EXCEPTIONS
                     instr->cycle = new(std::nothrow) (ProcessorCycle[cycleCount]);
 #else
-                    instr->cycle = new (ProcessorCycle[cycleCount]) (void));
+                    instr->cycle = new ProcessorCycle[cycleCount];
 #endif
                     if (!instr->cycle)
                         goto MOS6510_MemAllocFailed;
