@@ -42,7 +42,7 @@ extern "C" {
 /*#ifdef _WINDOWS
 #   define INI_LINKAGE __stdcall
 #else*/
-#   define INI_LINKAGE 
+#   define INI_LINKAGE
 /*#endif*/
 
 /* DLL building support on win32 hosts */
@@ -62,8 +62,12 @@ extern "C" {
 #undef  INI_ADD_LIST_SUPPORT
 #endif
 
-
+/* Compatibility with future C++ code */
+#ifndef ini_fd_t
+#define ini_fd_t ini_fd_t
 typedef void* ini_fd_t;
+#endif
+
 
 /* Rev 1.2 Added new fuction */
 INI_EXTERN ini_fd_t INI_LINKAGE ini_open     (const char *name, const char *mode,
@@ -78,6 +82,9 @@ INI_EXTERN int INI_LINKAGE ini_locateKey     (ini_fd_t fd, const char *key);
 INI_EXTERN int INI_LINKAGE ini_locateHeading (ini_fd_t fd, const char *heading);
 INI_EXTERN int INI_LINKAGE ini_deleteKey     (ini_fd_t fd);
 INI_EXTERN int INI_LINKAGE ini_deleteHeading (ini_fd_t fd);
+
+INI_EXTERN const char * INI_LINKAGE ini_currentKey     (ini_fd_t fd);
+INI_EXTERN const char * INI_LINKAGE ini_currentHeading (ini_fd_t fd);
 
 /* Returns the number of bytes required to be able to read the key as a
  * string from the file. (1 should be added to this length to account
