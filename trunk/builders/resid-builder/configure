@@ -13629,7 +13629,7 @@ Please check your installation!
    { (exit 1); exit 1; }; }
     fi
 
-        if test "${libdir}" == '${exec_prefix}/lib'; then
+        if test "${libdir}" = '${exec_prefix}/lib'; then
         libdir="$LIBSIDPLAY2_BUILDERS"
     fi
 

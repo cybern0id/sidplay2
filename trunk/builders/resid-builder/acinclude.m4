@@ -408,7 +408,7 @@ Please check your installation!
     fi
 
     dnl setup builder dir
-    if test "${libdir}" == '${exec_prefix}/lib'; then
+    if test "${libdir}" = '${exec_prefix}/lib'; then
         libdir="$LIBSIDPLAY2_BUILDERS"
     fi
 
