@@ -1,0 +1,78 @@
+/***************************************************************************
+                          resid-emu.h  -  ReSid Emulation
+                             -------------------
+    begin                : Fri Apr 4 2001
+    copyright            : (C) 2001 by Simon White
+    email                : s_a_white@email.com
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#include "config.h"
+
+// Allow resid to be in more than one location
+#ifdef HAVE_LOCAL_RESID
+#   include "resid/sid.h"
+#else
+#   ifdef HAVE_USER_RESID
+#       include "sid.h"
+#   else
+#       include <resid/sid.h>
+#   endif
+#endif
+
+#ifdef RESID_NAMESPACE
+#   define RESID ::RESID_NAMESPACE
+#else
+#   define RESID
+#endif
+
+
+class ReSID: public sidemu
+{
+private:
+    EventContext *m_context;
+    class RESID::SID &m_sid;
+    event_clock_t m_accessClk;
+    int_least32_t m_gain;
+    static char   m_credit[100];
+    const  char  *m_error;
+    bool          m_status;
+    bool          m_locked;
+
+public:
+    ReSID  (sidbuilder *builder);
+    ~ReSID (void) {;}
+
+    // Standard component functions
+    const char   *credits (void) {return m_credit;}
+    void          reset   (void);
+    uint8_t       read    (const uint_least8_t addr);
+    void          write   (const uint_least8_t addr, const uint8_t data);
+    const char   *error   (void) {return m_error;}
+
+    // Standard SID functions
+    int_least32_t output  (const uint_least8_t bits);
+    void          filter  (const bool enable);
+    void          voice   (const uint_least8_t num, const uint_least8_t volume,
+                           const bool mute);
+    void          gain    (const int_least8_t precent);
+
+    operator bool () { return m_status; }
+    static   int  devices (char *error);
+
+    // Specific to resid
+    void sampling (uint freq);
+    bool filter   (const sid_filter_t *filter);
+    void model    (sid2_model_t model);
+    // Must lock the SID before using the standard functions.
+    void lock     (c64env *env);
+    bool lock     (void) const { return m_locked; }
+};
