@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/29 08:11:43  s_a_white
+ *  TSID filename fix
+ *
  *  Revision 1.4  2002/01/29 00:49:49  jpaana
  *  Fixed a typo on in the TSID code
  *
@@ -326,7 +329,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
     m_tune.load (m_filename);
     if (!m_tune)
     {
-        cerr << m_name << "\n" << (m_tune.getInfo ()).statusString << endl;
+        displayError ((m_tune.getInfo ()).statusString);
         return false;
     }
 
@@ -334,7 +337,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
     // whilst using a hardware emulation
     if (m_driver.file && (m_driver.sid >= EMU_HARDSID))
     {
-        cerr << m_name << "\n" << "ERROR: Cannot generate audio files using hardware emulations" << endl;
+        displayError ("ERROR: Cannot generate audio files using hardware emulations");
         return false;
     }
     
@@ -349,7 +352,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
     {
         if (m_driver.file && m_timer.valid && !m_timer.length)
         {   // Time of 0 provided for wav generation
-            cerr << m_name << "\nERROR: -t0 invalid in record mode" << endl;
+            displayError ("ERROR: -t0 invalid in record mode");
             return false;
         }
         if (!m_timer.valid)
@@ -362,7 +365,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
             {   // Try loading the database specificed by the user
                 if (m_database.open (database) < 0)
                 {
-                    cerr << m_name << "\n" << m_database.error () << endl;
+                    displayError (m_database.error ());
                     return false;
                 }
             }
@@ -376,7 +379,7 @@ bool ConsolePlayer::args (int argc, char *argv[])
     // Set TSIDs base directory
     if (!m_tsid.setBaseDir(true))
     {
-        cerr << m_name << "\n" << m_tsid.getError () << endl;
+        displayError (m_tsid.getError ());
         return false;
     }
 #endif
