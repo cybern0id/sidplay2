@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2002/01/28 22:35:20  s_a_white
+ *  Initial Release.
+ *
  *
  ***************************************************************************/
 
@@ -25,7 +28,6 @@
 
 #include <vector>
 #include "sidplay/sidbuilder.h"
-#include "config.h"
 
 
 class HardSIDBuilder: public sidbuilder
