@@ -142,18 +142,19 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
         if test "$sid_libsidplay2_includes" != NO; then
             libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
         fi
-        libsidplay2_incdirs="$libsidplay2_incdirs $prefix/include /usr/include /usr/local/include \
-                             /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
+        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $prefix/include /usr/include \
+                             /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
         SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
 
         # Search common locations where library might be stored.
         libsidplay2_libdirs=""
         if test "$sid_libsidplay2_library" != NO; then
-            libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib $sid_libsidplay2_library/src"
+            libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib \
+                                 $sid_libsidplay2_library/src"
         fi
-        libsidplay2_libdirs="$libsidplay2_libdirs $prefix/lib /usr/lib /usr/local/lib /usr/lib/sidplay2/lib \
-                             /usr/local/lib/sidplay2/lib"
+        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $prefix/lib /usr/lib /usr/local/lib \
+                             /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
         SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir
 
@@ -166,7 +167,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
         if test "$sid_have_libsidplay2" = yes; then
             sid_libsidplay2_libadd="-L$sid_libsidplay2_library"
             sid_libsidplay2_incadd="-I$sid_libsidplay2_includes"
-            
+
             # Test compilation with found paths.
             SID_TRY_LIBSIDPLAY2
 
@@ -228,33 +229,6 @@ AC_DEFUN(SID_TRY_LIBSIDPLAY2,
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
-])
-
-
-dnl -------------------------------------------------------------------------
-dnl Try to find Hardsid.  If so add support for it.
-dnl $sid_have_hardsid will be "yes" or "no"
-dnl -------------------------------------------------------------------------
-
-AC_DEFUN(CHECK_HARDSID,
-[
-    AC_MSG_CHECKING([for hardsid soundcard])
-    AC_TRY_RUN(
-        [#include <sys/types.h>
-         #include <sys/stat.h>
-         #include <fcntl.h>
-         #include <unistd.h>
-         int main () {
-             int fd = open ("/dev/sid0", O_RDWR);
-             if (fd < 0) return -1;
-             close (fd);
-             return 0;
-         }
-        ],
-        [sid_have_hardsid=yes],
-        [sid_have_hardsid=no]
-    )
-    AC_MSG_RESULT($sid_have_hardsid)
 ])
 
 
