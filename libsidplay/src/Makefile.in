@@ -80,7 +80,7 @@ VERSION = @VERSION@
 
 SUBDIRS = mos6510 mos6526 mos656x mos6581 sidtune xsid
 
-INCLUDES = -Isidtune $(RESID_INCLUDES)
+INCLUDES = $(RESID_INCLUDES)
 
 # The library.
 
