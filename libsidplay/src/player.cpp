@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/02/28 18:55:27  s_a_white
+ *  Removed initBank* related stuff.  IRQ terminating ROM jumps at 0xea31,
+ *  0xea7e and 0xea81 now handled.
+ *
  *  Revision 1.12  2001/02/21 21:43:10  s_a_white
  *  Now use VSID code and this handles interrupts much better!  The whole
  *  initialise sequence has been modified to support this.
@@ -109,10 +113,11 @@ player::player (void)
     // SID Initialise
     // These are optional
     // Emulation type selectable
-    filter    (true);
-    extFilter (true);
+    filter     (true);
+    extFilter  (true);
     // Emulation type selectable
-    sidModel  (SID2_MOS6581);
+    sidModel   (SID2_MOS6581);
+    sidSamples (true);
     //----------------------------------------------
 
     // Rev 2.0.4 (saw) - Added
@@ -263,17 +268,14 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
             sid.mute  (1, true);
             sid2.mute (0, true);
             sid2.mute (2, true);
-#ifndef XSID_USE_SID_VOLUME
-            // 2 Voices scaled to unity from 4
+            // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    _leftVolume  *= 2;
             //    _rightVolume *= 2;
-#else
-            // 2 Voices scaled to unity from 3
+            // 2 Voices scaled to unity from 3 (was SID_VOL)
             //        _leftVolume  *= 3;
             //        _leftVolume  /= 2;
             //    _rightVolume *= 3;
             //    _rightVolume /= 2;
-#endif // XSID_USE_SID_VOLUME
         }
 
         if (_playback == sid2_left)
@@ -507,10 +509,10 @@ int player::initialise ()
     // init loop that sets it's own irq handler
     //if ((playAddr == 0xffff) || (playAddr == initAddr))
     if (playAddr == 0xffff)
-	{   // Indicates sid requiring real C64 environment
+    {   // Indicates sid requiring real C64 environment
         // so speed flag.
-		cia.locked = false;
-		xsid.mute (true);
+        cia.locked = false;
+        xsid.mute (true);
         playAddr   = 0;
     }
 
@@ -569,9 +571,9 @@ void player::nextSequence ()
     else // CPU is sleeping, so restart it.
     {   // Setup the entry point from hardware IRQ
         if (isKernal)
-			memcpy (&rom[0xfffc], &rom[0xfffe], 2);
-		else
-			memcpy (&ram[0xfffc], &ram[0xfffe], 2);
+            memcpy (&rom[0xfffc], &rom[0xfffe], 2);
+        else
+            memcpy (&ram[0xfffc], &ram[0xfffe], 2);
         cpu.reset ();
     }
 
@@ -611,20 +613,15 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
     playerState = _playing;
 
     while (playerState == _playing)
-    {   // For sidplay compatibility the cpu must be idle
-        // when the play routine exists.  The cpu will stay
-        // idle until an interrupt occurs
+    {   // Allow the cpu to idle for sidplay compatibility
         if (cpu)
             cpu.clock ();
-//            if (!cpu)
-//                xsid.suppress (false);
-//        }
 
         if (!_optimiseLevel)
-        {   // Sids currently have largest cpu overhead, so have been moved
-            // and are now only clocked when an output it required
-            // Only clock second sid if we want to hear right channel or
-            // stereo.  However having this results in better playback
+        {   // With no optimisation clocking the sids here keeps them
+            // fully in sink with the cpu, but has a high cpu demand.
+            // In optimised mode, the sids are clocked in the mixer
+            // routines when a sample is required.
             if (_sidEnabled[0])
                 sid.clock ();
             if (_sidEnabled[1])
@@ -683,6 +680,13 @@ void player::stop (void)
     playerState = _stopped;
 }
 
+void player::sidSamples (bool enable)
+{
+    // @FIXME@ Extend this when digi scan added.
+    _sidSamples  =   enable;
+    _digiChannel =  (enable == false);
+    xsid.sidSamples (enable);
+}
 
 
 //-------------------------------------------------------------------------
@@ -912,13 +916,11 @@ void player::writeMemByte_playsid (uint_least16_t addr, uint8_t data, bool useCa
         if (useCache)
         {
             rom[tempAddr] = data;
-#ifdef XSID_USE_SID_VOLUME
-            if ((uint8_t) tempAddr == 0x18)
+            if ( !_digiChannel && ((uint8_t) tempAddr == 0x18) )
             {   // Check if xsid wants to trap the change
-                if (xsid.volumeUpdated (data))
+                if (xsid.updateSidData0x18 (data))
                     return;
             }
-#endif // XSID_USE_SID_VOLUME
         }
         sid.write ((uint8_t) tempAddr, data);
     }
@@ -989,7 +991,7 @@ void player::envReset (void)
     endian_little16 (&rom[0xfffc],  0xFCE2); // RESET
     endian_little16 (&rom[0xfffe],  0xFE48); // IRQ
     
-	// Install some basic rom functionality
+    // Install some basic rom functionality
 
     /* EA31 IRQ return: jmp($0312). */
     rom [0xea31] = JMPw;
@@ -1005,8 +1007,8 @@ void player::envReset (void)
     rom [0xea83] = 0x03;
 
     // Is this still needed?  Really some of Dags player should be put
-	// into rom as it's only doing what the normal code should do.
-	// However what will playsid mode make of this...
+    // into rom as it's only doing what the normal code should do.
+    // However what will playsid mode make of this...
     if (_environment == sid2_envPS)
     {
         // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)

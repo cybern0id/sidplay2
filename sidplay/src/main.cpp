@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/02/08 20:58:01  s_a_white
+ *  Help screen bug fix for default precision and optimisation, which were printed
+ *  as characters.
+ *
  *  Revision 1.3  2001/01/23 22:54:24  s_a_white
  *  Prevents timer overwriting paused message.
  *
@@ -88,6 +92,7 @@ public:
     bool                paused;
     uint_least8_t       speed;
     const uint_least8_t speedMax;
+    bool                sidSamples;
 
 public:
     sid2_player_t::sid2_player_t ()
@@ -102,6 +107,7 @@ public:
         restart      = false;    
         paused       = false;
         speed        = 1;
+        sidSamples   = SID2_DEFAULT_SID_SAMPLES;
     }
 } player;
 
@@ -170,6 +176,11 @@ int main(int argc, char *argv[])
                     case 'd':
                         // Override sidTune and enable the second sid
                         force2SID = true;
+                    break;
+
+                    case 's':
+                        // Force samples through soundcard instead of SID
+                        player.sidSamples = false;
                     break;
 
                     default:
@@ -472,6 +483,7 @@ int main(int argc, char *argv[])
     player.lib.clockSpeed   (clockSpeed, clockForced);
     player.lib.configure    (playback, audioCfg.frequency, audioCfg.precision, force2SID);
     player.lib.optimisation (optimiseLevel);
+    player.lib.sidSamples   (player.sidSamples);
     if (player.lib.environment (playerMode) == -1)
     {
         cerr << argv[0] << " " << player.lib.getErrorString () << endl;
@@ -851,6 +863,7 @@ void displaySyntax (char* arg0)
         << " -f<num>      set frequency in Hz (default: "
         << SID2_DEFAULT_SAMPLING_FREQ << ")" << endl
         << " -fd          force dual sid environment" << endl
+        << " -fs          force samples to a channel (default: uses sid)" << endl
 
 #if !defined(DISALLOW_STEREO_SOUND)
         << " -s[l|r]      stereo sid support or [left/right] channel only" << endl
@@ -879,8 +892,7 @@ void displaySyntax (char* arg0)
 
         << " -v           verbose output" << endl
         << " -vf          force song speed by preventing speed fixing" << endl
-        << " -vp          set VIC PAL clock speed (default: defined by song)" << endl
-        << " -vn          set VIC NTSC clock speed (default: defined by song)" << endl
+        << " -v<p|n>      set VIC PAL/NTSC clock speed (default: defined by song)" << endl
 
         << " -w           create wav file (default: <datafile>.wav)" << endl
 //        << " -w<name>     explicitly defines wav output name" << endl

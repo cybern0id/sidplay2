@@ -26,6 +26,7 @@
 const uint_least32_t SID2_DEFAULT_SAMPLING_FREQ = 44100;
 const uint_least8_t  SID2_DEFAULT_PRECISION     = 16;
 const uint_least8_t  SID2_DEFAULT_OPTIMISATION  = 0;
+const bool           SID2_DEFAULT_SID_SAMPLES   = true; // Samples through sid
 
 // Maximum values
 const uint_least8_t SID2_MAX_PRECISION    = 16;
@@ -82,6 +83,7 @@ public:
     void extFilter  (bool enabled);
     void sidModel   (sid2_model_t model);
     void clockSpeed (sid2_clock_t clock, bool forced = true);
+    void sidSamples (bool enable);
 
     // Rev 1.5 (saw) - Added error loop through support
     const char *getErrorString (void);
