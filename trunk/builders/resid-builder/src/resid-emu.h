@@ -53,7 +53,7 @@ public:
 
     // Standard component functions
     const char   *credits (void) {return m_credit;}
-    void          reset   (void);
+    void          reset   (uint8_t volume);
     uint8_t       read    (const uint_least8_t addr);
     void          write   (const uint_least8_t addr, const uint8_t data);
     const char   *error   (void) {return m_error;}

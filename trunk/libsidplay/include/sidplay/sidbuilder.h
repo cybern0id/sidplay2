@@ -36,7 +36,8 @@ public:
     virtual ~sidemu () {;}
 
     // Standard component functions
-    virtual void    reset (void) = 0;
+    void            reset () { reset (0); }
+    virtual void    reset (uint8_t volume) = 0;
     virtual uint8_t read  (const uint_least8_t addr) = 0;
     virtual void    write (const uint_least8_t addr, const uint8_t data) = 0;
     virtual const   char *credits (void) = 0;

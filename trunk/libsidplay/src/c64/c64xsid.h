@@ -45,10 +45,10 @@ public:
     
     // Standard component interface
     const char *error (void) {return "";}
-    void reset (void)
+    void reset (uint32_t volume)
     {
-        XSID::reset  ();
-        m_sid->reset ();
+        XSID::reset  (0);
+        m_sid->reset (volume);
     }
 
     uint8_t read (const uint_least8_t addr)

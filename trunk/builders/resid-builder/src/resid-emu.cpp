@@ -56,7 +56,7 @@ ReSID::ReSID (sidbuilder *builder)
 		m_status = false;
         return;
 	}
-    reset ();
+    reset (0);
 }
 
 bool ReSID::filter (const sid_filter_t *filter)
@@ -112,10 +112,11 @@ bool ReSID::filter (const sid_filter_t *filter)
 }
 
 // Standard component options
-void ReSID::reset (void)
+void ReSID::reset (uint8_t volume)
 {
     m_accessClk = 0;
     m_sid.reset ();
+    m_sid.write (0x18, volume);
 }
 
 uint8_t ReSID::read (const uint_least8_t addr)
