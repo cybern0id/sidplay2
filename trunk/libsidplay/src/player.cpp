@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.63  2003/06/27 21:15:26  s_a_white
+ *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
+ *  support from the emulation.  Allow user to override whether they want this
+ *  to happen.
+ *
  *  Revision 1.62  2003/05/28 20:14:54  s_a_white
  *  Support the psiddrv overlapping unused parts of the tunes load image.
  *  Fix memory leak whereby m_ram/m_rom weren't being deleted on
@@ -232,6 +237,10 @@ static const uint8_t kernal[] = {
 #include "kernal.bin"
 };
 
+static const uint8_t basic[] = {
+#include "basic.bin"
+};
+
 static const uint8_t poweron[] = {
 #include "poweron.bin"
 };
@@ -420,12 +429,14 @@ int Player::initialise ()
         return -1;
 
     // The Basic ROM sets these values on loading a file.
-    {   // Program start address
-        uint_least16_t addr = m_tuneInfo.loadAddr;
-        endian_little16 (&m_ram[0x2b], addr);
-        // Program end address + 1
-        addr += m_tuneInfo.c64dataLen;
-        endian_little16 (&m_ram[0x2d], addr);
+    {   // Program end address
+        uint_least16_t start = m_tuneInfo.loadAddr;
+        uint_least16_t end   = start + m_tuneInfo.c64dataLen;
+        endian_little16 (&m_ram[0x2d], end); // Variables start
+        endian_little16 (&m_ram[0x2f], end); // Arrays start
+        endian_little16 (&m_ram[0x31], end); // Strings start
+        endian_little16 (&m_ram[0xac], start);
+        endian_little16 (&m_ram[0xae], end);
     }
 
     if (!m_tune->placeSidTuneInC64mem (m_ram))
@@ -458,7 +469,7 @@ int Player::load (SidTune *tune)
     {
         uint_least8_t v = 3;
         while (v--)
-            sid[i]->voice (v, 0, false);
+            sid[i].voice (v, 0, false);
     }
 
     {   // Must re-configure on fly for stereo support!
@@ -832,19 +843,30 @@ void Player::reset (void)
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
-        endian_little16 (&m_rom[0xa000], 0xA004);
-        endian_little16 (&m_rom[0xa002], 0xA004);
-        m_rom[0xa004] = JMPw;
-        endian_little16 (&m_rom[0xa005], 0xA004);
+        if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
+        {
+            memcpy (&m_rom[0xa000], basic, sizeof (basic));
+            // Auto run basic program, initialisation already done
+            endian_little16 (&m_rom[0xa000], 0xa7ae);
+            endian_little16 (&m_rom[0xa002], 0xa7ae);
+        }
+        else
+        {   // Direct start of basic to our psid driver code
+            endian_little16 (&m_rom[0xa000], 0xA004);
+            endian_little16 (&m_rom[0xa002], 0xA004);
+            m_rom[0xa004] = JMPw;
+            endian_little16 (&m_rom[0xa005], 0xA004);
+        }
 
         // Copy in power on settings.  These were created by running
         // the kernel reset routine and storing the usefull values
-        // from $0000-$03ff.  Format is offset, data pairs.
+        // from $0000-$03ff.  Format is offset, data pairs, where
+        // offset is one less than actually intended.
         {
-            uint_least16_t addr = 0;
+            uint_least16_t addr = ~0;
             for (int i = 0; i < sizeof (poweron); i++)
             {
-                addr       += poweron[i++];
+                addr       += poweron[i++] + 1;
                 m_ram[addr] = poweron[i];
             }
         }
