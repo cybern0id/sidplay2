@@ -42,7 +42,7 @@ private:
     class RESID::SID &m_sid;
     event_clock_t m_accessClk;
     int_least32_t m_gain;
-    static char   m_credit[100];
+    static char   m_credit[180];
     const  char  *m_error;
     bool          m_status;
     bool          m_locked;
