@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/01/20 16:25:25  s_a_white
+ *  Updated for new event scheduler interface.
+ *
  *  Revision 1.9  2002/10/17 18:36:43  s_a_white
  *  Prevent multiple unlocks causing a NULL pointer access.
  *
@@ -76,6 +79,7 @@ HardSID::HardSID (sidbuilder *builder)
  Event("HardSID Delay"),
  m_handle(0),
  m_eventContext(NULL),
+ m_phase(EVENT_CLOCK_PHI1),
  m_instance(sid++),
  m_status(false),
  m_locked(false)
@@ -128,7 +132,7 @@ void HardSID::reset (uint8_t volume)
     ioctl(m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
     if (m_eventContext != NULL)
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 uint8_t HardSID::read (uint_least8_t addr)
@@ -136,7 +140,7 @@ uint8_t HardSID::read (uint_least8_t addr)
     if (!m_handle)
         return 0;
 
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     while ( cycles > 0xffff )
@@ -158,7 +162,7 @@ void HardSID::write (uint_least8_t addr, uint8_t data)
     if (!m_handle)
         return;
 
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
     while ( cycles > 0xffff )
@@ -190,14 +194,14 @@ void HardSID::voice (uint_least8_t num, uint_least8_t volume,
 
 void HardSID::event (void)
 {
-    event_clock_t cycles = m_eventContext->getTime (m_accessClk);
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
     if (cycles)
     {
         uint delay = (uint) cycles;
         ioctl(m_handle, HSID_IOCTL_DELAY, delay);
     }
-    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
+    m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 void HardSID::filter(bool enable)
@@ -226,7 +230,7 @@ bool HardSID::lock(c64env* env)
 	    return false;
         m_locked = true;
         m_eventContext = &env->context();
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, EVENT_CLOCK_PHI1);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
     }
     return true;
 }
