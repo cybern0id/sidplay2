@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/01/17 08:35:46  s_a_white
+ *  Event scheduler phase support.
+ *
  *  Revision 1.7  2002/11/21 19:55:38  s_a_white
  *  We now jump to next event directly instead on clocking by a number of
  *  cycles.
@@ -43,31 +46,26 @@
 
 
 EventScheduler::EventScheduler (const char * const name)
-:m_name(name),
- m_pendingEventCount(0),
+:Event(name),
+ m_events(0),
  m_phase(EVENT_CLOCK_PHI1),
  m_timeWarp(this)
 {
-    memset (&m_pendingEvents, 0, sizeof (Event));
-    m_pendingEvents.m_next = &m_pendingEvents;
-    m_pendingEvents.m_prev = &m_pendingEvents;
-    reset  ();
+    m_next = this;
+    m_prev = this;
+    reset ();
 }
 
 // Usefull to prevent clock overflowing
 void EventScheduler::timeWarp ()
 {
-    Event *e     = &m_pendingEvents;
-    uint   count = m_pendingEventCount;
+    Event *e     = this;
+    uint   count = m_events;
     while (count--)
     {   // Reduce all event clocks and clip them
         // so none go negative
-        event_clock_t clk;
-        e   = e->m_next;
-        clk = e->m_clk;
-        e->m_clk = 0;
-        if (clk >= m_eventClk)
-            e->m_clk = clk - m_eventClk;
+        e = e->m_next;
+        e->m_clk -= m_eventClk;
     }
     m_eventClk = 0;
     // Re-schedule the next timeWarp
@@ -75,18 +73,18 @@ void EventScheduler::timeWarp ()
 }
 
 void EventScheduler::reset (void)
-{    // Remove all events
-    Event *e     = &m_pendingEvents;
-    uint   count = m_pendingEventCount;
+{   // Remove all events
+    Event *e     = this;
+    uint   count = m_events;
     while (count--)
     {
         e = e->m_next;
         e->m_pending = false;
     }
-    m_pendingEvents.m_next = &m_pendingEvents;
-    m_pendingEvents.m_prev = &m_pendingEvents;
-    m_pendingEventClk      = m_eventClk = m_schedClk = 0;
-    m_pendingEventCount    = 0;
+    m_next     = this;
+    m_prev     = this;
+    m_eventClk = m_schedClk = 0;
+    m_events   = 0;
     timeWarp ();
 }
 
@@ -94,24 +92,28 @@ void EventScheduler::reset (void)
 void EventScheduler::schedule (Event *event, event_clock_t cycles,
                                event_phase_t phase)
 {
-    uint clk = m_eventClk + ((cycles << 1) | (phase ^ m_phase));
-    if (event->m_pending)
-        cancelPending (*event);
-    event->m_pending = true;
-    event->m_clk     = clk;
-
+    event_clock_t clk = m_eventClk + ((cycles << 1) | (phase ^ m_phase));
+    if (!event->m_pending)
     {   // Now put in the correct place so we don't need to keep
         // searching the list later.
-        Event *e     = m_pendingEvents.m_next;
-        uint   count = m_pendingEventCount;
+        Event *e;
+        e = this;
+        uint   count = m_events;
         while (count-- && (e->m_clk <= clk))
             e = e->m_next;
+
         event->m_next     = e;
         event->m_prev     = e->m_prev;
         e->m_prev->m_next = event;
         e->m_prev         = event;
-        m_pendingEventClk = m_pendingEvents.m_next->m_clk;
-        m_pendingEventCount++;
+        event->m_pending  = true;
+        event->m_clk      = clk;
+        m_events++;
+    }
+    else
+    {
+        cancelPending (*event);
+        schedule      (event, cycles, phase);
     }
 }
 

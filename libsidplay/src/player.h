@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.41  2003/01/20 18:37:08  s_a_white
+ *  Stealing update.  Apparently the cpu does a memory read from any non
+ *  write cycle (whether it needs to or not) resulting in those cycles
+ *  being stolen.
+ *
  *  Revision 1.40  2003/01/17 08:35:46  s_a_white
  *  Event scheduler phase support.
  *
@@ -314,7 +319,6 @@ private:
     void      reset          ();
     uint8_t   iomap          (uint_least16_t addr);
 
-    uint8_t readMemByte_player    (uint_least16_t addr);
     uint8_t readMemByte_plain     (uint_least16_t addr);
     uint8_t readMemByte_io        (uint_least16_t addr);
     uint8_t readMemByte_sidplaytp (uint_least16_t addr);
