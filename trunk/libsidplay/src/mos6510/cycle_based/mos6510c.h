@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/03/19 23:48:21  s_a_white
+ *  Interrupts made virtual to allow for redefintion for Sidplay1 compatible
+ *  interrupts.
+ *
  *  Revision 1.4  2001/03/09 22:28:03  s_a_white
  *  Speed optimisation update.
  *
@@ -146,9 +150,6 @@ protected:
     inline void bne_instr     (void);
     inline void bpl_instr     (void);
     inline void brk_instr     (void);
-    inline void brk1_instr    (void);
-    inline void brk2_instr    (void);
-    inline void brk3_instr    (void);
     inline void bvc_instr     (void);
     inline void bvs_instr     (void);
     inline void clc_instr     (void);

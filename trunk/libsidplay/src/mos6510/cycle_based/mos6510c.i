@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/03/22 22:40:43  s_a_white
+ *  Added new header for definition of nothrow.
+ *
  *  Revision 1.10  2001/03/21 22:27:18  s_a_white
  *  Change to IRQ error message.
  *
@@ -179,6 +182,7 @@ void MOS6510::interruptPending (void)
     {
     case oNONE:
     default:
+        FetchOpcode ();
         return;
 
     case oIRQ:
@@ -210,6 +214,9 @@ void MOS6510::interruptPending (void)
 
     // Start the interrupt
     instrCurrent = &interruptTable[offset];
+    procCycle    = instrCurrent->cycle;
+    lastCycle    = instrCurrent->lastCycle;
+    cycleCount   = 0;
 }
 
 void MOS6510::RSTRequest (void)
@@ -226,6 +233,7 @@ void MOS6510::NMI1Request (void)
 {
     endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFB));
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    FetchOpcode   ();
 }
 
 void MOS6510::IRQRequest (void)
@@ -246,6 +254,7 @@ void MOS6510::IRQ2Request (void)
 {
     endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFF));
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+    FetchOpcode   ();
 }
 
 
@@ -258,24 +267,17 @@ void MOS6510::IRQ2Request (void)
 //-------------------------------------------------------------------------//
 
 // Fetch opcode, increment PC
-// Addressing Modes:    All
+// Addressing Modes: All
 void MOS6510::FetchOpcode (void)
 {
-    instrCurrent = NULL;
-
-    interruptPending ();
-    if (!instrCurrent)
-    {
-        instrStartPC = endian_32lo16  (Register_ProgramCounter++);
-        instrOpcode  = envReadMemByte (instrStartPC);
-        // Convert opcode to pointer in instruction table
-        instrCurrent = &instrTable[instrOpcode];
-        Instr_Operand = 0;
-    }
-
-    procCycle  = instrCurrent->cycle;
-    lastCycle  = instrCurrent->lastCycle;
-    cycleCount = 0;
+    instrStartPC  = endian_32lo16 (Register_ProgramCounter++);
+    instrOpcode   = envReadMemByte (instrStartPC);
+    // Convert opcode to pointer in instruction table
+    instrCurrent  = &instrTable[instrOpcode];
+    Instr_Operand = 0;
+    procCycle     = instrCurrent->cycle;
+    lastCycle     = instrCurrent->lastCycle;
+    cycleCount    = 0;
 }
 
 // Fetch value, increment PC
@@ -543,23 +545,6 @@ void MOS6510::brk_instr (void)
 {
     setFlagB   (true);
     PushHighPC ();
-}
-
-void MOS6510::brk1_instr (void)
-{
-    PushSR ();
-    setFlagI (true);
-}
-
-void MOS6510::brk2_instr (void)
-{
-    endian_16lo8 (Cycle_EffectiveAddress, envReadMemByte (0xFFFE));
-}
-
-void MOS6510::brk3_instr (void)
-{
-    endian_16hi8  (Cycle_EffectiveAddress, envReadMemByte (0xFFFF));
-    endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
 }
 
 void MOS6510::cld_instr (void)
@@ -1655,9 +1640,9 @@ MOS6510::MOS6510 ()
             case BRKn:
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk_instr;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PushLowPC;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk1_instr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk2_instr;
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::brk3_instr;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::IRQRequest;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::IRQ1Request;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::IRQ2Request;
                 instr->overlap = false;
             break;
 
@@ -2213,7 +2198,7 @@ MOS6510::MOS6510 ()
 
     Cycle_EffectiveAddress = 0;
     Cycle_Data             = 0;
-    fetchCycle[0]          = &MOS6510::FetchOpcode;
+    fetchCycle[0]          = &MOS6510::interruptPending;
 
     Initialise ();
 return;
