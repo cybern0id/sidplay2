@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.25  2003/02/04 22:54:02  s_a_white
+ * Treat NULL comment string as no comment (same as 0 length comment string).
+ *
  * Revision 1.24  2002/09/24 19:04:22  s_a_white
  * Fixed unchecked pointers in ini_append and __ini_store.
  *
@@ -868,6 +871,9 @@ ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode,
     case 'a': _mode = INI_EXIST; break;
     default: return NULL;
     }
+    // NULL can also be used to disable comments
+    if (comment == NULL)
+        comment = "";
     return (ini_fd_t) __ini_open (name, _mode, comment);
 }
 
