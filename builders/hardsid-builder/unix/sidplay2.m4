@@ -5,7 +5,7 @@ dnl $2 - CXXFLAGS
 dnl $3 - LDFLAGS
 dnl $4 - ldflag (output)
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID2_TEST_BUILDER,
+AC_DEFUN([SID2_TEST_BUILDER],
 [
     AC_MSG_CHECKING([for $1 builder module])
 
@@ -24,7 +24,7 @@ AC_DEFUN(SID2_TEST_BUILDER,
     dnl it and linker flags
     $4=""
     if test "$sid2_builder_works" = YES; then
-        sid2_def="HAVE_`echo $1 | tr [a-z] [A-Z]`_BUILDER"
+        sid2_def="HAVE_`echo $1 | tr [[a-z]] [[A-Z]]`_BUILDER"
         AC_DEFINE_UNQUOTED($sid2_def)
         $4="-l$1-builder"
         AC_MSG_RESULT(yes)
@@ -39,7 +39,7 @@ dnl Find installed builders
 dnl NOTE: Before running this command you must have run
 dnl libsidplay2 for the necessary path information
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID2_FIND_BUILDERS,
+AC_DEFUN([SID2_FIND_BUILDERS],
 [
     AC_MSG_CHECKING([for sidbuilders install directory])
 
@@ -60,7 +60,7 @@ AC_DEFUN(SID2_FIND_BUILDERS,
     dnl @FIXME@ detection of builders should be automatic
     for sid2_lib in resid hardsid; do
         dnl builder must be lower case
-        sid2_lib=`echo $sid2_lib | tr [A-Z] [a-z]`
+        sid2_lib=`echo $sid2_lib | tr [[A-Z]] [[a-z]]`
         SID2_TEST_BUILDER($sid2_lib,
                           $LIBSIDPLAY2_CXXFLAGS,
                           -L$LIBSIDPLAY2_BUILDERS,
@@ -86,7 +86,7 @@ install dir.  Please check your installation!
 dnl -------------------------------------------------------------------------
 dnl Disable library build checks
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID2_LIB_CHECKS,
+AC_DEFUN([SID2_LIB_CHECKS],
 [
     AC_ARG_ENABLE(library-checks,
     [  --disable-library-checks  do not check for working libraries])
@@ -100,7 +100,7 @@ dnl -------------------------------------------------------------------------
 dnl Find libsidplay2 library
 dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID2_FIND_LIBSIDPLAY2,
+AC_DEFUN([SID2_FIND_LIBSIDPLAY2],
 [
     if test "$SID2_LIB_CHECK" != "0"; then
         MY_FIND_PKG_CONFIG_LIB(sidplay2,"2.1.0",builders $1,sidplay/sidplay2.h,
@@ -121,7 +121,7 @@ dnl -------------------------------------------------------------------------
 dnl Find libsidutils library
 dnl [$1 - variables]
 dnl -------------------------------------------------------------------------
-AC_DEFUN(SID2_FIND_LIBSIDUTILS,
+AC_DEFUN([SID2_FIND_LIBSIDUTILS],
 [
     if test "$SID2_LIB_CHECK" != "0"; then
         MY_FIND_PKG_CONFIG_LIB(sidutils,"1.0.2",$1,sidplay/utils/SidDatabase.h,
