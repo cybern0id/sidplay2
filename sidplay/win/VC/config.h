@@ -3,8 +3,8 @@
 #define _config_h_
 
 /* Define the sidbuilder modules at appropriate */
-#undef HAVE_RESID_BUILDER
-#undef HAVE_HARDSID_BUILDER
+#define HAVE_RESID_BUILDER
+#define HAVE_HARDSID_BUILDER
 
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS 1 */

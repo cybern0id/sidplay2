@@ -16,11 +16,14 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/12/05 23:37:39  s_a_white
+ *  Now redirects to real sidfig.hy/i
+ *
  ***************************************************************************/
 
 #if defined(HAVE_UNIX)
 #   include "../../unix/sidconfig.h"
-#elif defined(HAVE_WINDOWS)
+#elif defined(HAVE_MSWINDOWS)
 #   include "../../win/VC/sidconfig.h"
 #else
 #   error Platform not supported!

@@ -5,9 +5,6 @@
 #define PACKAGE "libsidutils"
 #define VERSION "0.0.0"
 
-/* Operating System */
-#define HAVE_MSWINDOWS
-
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS */
 

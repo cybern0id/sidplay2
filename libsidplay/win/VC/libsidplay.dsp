@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "DLL_EXPORT" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "DLL_EXPORT" /D "HAVE_MSWINDOWS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "DLL_EXPORT" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "DLL_EXPORT" /D "HAVE_MSWINDOWS" /YX /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -257,11 +257,19 @@ SOURCE=..\..\include\config.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\config.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\nullsid.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\player.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sidplay\sidconfig.h
 # End Source File
 # End Group
 # Begin Group "Header Files (Public)"
@@ -289,7 +297,7 @@ SOURCE=..\..\include\sidplay\sidbuilder.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\sidplay\sidconfig.h
+SOURCE=.\sidconfig.h
 # End Source File
 # Begin Source File
 
