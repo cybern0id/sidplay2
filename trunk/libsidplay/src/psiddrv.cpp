@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/02/04 23:50:48  s_a_white
+ *  Improved compatibilty with older sidplay1 modes.
+ *
  *  Revision 1.9  2002/01/29 21:50:33  s_a_white
  *  Auto switching to a better emulation mode.  m_tuneInfo reloaded after a
  *  config.  Initial code added to support more than two sids.
@@ -90,7 +93,7 @@ int Player::psidDrvInstall ()
         uint8_t *reloc_driver = psid_driver;
         int      reloc_size   = sizeof (psid_driver);
 
-        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 13))
+        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 17))
         {
             m_errorString = ERR_PSIDDRV_RELOC;
             return -1;
@@ -98,7 +101,7 @@ int Player::psidDrvInstall ()
 
         m_ram[0x310] = JMPw;
         memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size - 13);
+        memcpy (&m_ram[relocAddr], &reloc_driver[17], reloc_size - 17);
 
         // Setup hardware vectors
         switch (m_info.environment)
@@ -120,12 +123,13 @@ int Player::psidDrvInstall ()
         // vectors if valid play
         if ((m_info.environment != sid2_envR) && m_tuneInfo.playAddr)
         {   // Get the addr of the sidplay vector
-            uint_least16_t addr = endian_little16(&reloc_driver[2]);
-            // Get the brkjob vector.  Add 3 to get the irqjob vector
-            uint_least16_t vec  = endian_little16(&reloc_driver[9]) + 4;
-            // Bodge, jump past first few instructions of sidplay1
-            // compatibility and modify jsr address.
-            endian_little16 (&m_ram[addr + 5], vec);
+            uint_least16_t addr = endian_little16(&reloc_driver[13]);
+            // Get the irqjob vector
+            uint_least16_t vec  = endian_little16(&reloc_driver[15]);
+            // Jump directly to irqjob instead of using interrupt
+            // vector at 0x0134
+            m_ram[addr] = JMPw;
+            endian_little16 (&m_ram[addr + 1], vec);
         }
     }
 
