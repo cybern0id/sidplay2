@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 1mdk
+%define release 2mdk
 %define major   2
 %define residversion 0.11
 
@@ -18,9 +18,9 @@ BuildRoot:      %{_tmppath}/%{name}%{major}-buildroot
 Prefix:         %{_prefix}
 
 %description
-This is a cycle-based development version of a C64 music playing
-library which requires the ReSID library as the SID emulator
-portion.
+This is a cycle-based version of a C64 music playing library
+developed by Simon White which requires the ReSID library as
+the SID emulator portion.
 
 A modified version of ReSID %{residversion} is included in this package.
 
@@ -44,11 +44,11 @@ CXXFLAGS="$RPM_OPT_FLAGS" ./configure --disable-shared
 make
 cd ..
 
-CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=$RPM_BUILD_ROOT/%{_prefix} --with-resid=$PWD/resid-%{residversion}
+CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix} --with-resid=$PWD/resid-%{residversion}
 make
 
 %install
-make install
+make DESTDIR=$RPM_BUILD_ROOT install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -72,6 +72,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Wed Apr 4 2001 Simon White <s_a_white@email.com> @VERSION@-2mdk
+- Updated --prefix and make install so la file does not end up with
+  a bad install path.
+
 * Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1mdk
 - First spec file.
 
