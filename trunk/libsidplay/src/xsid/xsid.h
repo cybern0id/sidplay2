@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/02/21 21:46:34  s_a_white
+ *  0x1d = 0 now fixed.  Limit checking on sid volume.  This helps us determine
+ *  even better what the sample offset should be (fixes Skate and Die).
+ *
  *  Revision 1.7  2001/02/07 21:02:30  s_a_white
  *  Supported for delaying samples for frame simulation.  New alogarithm to
  *  better guess original tunes volume when playing samples.
@@ -70,7 +74,6 @@ programmed with.
 #include "sidenv.h"
 
 // XSID configuration settings
-#define XSID_USE_SID_VOLUME
 //#define XSID_DEBUG 1
 
 // Support global debug option
@@ -82,11 +85,13 @@ programmed with.
 #   include <stdio.h>
 #endif
 
-
+class XSID;
 class channel: public C64Environment
 {
 private:
     // General
+    XSID &xsid;
+
     uint8_t  reg[0x10];
     enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
     bool     active;
@@ -94,7 +99,9 @@ private:
     uint_least16_t address;
     uint_least16_t cycleCount; // Counts to zero and triggers!
     uint_least8_t  volShift;
-    uint_least8_t  lowerLimit;
+    uint_least8_t  sampleLimit;
+    int8_t         sample;
+    bool           changed;
 
     // Sample Section
     uint_least8_t  samRepeat;
@@ -114,6 +121,10 @@ private:
     uint_least8_t  galLoopWait;
     uint_least8_t  galNullWait;
 
+    // For Debugging
+    uint_least32_t cycles;
+    uint_least32_t outputs;
+
 private:
     void free        (void);
     void silence     (void);
@@ -127,15 +138,26 @@ private:
     { return (((addr) & 0x3) | ((addr) >> 3) & 0x0c); }
 
 public:
-    channel (void);
+    channel (XSID *p);
     void    reset    (void);
     void    clock    (uint_least16_t delta_t);
     uint8_t read     (uint_least8_t  addr)
     { return reg[convertAddr (addr)]; }
     void    write    (uint_least8_t addr, uint8_t data)
     { reg[convertAddr (addr)] = data; }
+    int8_t  output   (void);
     bool    isGalway (void)
     { return mode == FM_GALWAY; }
+
+    bool hasChanged (void)
+    {
+        bool v  = changed;
+        changed = false;
+        return v;
+    }
+
+    uint_least8_t limit  (void)
+    { return sampleLimit; }
 
     inline void   checkForInit     (void);
     inline int8_t sampleCalculate  (void);
@@ -143,95 +165,53 @@ public:
 
     // Used to indicate if channel is running
     operator bool()  const { return (active); }
-
-#ifdef XSID_DEBUG
-private:
-    uint_least32_t cycles;
-    uint_least32_t outputs;
-#endif
-
-#ifdef XSID_USE_SID_VOLUME
-public:
-    bool    changed;
-    uint8_t sample;
-    uint8_t output (void);
-
-    uint_least8_t limit  (void)
-    { return lowerLimit; }
-#else
-private:
-    static const int8_t sampleConvertTable[16];
-
-public:
-    int_least32_t sample;
-    int_least32_t output (void);
-#endif
 };
 
 
-// Rev 2.0.3.  xSID now can properly access the environment
-#ifndef XSID_USE_SID_VOLUME
-class XSID
-#else
 class XSID: public C64Environment
-#endif
 {
+    friend channel;
+
 private:
     channel ch4;
     channel ch5;
     bool    muted;
     bool    suppressed;
-    uint_least16_t sidVolAddr;
-    uint8_t        sampleOffset;
-    uint8_t        sidReg0x18;
+
+    uint_least16_t      sidAddr0x18;
+    uint8_t             sidData0x18;
+    bool                _sidSamples;
+    int8_t              sampleOffset;
+    static const int8_t sampleConvertTable[16];
 
 private:
-    void checkForInit  (channel *ch);
+    void   checkForInit     (channel *ch);
+    void   setSidData0x18   (bool cached = false);
+    int8_t sampleOutput     (void);
+    void   sampleOffsetCalc (void);
 
 public:
-    void    reset   (void);
-    uint8_t read    (uint_least16_t addr);
-    void    write   (uint_least16_t addr, uint8_t data);
-    void    clock   (uint_least16_t delta_t = 1);
+    XSID ();
+
+    // Standard calls
+    void    reset    (void);
+    uint8_t read     (uint_least16_t addr);
+    void    write    (uint_least16_t addr, uint8_t data);
+    void    clock    (uint_least16_t delta_t = 1);
     void    setEnvironment (C64Environment *envp);
-    void    mute    (bool enable);
-    bool    isMuted (void) { return muted; }
+
+    // Specialist calls
+    int_least32_t output (uint_least8_t bits = 16);
+    void    mute     (bool enable);
+    bool    isMuted  (void) { return muted; }
     void    suppress (bool enable);
 
-#ifdef XSID_USE_SID_VOLUME
-private:
-    void    setSidVolume (bool cached = false);
-    uint8_t output ();
-    void    calcSampleOffset (void);
-
-public:
-    XSID ()
-    {
-        setSIDAddress (0xd400);
-        muted = false;
-    }
-
-    void setSIDAddress (uint_least16_t addr)
-    {   sidVolAddr = addr + 0x18; }
-
-    // Return whether we care.
-    bool volumeUpdated (void)
-    {
-        if (ch4 || ch5)
-        {   // Force volume to be changed at next clock
-            ch4.changed = true;
-#   if XSID_DEBUG
-            printf ("XSID: External SID Volume Change (Correcting).\n");
-#   endif
-            return true;
-        }
-        return false;
-    }
-#else
-public:
-    // This provides standard 16 bit outputs
-    int_least32_t output (uint_least8_t bits = 16);
-#endif // XSID_USE_SID_VOLUME
+    void    sidSamples (bool enable)
+    {   _sidSamples = enable; }
+    void setSidBaseAddr (uint_least16_t addr)
+    {   sidAddr0x18 = addr + 0x18; }
+    // Return whether we care it was changed.
+    bool updateSidData0x18 (uint8_t data);
 };
 
 #endif // _xsid_h_
