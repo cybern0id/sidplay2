@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.47  2003/12/15 23:50:37  s_a_white
+ *  Fixup use of inline functions and correct mileage calculations.
+ *
  *  Revision 1.46  2003/10/16 07:42:49  s_a_white
  *  Allow redirection of debug information to file.
  *
@@ -304,6 +307,7 @@ private:
     volatile bool   m_running;
     int             m_rand;
     uint_least32_t  m_sid2crc;
+    uint_least32_t  m_sid2crcCount;
     bool            m_emulateStereo;
 
     // Mixer settings
@@ -358,9 +362,7 @@ private:
 
     uint8_t  readMemRamByte (uint_least16_t addr)
     {   return m_ram[addr]; }
-
-    void sid2crc (uint8_t data)
-    {   updateCrc32 (m_sid2crc, data); }
+    void sid2crc (uint8_t data);
 
     // Environment Function entry Points
     void           envReset           (bool safe);
@@ -411,8 +413,6 @@ private:
     int  psidDrvReloc   (SidTuneInfo &tuneInfo, sid2_info_t &info);
     void psidDrvInstall (sid2_info_t &info);
     void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
-    // SID2CRC support
-    void updateCrc32    (uint_least32_t &crc, uint8_t data);
 
 public:
     Player ();

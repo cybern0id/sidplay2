@@ -82,6 +82,7 @@ struct sid2_config_t
     uint_least32_t      rightVolume;
     sid2_sample_t       sampleFormat;
     uint_least16_t      powerOnDelay;
+    uint_least32_t      sid2crcCount;  // Max sid writes to form crc
 };
 
 struct sid2_info_t
@@ -100,6 +101,7 @@ struct sid2_info_t
     sid2_env_t         environment;
     uint_least16_t     powerOnDelay;
     uint_least32_t     sid2crc;
+    uint_least32_t     sid2crcCount; // Number of sid writes forming crc
 };
 
 #endif // _sid2types_h_

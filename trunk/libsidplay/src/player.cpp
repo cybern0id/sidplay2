@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.68  2004/01/30 19:37:14  s_a_white
+ *  Support a compressed poweron data image (for use with psid64).
+ *
  *  Revision 1.67  2003/12/15 23:49:38  s_a_white
  *  Fixup functions using inline and correct mileage calculations.
  *
@@ -311,6 +314,7 @@ Player::Player (void)
  m_playerState       (sid2_stopped),
  m_running           (false),
  m_sid2crc           (0xffffffff),
+ m_sid2crcCount      (0),
  m_emulateStereo     (true),
  m_sampleCount       (0)
 {
@@ -340,6 +344,7 @@ Player::Player (void)
     m_info.maxsids         = SID2_MAX_SIDS;
     m_info.environment     = sid2_envR;
     m_info.sid2crc         = 0;
+    m_info.sid2crcCount    = 0;
 
     // Configure default settings
     m_cfg.clockDefault    = SID2_CLOCK_CORRECT;
@@ -360,6 +365,7 @@ Player::Player (void)
     m_cfg.rightVolume     = 255;
     m_cfg.sampleFormat    = SID2_LITTLE_SIGNED;
     m_cfg.powerOnDelay    = SID2_DEFAULT_POWER_ON_DELAY;
+    m_cfg.sid2crcCount    = 0;
 
     // Configured by default for Sound Blaster (compatibles)
     if (SID2_DEFAULT_PRECISION == 8)
@@ -824,8 +830,9 @@ void Player::reset (void)
 
     m_playerState  = sid2_stopped;
     m_running      = false;
-    m_info.sid2crc = m_sid2crc ^ 0xffffffff;
     m_sid2crc      = 0xffffffff;
+    m_info.sid2crc = m_sid2crc ^ 0xffffffff;    
+    m_sid2crcCount = m_info.sid2crcCount = 0;
 
     // Select Sidplay1 compatible CPU or real thing
     cpu = &sid6510;
@@ -1120,9 +1127,14 @@ static const uint_least32_t crc32Table[0x100] =
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
-void Player::updateCrc32 (uint_least32_t &crc, uint8_t data)
+void Player::sid2crc (uint8_t data)
 {
-    crc = (crc >> 8) ^ crc32Table[(crc & 0xFF) ^ data];
+    if (m_sid2crcCount < m_cfg.sid2crcCount)
+    {
+        m_info.sid2crcCount = ++m_sid2crcCount;
+        m_sid2crc = (m_sid2crc >> 8) ^ crc32Table[(m_sid2crc & 0xFF) ^ data];
+        m_info.sid2crc = m_sid2crc ^ 0xffffffff;
+    }
 }
 
 SIDPLAY2_NAMESPACE_STOP
