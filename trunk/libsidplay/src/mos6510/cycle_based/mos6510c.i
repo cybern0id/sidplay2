@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2002/11/21 19:52:48  s_a_white
+ *  CPU upgraded to be like other components.  Theres nolonger a clock call,
+ *  instead events are registered to occur at a specific time.
+ *
  *  Revision 1.26  2002/11/19 22:57:33  s_a_white
  *  Initial support for external DMA to steal cycles away from the CPU.
  *
@@ -119,7 +123,7 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 // Microsoft Visual C++ Version Number to work around compiler bug
@@ -154,6 +158,11 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
 #define getFlagZ()    (Register_z_Flag == 0)
 #define getFlagC()    (Register_c_Flag != 0)
 
+#define stealCycle() \
+    interrupts.delay++; \
+    throw((int_least8_t) -1);
+
+
 // Push P on stack, decrement S
 void MOS6510::PushSR (bool b_flag)
 {
@@ -173,8 +182,7 @@ void MOS6510::PushSR (bool b_flag)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -213,8 +221,7 @@ void MOS6510::PopSR (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -369,8 +376,7 @@ void MOS6510::NMIRequest (void)
         endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFA));
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -383,8 +389,7 @@ void MOS6510::NMI1Request (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -401,8 +406,7 @@ void MOS6510::IRQ1Request (void)
         endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFE));
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -415,8 +419,7 @@ void MOS6510::IRQ2Request (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -455,8 +458,7 @@ void MOS6510::FetchOpcode (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -493,8 +495,7 @@ void MOS6510::FetchLowAddr (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -529,8 +530,7 @@ void MOS6510::FetchHighAddr (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -599,8 +599,7 @@ void MOS6510::FetchLowPointer (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -616,8 +615,7 @@ void MOS6510::FetchLowPointerX (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -635,8 +633,7 @@ void MOS6510::FetchHighPointer (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -651,8 +648,7 @@ void MOS6510::FetchLowEffAddr (void)
         Cycle_EffectiveAddress = envReadMemDataByte (Cycle_Pointer);
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -669,8 +665,7 @@ void MOS6510::FetchHighEffAddr (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -712,8 +707,7 @@ void MOS6510::FetchEffAddrDataByte (void)
         Cycle_Data = envReadMemDataByte (Cycle_EffectiveAddress);
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -723,8 +717,7 @@ void MOS6510::PutEffAddrDataByte (void)
         envWriteMemByte (Cycle_EffectiveAddress, Cycle_Data);
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -748,8 +741,7 @@ void MOS6510::PushLowPC (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -766,8 +758,7 @@ void MOS6510::PushHighPC (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -784,8 +775,7 @@ void MOS6510::PopLowPC (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 
@@ -802,8 +792,7 @@ void MOS6510::PopHighPC (void)
     }
     else
     {   // Address bus not ready
-        cycleCount--;
-        return;
+		stealCycle();
     }
 }
 

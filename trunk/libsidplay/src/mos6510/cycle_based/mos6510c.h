@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2002/11/21 19:52:48  s_a_white
+ *  CPU upgraded to be like other components.  Theres nolonger a clock call,
+ *  instead events are registered to occur at a specific time.
+ *
  *  Revision 1.12  2002/11/19 22:57:33  s_a_white
  *  Initial support for external DMA to steal cycles away from the CPU.
  *
@@ -280,7 +284,11 @@ public:
 inline void MOS6510::clock (void)
 {
     int_least8_t i = cycleCount++;
-    (this->*procCycle[i]) ();
+    try {
+        (this->*procCycle[i]) ();
+    } catch (int_least8_t delta) {
+        cycleCount += delta;
+    }
 }
 
 inline void MOS6510::event (void)
