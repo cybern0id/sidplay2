@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/10 19:04:01  s_a_white
+ *  Interface changes for audio drivers.
+ *
  *  Revision 1.4  2001/10/30 23:35:35  s_a_white
  *  Added pause support.
  *
@@ -41,8 +44,9 @@
 class Audio_Irix: public AudioBase
 {
 private:  // ------------------------------------------------------- private
-    void   outOfOrder ();
-    ALport _audio;
+    bool     _swapEndian;
+    void     outOfOrder ();
+    ALport   _audio;
     ALconfig _config;
 
 public:  // --------------------------------------------------------- public
