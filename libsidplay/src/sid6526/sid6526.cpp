@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/09/03 22:24:09  s_a_white
+ *  New counts for timer A are correctly formed.
+ *
  *  Revision 1.1  2001/09/01 11:11:19  s_a_white
  *  This is the old fake6526 code required for sidplay1 environment modes.
  *
@@ -23,7 +26,7 @@
 
 #include <time.h>
 #include "sidendian.h"
-#include "SID6526.h"
+#include "sid6526.h"
 
 const char * const SID6526::credit =
 {   // Optional information
