@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/03/10 19:49:32  s_a_white
+ *  Removed bad include.
+ *
  *  Revision 1.1  2001/03/02 19:04:38  s_a_white
  *  Include structure modified for better compatibility
  *
@@ -33,8 +36,8 @@
  *
  ***************************************************************************/
 
-#ifndef _endian_h_
-#define _endian_h_
+#ifndef _sidendian_h_
+#define _sidendian_h_
 
 #include "sidtypes.h"
 
@@ -379,4 +382,4 @@ inline void endian_big32 (uint8_t ptr[4], uint_least32_t dword)
 #endif
 }
 
-#endif // _endian_h_
+#endif // _sidendian_h_
