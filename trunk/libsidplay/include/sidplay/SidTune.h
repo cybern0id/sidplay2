@@ -276,6 +276,8 @@ class SID_EXTERN SidTune
     void convertOldStyleSpeedToTables(uint_least32_t speed,
          int clock = SIDTUNE_CLOCK_PAL);
 
+    virtual int convertPetsciiToAscii (SmartPtr_sidtt<const uint_least8_t>&, char*);
+
     // Check compatibility details are sensible
     bool checkCompatibility(void);
     // Check for valid relocation information
@@ -285,27 +287,31 @@ class SID_EXTERN SidTune
 
     // Support for various file formats.
 
-    virtual LoadStatus PSID_fileSupport    (const void* buffer, const uint_least32_t bufLen);
+    virtual LoadStatus PSID_fileSupport    (Buffer_sidtt<const uint_least8_t>& dataBuf);
     virtual bool       PSID_fileSupportSave(std::ofstream& toFile, const uint_least8_t* dataBuffer);
 
-    virtual LoadStatus SID_fileSupport     (const void* dataBuffer, uint_least32_t dataBufLen,
-                                            const void* sidBuffer, uint_least32_t sidBufLen);
+    virtual LoadStatus SID_fileSupport     (Buffer_sidtt<const uint_least8_t>& dataBuf,
+                                            Buffer_sidtt<const uint_least8_t>& sidBuf);
     virtual bool       SID_fileSupportSave (std::ofstream& toFile);
 
-    virtual LoadStatus MUS_fileSupport     (Buffer_sidtt<const uint_least8_t>& musBufRef,
-                                            Buffer_sidtt<const uint_least8_t>& strBufRef);
+    virtual LoadStatus MUS_fileSupport     (Buffer_sidtt<const uint_least8_t>& musBuf,
+                                            Buffer_sidtt<const uint_least8_t>& strBuf);
+    LoadStatus         MUS_load            (Buffer_sidtt<const uint_least8_t>& musBuf);
+    LoadStatus         MUS_load            (Buffer_sidtt<const uint_least8_t>& musBuf,
+                                            Buffer_sidtt<const uint_least8_t>& strBuf);
     virtual bool       MUS_detect          (const void* buffer, const uint_least32_t bufLen,
                                             uint_least32_t& voice3Index);
-    virtual bool       MUS_mergeParts      (Buffer_sidtt<const uint_least8_t>& musBufRef,
-                                            Buffer_sidtt<const uint_least8_t>& strBufRef);
+    virtual bool       MUS_mergeParts      (Buffer_sidtt<const uint_least8_t>& musBuf,
+                                            Buffer_sidtt<const uint_least8_t>& strBuf);
     virtual void       MUS_setPlayerAddress();
     virtual void       MUS_installPlayer   (uint_least8_t *c64buf);
-    virtual int        MUS_decodePetLine   (SmartPtr_sidtt<const uint_least8_t>&, char*);
 
-    virtual LoadStatus INFO_fileSupport    (const void* dataBuffer, uint_least32_t dataBufLen,
-                                            const void* infoBuffer, uint_least32_t infoBufLen);
-    virtual LoadStatus PRG_fileSupport     (const char* fileName, const void* buffer,
-                                            const uint_least32_t bufLen);
+    virtual LoadStatus INFO_fileSupport    (Buffer_sidtt<const uint_least8_t>& dataBuf,
+                                            Buffer_sidtt<const uint_least8_t>& infoBuf);
+    virtual LoadStatus PRG_fileSupport     (const char* fileName,
+                                            Buffer_sidtt<const uint_least8_t>& dataBuf);
+    virtual LoadStatus X00_fileSupport     (const char* fileName,
+                                            Buffer_sidtt<const uint_least8_t>& dataBuf);
 
     // Error and status message strings.
     static const char* txt_songNumberExceed;
