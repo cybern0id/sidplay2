@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.48  2004/01/31 17:01:44  s_a_white
+ *  Add ability to specify the maximum number of sid writes forming the sid2crc.
+ *
  *  Revision 1.47  2003/12/15 23:50:37  s_a_white
  *  Fixup use of inline functions and correct mileage calculations.
  *
@@ -191,6 +194,7 @@
 #include "nullsid.h"
 #define  SID2_MAX_SIDS 2
 #define  SID2_TIME_BASE 10
+#define  SID2_MAPPER_SIZE 32
 
 SIDPLAY2_NAMESPACE_START
 
@@ -236,6 +240,7 @@ private:
     SID6526 sid6526;
     c64vic  vic;
     sidemu *sid[SID2_MAX_SIDS];
+    int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
     class EventMixer: public Event
     {
@@ -320,7 +325,6 @@ private:
     // C64 environment settings
     uint8_t        m_bankReg;
     uint8_t        m_playBank;
-    uint_least16_t m_sidAddress[2];
 
     // temp stuff -------------
     bool   isKernal;
