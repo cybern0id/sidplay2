@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.51  2004/05/03 22:42:56  s_a_white
+ *  Change how port handling is dealt with to provide better C64 compatiiblity.
+ *  Add character rom support.
+ *
  *  Revision 1.50  2004/04/13 07:40:47  s_a_white
  *  Add lightpen support.
  *
@@ -235,9 +239,7 @@ private:
     EventScheduler m_scheduler;
 
     //SID6510  cpu(6510, "Main CPU");
-    SID6510 sid6510;
-    MOS6510 mos6510;
-    MOS6510 *cpu;
+    SID6510 cpu;
     // Sid objects to use.
     NullSID nullsid;
     c64xsid xsid;
@@ -248,19 +250,7 @@ private:
     sidemu *sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
-    class EventMixer: public Event
-    {
-    private:
-        Player &m_player;
-        void event (void) { m_player.mixer (); }
-
-    public:
-        EventMixer (Player *player)
-        :Event("Mixer"),
-         m_player(*player) {}
-    } mixerEvent;
-    friend class EventMixer;
-
+    EventCallback<Player> m_mixerEvent;
     class EventRTC: public Event
     {
     private:
@@ -276,7 +266,7 @@ private:
             cycles = m_clk >> 7;
             m_clk &= 0x7F;
             m_seconds++;
-            m_eventContext.schedule (this, cycles, EVENT_CLOCK_PHI1);
+            schedule (m_eventContext, cycles, EVENT_CLOCK_PHI1);
         }
 
     public:
@@ -292,7 +282,7 @@ private:
         {   // Fixed point 25.7
             m_seconds = 0;
             m_clk     = m_period & 0x7F;
-            m_eventContext.schedule (this, m_period >> 7, EVENT_CLOCK_PHI1);
+            schedule (m_eventContext, m_period >> 7, EVENT_CLOCK_PHI1);
         }
 
         void clock (float64_t period)
@@ -327,6 +317,12 @@ private:
     uint_least32_t m_sampleCount;
     uint_least32_t m_sampleIndex;
     char          *m_sampleBuffer;
+
+    // RTC clock - Based of mixer sample period
+    // to make sure time is right when we ask
+    // for n samples
+    event_clock_t  m_rtcClock;
+    event_clock_t  m_rtcPeriod;
 
     // C64 environment settings
     struct
@@ -424,7 +420,7 @@ private:
     inline void interruptIRQ (bool state);
     inline void interruptNMI (void);
     inline void interruptRST (void);
-    void signalAEC (bool state) { cpu->aecSignal (state); }
+    void signalAEC (bool state) { cpu.aecSignal (state); }
     void lightpen  () { vic.lightpen (); }
 
     // PSID driver
@@ -449,7 +445,7 @@ public:
     void           stop         (void);
     uint_least32_t time         (void) const {return rtc.getTime (); }
     void           debug        (bool enable, FILE *out)
-                                { cpu->debug (enable, out); }
+                                { cpu.debug (enable, out); }
     const char    *error        (void) const { return m_errorString; }
 };
 
@@ -483,17 +479,17 @@ void Player::interruptIRQ (bool state)
     if (state)
     {
         if (m_info.environment == sid2_envR)
-            cpu->triggerIRQ ();
+            cpu.triggerIRQ ();
         else
             fakeIRQ ();
     }
     else
-        cpu->clearIRQ ();
+        cpu.clearIRQ ();
 }
 
 void Player::interruptNMI ()
 {
-    cpu->triggerNMI ();
+    cpu.triggerNMI ();
 }
 
 void Player::interruptRST ()
