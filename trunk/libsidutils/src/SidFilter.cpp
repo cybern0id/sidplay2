@@ -36,9 +36,9 @@ SidFilter::~SidFilter ()
 
 void SidFilter::clear ()
 {
-    filter.points = 0;
-    status        = false;
-    errorString   = "SID Filter: No filter loaded";
+    m_filter.points = 0;
+    status      = false;
+    errorString = "SID Filter: No filter loaded";
 }
 
 void SidFilter::read (char *filename)
@@ -103,7 +103,7 @@ void SidFilter::readType1 (ini_fd_t ini)
     // Make sure there are enough filter points
     if ((points < 2) || (points > 0x800))
         goto SidFilter_readType1_errorDefinition;
-    filter.points = (uint_least16_t) points;
+    m_filter.points = (uint_least16_t) points;
 
     // Set the ini reader up for array access
     if (ini_listDelims (ini, ",") < 0)
@@ -112,7 +112,7 @@ void SidFilter::readType1 (ini_fd_t ini)
     {
         char key[12];
         int  reg = -1, fc = -1;
-        for (int i = 0; i < filter.points; i++)
+        for (int i = 0; i < m_filter.points; i++)
         {   // First lets read the SID cutoff register value
             sprintf (key, "point%d", i + 1);
             ini_locateKey (ini, key);
@@ -122,8 +122,8 @@ void SidFilter::readType1 (ini_fd_t ini)
                 goto SidFilter_readType1_errorDefinition;
 
             // Got valid reg/fc
-            filter.cutoff[i][0] = (uint) reg;
-            filter.cutoff[i][1] = (uint) fc;
+            m_filter.cutoff[i][0] = (uint) reg;
+            m_filter.cutoff[i][1] = (uint) fc;
         }
     }
 return;
@@ -172,18 +172,42 @@ void SidFilter::calcType2 (double fs, double fm, double ft)
     double fc;
 
     // Definition from reSID
-    filter.points = 0x100;
+    m_filter.points = 0x100;
 
     // Create filter
     for (uint i = 0; i < 0x100; i++)
     {
         uint rk = i << 3;
-        filter.cutoff[i][0] = rk;
+        m_filter.cutoff[i][0] = rk;
         fc = exp ((double) rk / 0x800 * log (fs)) / fm + ft;
         if (fc < fcMin)
             fc = fcMin;
         if (fc > fcMax)
             fc = fcMax;
-        filter.cutoff[i][1] = (uint) (fc * 4100);
+        m_filter.cutoff[i][1] = (uint) (fc * 4100);
     }
+}
+
+// Get filter
+const sid_filter_t *SidFilter::provide () const
+{
+    if (!status)
+        return NULL;
+    return &m_filter;
+}
+
+// Copy filter from another SidFilter class
+const SidFilter &SidFilter::operator= (const SidFilter &filter)
+{
+    const sid_filter_t *f = filter.provide ();
+    if (f)
+        m_filter = *f;
+    return filter;
+}
+
+// Copy sidplay2 sid_filter_t object
+const sid_filter_t &SidFilter::operator= (const sid_filter_t &filter)
+{
+    m_filter = filter;
+    return filter;
 }
