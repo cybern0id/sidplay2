@@ -30,6 +30,8 @@ void EventContext::timeWarp (int cycles)
     }
     m_pendingEventClk += cycles;
     m_eventClk        += cycles;
+    // Re-schedule the next timeWarp
+    schedule (&m_timeWarp, 0xfffff);
 }
 
 void EventContext::reset (void)
@@ -42,4 +44,64 @@ void EventContext::reset (void)
     }
     m_pendingEvents   = NULL;
     m_pendingEventClk = m_eventClk = m_schedClk = 0;
+}
+
+// Add event to ordered pending queue
+void EventContext::schedule (Event *event, event_clock_t cycles)
+{
+    uint clk = m_eventClk + cycles;
+    if (event->m_pending)
+        cancel (event);
+    event->m_pending = true;
+    event->m_clk     = clk;
+
+    {   // Now put in the correct place so we don't need to keep
+        // searching the list later.
+        Event *e     = m_pendingEvents;
+        Event *ePrev = NULL;
+        for (;e != NULL; ePrev = e, e = e->m_next)
+        {
+            if (e->m_clk > clk)
+                break;
+        }
+        event->m_next = e;
+        event->m_prev = NULL;
+
+        if (e != NULL)
+            e->m_prev = event;
+        if (ePrev != NULL)
+        {
+            ePrev->m_next = event;
+            event->m_prev = ePrev;
+        }
+        else
+        {   // At front
+            m_pendingEventClk = clk;
+            m_pendingEvents   = event;
+        }
+    }
+}
+
+// Cancel a pending event
+void EventContext::cancel (Event *event)
+{
+    if (event == m_pendingEvents)
+    {
+        event->m_pending = false;
+        m_pendingEvents  = event->m_next;
+        if (m_pendingEvents != NULL)
+        {
+            m_pendingEvents->m_prev = NULL;
+            m_pendingEventClk = m_pendingEvents->m_clk;
+        }
+    }
+    else if (event->m_pending)
+    {
+        event->m_pending = false;
+        // Remove event from pending list
+        if (event->m_prev)
+            event->m_prev->m_next = event->m_next;
+        if (event->m_next)
+            event->m_next->m_prev = event->m_prev;
+    }
 }
