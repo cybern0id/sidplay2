@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2004/06/26 15:35:25  s_a_white
+ *  Switched code to use new scheduler interface.
+ *
  *  Revision 1.14  2004/05/27 21:18:28  jpaana
  *  The filter ioctl was reversed
  *
@@ -121,18 +124,10 @@ HardSID::HardSID (sidbuilder *builder)
         m_handle = open (device, O_RDWR);
         if (m_handle < 0)
         {
-            if (m_instance == 0)
+            m_handle = open ("/dev/sid", O_RDWR);
+            if (m_handle < 0)
             {
-                m_handle = open ("/dev/sid", O_RDWR);
-                if (m_handle < 0)
-                {
-                    sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
-                    return;
-                }
-            }
-            else
-            {
-                sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"%s\"", device);
+                sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
                 return;
             }
         }
