@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/03/09 22:27:13  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.10  2001/03/01 23:45:58  s_a_white
  *  Combined both through sid and non-through sid modes.  Can be selected
  *  at runtime now.
@@ -323,7 +326,6 @@ void channel::galwayClock ()
 #ifdef XSID_DEBUG
         printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
                 (unsigned long) this, cycles, outputs);
-        uint8_t status = &reg[convertAddr (0x1d)];
         if (*status != 0xfd)
         {
             printf ("XSID [%lu]: Starting Delayed Sequence\n",
