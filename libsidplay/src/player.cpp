@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.73  2004/03/19 00:14:33  s_a_white
+ *  Do waveform sync after reset.  This is because the internal clocks are wong
+ *  once the scedular becomes reset.
+ *
  *  Revision 1.72  2004/03/18 20:22:03  s_a_white
  *  Added sidmapper (so support more the 2 sids).
  *
@@ -900,6 +904,9 @@ void Player::reset (void)
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
+        m_rom[0xfdc4] = 0xea; // Ingore sid volume reset to avoid DC
+        m_rom[0xfdc5] = 0xea; // click (potentially incompatibility)!!
+        m_rom[0xfdc6] = 0xea;
         if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
             memcpy (&m_rom[0xa000], basic, sizeof (basic));
 
