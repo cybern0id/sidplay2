@@ -202,7 +202,7 @@ void SidUsage::write (const char *filename, const sid2_usage_t &usage)
     if (!ext)
         m_errorString = txt_invalid;
     else if (!strcmp (ext, "mm"))
-        writeSMM0 (file, usage);
+        writeSMM (file, usage);
     else if (!strcmp (ext, "map"))
         writeMAP (file, usage);
     else
@@ -262,24 +262,38 @@ bool SidUsage::readMM (FILE *file, sid2_usage_t &usage, const char *ext)
 
 bool SidUsage::readSMM (FILE *file, sid2_usage_t &usage, const char *)
 {
-    uint8_t   chunk[4] = {0};
-    IffHeader header;
-    uint_least32_t length;
+    uint8_t tmp[4] = {0};
+    uint_least32_t length, id;
 
     // Read header chunk
-    fread (&chunk, sizeof (chunk), 1, file);
-    if (endian_big32 (chunk) != FORM_ID)
-        return false;
-    length = readChunk (file, header);
-    if (!length)
+    fread (&tmp, sizeof (tmp), 1, file);
+    if (endian_big32 (tmp) != FORM_ID)
         return false;
 
+    // Read file length
+    if (!fread (&tmp, sizeof (tmp), 1, file))
+        return false;
+    length = endian_big32 (tmp);
+    if (length < (sizeof(uint8_t) * 4))
+        return false;
+    length -= (sizeof(uint8_t) * 4);
+
+    // Read smm version
+    if (!fread (&tmp, sizeof (tmp), 1, file))
+        return false;
+    id = endian_big32 (tmp);
+
     // Determine SMM version
-    switch (endian_big32 (header.type))
+    switch (id)
     {
     case SMM0_ID:
-        m_status = readSMM0 (file, usage, header);
+    {
+        Smm_v0 smm(0);
+        m_status = smm.read (file, usage, length);
+        if (!m_status)
+            m_errorString = txt_corrupt;
         break;
+    }
 
     case SMM1_ID:
     case SMM2_ID:
@@ -290,6 +304,7 @@ bool SidUsage::readSMM (FILE *file, sid2_usage_t &usage, const char *)
     case SMM7_ID:
     case SMM8_ID:
     case SMM9_ID:
+    default:
         m_errorString = txt_supported;
         break;
     }
@@ -297,201 +312,39 @@ bool SidUsage::readSMM (FILE *file, sid2_usage_t &usage, const char *)
 }
 
 
-bool SidUsage::readSMM0 (FILE *file, sid2_usage_t &usage, const IffHeader &header)
+void SidUsage::writeSMM (FILE *file, const sid2_usage_t &usage)
 {
-    Smm_v0 smm;
-    smm.header = header;
+    struct  Smm_v0 smm(0);
+    uint8_t tmp[4] = {0};
+    uint_least32_t length = 4;
+    fpos_t  pos;
 
-    {   // Read file
-        long  pos   = ftell (file);
-        bool  error = true;
+    // Write out header
+    endian_big32  (tmp, FORM_ID);
+    if (!fwrite (&tmp, sizeof (tmp), 1, file))
+        goto writeSMM_error;
+    fgetpos (file, &pos);
+    endian_big32  (tmp, 0);
+    if (!fwrite (&tmp, sizeof (tmp), 1, file))
+        goto writeSMM_error;
+    endian_big32  (tmp, SMM0_ID);
+    if (!fwrite (&tmp, sizeof (tmp), 1, file))
+        goto writeSMM_error;
 
-        for(;;)
-        {
-            size_t  ret;
-            uint_least32_t length = 0;
-            uint8_t chunk[4];
-            // Read a chunk header
-            ret = fread (&chunk, sizeof (chunk), 1, file);
-            // If no chunk header assume end of file
-            if (ret != 1)
-                break;
+    // Write file
+    if (!smm.write (file, usage, length))
+        goto writeSMM_error;
 
-            // Check for a chunk we are interested in
-            switch (endian_big32 (chunk))
-            {
-            case INF0_ID:
-                length = readChunk (file, smm.info);
-                break;
+    // Write final length
+    fsetpos (file, &pos);
+    endian_big32  (tmp, length);
+    if (!fwrite (&tmp, sizeof (tmp), 1, file))
+        goto writeSMM_error;
 
-            case ERR0_ID:
-                length = readChunk (file, smm.error);
-                usage.flags = endian_big16(smm.error.flags);
-                break;
-
-            case MD5_ID:
-                length = readChunk (file, smm.md5);
-                memcpy (usage.md5, smm.md5.key, sizeof (smm.md5.key));
-                usage.md5[32] = '\0'; // SIDTUNE_MD5_LENGTH
-                break;
-
-            case TIME_ID:
-                length = readChunk (file, smm.time);
-                usage.length = endian_big16(smm.time.stamp);
-                break;
-
-            case BODY_ID:            
-                length = readChunk (file, smm.body);
-                break;
-
-            default:
-                length = skipChunk (file);
-            }
-
-            if (!length)
-            {
-                error = true;
-                break;
-            }
-
-            // Move past the chunk
-            pos += (long) length + (sizeof(uint8_t) * 8);
-            fseek (file, pos, SEEK_SET);
-            if (ftell (file) != pos)
-            {
-                error = true;
-                break;
-            }
-            error = false;
-        }
-
-        // Check for file reader error
-        if (error)
-        {
-            m_errorString = txt_reading;
-            return false;
-        }
-    }
-
-    // Test that all required checks were found
-    if ((smm.info.length == 0) || (smm.body.length == 0))
-    {
-        m_errorString = txt_missing;
-        return false;
-    }
-
-    {   // Extract usage information
-        int last = 0;
-        for (int i = 0; i < 0x100; i++)
-        {
-            int addr = smm.body.usage[i].page << 8;
-            if (addr < last)
-                break;
-            // @FIXME@ Handled extended information (upto another 3 optional bytes)
-            for (int j = 0; j < 0x100; j++)
-                 usage.memory[addr++] = smm.body.usage[i].flags[j] & ~SID_EXTENSION;
-            last = addr;
-        }
-    }
-
-    {   // File in the load range
-        int length;
-        usage.start = endian_big16 (smm.info.startAddr);
-        usage.end   = endian_big16 (smm.info.stopAddr);
-        length = (int) usage.end - (int) usage.start + 1;
-
-        if (length < 0)
-        {
-            m_errorString = txt_corrupt;
-            return false;
-        }
-
-        uint_least8_t *p = &usage.memory[usage.start];
-        {for (int i = 0; i < length; i++)
-            p[i] |= SID_LOAD_IMAGE;
-        }
-    }
-    return true;
-}
-
-
-void SidUsage::writeSMM0 (FILE *file, const sid2_usage_t &usage)
-{
-    struct Smm_v0  smm0;
-    uint_least32_t headings = 2; /* Mandatory */
-
-    endian_big32 (smm0.header.type, SMM0_ID);
-
-    // Optional
-    if (usage.flags == 0)
-        smm0.error.length = 0;
-    else
-    {
-        endian_big16 (smm0.error.flags, (uint_least16_t) usage.flags);
-        headings++;
-    }
-
-    if (usage.length == 0)
-        smm0.time.length = 0;
-    else
-    {
-        endian_big16 (smm0.time.stamp, (uint_least16_t) usage.length);
-        headings++;
-    }
-
-    if ( usage.md5[0] == '\0' )
-        smm0.md5.length = 0;
-    else
-    {
-        memcpy (smm0.md5.key, usage.md5, sizeof (smm0.md5.key));
-        headings++;
-    }
-    // End Optional
-
-    endian_big16 (smm0.info.startAddr, usage.start);
-    endian_big16 (smm0.info.stopAddr,  usage.end);
-    
-    {
-        uint8_t i = 0;
-        smm0.body.length = 0;
-        {for (int page = 0; page < 0x100; page++)
-        {
-            for (int j = 0; j < 0x100; j++)
-            {
-                if (!(usage.memory[(page << 8) | j] & ~SID_LOAD_IMAGE))
-                    continue;
-           
-                int addr = page << 8;
-                for (j = 0; j < 0x100; j++)
-                     smm0.body.usage[i].flags[j] = usage.memory[addr++] & ~SID_LOAD_IMAGE;
-                smm0.body.length += 0x101;
-                smm0.body.usage[i].page = (uint8_t) page;
-                i++;
-            }
-        }}
-    }
-
-    uint_least32_t filelength = smm0.header.length + smm0.error.length
-                              + smm0.info.length   + smm0.md5.length
-                              + smm0.time.length   + smm0.body.length
-                              + (sizeof (uint8_t) * 8 * headings);
-
-    if ( writeChunk (file, smm0.header, FORM_ID, filelength) == false )
-        goto writeSMM0_error;
-    if ( writeChunk (file, smm0.error, ERR0_ID) == false )
-        goto writeSMM0_error;
-    if ( writeChunk (file, smm0.info, INF0_ID)  == false )
-        goto writeSMM0_error;
-    if ( writeChunk (file, smm0.md5, MD5_ID)    == false )
-        goto writeSMM0_error;
-    if ( writeChunk (file, smm0.time, TIME_ID)  == false )
-        goto writeSMM0_error;
-    if ( writeChunk (file, smm0.body, BODY_ID)  == false )
-        goto writeSMM0_error;
     m_status = true;
     return;
 
-writeSMM0_error:
+writeSMM_error:
     m_errorString = txt_writing;
 }
 
@@ -541,7 +394,7 @@ void SidUsage::writeMAP (FILE *file, const sid2_usage_t &usage)
                 for (int j = 0; j < 64; j++)
                 {
                     int addr = (page << 8) | (i << 6) | j;
-                    uint_least8_t u = usage.memory[addr];
+                    uint_least8_t u = (uint_least8_t) usage.memory[addr] & 0xff;
                     // The addresses which don't need to be in the load image have now been
                     // trimmed off.  Anything between faddr and laddr needs to be kept
                     if ((addr >= faddr) && (addr <= laddr))
@@ -561,61 +414,4 @@ void SidUsage::writeMAP (FILE *file, const sid2_usage_t &usage)
         m_errorString = txt_writing;
     else
         m_status = true;
-}
-
-
-uint_least32_t SidUsage::readChunk (FILE *file, Chunk &chunk)
-{
-    uint8_t tmp[4];
-    size_t  ret;
-    uint_least32_t l;
-
-    ret = fread (tmp, sizeof(tmp), 1, file);
-    if ( ret != 1 )
-        return 0;
-
-    l = endian_big32 (tmp);
-    if (l < chunk.length)
-        chunk.length = l;
-    ret = fread ((char *) (&chunk+1), chunk.length, 1, file);
-    if ( ret != 1 )
-        return 0;
-    return l;
-}
-
-
-bool SidUsage::writeChunk (FILE *file, const Chunk &chunk, uint_least32_t type,
-                           uint_least32_t length)
-{
-    uint8_t tmp[4];
-    size_t  ret;
-
-    if (chunk.length)
-    {
-        endian_big32 (tmp, type);
-        ret = fwrite (tmp, sizeof(tmp), 1, file);
-        if ( ret != 1 )
-            return false;
-        if (length == 0)
-            length = chunk.length;
-        endian_big32 (tmp, length);
-        ret = fwrite (tmp, sizeof(tmp), 1, file);
-        if ( ret != 1 )
-            return false;
-        ret = fwrite ((const char *) (&chunk+1), chunk.length, 1, file);
-        if ( ret != 1 )
-            return false;
-    }
-    return true;
-}
-
-
-uint_least32_t SidUsage::skipChunk (FILE *file)
-{
-    uint8_t tmp[4];
-    uint_least32_t ret;
-    ret = fread (tmp, sizeof(tmp), 1, file);
-    if ( ret != 1 )
-        return 0;
-    return endian_big32 (tmp);
 }
