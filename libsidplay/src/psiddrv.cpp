@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2003/07/16 06:57:52  s_a_white
+ *  Added support for c64 basic tunes.
+ *
  *  Revision 1.28  2003/05/28 20:09:35  s_a_white
  *  Support the psiddrv overlapping unused parts of the tunes load image.
  *
@@ -131,13 +134,20 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
     int startlp = tuneInfo.loadAddr >> 8;
     int endlp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
-    if ((info.environment != sid2_envR) ||
-        (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC))
-    {   // Sidplay1/BASIC modes require no psid driver
+    if (info.environment != sid2_envR)
+    {   // Sidplay1 modes require no psid driver
         info.driverAddr   = 0;
         info.driverLength = 0;
         info.powerOnDelay = 0;
         return 0;
+    }
+
+    if (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
+    {   // The psiddrv is only used for initialisation and to
+        // autorun basic tunes as running the kernel falls
+        // into a manual load/run mode
+        tuneInfo.relocStartPage = 0x04;
+        tuneInfo.relocPages     = 0x03;
     }
 
     // Check for free space in tune
@@ -197,9 +207,13 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
         info.driverLength &= 0xff00;
 
         memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
-        memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
+        // If not a basic tune then the psiddrv must install
+        // interrupt hooks and trap programs trying to restart basic
+        if (tuneInfo.compatibility != SIDTUNE_COMPATIBILITY_BASIC)
+        {
+            memcpy (&m_ram[0x0314], &reloc_driver[2], 6);
 
-        {   // Experimental exit to basic support
+            // Experimental restart basic trap
             uint_least16_t addr;
             addr = endian_little16(&reloc_driver[8]);
             m_rom[0xa7ae] = JMPw;
@@ -213,7 +227,6 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
     }
 
     {   // Setup the Initial entry point
-        uint_least16_t playAddr = tuneInfo.playAddr;
         uint8_t *addr = &m_rom[0]; // &m_ram[relocAddr];
 
         // Tell C64 about song
@@ -224,9 +237,10 @@ int Player::psidDrvReloc (SidTuneInfo &tuneInfo, sid2_info_t &info)
             *addr = 1;
 
         addr++;
-        endian_little16 (addr, tuneInfo.initAddr);
+        endian_little16 (addr, tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC ?
+                         0xa7ae : tuneInfo.initAddr);
         addr += 2;
-        endian_little16 (addr, playAddr);
+        endian_little16 (addr, tuneInfo.playAddr);
         addr += 2;
         // Initialise random number generator
         info.powerOnDelay = m_cfg.powerOnDelay;
