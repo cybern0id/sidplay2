@@ -51,6 +51,7 @@ class sidbuilder
 friend Player;
 
 protected:
+    bool status;
     std::vector<sidemu *> sidobjs;
 
     virtual sidemu *create (c64env *env) = 0;
@@ -63,7 +64,11 @@ protected:
     }
 
 public:
+    // Determine current state of object (true = okay, false = error).
+    operator bool()  { return status; }
+    sidbuilder() : status (true) {;}
     virtual ~sidbuilder() { remove (); }
+    virtual const char *error (void) = 0;
 };
 
 #endif // _sidbuilder_h_
