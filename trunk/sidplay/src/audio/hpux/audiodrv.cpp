@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/01/23 21:23:23  s_a_white
+ *  Replaced SID_HAVE_EXCEPTIONS with HAVE_EXCEPTIONS in new
+ *  drivers.
+ *
  *  Revision 1.2  2001/01/18 18:36:16  s_a_white
  *  Support for multiple drivers added.  C standard update applied (There
  *  should be no spaces before #)
@@ -115,9 +119,9 @@ void *Audio_HPUX::open (AudioConfig& cfg)
 
     // Allocate memory same size as buffer
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(nothrow) ubyte_sidt[_settings.bufSize];
+    _sampleBuffer = new(nothrow) int_least8_t[_settings.bufSize];
 #else
-    _sampleBuffer = new ubyte_sidt[_settings.bufSize];
+    _sampleBuffer = new int_least8_t[_settings.bufSize];
 #endif
 
     _errorString = "OK";
