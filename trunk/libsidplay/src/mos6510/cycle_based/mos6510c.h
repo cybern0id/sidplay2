@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2004/02/29 14:33:59  s_a_white
+ *  If an interrupt occurs during a branch instruction but after the decision
+ *  has occured then it should not be delayed.
+ *
  *  Revision 1.21  2003/10/29 22:18:03  s_a_white
  *  IRQs are now only taken in on phase 1 as previously they could be clocked
  *  in on both phases of the cycle resulting in them sometimes not being
@@ -328,14 +332,17 @@ inline void MOS6510::clock (void)
 {
     int_least8_t i = cycleCount++;
     if (procCycle[i].write || aec)
+    {
         (this->*(procCycle[i].func)) ();
-    else
+        return;
+    }
+    else if (!m_blocked)
     {
         m_blocked     = true;
         m_stealingClk = eventContext.getTime (m_phase);
-        cycleCount--;
-        eventContext.cancel (this);
     }
+    cycleCount--;
+    eventContext.cancel (this);
 }
 
 inline void MOS6510::event (void)
