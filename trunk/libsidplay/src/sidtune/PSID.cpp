@@ -27,25 +27,25 @@
 #include "SidTune.h"
 #include "sidendian.h"
 
-struct psidHeader            // all values big-endian
+struct psidHeader           // all values big-endian
 {
-    char id[4];                // 'PSID' (ASCII)
-    uint_least8_t version[2];    // 0x0001 or 0x0002
-    uint_least8_t data[2];        // 16-bit offset to binary data in file
-    uint_least8_t load[2];        // 16-bit C64 address to load file to
-    uint_least8_t init[2];        // 16-bit C64 address of init subroutine
-    uint_least8_t play[2];        // 16-bit C64 address of play subroutine
-    uint_least8_t songs[2];    // number of songs
-    uint_least8_t start[2];    // start song out of [1..256]
-    uint_least8_t speed[4];    // 32-bit speed info
+    char id[4];             // 'PSID' (ASCII)
+    uint8_t version[2];     // 0x0001 or 0x0002
+    uint8_t data[2];        // 16-bit offset to binary data in file
+    uint8_t load[2];        // 16-bit C64 address to load file to
+    uint8_t init[2];        // 16-bit C64 address of init subroutine
+    uint8_t play[2];        // 16-bit C64 address of play subroutine
+    uint8_t songs[2];       // number of songs
+    uint8_t start[2];       // start song out of [1..256]
+    uint8_t speed[4];       // 32-bit speed info
                             // bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
-    char name[32];            // ASCII strings, 31 characters long and
+    char name[32];          // ASCII strings, 31 characters long and
     char author[32];        // terminated by a trailing zero
-    char copyright[32];        //
-    uint_least8_t flags[2];    // only version 0x0002
-    uint_least8_t relocStart;     // only version 0x0002B
-    uint_least8_t relocPages;     // only version 0x0002B
-    uint_least8_t reserved[2];    // only version 0x0002
+    char copyright[32];     //
+    uint8_t flags[2];       // only version 0x0002
+    uint8_t relocStart;     // only version 0x0002B
+    uint8_t relocPages;     // only version 0x0002B
+    uint8_t reserved[2];    // only version 0x0002
 };
 
 enum
@@ -173,13 +173,11 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
     endian_big16(myHeader.start,info.startSong);
 
     uint_least32_t speed = 0;
-    int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
-    for (int s = 0; s < maxBugSongs; s++)
+    uint_least32_t maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
+    for (uint_least32_t s = 0; s < maxBugSongs; s++)
     {
         if (songSpeed[s] == SIDTUNE_SPEED_CIA_1A)
-        {
             speed |= (1<<s);
-        }
     }
     endian_big32(myHeader.speed,speed);
 
@@ -203,7 +201,7 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
     endian_big16(myHeader.reserved,0);
     myHeader.relocStart = info.relocStartPage;
     myHeader.relocPages = info.relocPages;
-    for ( int i = 0; i < 32; i++ )
+    for ( uint i = 0; i < 32; i++ )
     {
         myHeader.name[i] = 0;
         myHeader.author[i] = 0;
