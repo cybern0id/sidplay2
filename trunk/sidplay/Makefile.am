@@ -10,5 +10,5 @@ EXTRA_DIST = include win
 # included completely (e.g. win, directx,...).
 
 dist-hook:
-		rm -rf `find $(distdir) -path \*/CVS`
-		rm -f $(distdir)/\*.h
+	rm -rf `find $(distdir) -path \*/CVS`
+	rm -f `find $(distdir)/unix -name \*.h`
