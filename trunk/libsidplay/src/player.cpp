@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2002/03/03 22:01:58  s_a_white
+ *  New clock speed & sid model interface.
+ *
  *  Revision 1.38  2002/02/17 16:33:02  s_a_white
  *  New reset interface for sidbuilders.
  *
@@ -319,8 +322,16 @@ int Player::load (SidTune *tune)
             sid[i]->voice (v, 0, false);
     }
 
-    // Must re-configure on fly for stereo support!
-    return config (m_cfg);
+    {   // Must re-configure on fly for stereo support!
+        int ret = config (m_cfg);
+        // Failed configuration with new tune, reject it
+        if (ret < 0)
+        {
+            m_tune = NULL;
+            return -1;
+        }
+    }
+    return 0;
 }
 
 void Player::mileageCorrect (void)
@@ -467,7 +478,7 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
                 {
                 case 0x11:
                 case 0x12:
-                    return sid6526.read ((addr-7)&0x0f);
+                    return sid6526.read ((addr-13)&0x0f);
                 }
                 // Deliberate run on
             default:
