@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/09/20 19:34:11  s_a_white
+ *  Error checking added for the builder create calls.
+ *
  *  Revision 1.6  2001/09/17 19:02:38  s_a_white
  *  Now uses fixed point maths for sample output and rtc.
  *
@@ -389,9 +392,9 @@ int Player::sidEmulation (sidbuilder *builder)
             return -1;
         // Check for failed SIDs
         if (!sid)
-            sid = &nullsid;
+            sid  = &nullsid;
         if (!sid2)
-            sid = &nullsid;
+            sid2 = &nullsid;
     }
     xsid.emulation (sid);
     return 0;
