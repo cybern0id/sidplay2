@@ -27,16 +27,20 @@
 #include <string.h>
 #include <strstream>
 
-#define MYSTRICMP stricmp
+#ifdef __QNXNTO__
+#   include <strings.h>
+#endif // __QNXNTO__
+
 #if defined(HAVE_STRCASECMP)
-  #undef  MYSTRICMP
-  #define MYSTRICMP strcasecmp
+#   define MYSTRICMP strcasecmp
+#else
+#   define MYSTRICMP stricmp
 #endif
 
-#define MYSTRNICMP strnicmp
 #if defined(HAVE_STRNCASECMP)
-  #undef  MYSTRNICMP
-  #define MYSTRNICMP strncasecmp
+#   define MYSTRNICMP strncasecmp
+#else
+#   define MYSTRNICMP strnicmp
 #endif
 
 class SidTuneTools
