@@ -16,9 +16,13 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/09/01 11:11:19  s_a_white
+ *  This is the old fake6526 code required for sidplay1 environment modes.
+ *
  ***************************************************************************/
 
 #include <time.h>
+#include "sidendian.h"
 #include "SID6526.h"
 
 const char * const SID6526::credit =
@@ -47,51 +51,49 @@ void SID6526::reset (void)
 
 uint8_t SID6526::read (uint_least8_t addr)
 {
-   if (addr > 0x0f)
-       return 0;
+    if (addr > 0x0f)
+        return 0;
 
-   switch (addr)
-   {
-   case 0x04:
-   case 0x05:
-   case 0x11:
-   case 0x12:
-       rnd = rnd * 13 + 1;
-       return (uint8_t) rnd >> 3;
-   break;
-   default:
-       return regs[addr];
-   }
+    switch (addr)
+    {
+    case 0x04:
+    case 0x05:
+    case 0x11:
+    case 0x12:
+        rnd = rnd * 13 + 1;
+        return (uint8_t) rnd >> 3;
+    break;
+    default:
+        return regs[addr];
+    }
 }
 
 void SID6526::write (uint_least8_t addr, uint8_t data)
 {
-   if (addr > 0x0f)
-       return;
+    if (addr > 0x0f)
+        return;
 
-   regs[addr] = data;
+    regs[addr] = data;
 
-   if (locked)
-       return; // Stop program changing time interval
+    if (locked)
+        return; // Stop program changing time interval
 
-   {   // Sync up timer
-	   event_clock_t cycles;
-       cycles       = m_eventContext.getTime (m_accessClk);
-       m_accessClk += cycles;
-       ta          -= cycles;
-   }
+    {   // Sync up timer
+        event_clock_t cycles;
+        cycles       = m_eventContext.getTime (m_accessClk);
+        m_accessClk += cycles;
+        ta          -= cycles;
+    }
 
-   switch (addr)
-   {
-   case 0x04:
-       ta_latch  = (uint_least16_t) data;
-   break;
-   case 0x05:
-       ta_latch |= (uint_least16_t) data << 8;
-       if (cra & 0x01)
-           ta = ta_latch;
-   break;
-   case 0x0e:
+    switch (addr)
+    {
+    case 0x4: endian_16lo8 (ta_latch, data); break;
+    case 0x5:
+        endian_16hi8 (ta_latch, data);
+        if (!(cra & 0x01)) // Reload timer if stopped
+            ta = ta_latch;
+    break;
+    case 0x0e:
         cra = data;
         if (data & 0x10)
         {
@@ -99,10 +101,10 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             ta   = ta_latch;
         }
         m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1);
-   break;
-   default:
-   break;
-   }
+    break;
+    default:
+    break;
+    }
 }
 
 void SID6526::event (void)
