@@ -25,8 +25,17 @@
 /* Define if your compiler supports AC99 header "stdbool.h" */
 @SID_HAVE_STDBOOL_H@
 
-/* Platform specific declaration to export interfaces for
-   shared/dynamic libraries */
-#define SID_EXPORT
+/* DLL building support on win32 hosts */
+#ifndef SID_EXTERN
+#   ifdef DLL_EXPORT      /* defined by libtool (if required) */
+#       define SID_EXTERN __declspec(dllexport)
+#   endif
+#   ifdef SID_DLL_IMPORT  /* define if linking with this dll */
+#       define SID_EXTERN extern __declspec(dllimport)
+#   endif
+#   ifndef SID_EXTERN     /* static linking or !_WIN32 */
+#       define SID_EXTERN
+#   endif
+#endif
 
 #endif /* _sidconfig_h_ */
