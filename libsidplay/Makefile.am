@@ -1,9 +1,9 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include unix src 
+SUBDIRS = include src
 
-EXTRA_DIST = win Makefile.dist
+EXTRA_DIST = unix win Makefile.dist
 
 sidplayincludedir = $(includedir)/sidplay
 

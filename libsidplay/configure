@@ -706,7 +706,7 @@ fi
 
 
 ac_aux_dir=
-for ac_dir in unix/scripts $srcdir/unix/scripts; do
+for ac_dir in unix $srcdir/unix; do
   if test -f $ac_dir/install-sh; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -718,7 +718,7 @@ for ac_dir in unix/scripts $srcdir/unix/scripts; do
   fi
 done
 if test -z "$ac_aux_dir"; then
-  { echo "configure: error: can not find install-sh or install.sh in unix/scripts $srcdir/unix/scripts" 1>&2; exit 1; }
+  { echo "configure: error: can not find install-sh or install.sh in unix $srcdir/unix" 1>&2; exit 1; }
 fi
 ac_config_guess=$ac_aux_dir/config.guess
 ac_config_sub=$ac_aux_dir/config.sub
@@ -729,7 +729,7 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 
 
 LIBCUR=0
-LIBREV=6
+LIBREV=7
 LIBAGE=0
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -6672,14 +6672,15 @@ ac_given_INSTALL="$INSTALL"
 trap 'rm -fr `echo "Makefile \
 include/Makefile \
 include/sidplay/Makefile \
-unix/Makefile \
-unix/sidconfig.h \
+include/sidplay/sidconfig.h \
 src/Makefile \
 src/mos6510/Makefile \
+src/mos6526/Makefile \
+src/mos656x/Makefile \
 src/mos6581/Makefile \
 src/sidtune/Makefile \
 src/xsid/Makefile
- unix/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+ include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -6800,10 +6801,11 @@ cat >> $CONFIG_STATUS <<EOF
 CONFIG_FILES=\${CONFIG_FILES-"Makefile \
 include/Makefile \
 include/sidplay/Makefile \
-unix/Makefile \
-unix/sidconfig.h \
+include/sidplay/sidconfig.h \
 src/Makefile \
 src/mos6510/Makefile \
+src/mos6526/Makefile \
+src/mos656x/Makefile \
 src/mos6581/Makefile \
 src/sidtune/Makefile \
 src/xsid/Makefile
@@ -6888,7 +6890,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="unix/config.h"
+  CONFIG_HEADERS="include/config.h"
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 fi
@@ -6979,7 +6981,7 @@ cat >> $CONFIG_STATUS <<EOF
 
 EOF
 cat >> $CONFIG_STATUS <<\EOF
-test -z "$CONFIG_HEADERS" || echo timestamp > unix/stamp-h
+test -z "$CONFIG_HEADERS" || echo timestamp > include/stamp-h
 
 exit 0
 EOF

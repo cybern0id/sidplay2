@@ -1,11 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Makefile.am)
-AC_CONFIG_AUX_DIR(unix/scripts)
-AM_CONFIG_HEADER(unix/config.h)
+AC_CONFIG_AUX_DIR(unix)
+AM_CONFIG_HEADER(include/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=6
+LIBREV=7
 LIBAGE=0
 AM_INIT_AUTOMAKE(libsidplay,2.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -104,10 +104,11 @@ AC_OUTPUT(
 Makefile \
 include/Makefile \
 include/sidplay/Makefile \
-unix/Makefile \
-unix/sidconfig.h \
+include/sidplay/sidconfig.h \
 src/Makefile \
 src/mos6510/Makefile \
+src/mos6526/Makefile \
+src/mos656x/Makefile \
 src/mos6581/Makefile \
 src/sidtune/Makefile \
 src/xsid/Makefile
