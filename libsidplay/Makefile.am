@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = unix include src
 
-EXTRA_DIST = win acconfig.h
+EXTRA_DIST = win
 
 
 # Remove CVS directories from any subdirs that get
