@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2003/10/18 12:45:12  s_a_white
+ *  no message
+ *
  *  Revision 1.26  2003/07/16 06:54:06  s_a_white
  *  Added sid2crc support.
  *
@@ -108,7 +111,7 @@
 #include "keyboard.h"
 
 // Previous song select timeout (3 secs)
-#define SID2_PREV_SONG_TIMEOUT 40
+#define SID2_PREV_SONG_TIMEOUT 4
 
 #ifdef HAVE_RESID_BUILDER
 #   include <sidplay/builders/resid.h>
@@ -578,7 +581,7 @@ bool ConsolePlayer::play ()
 #ifdef HAVE_TSID
         if (m_tsid)
         {
-            m_tsid.addTime((int) (m_engine.time() / 10),
+            m_tsid.addTime((int) (m_engine.time() / m_engine.timebase()),
                            m_track.selected, m_filename);
         }
 #endif
@@ -598,7 +601,7 @@ void ConsolePlayer::stop ()
 // External Timer Event
 void ConsolePlayer::event (void)
 {
-    uint_least32_t seconds = m_engine.time() / 10;
+    uint_least32_t seconds = m_engine.time() / m_engine.timebase();
     if ( !m_quietLevel )
     {
         cerr << "\b\b\b\b\b" << setw(2) << setfill('0')
@@ -677,7 +680,7 @@ void ConsolePlayer::decodeKeys ()
             if (!m_track.single)
             {   // Only select previous song if less than timeout
                 // else restart current song
-                if (m_engine.time() < SID2_PREV_SONG_TIMEOUT)
+                if ((m_engine.time() / m_engine.timebase()) < SID2_PREV_SONG_TIMEOUT)
                 {
                     m_track.selected--;
                     if (m_track.selected < 1)
