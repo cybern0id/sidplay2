@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/03/08 22:48:33  s_a_white
+ *  Sid reset on player destruction removed.  Now handled locally by the sids.
+ *
  *  Revision 1.7  2001/03/01 23:46:37  s_a_white
  *  Support for sample mode to be selected at runtime.
  *
@@ -48,6 +51,7 @@
 #include "sidenv.h"
 #include "mos6510/mos6510.h"
 #include "mos6581/mos6581.h"
+#include "mos656x.h"
 #include "xsid/xsid.h"
 #include "fake6526.h"
 
@@ -70,6 +74,7 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
+	static const char  *ERR_FILTER_DEFINITION;
 
     //SID6510  cpu(6510, "Main CPU");
     SID6510  cpu;
@@ -77,6 +82,8 @@ private:
     SID      sid2;
     XSID     xsid;
     fake6526 cia;
+    fake6526 cia2;
+	MOS656X  vic;
 
     // User Configuration Settings
     struct   SidTuneInfo tuneInfo;
@@ -206,6 +213,7 @@ public:
     void           stop         (void);
     uint_least32_t time         (void) { return _seconds; }
     void           sidSamples   (bool enable);
+	int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
 
     void           optimisation (uint_least8_t level)
     {
