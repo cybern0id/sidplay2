@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2000/12/12 22:50:15  s_a_white
+ *  Bug Fix #122033.
+ *
  ***************************************************************************/
 
 #include <string.h>
@@ -53,10 +56,10 @@ player::player (void)
 :myTune (NULL), tune (NULL),
  ram    (NULL), rom  (NULL),
  _clockSpeed        (SID2_CLOCK_CORRECT),
- _fastForwardFactor (1.0),
- _forced            (true),
  _environment       (sid2_envBS),
  _errorString       (PLAYER_TXT_NA),
+ _fastForwardFactor (1.0),
+ _forced            (true),
  _optimiseLevel     (SID2_DEFAULT_OPTIMISATION),
  _sampleCount       (0),
  _samplingFreq      (SID2_DEFAULT_SAMPLING_FREQ),
