@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2003/01/20 23:10:48  s_a_white
+ *  Fixed RMW instructions to perform memory re-write on the correct cycle.
+ *
  *  Revision 1.17  2003/01/20 18:37:08  s_a_white
  *  Stealing update.  Apparently the cpu does a memory read from any non
  *  write cycle (whether it needs to or not) resulting in those cycles
@@ -90,6 +93,7 @@ protected:
     bool aec; /* Address Controller, blocks reads */
     bool m_blocked;
     event_clock_t m_stealingClk;
+    FILE *m_fdbg;
 
     bool dodump;
     EventContext &eventContext;
@@ -294,7 +298,7 @@ public:
     virtual void reset     (void);
     virtual void credits   (char *str);
     virtual void DumpState (void);
-    void         debug     (bool enable) {dodump = enable;}
+    void         debug     (bool enable, FILE *out);
     void         aecSignal (bool state);
 
     // Non-standard functions

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2003/02/24 19:51:41  s_a_white
+ *  Removed bas m_timeout.
+ *
  *  Revision 1.32  2003/02/24 19:43:26  s_a_white
  *  Handle infinite loop timeouts for older sidplay1 modes more gracefully.
  *
@@ -260,7 +263,7 @@ void SID6510::FetchOpcode (void)
         }
         if (!timeout)
         {
-            printf   ("\n\nINFINITE LOOP DETECTED *********************************\n");
+            fprintf   (m_fdbg, "\n\nINFINITE LOOP DETECTED *********************************\n");
             envReset ();
         }
         sleep ();
@@ -421,9 +424,9 @@ void SID6510::triggerIRQ (void)
 #ifdef MOS6510_DEBUG
         if (dodump)
         {
-            printf ("****************************************************\n");
-            printf (" Fake IRQ Routine\n");
-            printf ("****************************************************\n");
+            fprintf (m_fdbg, "****************************************************\n");
+            fprintf (m_fdbg, " Fake IRQ Routine\n");
+            fprintf (m_fdbg, "****************************************************\n");
         }
 #endif
         return;
