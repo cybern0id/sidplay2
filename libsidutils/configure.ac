@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=3
+LIBREV=4
 LIBAGE=0
 AM_INIT_AUTOMAKE(libsidutils,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -20,7 +20,7 @@ AC_PROG_CXX
 
 dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
-MY_CONFIG_LIBTOOL
+AC_PROG_LIBTOOL
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
