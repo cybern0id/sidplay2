@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 2mdk
+%define release 1
 %define major   1
 
 Summary:        General utility library for use in sidplayers.
@@ -63,6 +63,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Wed Apr 10 2001 Simon White <s_a_white@email.com> @VERSION@-1
+- Use non Mandrake specific release number.  Bug fixes in INI
+  file parser.
+
 * Wed Apr 4 2001 Simon White <s_a_white@email.com> @VERSION@-2mdk
 - Updated --prefix and make install so la file does not end up with
   a bad install path.
