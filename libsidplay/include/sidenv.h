@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/07/14 13:09:35  s_a_white
+ *  Removed cache parameters.
+ *
  *  Revision 1.2  2000/12/11 19:10:59  s_a_white
  *  AC99 Update.
  *
@@ -113,6 +116,8 @@ protected:
     { return m_envp->envCheckBankJump   (addr); }
     virtual inline uint8_t envReadMemDataByte (uint_least16_t addr)
     { return m_envp->envReadMemDataByte (addr); }
+    virtual inline void envSleep (void)
+    { return m_envp->envSleep (); }
     virtual inline void envLoadFile (char *file)
     { m_envp->envLoadFile (file); }
 };
