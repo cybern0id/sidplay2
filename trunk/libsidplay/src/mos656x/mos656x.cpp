@@ -219,8 +219,9 @@ void MOS656X::event (void)
         }
         break;
     case 1:  // Vertical blank (line 0)
-		// Trigger raster IRQ if IRQ in line 0
-        raster_y = 0;
+        if (raster_y == yrasters - 1)
+            raster_y = 0;
+        // Trigger raster IRQ if IRQ in line 0
         if (raster_y == raster_irq)
             trigger (MOS656X_INTERRUPT_RST);
         delay = 10;
