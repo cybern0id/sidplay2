@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2000/12/14 23:53:36  s_a_white
+ *  Small optimisation update, and comment revision.
+ *
  *  Revision 1.4  2000/12/13 17:56:24  s_a_white
  *  Interrupt vector address changed from 0x315 to 0x314.
  *
@@ -240,9 +243,9 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
                 xsid.mute (true);
 
             // Mute Voices
-            sid.mute  (2, true);
+            sid.mute  (1, true);
             sid2.mute (0, true);
-            sid2.mute (1, true);
+            sid2.mute (2, true);
 #ifndef XSID_USE_SID_VOLUME
             // 2 Voices scaled to unity from 4
             //    _leftVolume  *= 2;
