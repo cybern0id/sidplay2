@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2002/01/29 21:47:35  s_a_white
+ *  Constant fixed interval delay added to prevent emulation going fast when
+ *  there are no writes to the sid.
+ *
  *  Revision 1.2  2002/01/29 00:32:56  jpaana
  *  Use the new read and delay IOCTLs
  *
@@ -104,6 +108,8 @@ void HardSID::reset (void)
         muted[i] = false;
     ioctl(m_handle, HSID_IOCTL_RESET, 0x0f);
     m_accessClk = 0;
+    if (m_eventContext != NULL)
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
 uint8_t HardSID::read (const uint_least8_t addr)
@@ -167,8 +173,11 @@ void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk);
     m_accessClk += cycles;
-    if (m_accessClk)
-        ioctl(m_handle, HSID_IOCTL_DELAY, cycles);
+    if (cycles)
+    {
+        uint delay = (uint) cycles;
+        ioctl(m_handle, HSID_IOCTL_DELAY, &delay);
+    }
     m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
 }
 
@@ -186,6 +195,7 @@ void HardSID::lock(c64env* env)
 {
     if( env == NULL )
     {
+        m_eventContext->cancel (this);
         m_locked = false;
         m_eventContext = NULL;
     }
@@ -193,5 +203,6 @@ void HardSID::lock(c64env* env)
     {
         m_locked = true;
         m_eventContext = &env->context();
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES);
     }
 }
