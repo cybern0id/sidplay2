@@ -84,7 +84,7 @@ INCLUDES = -Isidtune $(RESID_INCLUDES)
 bin_PROGRAMS = sidplay2
 
 sidplay2_SOURCES = main.cpp
-sidplay2_LDADD = ./audio/oss/liboss.a ./audio/wav/libwav.a ./audio/sunos/libsunos.a -L.libs -lsidplay $(RESID_LDADD) -lresid
+sidplay2_LDADD = ./audio/oss/liboss.a ./audio/wav/libwav.a ./audio/sunos/libsunos.a libsidplay2.la
 
 
 # The library.
@@ -93,16 +93,15 @@ sidplayincludedir = $(includedir)/sidplay2
 
 sidplayinclude_HEADERS = sidplayer.h
 
-lib_LTLIBRARIES = libsidplay.la
+lib_LTLIBRARIES = libsidplay2.la
 
-libsidplay_la_SOURCES = fake6526.cpp fake6526.h sidmixer.cpp sidplayer.cpp sidplayer.h sidplayer_pr.h
-
-
-libsidplay_la_LIBADD = ./mos6510/libmos6510.la ./xsid/libxsid.la ./sidtune/libsidtune.la
+libsidplay2_la_SOURCES = fake6526.cpp fake6526.h sidmixer.cpp sidplayer.cpp sidplayer.h sidplayer_pr.h
 
 
-#libsidplay_la_LDFLAGS = -version-info $(LIBVERSION)
-libsidplay_la_LDFLAGS = -release $(LIBVERSION)
+libsidplay2_la_LIBADD = ./mos6510/libmos6510.la ./xsid/libxsid.la ./sidtune/libsidtune.la $(RESID_LDADD) -lresid
+
+
+libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
 mkinstalldirs = $(SHELL) $(top_srcdir)/scripts/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
@@ -113,14 +112,14 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libsidplay_la_DEPENDENCIES =  ./mos6510/libmos6510.la ./xsid/libxsid.la \
+libsidplay2_la_DEPENDENCIES =  ./mos6510/libmos6510.la ./xsid/libxsid.la \
 ./sidtune/libsidtune.la
-libsidplay_la_OBJECTS =  fake6526.lo sidmixer.lo sidplayer.lo
+libsidplay2_la_OBJECTS =  fake6526.lo sidmixer.lo sidplayer.lo
 PROGRAMS =  $(bin_PROGRAMS)
 
 sidplay2_OBJECTS =  main.o
 sidplay2_DEPENDENCIES =  ./audio/oss/liboss.a ./audio/wav/libwav.a \
-./audio/sunos/libsunos.a
+./audio/sunos/libsunos.a libsidplay2.la
 sidplay2_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -143,8 +142,8 @@ TAR = gtar
 GZIP_ENV = --best
 DEP_FILES =  .deps/fake6526.P .deps/main.P .deps/sidmixer.P \
 .deps/sidplayer.P
-SOURCES = $(libsidplay_la_SOURCES) $(sidplay2_SOURCES)
-OBJECTS = $(libsidplay_la_OBJECTS) $(sidplay2_OBJECTS)
+SOURCES = $(libsidplay2_la_SOURCES) $(sidplay2_SOURCES)
+OBJECTS = $(libsidplay2_la_OBJECTS) $(sidplay2_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -214,8 +213,8 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libsidplay.la: $(libsidplay_la_OBJECTS) $(libsidplay_la_DEPENDENCIES)
-	$(CXXLINK) -rpath $(libdir) $(libsidplay_la_LDFLAGS) $(libsidplay_la_OBJECTS) $(libsidplay_la_LIBADD) $(LIBS)
+libsidplay2.la: $(libsidplay2_la_OBJECTS) $(libsidplay2_la_DEPENDENCIES)
+	$(CXXLINK) -rpath $(libdir) $(libsidplay2_la_LDFLAGS) $(libsidplay2_la_OBJECTS) $(libsidplay2_la_LIBADD) $(LIBS)
 
 mostlyclean-binPROGRAMS:
 
