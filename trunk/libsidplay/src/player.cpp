@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2001/07/27 12:51:55  s_a_white
+ *  Removed warning.
+ *
  *  Revision 1.24  2001/07/25 17:01:13  s_a_white
  *  Support for new configuration interface.
  *
@@ -239,6 +242,7 @@ int Player::initialise ()
         return -1;
     }
 
+    rtc.reset  ();
     cpu->reset ();
     mixerReset ();
     xsid.suppress (true);
