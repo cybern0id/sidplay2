@@ -3,14 +3,10 @@
 #define _config_h_
 
 #define PACKAGE "libsidplay"
-#define VERSION "2.0.7"
+#define VERSION "2.1.0"
 
 /* Operating System */
 #define HAVE_MSWINDOWS
-
-/* Define sound driver */
-//#define HAVE_DIRECTX
-#define HAVE_MMSYSTEM
 
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS */
