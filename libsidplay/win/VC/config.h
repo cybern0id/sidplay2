@@ -12,11 +12,6 @@
 //#define HAVE_DIRECTX
 #define HAVE_MMSYSTEM
 
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-/* SID_WORDS_BIGENDIAN, SID_WORDS_LITTLEENDIAN  */
-#define WORDS_LITTLEENDIAN
-
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS */
 
