@@ -97,10 +97,7 @@ private:
     }
 
 public:
-    EventContext (const char * const name)
-        : m_name(name),
-          m_timeWarp(this) { reset (); }
-
+    EventContext  (const char * const name);
     void cancel   (Event *event);
     void reset    (void);
     void schedule (Event *event, event_clock_t cycles);
