@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/03/24 18:09:17  s_a_white
+ *  On entry to interrupt routine the first instruction in the handler is now always
+ *  executed before pending interrupts are re-checked.
+ *
  *  Revision 1.6  2001/03/22 22:40:07  s_a_white
  *  Replaced tabs characters.
  *
@@ -48,7 +52,7 @@ private:
     bool sleeping;
 
 public:
-    SID6510 ();
+    SID6510 (EventContext *context);
 
     // Standard Functions
     void reset (void);
@@ -71,33 +75,12 @@ private:
 
 inline void SID6510::clock (void)
 {
+    // Allow the cpu to idle for sidplay compatibility
     if (sleeping)
         return;
 
     // Call inherited clock
     MOS6510::clock ();
-
-    if (cycleCount)
-        return;
-    
-    // Sid tunes end by wrapping the stack.  For compatibilty it
-    // has to be handled.
-    sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
-    sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
-
-    if (!sleeping)
-        return;
-
-    // The CPU is about to sleep.  It can only be woken by a
-    // reset or interrupt.
-    Initialise ();
-
-    // Check for outstanding interrupts
-    if (interrupts.pending)
-    {   // Start processing the interrupt
-        interruptPending ();
-        sleeping = false;
-    }
 }
 
 #endif // _sid6510c_h_
