@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/02/09 23:42:50  s_a_white
+ *  Fixed damaged menu border shown using verbose option.
+ *
  *  Revision 1.12  2004/01/31 17:07:45  s_a_white
  *  Support of specifing max sids writes forming sid2crc and experimental
  *  TSID2 library support.
@@ -57,7 +60,16 @@
  ***************************************************************************/
 
 #include <ctype.h>
-#include <iostream.h>
+#include <iostream>
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::dec;
+using std::hex;
+using std::flush;
+#include <iomanip>
+using std::setw;
+using std::setfill;
 #include "player.h"
 
 
@@ -225,7 +237,7 @@ void ConsolePlayer::menu ()
         consoleTable  (tableMiddle);
         consoleColour (yellow, true);
         cerr << " Addresses    : " << hex;
-        cerr.setf(ios::uppercase);
+        cerr.setf(std::ios::uppercase);
         consoleColour (white, false);
         // Display PSID Driver location
         cerr << "DRIVER = ";
@@ -252,7 +264,7 @@ void ConsolePlayer::menu ()
         if (tuneInfo.playAddr != 0xffff)
             cerr << ", PLAY = $" << setw(4) << setfill('0') << tuneInfo.playAddr;
         cerr << dec << endl;
-        cerr.unsetf(ios::uppercase);
+        cerr.unsetf(std::ios::uppercase);
 
         consoleTable  (tableMiddle);
         consoleColour (yellow, true);

@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/03/04 19:07:48  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.9  2002/01/10 18:57:01  s_a_white
  *  Interface changes and fixes for bigendian machines.
  *
@@ -60,7 +63,7 @@
 #endif
 
 #if defined(WAV_HAVE_IOS_OPENMODE)
-    typedef ios::openmode openmode;
+    typedef std::ios::openmode openmode;
 #else
     typedef int openmode;
 #endif
@@ -126,17 +129,17 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     endian_little16(wavHdr.bitsPerSample,bits);
     endian_little32(wavHdr.dataChunkLen,0);
 
-    openmode createAttr = ios::out;
+    openmode createAttr = std::ios::out;
 #if defined(WAV_HAVE_IOS_BIN)
-    createAttr |= ios::bin;
+    createAttr |= std::ios::bin;
 #else
-    createAttr |= ios::binary;
+    createAttr |= std::ios::binary;
 #endif
 
     if (overWrite)
-        file.open( name, createAttr|ios::trunc );
+        file.open( name, createAttr|std::ios::trunc );
     else
-        file.open( name, createAttr|ios::app );
+        file.open( name, createAttr|std::ios::app );
 
     isOpen = !(file.fail() || file.tellp());
     _settings = cfg;
@@ -175,7 +178,7 @@ void WavFile::close()
     {
         endian_little32(wavHdr.length,byteCount+sizeof(wavHeader)-8);
         endian_little32(wavHdr.dataChunkLen,byteCount);
-        file.seekp(0,ios::beg);
+        file.seekp(0,std::ios::beg);
         file.write((char*)&wavHdr,sizeof(wavHeader));
         file.close();
         isOpen = false;
