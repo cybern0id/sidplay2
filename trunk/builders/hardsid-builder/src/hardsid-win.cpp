@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2003/06/27 07:05:42  s_a_white
+ *  Use new hardsid.dll muting interface.
+ *
  *  Revision 1.8  2003/01/17 08:30:48  s_a_white
  *  Event scheduler phase support.
  *
@@ -74,8 +77,6 @@ HardSID::HardSID (sidbuilder *builder)
 
     m_status = true;
     reset ();
-    // Unmute all the voices
-    hsid2.MuteAll (m_instance, false);
 }
 
 
@@ -115,14 +116,15 @@ void HardSID::write (uint_least8_t addr, uint8_t data)
 }
 
 void HardSID::reset (uint8_t volume)
-{   // Ok if no fifo, otherwise need hardware
-    // reset to clear out fifo.
-    
+{
     m_accessClk = 0;
+    // Clear hardsid buffers
+    hsid2.Flush ((BYTE) m_instance);
     if (hsid2.Version >= HSID_VERSION_204)
         hsid2.Reset2 ((BYTE) m_instance, volume);
     else
         hsid2.Reset  ((BYTE) m_instance);
+    hsid2.Sync ((BYTE) m_instance);
 
     if (m_eventContext != NULL)
         m_eventContext->schedule (this, HARDSID_DELAY_CYCLES,
