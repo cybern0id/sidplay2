@@ -53,6 +53,10 @@ const char keyword_address[] = "ADDRESS=";      // eating string stream to
 const char keyword_songs[] = "SONGS=";          // parse most of the header.
 const char keyword_speed[] = "SPEED=";
 const char keyword_musPlayer[] = "SIDSONG=YES";
+const char keyword_reloc[] = "RELOC=";
+const char keyword_clock[] = "CLOCK=";
+const char keyword_sidModel[] = "SIDMODEL=";
+const char keyword_compatibility[] = "COMPATIBILITY=PSID";
 
 const uint_least16_t sidMinFileSize = 1+sizeof(keyword_id);  // Just to avoid a first segm.fault.
 const uint_least16_t parseChunkLen = 80;                     // Enough for all keywords incl. their values.
@@ -111,8 +115,12 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 		}
 		
 		// Parse as long we have not collected all ``required'' entries.
-		while ( !hasAddress || !hasName || !hasAuthor || !hasCopyright
-			    || !hasSongs || !hasSpeed )
+		//while ( !hasAddress || !hasName || !hasAuthor || !hasCopyright
+		//	    || !hasSongs || !hasSpeed )
+
+        // Above implementation is wrong, we need to get all known
+        // fields and then check if all ``required'' ones were found.
+        for (;;)
 		{
 			// Skip to next line. Leave loop, if none.
 			if (( pParseBuf = SidTuneTools::returnNextLine( pParseBuf )) == 0 )
@@ -203,6 +211,47 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 			{
 				info.musPlayer = true;
 			}
+			// RELOC
+			else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_reloc ) == 0 )
+			{
+				info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( parseStream );
+				if ( !parseStream )
+				    break;
+				info.relocPages = (uint_least8_t)SidTuneTools::readHex( parseStream );
+			}
+			// CLOCK
+			else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_clock ) == 0 )
+            {
+                char clock[8];
+				SidTuneTools::copyStringValueToEOL(pParseBuf,clock,sizeof(clock));
+                if ( SidTuneTools::myStrNcaseCmp( clock, "UNKNOWN" ) == 0 )
+                    info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
+                else if ( SidTuneTools::myStrNcaseCmp( clock, "PAL" ) == 0 )
+                    info.clockSpeed = SIDTUNE_CLOCK_PAL;
+                else if ( SidTuneTools::myStrNcaseCmp( clock, "NTSC" ) == 0 )
+                    info.clockSpeed = SIDTUNE_CLOCK_NTSC;
+                else if ( SidTuneTools::myStrNcaseCmp( clock, "ANY" ) == 0 )
+                    info.clockSpeed = SIDTUNE_CLOCK_ANY;
+            }
+			// SIDMODEL
+			else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_sidModel ) == 0 )
+            {
+                char model[8];
+				SidTuneTools::copyStringValueToEOL(pParseBuf,model,sizeof(model));
+                if ( SidTuneTools::myStrNcaseCmp( model, "UNKNOWN" ) == 0 )
+                    info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
+                else if ( SidTuneTools::myStrNcaseCmp( model, "6581" ) == 0 )
+                    info.sidModel = SIDTUNE_SIDMODEL_6581;
+                else if ( SidTuneTools::myStrNcaseCmp( model, "8580" ) == 0 )
+                    info.sidModel = SIDTUNE_SIDMODEL_8580;
+                else if ( SidTuneTools::myStrNcaseCmp( model, "ANY" ) == 0 )
+                    info.sidModel = SIDTUNE_SIDMODEL_ANY;
+            }
+			// COMPATIBILITY
+			else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_compatibility ) == 0 )
+            {
+                info.psidSpecific = true;
+            }
         };
 		
         delete[] pParseChunk;
@@ -211,7 +260,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 		if ( hasAddress || hasName || hasAuthor || hasCopyright || hasSongs || hasSpeed )
 		{
 			// Create the speed/clock setting table.
-			convertOldStyleSpeedToTables(oldStyleSpeed);
+			convertOldStyleSpeedToTables(oldStyleSpeed, info.clockSpeed);
 			// loadAddr = 0 means, the address is stored in front of the C64 data.
 			// We cannot verify whether the dataBuffer contains valid data.
 		    // All we want to know is whether the SID buffer is valid.
@@ -269,7 +318,53 @@ bool SidTune::SID_fileSupportSave( ofstream& toFile )
 	{
 		toFile << keyword_musPlayer << endl;
 	}
-	if ( !toFile )
+    if ( info.relocStartPage )
+    {
+        toFile
+            << keyword_reloc << setfill('0')
+            << hex << setw(2) << (int) info.relocStartPage << ","
+            << hex << setw(2) << (int) info.relocPages << endl;
+    }
+    if ( info.clockSpeed != SIDTUNE_CLOCK_UNKNOWN )
+    {
+        toFile << keyword_clock;
+        switch (info.clockSpeed)
+        {
+        case SIDTUNE_CLOCK_PAL:
+            toFile << "PAL";
+            break;
+        case SIDTUNE_CLOCK_NTSC:
+            toFile << "NTSC";
+            break;
+        case SIDTUNE_CLOCK_ANY:
+            toFile << "ANY";
+            break;
+        }
+        toFile << endl;
+    }
+    if ( info.sidModel != SIDTUNE_SIDMODEL_UNKNOWN )
+    {
+        toFile << keyword_sidModel;
+        switch (info.sidModel)
+        {
+        case SIDTUNE_SIDMODEL_6581:
+            toFile << "6581";
+            break;
+        case SIDTUNE_SIDMODEL_8580:
+            toFile << "8580";
+            break;
+        case SIDTUNE_SIDMODEL_ANY:
+            toFile << "ANY";
+            break;
+        }
+        toFile << endl;
+    }
+	if ( info.psidSpecific )
+	{
+		toFile << keyword_compatibility << endl;
+	}
+
+    if ( !toFile )
 	{
 		return false;
 	}
