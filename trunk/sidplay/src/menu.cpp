@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/01/28 19:40:50  s_a_white
+ *  Added TSID support.
+ *
  *  Revision 1.3  2002/01/15 19:12:24  s_a_white
  *  PSID2NG update.
  *
@@ -199,7 +202,7 @@ void ConsolePlayer::menu ()
         cerr << "              : ";
         consoleColour (white, false);
         if (tuneInfo.playAddr == 0xffff)
-            cerr << " SYS=$" << setw(4) << setfill('0') << tuneInfo.initAddr;
+            cerr << "SYS   =$" << setw(4) << setfill('0') << tuneInfo.initAddr;
         else
         {
             cerr << "INIT  =$" << setw(4) << setfill('0') << tuneInfo.initAddr;
@@ -221,7 +224,7 @@ void ConsolePlayer::menu ()
         consoleColour (yellow, true);
         cerr << " Environment  : ";
         consoleColour (white, false);
-        switch (m_engCfg.environment)
+        switch (info.environment)
         {
         case sid2_envPS:
             cerr << "PlaySID (PlaySID-specific rips)" << endl;
