@@ -4,8 +4,8 @@ AC_CONFIG_AUX_DIR(unix)
 AM_CONFIG_HEADER(include/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
-LIBCUR=0
-LIBREV=7
+LIBCUR=1
+LIBREV=0
 LIBAGE=0
 AM_INIT_AUTOMAKE(libsidplay,2.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -101,6 +101,7 @@ include/Makefile \
 include/sidplay/Makefile \
 include/sidplay/sidconfig.h \
 src/Makefile \
+src/c64/Makefile \
 src/mos6510/Makefile \
 src/mos6526/Makefile \
 src/mos656x/Makefile \
