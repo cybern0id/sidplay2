@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/03/26 18:13:07  s_a_white
+ *  Support individual filters for 6581 and 8580.
+ *
  ***************************************************************************/
 
 #ifndef _IniConfig_h_
@@ -29,6 +32,13 @@
 class IniConfig
 {
 public:
+    struct sidplay2_section
+    {
+        char          *database;
+        uint_least32_t playLength;
+        uint_least32_t recordLength;
+    };
+
     struct console_section
     {   // INI Section - [Console]
         bool ansi;
@@ -67,7 +77,7 @@ protected:
     static const char *FILE_NAME;
 
     bool      status;
-    char     *database;
+    struct    sidplay2_section  sidplay2_s;
     struct    console_section   console_s;
     struct    audio_section     audio_s;
     struct    emulation_section emulation_s;
@@ -81,7 +91,9 @@ protected:
     bool  readString (ini_fd_t ini, char *key, char *&str);
     bool  readBool   (ini_fd_t ini, char *key, bool &boolean);
     bool  readChar   (ini_fd_t ini, char *key, char &ch);
+    bool  readTime   (ini_fd_t ini, char *key, int  &time);
 
+    bool  readSidplay2  (ini_fd_t ini);
     bool  readConsole   (ini_fd_t ini);
     bool  readAudio     (ini_fd_t ini);
     bool  readEmulation (ini_fd_t ini);
@@ -94,7 +106,7 @@ public:
     operator bool () { return status; }
 
     // Sidplay2 Specific Section
-    const char*              songLengthDB () { return database; }
+    const sidplay2_section&  sidplay2     () { return sidplay2_s; }
     const console_section&   console      () { return console_s; }
     const audio_section&     audio        () { return audio_s; }
     const emulation_section& emulation    () { return emulation_s; }
