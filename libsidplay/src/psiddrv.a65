@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2003/05/04 06:38:37  s_a_white
+ *  For RSID tunes handle the presence of a VIC during the random delay
+ *  period.
+ *
  *  Revision 1.17  2003/01/15 08:08:56  s_a_white
  *  Basic restart hooked into via stop vector (only way compatible with real c64).
  *  VIC raster interrupt set to first visible scan line and initial presence of its IRQ
@@ -206,11 +210,11 @@ irqjob      lda $01
             jsr play
             pla
             sta $01
-irqret      lda $d019
+            lda $d019
             sta $d019
 
             ; IRQ Exit (code from Kernel ROM)
-            lda $dc0d
+irqret      lda $dc0d
             pla
             tay
             pla
