@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/10/02 18:24:09  s_a_white
+ *  Updated to support safe scheduler interface.
+ *
  *  Revision 1.4  2001/09/17 19:00:28  s_a_white
  *  Constructor moved out of line.
  *
@@ -26,35 +29,37 @@
  *
  ***************************************************************************/
 
-
+#include <string.h>
 #include "event.h"
+
 #define EVENT_TIMEWARP_COUNT 0x0FFFFF
+
 
 EventScheduler::EventScheduler (const char * const name)
 :m_name(name),
- m_pendingEvents(NULL),
+ m_pendingEventCount(0),
  m_timeWarp(this)
 {
-    reset ();
+    memset (&m_pendingEvents, 0, sizeof (Event));
+    m_pendingEvents.m_next = &m_pendingEvents;
+    m_pendingEvents.m_prev = &m_pendingEvents;
+    reset  ();
 }
 
 // Usefull to prevent clock overflowing
 void EventScheduler::timeWarp ()
 {
-    Event *e = m_pendingEvents;
-    if (e != NULL)
-    {
-        event_clock_t cycles = m_eventClk;
-        do
-        {   // Reduce all event clocks and clip them
-            // so none go negative
-            event_clock_t clk = e->m_clk;
-            e->m_clk = 0;
-            if (clk >= cycles)
-                e->m_clk = clk - cycles;
-            e = e->m_next;
-        } while (e != NULL);
-        m_pendingEventClk = m_pendingEvents->m_clk;
+    Event *e     = &m_pendingEvents;
+    uint   count = m_pendingEventCount;
+    while (count--)
+    {   // Reduce all event clocks and clip them
+        // so none go negative
+        event_clock_t clk;
+        e   = e->m_next;
+        clk = e->m_clk;
+        e->m_clk = 0;
+        if (clk >= m_eventClk)
+            e->m_clk = clk - m_eventClk;
     }
     m_eventClk = 0;
     // Re-schedule the next timeWarp
@@ -63,14 +68,17 @@ void EventScheduler::timeWarp ()
 
 void EventScheduler::reset (void)
 {    // Remove all events
-    Event *e = m_pendingEvents;
-    while (e != NULL)
+    Event *e     = &m_pendingEvents;
+    uint   count = m_pendingEventCount;
+    while (count--)
     {
-        e->m_pending = false;
         e = e->m_next;
+        e->m_pending = false;
     }
-    m_pendingEvents   = NULL;
-    m_pendingEventClk = m_eventClk = m_schedClk = 0;
+    m_pendingEvents.m_next = &m_pendingEvents;
+    m_pendingEvents.m_prev = &m_pendingEvents;
+    m_pendingEventClk      = m_eventClk = m_schedClk = 0;
+    m_pendingEventCount    = 0;
     timeWarp ();
 }
 
@@ -85,43 +93,26 @@ void EventScheduler::schedule (Event *event, event_clock_t cycles)
 
     {   // Now put in the correct place so we don't need to keep
         // searching the list later.
-        Event *e     = m_pendingEvents;
-        Event *ePrev = NULL;
-        for (;e != NULL; ePrev = e, e = e->m_next)
+        Event *e     = m_pendingEvents.m_next;
+        uint   count = m_pendingEventCount;
+        while (count--)
         {
             if (e->m_clk > clk)
                 break;
+            e = e->m_next;
         }
-        event->m_next = e;
-        event->m_prev = NULL;
-
-        if (e != NULL)
-            e->m_prev = event;
-        if (ePrev != NULL)
-        {
-            ePrev->m_next = event;
-            event->m_prev = ePrev;
-        }
-        else
-        {   // At front
-            m_pendingEventClk = clk;
-            m_pendingEvents   = event;
-        }
+        event->m_next     = e;
+        event->m_prev     = e->m_prev;
+        e->m_prev->m_next = event;
+        e->m_prev         = event;
+        m_pendingEventClk = m_pendingEvents.m_next->m_clk;
+        m_pendingEventCount++;
     }
 }
 
 // Cancel a pending event
 void EventScheduler::cancel (Event *event)
 {
-    if (event == m_pendingEvents)
+    if (event->m_pending)
         cancelPending (*event);
-    else if (event->m_pending)
-    {
-        event->m_pending = false;
-        // Remove event from pending list
-        if (event->m_prev)
-            event->m_prev->m_next = event->m_next;
-        if (event->m_next)
-            event->m_next->m_prev = event->m_prev;
-    }
 }
