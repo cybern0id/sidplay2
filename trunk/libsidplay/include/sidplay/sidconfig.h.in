@@ -31,7 +31,7 @@
 #       define SID_EXTERN __declspec(dllexport)
 #   endif
 #   ifdef SID_DLL_IMPORT  /* define if linking with this dll */
-#       define SID_EXTERN extern __declspec(dllimport)
+#       define SID_EXTERN __declspec(dllimport)
 #   endif
 #   ifndef SID_EXTERN     /* static linking or !_WIN32 */
 #       define SID_EXTERN
