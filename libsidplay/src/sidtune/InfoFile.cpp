@@ -321,20 +321,20 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
 
 bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
 {
+    toFile << keyword_id << std::endl;
+
     switch ( info.compatibility )
     {
     case SIDTUNE_COMPATIBILITY_PSID:
     case SIDTUNE_COMPATIBILITY_C64:
-        toFile << keyword_id << std::endl
-            << keyword_address << std::hex << std::setw(4)
-            << std::setfill('0') << 0 << ','
-            << std::hex << std::setw(4) << info.initAddr << ","
-            << std::hex << std::setw(4) << info.playAddr << std::endl;
+        toFile << keyword_address << std::hex << std::setw(4)
+               << std::setfill('0') << 0 << ','
+               << std::hex << std::setw(4) << info.initAddr << ","
+               << std::hex << std::setw(4) << info.playAddr << std::endl;
         break;
     case SIDTUNE_COMPATIBILITY_R64:
-        toFile << keyword_id << std::endl
-            << keyword_address << std::hex << std::setw(4)
-            << std::setfill('0') << info.initAddr << std::endl;
+        toFile << keyword_address << std::hex << std::setw(4)
+               << std::setfill('0') << info.initAddr << std::endl;
         break;
     }
 
