@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.64  2003/07/16 07:00:52  s_a_white
+ *  Added support for c64 basic tunes.
+ *
  *  Revision 1.63  2003/06/27 21:15:26  s_a_white
  *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
  *  support from the emulation.  Allow user to override whether they want this
@@ -469,7 +472,7 @@ int Player::load (SidTune *tune)
     {
         uint_least8_t v = 3;
         while (v--)
-            sid[i].voice (v, 0, false);
+            sid[i]->voice (v, 0, false);
     }
 
     {   // Must re-configure on fly for stereo support!
@@ -547,8 +550,12 @@ uint8_t Player::iomap (uint_least16_t addr)
 {
     if (m_info.environment != sid2_envPS)
     {   // Force Real C64 Compatibility
-        if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_R64)
+        switch (m_tuneInfo.compatibility)
+        {
+        case SIDTUNE_COMPATIBILITY_R64:
+        case SIDTUNE_COMPATIBILITY_BASIC:
             return 0;     // Special case, converted to 0x37 later
+        }
 
         if (addr == 0)
             return 0;     // Special case, converted to 0x37 later
@@ -844,12 +851,7 @@ void Player::reset (void)
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
-        {
             memcpy (&m_rom[0xa000], basic, sizeof (basic));
-            // Auto run basic program, initialisation already done
-            endian_little16 (&m_rom[0xa000], 0xa7ae);
-            endian_little16 (&m_rom[0xa002], 0xa7ae);
-        }
         else
         {   // Direct start of basic to our psid driver code
             endian_little16 (&m_rom[0xa000], 0xA004);
@@ -941,8 +943,6 @@ void Player::envReset (bool safe)
     {
         uint8_t song = m_tuneInfo.currentSong - 1;
         uint8_t bank = iomap (m_tuneInfo.initAddr);
-        if (bank == 0)
-            bank = 0x37;
         evalBankSelect (bank);
         m_playBank = iomap (m_tuneInfo.playAddr);
         if (m_info.environment != sid2_envPS)
