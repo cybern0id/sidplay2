@@ -452,7 +452,11 @@ int sidplayer_pr::initialise ()
 
     // Check to make sure the play address is legal
     uword_sidt playAddr = tuneInfo.playAddr;
-    if ((playAddr == 0xffff) || (playAddr == initAddr))
+	// Rev 1.8 (saw) - (playAddr == initAddr) is no longer
+	// treated as an init loop that sets it's own irq
+	// handler
+    //if ((playAddr == 0xffff) || (playAddr == initAddr))
+    if (playAddr == 0xffff)
         tuneInfo.playAddr = 0;
     initBankSelect (playAddr);
     _initBankReg = _bankReg;
