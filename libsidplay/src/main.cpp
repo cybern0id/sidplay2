@@ -103,7 +103,7 @@ public:
 static void displayError  (char *arg0, int num);
 static void displaySyntax (char *arg0);
 // Rev 2.0.4 (saw) - Added for better MAC support
-static inline bool generateMusic (AudioConfig &cfg, void *buffer);
+static inline sdword_sidt generateMusic (AudioConfig &cfg, void *buffer);
 static void sighandler    (int signum);
 static void cleanup       (bool fast);
 static void displayTable  (table_sidt table);
@@ -429,9 +429,9 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-	// Rev 1.13 (saw) - Configure Unix terminal to allow direct access to keypresses
+    // Rev 1.13 (saw) - Configure Unix terminal to allow direct access to keypresses
 #ifdef HAVE_UNIX
-	{   // set to non canonical mode, echo off, ignore signals
+    {   // set to non canonical mode, echo off, ignore signals
         struct termios current;
         // save current terminal settings */
         tcgetattr (STDOUT_FILENO, &current);
@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
     player.lib.environment  (playerMode);
 
 main_restart:
-	player.restart = false;
+    player.restart = false;
 
     if (player.lib.loadSong (argv[sidFile], player.selectedSong) == -1)
     {
@@ -488,7 +488,7 @@ main_restart:
     // Rev 1.12 (saw) Moved to allow modification of wav filename
     // based on subtune
     player.lib.getInfo (&player.info);
-	tuneInfo = &player.info.tuneInfo;
+    tuneInfo = &player.info.tuneInfo;
     player.selectedSong = tuneInfo->currentSong;
 
     if (wavOutput)
@@ -498,7 +498,7 @@ main_restart:
         char    *wavName = 0;
         size_t  length, i;
 
-		length = strlen (argv[sidFile]);
+        length = strlen (argv[sidFile]);
         i      = length;
         while (i > 0)
         {
@@ -514,16 +514,16 @@ main_restart:
         wavName = new char[i + 10];
 #endif
         if (!wavName)
-		{
+        {
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
 
         strcpy (wavName, argv[sidFile]);
         // Rev 1.12 (saw) - Modified to change wav name based on subtune
-		// Now we have a name
-		if (tuneInfo->songs > 1)
-            sprintf (&wavName[i], "[%u]", (unsigned int) tuneInfo->currentSong);
+        // Now we have a name
+        if (tuneInfo->songs > 1)
+        sprintf (&wavName[i], "[%u]", (unsigned int) tuneInfo->currentSong);
         strcat (&wavName[i], ".wav");
         // lets create the wav object
 #ifdef SID_HAVE_EXCEPTIONS
@@ -534,7 +534,7 @@ main_restart:
 
         if (!wavFile)
         {
-			delete wavName;
+            delete wavName;
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
@@ -571,12 +571,12 @@ main_restart:
         cout << "File format  : " << tuneInfo->formatString << endl;
         displayTable (sid_tableMiddle);
         cout << "Filename(s)  : " << tuneInfo->dataFileName << endl;
-		// Rev 1.12 (saw).  Visual C++ Fix (Only print second file string if not NULL).
+        // Rev 1.12 (saw).  Visual C++ Fix (Only print second file string if not NULL).
         if (tuneInfo->dataFileName)
-		{
+        {
             displayTable (sid_tableMiddle);
             cout << "             : " << tuneInfo->infoFileName << endl;
-		}
+        }
         displayTable (sid_tableMiddle);
         cout << "Condition    : " << tuneInfo->statusString << endl;
 	}
@@ -587,15 +587,15 @@ main_restart:
          << " (default = "    << tuneInfo->startSong << ')' << endl;
 
     if (verboseOutput)
-	{
+    {
         displayTable (sid_tableMiddle);
-		cout << "Song speed   : " << tuneInfo->speedString << endl;
-	}
+        cout << "Song speed   : " << tuneInfo->speedString << endl;
+    }
 
     displayTable (sid_tableMiddle);
     if (runtime)
         cout << "Song Length  : " << setw(2) << setfill('0') << ((runtime / 60) % 100)
-		     << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
+             << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
     else
         cout << "Song Length  : UNKNOWN" << endl;
 
@@ -612,10 +612,10 @@ main_restart:
     else
     {
         for (int infoi = 0; infoi < tuneInfo->numberOfInfoStrings; infoi++)
-		{
+        {
             displayTable (sid_tableMiddle);
             cout << "Description  : " << tuneInfo->infoString[infoi] << endl;
-		}
+        }
     }
 
     if (verboseOutput)
@@ -623,28 +623,28 @@ main_restart:
         displayTable (sid_tableSeperator);
         displayTable (sid_tableMiddle);
         cout << "Addresses    : ";
-		cout << "Load=$" << hex << setw(4) << setfill('0')
+        cout << "Load=$" << hex << setw(4) << setfill('0')
              << tuneInfo->loadAddr;
         cout << ", Init=$";
-		cout << hex << setw(4) << setfill('0')
+        cout << hex << setw(4) << setfill('0')
              << tuneInfo->initAddr;
         cout << ", Play=$";
         cout << hex << setw(4) << setfill('0')
              << tuneInfo->playAddr << dec << endl;
 
         displayTable (sid_tableMiddle);
-		cout << "SID Filters  : ";
-		cout << "Internal=";
-		cout << ((player.info.filter == true) ? "Yes" : "No");
-		cout << ", External=";
-		cout << ((player.info.extFilter == true) ? "Yes" : "No") << endl;
+        cout << "SID Filters  : ";
+        cout << "Internal=";
+        cout << ((player.info.filter == true) ? "Yes" : "No");
+        cout << ", External=";
+        cout << ((player.info.extFilter == true) ? "Yes" : "No") << endl;
         displayTable (sid_tableMiddle);
-		switch (player.info.environment)
-		{
-		case sid_envPS:
+        switch (player.info.environment)
+        {
+        case sid_envPS:
             cout << "Environment  : PlaySID (PlaySID-specific rips)" << endl;
         break;
-		case sid_envTP:
+        case sid_envTP:
             cout << "Environment  : Transparent ROM" << endl;
         break;
         case sid_envBS:
@@ -653,7 +653,7 @@ main_restart:
         case sid_envR:  // When it happens
             cout << "Environment  : Real C64 (Default)" << endl;
         break;
-		}
+        }
     }
     displayTable (sid_tableEnd);
 
@@ -670,42 +670,32 @@ main_restart:
         cout << "00:00" << flush;
 
     {   // Play loop
-        bool keepPlaying;
-        // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
         FOREVER
-		{
-			keepPlaying = generateMusic (audioCfg, nextBuffer);
-			nextBuffer  = (ubyte_sidt *) player.audioDrv->write ();
+        {
+            sdword_sidt ret;
+            ret        = generateMusic (audioCfg, nextBuffer);
+            nextBuffer = (ubyte_sidt *) player.audioDrv->write ();
 
-            // Rev 1.13 - Add check for song restart
-            if (player.restart)
-                break;
-			if (!keepPlaying)
-			{   // Check to see if we haven't got an
-				// infinite play length
-				udword_sidt secs;
-				if (runtime)
-				{
-				    secs = player.lib.time ();
-				    if (secs == runtime)
-                        break;
-				}
-			}
+            // Rev 1.14 - Changed -1 means end
+            if (ret != 0)
+            {
+                if (ret < 0)
+                    break;
+                if ((udword_sidt) ret == runtime)
+                    break;
+            }
+        }
+    }
 
-			if (player.fastExit)
-				break;
-		}
-	}
-
-	// Rev 1.13 (saw) - Allow restart of keys
-	if (player.restart)
-	{
+    // Rev 1.13 (saw) - Allow restart of keys
+    if (player.restart)
+    {
         nextBuffer = (ubyte_sidt *) player.audioDrv->reset();
         if (wavOutput)
             player.audioDrv->close();
-		cout << endl << endl;
-		goto main_restart;
-	}
+        cout << endl << endl;
+        goto main_restart;
+    }
 
     // Clean up
     cleanup (player.fastExit);
@@ -719,33 +709,38 @@ main_error:
     return EXIT_ERROR_STATUS;
 }
 
-bool generateMusic (AudioConfig &cfg, void *buffer)
+sdword_sidt generateMusic (AudioConfig &cfg, void *buffer)
 {   // Fill buffer
     if (!player.lib.play (buffer, cfg.bufSize))
-        return false;
+        return -1;
 
-	// Check for a keypress
-	if (_kbhit ())
-	{
-		decodeKeys ();
-		return false;
-	}
-
-	// Check to see if the clock requires updating
+    // Check to see if the clock requires updating
     if (player.lib.updateClock ())
     {
-        udword_sidt seconds = player.lib.time();
+        udword_sidt seconds;
+        seconds = player.lib.time();
         if ( !player.quietLevel )
         {
             cout << "\b\b\b\b\b" << setw(2) << setfill('0') << ((seconds / 60) % 100)
             << ':' << setw(2) << setfill('0') << (seconds % 60) << flush;
-		}
+        }
 
-        if (!seconds)
-            return false;
+        // Check for a keypress
+        if (_kbhit ())
+        {
+            decodeKeys ();
+            if (player.restart)
+                return -1;
+        }
+
+        // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
+        if (player.fastExit)
+            return -1;
+
+        return seconds;
     }
 	
-    return true;
+    return 0;
 }
 
 
@@ -758,9 +753,8 @@ void sighandler (int signum)
     case SIGTERM:
         // Rev 1.11 (saw) - Bug fix for Ctrl C exiting
         player.fastExit = true;
-	break;
-    default:
-        break;
+    break;
+    default: break;
     }
 }
 
@@ -788,8 +782,7 @@ void displayError (char* arg0, int num)
         cerr << "ERROR: Could not open file for binary input." << endl;
     break;
 
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -866,25 +859,25 @@ void cleanup (bool fast)
 
 void displayTable (table_sidt table)
 {
-	const int tableWidth = 52;
+    const int tableWidth = 52;
 
-	switch (table)
-	{
-	case sid_tableStart:
-	    cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
-	break;
+    switch (table)
+    {
+    case sid_tableStart:
+        cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
+    break;
 
-	case sid_tableMiddle:
-	    cout << setw(tableWidth + 1) << setfill(' ') << "" << "|\r|";
-        return;
+    case sid_tableMiddle:
+        cout << setw(tableWidth + 1) << setfill(' ') << "" << "|\r|";
+    return;
 
-	case sid_tableSeperator:
-	    cout << '|' << setw(tableWidth) << setfill ('-') << "" << '|';
-	break;
+    case sid_tableSeperator:
+        cout << '|' << setw(tableWidth) << setfill ('-') << "" << '|';
+    break;
 
-	case sid_tableEnd:
-	    cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
-	break;
+    case sid_tableEnd:
+        cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
+    break;
     }
 
     // Move back to begining of row and skip first char
@@ -894,31 +887,31 @@ void displayTable (table_sidt table)
 // Rev 1.13 (saw) - Added to allow user to change subtune
 void decodeKeys ()
 {
-	uword_sidt songs;
-	int ch = _getch ();
-	songs  = player.info.tuneInfo.songs;
+    uword_sidt songs;
+    int ch = _getch ();
+    songs  = player.info.tuneInfo.songs;
 
-	switch (tolower (ch))
-	{
+    switch (tolower (ch))
+    {
     case '>':
     case '.':
-		player.restart = true;
-		player.selectedSong++;
+        player.restart = true;
+        player.selectedSong++;
         if (player.selectedSong > songs)
             player.selectedSong = 1;
-	break;
+    break;
     case '<':
     case ',':
-		player.restart = true;
-		player.selectedSong--;
+        player.restart = true;
+        player.selectedSong--;
         if (player.selectedSong < 1)
             player.selectedSong = songs;
-	break;
-	case '\x1b':
-		player.fastExit = true;
-	break;
-	default: break;
-	}
+    break;
+    case '\x1b':
+        player.fastExit = true;
+    break;
+    default: break;
+    }
 }
 
 
@@ -939,11 +932,11 @@ int _kbhit (void)
 
 int _getch (void)
 {
-	char ch = 0;
-	int  ret;
-	ret = read (STDIN_FILENO, &ch, 1);
-	if (ret == -1)
-	    return -1;
-	return ch;
+    char ch = 0;
+    int  ret;
+    ret = read (STDIN_FILENO, &ch, 1);
+    if (ret == -1)
+        return -1;
+    return ch;
 }
 #endif // HAVE_LINUX

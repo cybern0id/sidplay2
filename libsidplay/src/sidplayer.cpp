@@ -442,7 +442,10 @@ int sidplayer_pr::initialise ()
 
     // Get the next sequence of notes
     nextSequence ();
-    playerState = _stopped;
+    playerState  = _stopped;
+    // Rev 1.11 - Added to cause timer update for 0:00
+    // Performance related issue!
+    _updateClock = true;
     return 0;
 }
 
