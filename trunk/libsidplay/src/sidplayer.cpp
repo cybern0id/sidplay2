@@ -226,9 +226,9 @@ udword_sidt sidplayer_pr::play (void *buffer, udword_sidt length)
             // and are now only clocked when an output it required
             // Only clock second sid if we want to hear right channel or
             // stereo.  However having this results in better playback
-            if (_playback <= sid_stereo)
+            if (_sidEnabled[0])
                 sid.clock ();
-            if (_playback > sid_mono)
+            if (_sidEnabled[1])
                 sid2.clock ();
             xsid.clock ();
         }
@@ -323,20 +323,25 @@ int sidplayer_pr::loadSong (SidTune *requiredTune)
     tune   = requiredTune;
     tune->getInfo(tuneInfo);
 
+    // Determine if first sid is enabled
+    _sidEnabled[0] = true;
+	if (_playback == sid_right)
+        _sidEnabled[0] = false;
+
     // Disable second sid from read/writes in memory
     // accesses.  The help preventing breaking of songs
     // which deliberately use SID mirroring.
     if (tuneInfo.sidChipBase2 || _forceDualSids)
-        _sid2Enabled = true;
+        _sidEnabled[1] = true;
     else
-        _sid2Enabled = false;
+        _sidEnabled[1] = false;
 
     // Setup the audio side, depending on the audio hardware
     // and the information returned by sidtune
     switch (_precision)
     {
     case 8:
-        if (!_sid2Enabled)
+        if (!_sidEnabled[1])
         {
             if (_playback == sid_stereo)
                 output = &sidplayer_pr::stereoOut8MonoIn;
@@ -367,7 +372,7 @@ int sidplayer_pr::loadSong (SidTune *requiredTune)
     break;
             
     case 16:
-        if (!_sid2Enabled)
+        if (!_sidEnabled[1])
         {
             if (_playback == sid_stereo)
                 output = &sidplayer_pr::stereoOut16MonoIn;
@@ -617,7 +622,7 @@ ubyte_sidt sidplayer_pr::readMemByte_playsid (uword_sidt addr, bool useCache)
         else // (Mirrored) SID.
         {
             // Read real sid for these
-            if (_sid2Enabled)
+            if (_sidEnabled[1])
             {   // Support dual sid
                 if ((addr & 0xff00) == 0xd500)
                 {
@@ -737,7 +742,7 @@ void sidplayer_pr::writeMemByte_playsid (uword_sidt addr, ubyte_sidt data, bool 
     else // Mirrored SID.
     {   // SID.
         // Convert address to that acceptable by resid
-        if (_sid2Enabled)
+        if (_sidEnabled[1])
         {   // Support dual sid
             if ((addr & 0xff00) == 0xd500)
             {
