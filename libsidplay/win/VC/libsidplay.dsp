@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "." /I "../../sidplay" /I "../../src/sidtune" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Release/libsidplay2.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"../../../binaries/Release/libsidplay2.dll"
 
 !ELSEIF  "$(CFG)" == "libsidplay - Win32 Debug"
 
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "." /I "../../sidplay" /I "../../src/sidtune" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../include" /I "../../include/sidplay" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"Debug/libsidplay2.dll" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"../../../binaries/Debug/libsidplay2.dll" /pdbtype:sept
 
 !ENDIF 
 
@@ -90,7 +90,7 @@ LINK32=link.exe
 # Name "libsidplay - Win32 Debug"
 # Begin Source File
 
-SOURCE=..\..\src\sidtune\Buffer.h
+SOURCE=..\..\include\sidplay\Buffer.h
 # End Source File
 # Begin Source File
 
@@ -98,7 +98,7 @@ SOURCE=..\..\src\mos6510\conf6510.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\config.h
+SOURCE=..\..\include\config.h
 # End Source File
 # Begin Source File
 
@@ -115,14 +115,6 @@ SOURCE=..\..\src\mos6581\resid\extfilt.cpp
 # Begin Source File
 
 SOURCE=..\..\src\mos6581\resid\extfilt.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\fake6526.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\fake6526.h
 # End Source File
 # Begin Source File
 
@@ -162,6 +154,22 @@ SOURCE=..\..\src\mos6510\cycle_based\mos6510c.i
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\mos6526\mos6526.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\mos6526\mos6526.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\mos656x\mos656x.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\mos656x\mos656x.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\mos6581\mos6581.h
 # End Source File
 # Begin Source File
@@ -171,6 +179,10 @@ SOURCE=..\..\src\sidtune\MUS.cpp
 # Begin Source File
 
 SOURCE=..\..\src\mos6510\opcodes.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\player.bin
 # End Source File
 # Begin Source File
 
@@ -222,7 +234,7 @@ SOURCE=..\..\src\mos6510\cycle_based\sid6510c.i
 # End Source File
 # Begin Source File
 
-SOURCE=.\sidconfig.h
+SOURCE=..\..\include\sidplay\sidconfig.h
 # End Source File
 # Begin Source File
 
@@ -230,11 +242,11 @@ SOURCE=..\..\src\mos6581\resid\siddefs.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\sidplay\sidendian.h
+SOURCE=..\..\include\sidplay\sidendian.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\sidplay\sidenv.h
+SOURCE=..\..\include\sidenv.h
 # End Source File
 # Begin Source File
 
@@ -242,7 +254,7 @@ SOURCE=..\..\src\sidplay2.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\sidplay\sidplay2.h
+SOURCE=..\..\include\sidplay\sidplay2.h
 # End Source File
 # Begin Source File
 
@@ -250,11 +262,11 @@ SOURCE=..\..\src\sidtune\SidTune.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sidtune\SidTune.h
+SOURCE=..\..\include\sidplay\SidTune.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sidtune\SidTuneCfg.h
+SOURCE=..\..\include\sidplay\SidTuneCfg.h
 # End Source File
 # Begin Source File
 
@@ -266,11 +278,11 @@ SOURCE=..\..\src\sidtune\SidTuneTools.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\sidplay\sidtypes.h
+SOURCE=..\..\include\sidplay\sidtypes.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\sidtune\SmartPtr.h
+SOURCE=..\..\include\sidplay\SmartPtr.h
 # End Source File
 # Begin Source File
 
