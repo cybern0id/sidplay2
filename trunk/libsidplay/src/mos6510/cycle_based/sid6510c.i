@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2002/11/21 19:52:48  s_a_white
+ *  CPU upgraded to be like other components.  Theres nolonger a clock call,
+ *  instead events are registered to occur at a specific time.
+ *
  *  Revision 1.24  2002/11/19 22:56:25  s_a_white
  *  Sidplay1 modes modified to make them nolonger require the psid driver.
  *
@@ -174,15 +178,15 @@ SID6510::SID6510 (EventContext *context)
                     (&SID6510::sid_delay);
 }
     
-void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
-{
-    // Registers not touched by a reset
-    Register_Accumulator = a;
-    Register_X           = x;
-    Register_Y           = y;
-
-    // Reset the processor
+void SID6510::reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y)
+{   // Reset the processor
     reset ();
+
+    // Registers not touched by a reset
+    Register_Accumulator    = a;
+    Register_X              = x;
+    Register_Y              = y;
+    Register_ProgramCounter = pc;
 }
 
 void SID6510::reset ()
@@ -382,7 +386,6 @@ void SID6510::triggerIRQ (void)
             printf ("****************************************************\n");
         }
 #endif
-        reset ();
         return;
     case sid2_envR:
         MOS6510::triggerIRQ ();

@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/11/21 19:52:48  s_a_white
+ *  CPU upgraded to be like other components.  Theres nolonger a clock call,
+ *  instead events are registered to occur at a specific time.
+ *
  *  Revision 1.14  2002/11/19 22:56:25  s_a_white
  *  Sidplay1 modes modified to make them nolonger require the psid driver.
  *
@@ -83,7 +87,7 @@ public:
 
     // Standard Functions
     void reset (void);
-    void reset (uint8_t a, uint8_t x, uint8_t y);
+    void reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y);
     void clock (void);
 
     void environment (sid2_env_t mode) { m_mode = mode; }
