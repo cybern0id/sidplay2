@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/02/26 18:17:27  s_a_white
+ *  Use ini_readBool for boolean parameters rather than ini_readInt.
+ *
  *  Revision 1.11  2002/02/18 20:05:52  s_a_white
  *  Fixed for new libini ini_open call.
  *
@@ -410,11 +413,8 @@ void IniConfig::read ()
 
 #ifdef HAVE_UNIX
     sprintf (configPath, "%s/%s", path, DIR_NAME);
-
     // Make sure the config path exists
-    if (!opendir (configPath))
-        mkdir (configPath, 0755);
-
+    mkdir   (configPath, 0700);
     sprintf (configPath, "%s/%s", configPath, FILE_NAME);
 #else
     sprintf (configPath, "%s/%s", path, FILE_NAME);
@@ -435,12 +435,15 @@ void IniConfig::read ()
     status &= readAudio     (ini);
     status &= readEmulation (ini);
     ini_close (ini);
+    free (configPath);
 return;
 
 IniConfig_read_error:
+    free (configPath);
     if (ini)
         ini_close (ini);
-    clear ();
+    if (configPath)
+        free (configPath);
     status = false;
 }
 
