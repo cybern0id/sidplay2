@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2002/03/11 18:01:30  s_a_white
+ *  Prevent lockup if config call fails with existing and old configurations.
+ *
  *  Revision 1.22  2002/03/04 19:05:49  s_a_white
  *  Fix C++ use of nothrow.
  *
@@ -430,7 +433,7 @@ int Player::environment (sid2_env_t env)
             m_rom = m_ram;
             m_readMemByte     = &Player::readMemByte_player;
             m_writeMemByte    = &Player::writeMemByte_playsid;
-            m_readMemDataByte = &Player::readMemByte_playsid;
+            m_readMemDataByte = &Player::readMemByte_plain;
         }
         else
         {

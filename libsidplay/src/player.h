@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2002/03/12 18:43:59  s_a_white
+ *  Tidy up handling of envReset on illegal CPU instructions.
+ *
  *  Revision 1.26  2002/03/03 22:01:58  s_a_white
  *  New clock speed & sid model interface.
  *
@@ -267,7 +270,7 @@ private:
 
     uint8_t readMemByte_player    (uint_least16_t addr);
     uint8_t readMemByte_plain     (uint_least16_t addr);
-    uint8_t readMemByte_playsid   (uint_least16_t addr);
+    uint8_t readMemByte_io        (uint_least16_t addr);
     uint8_t readMemByte_sidplaytp (uint_least16_t addr);
     uint8_t readMemByte_sidplaybs (uint_least16_t addr);
     void    writeMemByte_plain    (uint_least16_t addr, uint8_t data);
