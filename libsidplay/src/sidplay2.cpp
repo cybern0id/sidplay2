@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/07/14 12:57:38  s_a_white
+ *  Added credits and debug functions.  Removed external filter.
+ *
  *  Revision 1.7  2001/03/21 22:31:22  s_a_white
  *  Filter redefinition support.
  *
@@ -120,6 +123,9 @@ int sidplay2::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
 
 const char **sidplay2::credits (void)
 {   return sidplayer.credits (); }
+
+void sidplay2::emulation (sidbuilder *builder)
+{   sidplayer.emulation (builder); }
 
 void sidplay2::debug (bool enable)
 {   sidplayer.debug (enable); }

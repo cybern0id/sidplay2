@@ -20,6 +20,7 @@
 
 #include "sidtypes.h"
 #include "SidTune.h"
+#include "sidbuilder.h"
 
 
 // Default settings
@@ -31,18 +32,6 @@ const bool           SID2_DEFAULT_SID_SAMPLES   = true; // Samples through sid
 // Maximum values
 const uint_least8_t SID2_MAX_PRECISION    = 16;
 const uint_least8_t SID2_MAX_OPTIMISATION = 2;
-
-typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback_t;
-typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
-typedef enum {SID2_MODEL_CORRECT, SID2_MOS6581, SID2_MOS8580} sid2_model_t;
-typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
-
-/* Environment Modes
-sid2_envPS = Playsid
-sid2_envTP = Sidplay  - Transparent Rom
-sid2_envBS = Sidplay  - Bankswitching
-sid2_envR  = Sidplay2 - Real C64 Environment
-*/
 
 typedef struct
 {
@@ -76,6 +65,7 @@ public:
     void           optimisation (uint_least8_t level);
     int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
     const char   **credits      (void);
+    void           emulation    (sidbuilder *builder);
     void           debug        (bool enable);
 
     // Timer functions with respect to 10ths of a second
@@ -95,4 +85,3 @@ public:
 };
 
 #endif // _sidplay2_h_
-

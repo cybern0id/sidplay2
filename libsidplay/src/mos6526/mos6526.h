@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/07/14 13:03:33  s_a_white
+ *  Now uses new component classes and event generation.
+ *
  *  Revision 1.4  2001/03/25 19:50:16  s_a_white
  *  Timer B counts timer Aer a underflows correc
  *
@@ -48,6 +51,7 @@
 #define _mos6526_h_
 
 #include "component.h"
+#include "event.h"
 
 class MOS6526: public component
 {

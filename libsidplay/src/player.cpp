@@ -15,6 +15,12 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2001/07/14 12:56:15  s_a_white
+ *  SID caching no longer needed. IC  components now run using event
+ *  generation (based on VICE).  Handling of IRQs now more effecient.  All
+ *  sidplay1 hacks either removed or moved to sid6510.  Fixed PAL/NTSC
+ *  speeding fixing.  Now uses new component and sidbuilder classes.
+ *
  *  Revision 1.21  2001/04/23 17:09:56  s_a_white
  *  Fixed video speed selection using unforced/forced and NTSC clockSpeeds.
  *
@@ -123,8 +129,8 @@ const char  *Player::credit[];
 Player::Player (void)
 // Set default settings for system
 :c64env("SID Music Player"),
- mos6510 (&eventContext),
  sid6510 (&eventContext),
+ mos6510 (&eventContext),
  cpu   (&sid6510),
  mos6581_1 (this),
  mos6581_2 (this),
@@ -132,6 +138,7 @@ Player::Player (void)
  cia   (this),
  cia2  (this),
  vic   (this),
+ m_builder (NULL),
  mixerEvent(this),
  rtc   (&eventContext),
  _tune (NULL),
@@ -412,6 +419,24 @@ int Player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
         _sidEnabled[1] = false;
 
     return 0;
+}
+
+// Set SID emulation
+void Player::emulation (sidbuilder *builder)
+{
+    if (m_builder)
+        m_builder->remove ();
+
+    m_builder = builder;
+    if (!builder)
+    {   // Restore internal sid emulations
+        sid  = &mos6581_1;
+        sid2 = &mos6581_2;
+    } else {
+        sid  = builder->create (this);
+        sid2 = builder->create (this);
+    }
+    xsid.emulation (sid);
 }
 
 int Player::environment (sid2_env_t env)

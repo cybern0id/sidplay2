@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/07/14 12:50:58  s_a_white
+ *  Support for credits and debuging.  External filter selection removed.  RTC
+ *  and samples obtained in a more efficient way.  Support for component
+ *  and sidbuilder classes.
+ *
  *  Revision 1.12  2001/04/23 17:09:56  s_a_white
  *  Fixed video speed selection using unforced/forced and NTSC clockSpeeds.
  *
@@ -100,14 +105,16 @@ private:
     MOS6510 mos6510;
     MOS6510 *cpu;
     // Sid objects to use.
-    c64resid mos6581_1;
-    c64resid mos6581_2;
-    c64xsid  xsid;
-    c64cia1  cia;
-    c64cia2  cia2;
-    c64vic   vic;
-    sidemu  *sid;
-    sidemu  *sid2;
+    c64sid  mos6581_1;
+    c64sid  mos6581_2;
+    c64xsid xsid;
+    c64cia1 cia;
+    c64cia2 cia2;
+    c64vic  vic;
+    sidemu *sid;
+    sidemu *sid2;
+
+    sidbuilder *m_builder;
 
     class EventMixer: public Event
     {
@@ -311,6 +318,7 @@ public:
     void           sidSamples   (bool enable);
     int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
     const char   **credits      (void) {return credit;}
+    void           emulation    (sidbuilder *builder);
     void           debug        (bool enable) { cpu->debug (enable); }
 
     void           optimisation (uint_least8_t level)
@@ -324,8 +332,14 @@ public:
     void filter (bool enabled)
     {
         _filter = enabled;
-        sid->filter  (_filter);
-        sid2->filter (_filter);
+        sid->filter  (enabled);
+        sid2->filter (enabled);
+
+        if (m_builder)
+        {   // Mirror settings in internal SIDs
+            mos6581_1.filter (enabled);
+            mos6581_2.filter (enabled);
+        }
     }
 
     void sidModel (sid2_model_t model)
@@ -337,6 +351,11 @@ public:
         {
             sid->model  (model);
             sid2->model (model);
+            if (m_builder)
+            {   // Mirror settings in internal SIDs
+                mos6581_1.model (model);
+                mos6581_2.model (model);
+            }
         }
     }
 

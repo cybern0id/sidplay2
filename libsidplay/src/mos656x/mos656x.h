@@ -19,6 +19,7 @@
 #define _mos656x_h_
 
 #include "component.h"
+#include "event.h"
 
 typedef enum
 {
