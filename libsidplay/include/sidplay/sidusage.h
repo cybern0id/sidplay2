@@ -62,10 +62,12 @@ enum
 // a zero value
 typedef struct sid_usage_t
 {
-    uint_least32_t flags;
+    uint_least16_t start; // Load image start address
+    uint_least16_t end;   // Load image end address
+    uint_least32_t flags; // Error flags
     // The next value may change to 16 bits
-    uint_least8_t  memory[0x10000];
-    char           md5[33]; // MD5 key
+    uint_least8_t  memory[0x10000]; // usage flags
+    char           md5[33]; // Tunes MD5 key
     uint_least16_t length;  // usage scan length
 } sid_usage_t;
 
