@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/02/13 23:01:44  s_a_white
+ *  envReadMemDataByte now used for some memory accesses.
+ *
  *  Revision 1.5  2000/12/24 00:45:38  s_a_white
  *  HAVE_EXCEPTIONS update
  *
@@ -130,8 +133,8 @@ void MOS6510::triggerIRQ (void)
     interrupts.irqs++;
     if (interrupts.irqs > iIRQSMAX)
     {
-        printf ("MOS6510 Warning: An external component is not clearing down it's IRQs.\n");
-        printf ("                 Aborting...\n\n");
+        printf ("MOS6510 Error: An external component is not clearing down it's IRQs.\n");
+        printf ("               Aborting...\n\n");
         exit (-1);
     }
 }
@@ -155,13 +158,28 @@ void MOS6510::interruptPending (void)
 
     // Service the highest priority interrupt
     offset = offTable[interrupts.pending];
-    if (offset == oNONE) return;
-    instr = &interruptTable[offset];
+    switch (offset)
+	{
+	case oRST:
+	    break;
+	
+	case oIRQ:
+	    if (getFlagI ())
+		    return;
+	break;
 
-    // Service Edge Triggered Interrupts
-    if (offset != oIRQ)
-        interrupts.pending &= (~(1 << offset));
+	case oNMI:
+        // Simulate Edge Triggering
+        interrupts.pending &= (~iNMI);
+	break;
 
+	case oNONE:
+    default:
+	    return;
+	}
+ 
+    // Start the interrupt
+    instr      = &interruptTable[offset];
     cycleCount = 0;
 }
 
@@ -2226,8 +2244,6 @@ void MOS6510::clock (void)
         interruptPending ();
         if (cycleCount)
             FetchOpcode ();
-        else
-            printf ("Interrupt <So ok>: ");
 
         procCycle     = instr->cycle;
         lastAddrCycle = instr->lastAddrCycle;
