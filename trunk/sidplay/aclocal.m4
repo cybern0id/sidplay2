@@ -12,6 +12,22 @@
 # PARTICULAR PURPOSE.
 
 dnl -------------------------------------------------------------------------
+dnl Pass C++ compiler options to libtool which supports C only.
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(CONFIG_LIBTOOL,
+[
+    save_cc=$CC
+    save_cflags=$CFLAGS
+    CC=$CXX
+    CFLAGS=$CXXFLAGS
+    AM_PROG_LIBTOOL
+    CC=$save_cc
+    CFLAGS=$save_cflags
+])
+
+
+dnl -------------------------------------------------------------------------
 
 AC_DEFUN(SID_SUBST_DEF,
 [
@@ -30,7 +46,6 @@ AC_DEFUN(SID_SUBST,
     eval "$1=$2"
     AC_SUBST($1)
 ])
-
 
 dnl -------------------------------------------------------------------------
 dnl Try to find a file (or one of more files in a list of dirs).
@@ -52,6 +67,29 @@ AC_DEFUN(SID_FIND_FILE,
     ]
 )
 
+dnl -------------------------------------------------------------------------
+dnl Check whether compiler has a working ``bool'' type.
+dnl Will substitute @HAVE_BOOL@ with either a def or undef line.
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(CHECK_BOOL,
+[
+    AC_MSG_CHECKING([for bool])
+    AC_CACHE_VAL(test_cv_have_bool,
+    [
+        AC_TRY_COMPILE(
+            [],
+            [bool aBool = true;],
+            [test_cv_have_bool=yes],
+            [test_cv_have_bool=no]
+        )
+    ])
+    if test "$test_cv_have_bool" = yes; then
+        test_cv_have_bool=yes
+        AC_DEFINE(HAVE_BOOL)
+    fi
+    AC_MSG_RESULT($test_cv_have_bool)
+])
 
 dnl -------------------------------------------------------------------------
 dnl Check whether C++ library has member ios::bin instead of ios::binary.
@@ -76,7 +114,6 @@ AC_DEFUN(CHECK_IOS_BIN,
     fi
 ])
 
-
 dnl -------------------------------------------------------------------------
 dnl Check whether C++ environment provides the "nothrow allocator".
 dnl Will substitute @HAVE_EXCEPTIONS@ if test code compiles.
@@ -100,339 +137,323 @@ AC_DEFUN(CHECK_EXCEPTIONS,
     fi
 ])
 
-
 dnl -------------------------------------------------------------------------
-dnl Try to find SIDPlay2 includes and library.
-dnl $sid_have_libsidplay2 will be "yes" or "no"
-dnl @LIBSIDPLAY2_LDADD@ will be substituted with -L$libsidplay2_libdir
-dnl @LIBSIDPLAY2_INCLUDES@ will be substituted with -I$libsidplay2_incdir
+dnl Find libsidplay2 on the system.
 dnl -------------------------------------------------------------------------
-
-AC_DEFUN(SID_PATH_LIBSIDPLAY2,
+AC_DEFUN(LIBSIDPLAY2_FIND,
 [
     AC_MSG_CHECKING([for working SIDPlay2 library and headers])
-    
+
     dnl Be pessimistic.
-    sid_libsidplay2_library=NO
-    sid_libsidplay2_includes=NO
-    sid_libsidplay2_works=no
+    LIBSIDPLAY2_LIBDIR=NO
+    LIBSIDPLAY2_INCLUDEDIR=NO
 
     AC_ARG_WITH(sidplay2,
         [  --with-sidplay2=DIR
-            where the root of libsidplay2 is installed],
-        [sid_libsidplay2_includes="$withval"
-         sid_libsidplay2_library="$withval"
-        ]
+            where the libsidplay2 is located],
+        [LIBSIDPLAY2_INCLUDEDIR="$withval"
+         LIBSIDPLAY2_LIBDIR="$withval"]
     )
 
     AC_ARG_WITH(sidplay2-includes,
         [  --with-sidplay2-includes=DIR
             where the libsidplay2 includes are located],
-        [sid_libsidplay2_includes="$withval"]
+        [LIBSIDPLAY2_INCLUDEDIR="$withval"]
     )
 
     AC_ARG_WITH(sidplay2-library,
         [  --with-sidplay2-library=DIR
             where the libsidplay2 library is installed],
-        [sid_libsidplay2_library="$withval"]
+        [LIBSIDPLAY2_LIBDIR="$withval"]
     )
 
-    # Test compilation with library and headers in standard path.
-    sid_libsidplay2_incadd=""
-    sid_libsidplay2_libadd=""
-
-    # Run compilation test on standard path if user hasn't asked us
-    # to use another location.
-    if test $sid_libsidplay2_includes = NO && test $sid_libsidplay2_library = NO; then
-        SID_TRY_LIBSIDPLAY2
+    dnl If user didn't provide paths see if pkg-config knows them
+    if test "$LIBSIDPLAY2_INCLUDEDIR" = NO || test "$LIBSIDPLAY2_LIBDIR" = NO; then
+        if $PKG_CONFIG --atleast-version $LIBSIDPLAY2_REQUIRED_VERSION libsidplay2; then
+            :
+        else
+            AC_MSG_ERROR([
+libsidplay $LIBSIDPLAY2_REQUIRED_VERSION library and/or headers not found.
+Please check your installation!
+            ]);
+        fi
     fi
 
-    if test "$sid_libsidplay2_works" = no; then
-        # Test compilation failed.
-        # Need to search for library and headers
-        # Search common locations where header files might be stored.
-        libsidplay2_incdirs=""
-        if test "$sid_libsidplay2_includes" != NO; then
-            libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
-        fi
-        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $prefix/include /usr/include \
-                             /usr/local/include /usr/lib/sidplay2/include \
-                             /usr/local/lib/sidplay2/include"
-        SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
-        sid_libsidplay2_includes=$libsidplay2_foundincdir
+    dnl Find headers
+    if test "$LIBSIDPLAY2_INCLUDEDIR" = NO; then
+        LIBSIDPLAY2_INCLUDEDIR=`$PKG_CONFIG --variable=includedir libsidplay2`
+        LIBSIDPLAY2_CXXFLAGS=`$PKG_CONFIG --cflags libsidplay2`
+    else
+        LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_INCLUDEDIR $LIBSIDPLAY2_INCLUDEDIR/include"
+        SID_FIND_FILE(sidplay/sidplay2.h,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_INCLUDEDIR)
+        LIBSIDPLAY2_CXXFLAGS="-I$LIBSIDPLAY2_INCLUDEDIR"
+    fi
 
-        # Search common locations where library might be stored.
-        libsidplay2_libdirs=""
-        if test "$sid_libsidplay2_library" != NO; then
-            libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib \
-                                 $sid_libsidplay2_library/src"
-        fi
-        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $prefix/lib /usr/lib /usr/local/lib \
-                             /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
-        SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
-        sid_libsidplay2_library=$libsidplay2_foundlibdir
+    dnl find libs
+    if test "$LIBSIDPLAY2_LIBDIR" = NO; then
+        LIBSIDPLAY2_LIBDIR=`$PKG_CONFIG --variable=libdir libsidplay2`
+        LIBSIDPLAY2_LDFLAGS=`$PKG_CONFIG --libs libsidplay2`
+        LIBSIDPLAY2_BUILDERS=`$PKG_CONFIG --variable=builders libsidplay2`
+    else
+        LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_LIBDIR $LIBSIDPLAY2_LIBDIR/lib \
+                          $LIBSIDPLAY2_LIBDIR/.libs"
+        SID_FIND_FILE(libsidplay2.la,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_LIBDIR)
+        LIBSIDPLAY2_LDFLAGS="-L$LIBSIDPLAY2_LIBDIR -lsidplay2"
+        LIBSIDPLAY2_BUILDERS="$LIBSIDPLAY2_LIBDIR/sidplay/builders"
+    fi
 
-        if test "$sid_libsidplay2_includes" = NO || test "$sid_libsidplay2_library" = NO; then
-            sid_have_libsidplay2=no
-        else
-            sid_have_libsidplay2=yes
-        fi
-        
-        if test "$sid_have_libsidplay2" = yes; then
-            sid_libsidplay2_libadd="-L$sid_libsidplay2_library"
-            sid_libsidplay2_incadd="-I$sid_libsidplay2_includes"
-            
-            # Test compilation with found paths.
-            SID_TRY_LIBSIDPLAY2
-
-            if test "$sid_libsidplay2_works" = yes; then
-                sid_have_libsidplay2=yes
-            fi
-        fi
-
-        AC_MSG_RESULT([library $sid_libsidplay2_library, headers $sid_libsidplay2_includes])
-        if test "$sid_have_libsidplay2" = no; then
-            AC_MSG_ERROR(
-[
-libsidplay2 library and/or header files not found.
-Please check your installation!
-]);
-        elif test "$sid_libsidplay2_works" = no; then
-            AC_MSG_ERROR(
-[
+    AC_MSG_RESULT([$LIBSIDPLAY2_LIBDIR, $LIBSIDPLAY2_INCLUDEDIR])
+    LIBSIDPLAY2_TRY_COMPILE
+    if test "$LIBSIDPLAY2_WORKS" = NO; then
+        AC_MSG_ERROR([
 libsidplay2 build test failed with found library and header files.
 Please check your installation!
-]);
-        fi
-    else
-        # Simply print 'yes' without printing the standard path.
-        sid_have_libsidplay2=yes
-        AC_MSG_RESULT([$sid_have_libsidplay2]);
+        ])
     fi
 
-    LIBSIDPLAY2_LDADD="$sid_libsidplay2_libadd"
-    LIBSIDPLAY2_INCLUDES="$sid_libsidplay2_incadd"
-
-    AC_SUBST(LIBSIDPLAY2_LDADD)
-    AC_SUBST(LIBSIDPLAY2_INCLUDES)
+    AC_SUBST(LIBSIDPLAY2_LDFLAGS)
+    AC_SUBST(LIBSIDPLAY2_CXXFLAGS)
 ])
 
 
-dnl Function used by SID_PATH_LIBSIDPLAY2.
-
-AC_DEFUN(SID_TRY_LIBSIDPLAY2,
+dnl -------------------------------------------------------------------------
+dnl Make sure libsidplay2 works.
+dnl -------------------------------------------------------------------------
+AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
 [
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
-    sid_libs_save=$LIBS
-    sid_cxx_save=$CXX    
+    sid_cxx_save=$CXX
 
-    CXXFLAGS="$CXXFLAGS $sid_libsidplay2_incadd"
-    LDFLAGS="$LDFLAGS $sid_libsidplay2_libadd"
-    LIBS="-lsidplay2"
+    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS"
+    LDFLAGS="$LDFLAGS $LIBSIDPLAY2_LDFLAGS"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <sidplay/sidplay2.h>],
-        [sidplay2 *player;],
-        [sid_libsidplay2_works=yes],
-        [sid_libsidplay2_works=no]
+        [sidplay2 *myEngine;],
+        [LIBSIDPLAY2_WORKS=YES],
+        [LIBSIDPLAY2_WORKS=NO]
     )
 
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
-    LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
 ])
 
-
 dnl -------------------------------------------------------------------------
-dnl Try to find SIDUtils includes and library.
-dnl $sid_have_libsidutils will be "yes" or "no"
-dnl @LIBSIDUTILS_LDADD@ will be substituted with -L$libsidutils_libdir
-dnl @LIBSIDUTILS_INCLUDES@ will be substituted with -I$libsidutils_incdir
+dnl Find libsidutils on the system.
 dnl -------------------------------------------------------------------------
-
-AC_DEFUN(SID_PATH_LIBSIDUTILS,
+AC_DEFUN(LIBSIDUTILS_FIND,
 [
     AC_MSG_CHECKING([for working SIDUtils library and headers])
-    
+
     dnl Be pessimistic.
-    sid_libsidutils_library=NO
-    sid_libsidutils_includes=NO
-    sid_libsidutils_works=no
+    LIBSIDUTILS_LIBDIR=NO
+    LIBSIDUTILS_INCLUDEDIR=NO
 
-    AC_ARG_WITH(sidutils,
-        [  --with-sidutils=DIR
-            where the root of libsidutils is installed],
-        [sid_libsidutils_includes="$withval"
-         sid_libsidutils_library="$withval"
-        ]
+    AC_ARG_WITH(sidplay2,
+        [  --with-sidplay2=DIR
+            where the libsidutils is located],
+        [LIBSIDUTILS_INCLUDEDIR="$withval"
+         LIBSIDUTILS_LIBDIR="$withval"]
     )
 
-    AC_ARG_WITH(sidutils-includes,
-        [  --with-sidutils-includes=DIR
+    AC_ARG_WITH(sidplay2-includes,
+        [  --with-sidplay2-includes=DIR
             where the libsidutils includes are located],
-        [sid_libsidutils_includes="$withval"]
+        [LIBSIDUTILS_INCLUDEDIR="$withval"]
     )
 
-    AC_ARG_WITH(sidutils-library,
-        [  --with-sidutils-library=DIR
+    AC_ARG_WITH(sidplay2-library,
+        [  --with-sidplay2-library=DIR
             where the libsidutils library is installed],
-        [sid_libsidutils_library="$withval"]
+        [LIBSIDUTILS_LIBDIR="$withval"]
     )
 
-    # Test compilation with library and headers in standard path.
-    sid_libsidutils_libadd=""
-    sid_libsidutils_incadd=""
-
-    # Run compilation test on standard path if user hasn't asked us
-    # to use another location.
-    if test $sid_libsidutils_includes = NO && test $sid_libsidutils_library = NO; then
-        SID_TRY_LIBSIDUTILS
+    dnl If user didn't provide paths see if pkg-config knows them
+    if test "$LIBSIDUTILS_INCLUDEDIR" = NO || test "$LIBSIDUTILS_LIBDIR" = NO; then
+        if $PKG_CONFIG --atleast-version $LIBSIDUTILS_REQUIRED_VERSION libsidutils; then
+            :
+        else
+            AC_MSG_ERROR([
+libsidplay $LIBSIDUTILS_REQUIRED_VERSION library and/or headers not found.
+Please check your installation!
+            ]);
+        fi
     fi
 
-    if test "$sid_libsidutils_works" = no; then
-        # Test compilation failed.
-        # Need to search for library and headers
-        # Search common locations where header files might be stored.
-        libsidutils_incdirs=""
-        if test "$sid_libsidutils_includes" != NO; then
-            libsidutils_incdirs="$sid_libsidutils_includes $sid_libsidutils_includes/include"
-        fi
-        libsidutils_incdirs="$libsidutils_incdirs $includedir $prefix/include /usr/include \
-                             /usr/local/include /usr/lib/sidutils/include \
-                             /usr/local/lib/sidutils/include"
-        SID_FIND_FILE(sidplay/utils/SidDatabase.h,$libsidutils_incdirs,libsidutils_foundincdir)
-        sid_libsidutils_includes=$libsidutils_foundincdir
+    dnl Find headers
+    if test "$LIBSIDUTILS_INCLUDEDIR" = NO; then
+        LIBSIDUTILS_INCLUDEDIR=`$PKG_CONFIG --variable=includedir libsidutils`
+        LIBSIDUTILS_CXXFLAGS=`$PKG_CONFIG --cflags libsidutils`
+    else
+        LIBSIDUTILS_DIRS="$LIBSIDUTILS_INCLUDEDIR $LIBSIDUTILS_INCLUDEDIR/include"
+        SID_FIND_FILE(sidplay/sidplay2.h,$LIBSIDUTILS_DIRS,LIBSIDUTILS_INCLUDEDIR)
+        LIBSIDUTILS_CXXFLAGS="-I$LIBSIDUTILS_INCLUDEDIR"
+    fi
 
-        # Search common locations where library might be stored.
-        libsidutils_libdirs=""
-        if test "$sid_libsidutils_library" != NO; then
-            libsidutils_libdirs="$sid_libsidutils_library $sid_libsidutils_library/lib \
-                                 $sid_libsidutils_library/src"
-        fi
-        libsidutils_libdirs="$libsidutils_libdirs $libdir $prefix/lib /usr/lib /usr/local/lib \
-                             /usr/lib/sidutils/lib /usr/local/lib/sidutils/lib"
-        SID_FIND_FILE(libsidutils.la,$libsidutils_libdirs,libsidutils_foundlibdir)
-        sid_libsidutils_library=$libsidutils_foundlibdir
+    dnl find libs
+    if test "$LIBSIDUTILS_LIBDIR" = NO; then
+        LIBSIDUTILS_LIBDIR=`$PKG_CONFIG --variable=libdir libsidutils`
+        LIBSIDUTILS_LDFLAGS=`$PKG_CONFIG --libs libsidutils`
+    else
+        LIBSIDUTILS_DIRS="$LIBSIDUTILS_LIBDIR $LIBSIDUTILS_LIBDIR/lib \
+                          $LIBSIDUTILS_LIBDIR/.libs"
+        SID_FIND_FILE(libsidutils.la,$LIBSIDUTILS_DIRS,LIBSIDUTILS_LIBDIR)
+        LIBSIDUTILS_LDFLAGS="-L$LIBSIDUTILS_LIBDIR -lsidutils"
+    fi
 
-        if test "$sid_libsidutils_includes" = NO || test "$sid_libsidutils_library" = NO; then
-            sid_have_libsidutils=no
-        else
-            sid_have_libsidutils=yes
-        fi
-
-        if test "$sid_have_libsidutils" = yes; then
-            sid_libsidutils_libadd="-L$sid_libsidutils_library"
-            sid_libsidutils_incadd="-I$sid_libsidutils_includes"
-            
-            # Test compilation with found paths.
-            SID_TRY_LIBSIDUTILS
-
-            if test "$sid_libsidutils_works" = yes; then
-                sid_have_libsidutils=yes
-            fi
-        fi
-
-        AC_MSG_RESULT([library $sid_libsidutils_library, headers $sid_libsidutils_includes])
-        if test "$sid_have_libsidutils" = no; then
-            AC_MSG_ERROR(
-[
-libsidutils library and/or header files not found.
-Please check your installation!
-]);
-        elif test "$sid_libsidutils_works" = no; then
-            AC_MSG_ERROR(
-[
+    AC_MSG_RESULT([$LIBSIDUTILS_LIBDIR, $LIBSIDUTILS_INCLUDEDIR])
+    LIBSIDUTILS_TRY_COMPILE
+    if test "$LIBSIDUTILS_WORKS" = NO; then
+        AC_MSG_ERROR([
 libsidutils build test failed with found library and header files.
 Please check your installation!
-]);
-        fi
-    else
-        # Simply print 'yes' without printing the standard path.
-        sid_have_libsidutils=yes
-        AC_MSG_RESULT([$sid_have_libsidutils]);
+        ])
     fi
 
-    LIBSIDUTILS_LDADD="$sid_libsidutils_libadd"
-    LIBSIDUTILS_INCLUDES="$sid_libsidutils_incadd"
-
-    AC_SUBST(LIBSIDUTILS_LDADD)
-    AC_SUBST(LIBSIDUTILS_INCLUDES)
+    AC_SUBST(LIBSIDUTILS_LDFLAGS)
+    AC_SUBST(LIBSIDUTILS_CXXFLAGS)
 ])
 
 
-dnl Function used by SID_PATH_LIBSIDUTILS.
-
-AC_DEFUN(SID_TRY_LIBSIDUTILS,
+dnl -------------------------------------------------------------------------
+dnl Make sure libsidutils works.
+dnl -------------------------------------------------------------------------
+AC_DEFUN(LIBSIDUTILS_TRY_COMPILE,
 [
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
-    sid_libs_save=$LIBS
-    sid_cxx_save=$CXX    
+    sid_cxx_save=$CXX
 
-    CXXFLAGS="$CXXFLAGS $sid_libsidutils_incadd"
-    LDFLAGS="$LDFLAGS $sid_libsidutils_libadd"
-    LIBS="-lsidplay2 -lsidutils"
+    CXXFLAGS="$CXXFLAGS $LIBSIDUTILS_CXXFLAGS"
+    LDFLAGS="$LDFLAGS $LIBSIDUTILS_LDFLAGS"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <sidplay/utils/SidDatabase.h>],
         [SidDatabase *d;],
-        [sid_libsidutils_works=yes],
-        [sid_libsidutils_works=no]
+        [LIBSIDUTILS_WORKS=YES],
+        [LIBSIDUTILS_WORKS=NO]
     )
 
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
-    LIBS="$sid_libs_save"
     CXX="$sid_cxx_save"
 ])
 
-
 dnl -------------------------------------------------------------------------
-dnl Try to find Hardsid.  If so add support for it.
-dnl $sid_have_hardsid will be "yes" or "no"
+dnl Find builders dir
 dnl -------------------------------------------------------------------------
-
-AC_DEFUN(CHECK_HARDSID,
+AC_DEFUN(BUILDERS_FIND,
 [
-    AC_MSG_CHECKING([for hardsid soundcard])
-    AC_TRY_RUN(
-        [#include <sys/types.h>
-         #include <sys/stat.h>
-         #include <fcntl.h>
-         #include <unistd.h>
-         int main () {
-             int fd = open ("/dev/sid0", O_RDWR);
-             if (fd < 0) return -1;
-             close (fd);
-             return 0;
-         }
-        ],
-        [sid_have_hardsid=yes],
-        [sid_have_hardsid=no]
+    AC_MSG_CHECKING([for sidbuilders install directory])
+
+    dnl Be pessimistic.
+    BUILDERS_LIBDIR=NO
+    BUILDERS_INCLUDEDIR=NO
+
+    AC_ARG_WITH(sidbuilders,
+        [  --with-sidbuilders=DIR
+            where the sid builder modules are instealled],
+        [BUILDERS_INCLUDEDIR="$withval/include"
+         BUILDERS_LIBDIR="$withval/sidplay/builders"]
     )
-    AC_MSG_RESULT($sid_have_hardsid)
+
+    AC_ARG_WITH(sidbuilder-includes,
+        [  --with-sidbuilder-includes=DIR
+            where the sid builder includes are located],
+        [BUILDERS_INCLUDEDIR="$withval"]
+    )
+
+    AC_ARG_WITH(sidbuilder-library,
+        [  --with-sidbuilder-library=DIR
+            where the sid builder libraries is installed],
+        [BUILDERS_LIBDIR="$withval"]
+    )
+
+    if test "$BUILDERS_INCLUDEDIR" = NO; then
+        BUILDERS_INCLUDEDIR="$LIBSIDPLAY2_INCLUDEDIR"
+    fi
+
+    if test "$BUILDERS_LIBDIR" = NO; then
+        BUILDERS_LIBDIR="$LIBSIDPLAY2_BUILDERS"
+    fi
+
+    BUILDERS_CXXFLAGS="-I$BUILDERS_INCLUDEDIR"
+    BUILDERS_LDFLAGS="-L$BUILDERS_LIBDIR"
+    AC_SUBST(BUILDERS_CXXFLAGS)
+    AC_SUBST(BUILDERS_LDFLAGS)
+    AC_MSG_RESULT([$BUILDERS_LIBDIR, $BUILDERS_INCLUDEDIR])
 ])
 
-
 dnl -------------------------------------------------------------------------
-dnl Pass C++ compiler options to libtool which supports C only.
+dnl Test for working resid
 dnl -------------------------------------------------------------------------
-
-AC_DEFUN(CONFIG_LIBTOOL,
+AC_DEFUN(BUILDERS_FIND_RESID,
 [
-    save_cc=$CC
-    save_cflags=$CFLAGS
-    CC=$CXX
-    CFLAGS=$CXXFLAGS
-    AM_PROG_LIBTOOL
-    CC=$save_cc
-    CFLAGS=$save_cflags
+    AC_MSG_CHECKING([for resid builder module])
+    sid_cxxflags_save=$CXXFLAGS
+    sid_ldflags_save=$LDFLAGS
+    sid_cxx_save=$CXX
+    CXXFLAGS="$CXXFLAGS $BUILDERS_CXXFLAGS"
+    LDFLAGS="$LDFLAGS $BUILDERS_LDFLAGS -lresid-builder"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+
+    AC_TRY_LINK(
+        [#include <sidplay/builders/resid.h>],
+        [ReSID *sid;],
+        [BUILDERS_WORK=YES],
+        [BUILDERS_WORK=NO]
+    )
+
+    CXXFLAGS="$sid_cxxflags_save"
+    LDFLAGS="$sid_ldflags_save"
+    CXX="$sid_cxx_save"
+
+    if test "$BUILDERS_WORK" = YES; then
+        BUILDERS_AVAILABLE=YES
+        AC_DEFINE(HAVE_RESID_BUILDER)
+        RESID_LDFLAGS="-lresid-builder"
+        AC_SUBST(RESID_LDFLAGS)
+    fi
+    AC_MSG_RESULT($BUILDERS_WORK)
 ])
 
+dnl -------------------------------------------------------------------------
+dnl Test for working hardsid
+dnl -------------------------------------------------------------------------
+AC_DEFUN(BUILDERS_FIND_HARDSID,
+[
+    AC_MSG_CHECKING([for hardsid builder module])
+    sid_cxxflags_save=$CXXFLAGS
+    sid_ldflags_save=$LDFLAGS
+    sid_cxx_save=$CXX
+
+    CXXFLAGS="$CXXFLAGS $BUILDERS_CXXFLAGS"
+    LDFLAGS="$LDFLAGS $BUILDERS_LDFLAGS -lhardsid-builder"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+
+    AC_TRY_LINK(
+        [#include <sidplay/builders/hardsid.h>],
+        [HardSID *sid;],
+        [BUILDERS_WORK=YES],
+        [BUILDERS_WORK=NO]
+    )
+
+    CXXFLAGS="$sid_cxxflags_save"
+    LDFLAGS="$sid_ldflags_save"
+    CXX="$sid_cxx_save"
+
+    if test "$BUILDERS_WORK" = YES; then
+        BUILDERS_AVAILABLE=YES
+        AC_DEFINE(HAVE_HARDSID_BUILDER)
+        HARDSID_LDFLAGS="-lhardsid-builder"
+        AC_SUBST(HARDSID_LDFLAGS)
+    fi
+    AC_MSG_RESULT($BUILDERS_WORK)
+])
 
 # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
 
