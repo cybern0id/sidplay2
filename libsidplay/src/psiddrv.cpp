@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/01 11:13:18  s_a_white
+ *  Fixes sidplay1 environment modes.
+ *
  *  Revision 1.2  2001/07/27 12:52:12  s_a_white
  *  Removed warning.
  *
@@ -24,9 +27,10 @@
  ***************************************************************************/
 
 // --------------------------------------------------------
-// The code here is use to support the PSID Version 2B file
-// format (player relocation support).
+// The code here is use to support the PSID Version 2NG
+// (proposal B) file format for player relocation support.
 // --------------------------------------------------------
+#include "sidendian.h"
 #include "player.h"
 
 const char *Player::ERR_PSIDDRV_NO_SPACE = "ERROR: No space to install psid driver in C64 ram"; 
@@ -39,8 +43,11 @@ int Player::psidDrvInstall ()
     uint_least16_t relocAddr;
     
     // Check if we need to find the reloc addr
-    if (!m_tuneInfo.relocStartPage)
+    if ((m_tuneInfo.relocStartPage == 0) ||
+        (m_tuneInfo.relocPages    == 0))
+    {
         psidRelocAddr ();
+    }
 
     if ((m_tuneInfo.relocStartPage == 0xff) ||
         (m_tuneInfo.relocPages < 1))
@@ -65,21 +72,32 @@ int Player::psidDrvInstall ()
             return -1;
         }
 
+        m_ram[0x310] = JMPw;
+        memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
+        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size - 13);
+
+        // Setup hardware vectors
         switch (m_cfg.environment)
         {
         case sid2_envBS:
+            memcpy (&m_rom[0xfffa], &m_ram[0x0318],   2);
             memcpy (&m_rom[0xfffe], &reloc_driver[2], 2);
         case sid2_envR:
             memcpy (&m_rom[0xfffc], &reloc_driver[0], 2);
             break;
         case sid2_envTP:
         case sid2_envPS:
+            memcpy (&m_ram[0xfffa], &m_ram[0x0318],   2);
             memcpy (&m_ram[0xfffc], &reloc_driver[0], 4);
         }
 
-        m_ram[0x310] = JMPw;
-        memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size - 13);
+        // Support older modes ability to ignore the IRQ
+        // vectors if valid play
+        if ((m_cfg.environment != sid2_envR) && m_tuneInfo.playAddr)
+        {
+            uint_least16_t addr = endian_little16(&reloc_driver[2]);
+            endian_little16 (&m_ram[addr + 1], m_tuneInfo.playAddr);
+        }
     }
 
     {   // Setup the Initial entry point
