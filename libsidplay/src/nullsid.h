@@ -21,7 +21,11 @@
 #include "sidbuilder.h"
 
 class NullSID: public sidemu
-{   // Standard component functions
+{
+public:
+    NullSID () : sidemu (NULL) {;}
+
+    // Standard component functions
     void    reset (void) { ; }
     uint8_t read  (const uint_least8_t) { return 0; }
     void    write (const uint_least8_t, const uint8_t) { ; }
@@ -30,8 +34,6 @@ class NullSID: public sidemu
 
     // Standard SID functions
     int_least32_t output (const uint_least8_t) { return 0; }
-    void          model  (const sid2_model_t) { ; }
-    void          filter (const bool) { ; }
     void          voice  (const uint_least8_t, const uint_least8_t,
                           const bool) { ; }
     void          gain   (const int_least8_t) { ; }
