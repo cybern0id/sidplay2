@@ -96,11 +96,15 @@ struct section_tag *__ini_faddHeading (ini_t *ini, FILE *file, long pos, size_t 
         __ini_strtrim (str);
     }
     else
-        str = "";
+    {
+        str = (char *) malloc (sizeof(char));
+        assert (str);
+        *str = '\0';
+    }
 
     section = __ini_createHeading (ini, str);
     // Make sure heading was created
-    if (!section && length)
+    if (!section)
     {
         free (str);
         return NULL;
@@ -125,7 +129,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
 {
     struct section_tag *pNew;
 
-    pNew  = __ini_locateHeading (ini, heading);
+    pNew = __ini_locateHeading (ini, heading);
     // Check to see if heading already exists
     if (pNew)
         free (heading);
@@ -232,8 +236,7 @@ void __ini_deleteHeading (ini_t *ini)
 #endif // INI_USE_HASH_TABLE
 
         // Delete Heading
-        if (*current_h->heading)
-            free (current_h->heading);
+        free (current_h->heading);
         free (current_h);
         ini->flags |= INI_MODIFIED;
     }
