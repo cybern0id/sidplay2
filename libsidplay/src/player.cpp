@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.44  2002/09/09 18:01:30  s_a_white
+ *  Prevent m_info driver details getting modified when C64 crashes.
+ *
  *  Revision 1.43  2002/08/20 23:21:41  s_a_white
  *  Setup default sample format.
  *
@@ -153,7 +156,9 @@
  *
  ***************************************************************************/
 
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "config.h"
 #include "sidendian.h"
 #include "player.h"
@@ -216,7 +221,11 @@ Player::Player (void)
  m_playerState       (sid2_stopped),
  m_running           (false),
  m_sampleCount       (0)
-{   // Set the ICs to use this environment
+{
+    srand ((uint) ::time(NULL));
+    m_rand = (uint_least32_t) rand ();
+    
+    // Set the ICs to use this environment
     sid6510.setEnvironment (this);
     mos6510.setEnvironment (this);
 
