@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2003/10/28 08:44:44  s_a_white
+ *  Force being able to select MOS6581 from command line.
+ *
  *  Revision 1.12  2003/06/27 21:09:00  s_a_white
  *  Better error checking on args and now displays invalid arguments.
  *
@@ -304,10 +307,11 @@ bool ConsolePlayer::args (int argc, const char *argv[])
                 else
                     m_verboseLevel = atoi(&argv[i][2]);
             }
-            else if (strcmp (&argv[i][1], "-crc") == 0)
+            else if (strncmp (&argv[i][1], "-crc", 4) == 0)
             {
-                m_crc = true;
-                m_engCfg.powerOnDelay = 0;
+                m_crc = ~0;
+                if (argv[i][5] == '=')
+                    m_crc = (uint_least32_t) atoi(&argv[i][6]);
             }
             else if (strncmp (&argv[i][1], "-delay=", 7) == 0)
             {
@@ -410,6 +414,13 @@ bool ConsolePlayer::args (int argc, const char *argv[])
     m_track.selected = m_track.first;
     if (m_track.single)
         m_track.songs = 1;
+
+    // CRC handling (remove random behaviour)
+    if (m_crc)
+    {
+        m_engCfg.powerOnDelay = 0;
+        m_engCfg.sid2crcCount = m_crc;
+    }
 
     // If user provided no time then load songlength database
     // and set default lengths incase it's not found in there.
