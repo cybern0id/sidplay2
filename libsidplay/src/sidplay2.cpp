@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2000/12/12 19:14:44  s_a_white
+ *  Library wrapper.
+ *
  ***************************************************************************/
 
 //---------------------------------------------------------------------------------------------
@@ -56,17 +59,11 @@ void sidplay2::pause (void)
 uint_least32_t sidplay2::play (void *buffer, uint_least32_t length)
 {   return sidplayer.play (buffer, length); }
 
-int sidplay2::loadSong (const char * const title, const uint_least16_t songNumber)
-{   return sidplayer.loadSong (title, songNumber); }
+int sidplay2::loadSong (SidTune *tune)
+{   return sidplayer.loadSong (tune); }
 
-int sidplay2::loadSong (const uint_least16_t songNumber)
-{   return sidplayer.loadSong (songNumber); }
-
-int sidplay2::loadSong (SidTune *requiredTune)
-{   return sidplayer.loadSong (requiredTune); }
-
-void sidplay2::environment (sid2_env_t env)
-{   sidplayer.environment (env); }
+int sidplay2::environment (sid2_env_t env)
+{   return sidplayer.environment (env); }
 
 void sidplay2::getInfo (sid2_playerInfo_t *info)
 {   sidplayer.getInfo (info); }

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:42  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.20  2000/12/11 18:52:12  s_a_white
  *  Conversion to AC99
  *
@@ -122,7 +125,8 @@ int main(int argc, char *argv[])
     sid2_clock_t    clockSpeed    = SID2_CLOCK_CORRECT;
     bool            clockForced   = false;
     AudioConfig     audioCfg;
-    struct          SidTuneInfo *tuneInfo;
+    SidTune         tune (0);
+    struct          SidTuneInfo tuneInfo;
 
     // (ms) Incomplete...
     // Fastforward/Rewind Patch
@@ -185,6 +189,10 @@ int main(int argc, char *argv[])
 
                     case 'b':
                         playerMode = sid2_envBS;
+                    break;
+
+                    case 'r':
+                        playerMode = sid2_envR;
                     break;
 
                     default:
@@ -447,33 +455,39 @@ int main(int argc, char *argv[])
             playback = sid2_mono;
     }
 
+    tune.load (argv[sidFile]);
+    if (!tune)
+    {
+        cerr << argv[0] << " " << (tune.getInfo ()).statusString << endl;
+        goto main_error;
+    }        
+
     player.lib.clockSpeed   (clockSpeed, clockForced);
     player.lib.configure    (playback, audioCfg.frequency, audioCfg.precision, force2SID);
     player.lib.optimisation (optimiseLevel);
-    player.lib.environment  (playerMode);
-
-    if (player.lib.loadSong (argv[sidFile], player.selectedSong) == -1)
+    if (player.lib.environment (playerMode) == -1)
     {
         cerr << argv[0] << " " << player.lib.getErrorString () << endl;
         goto main_error;
     }
 
 main_restart:
-    if (player.restart)
+    player.selectedSong = tune.selectSong (player.selectedSong);
+    if (!tune)
     {
-        if (player.lib.loadSong (player.selectedSong) == -1)
-        {
-            cerr << argv[0] << " " << player.lib.getErrorString () << endl;
-            goto main_error;
-        }
+        cerr << argv[0] << " " << player.lib.getErrorString () << endl;
+        goto main_error;
     }
-    player.restart = false;
+
+    if (player.lib.loadSong (&tune) == -1)
+    {
+        cerr << argv[0] << " " << player.lib.getErrorString () << endl;
+        goto main_error;
+    }
 
     // Rev 1.12 (saw) Moved to allow modification of wav filename
     // based on subtune
-    player.lib.getInfo (&player.info);
-    tuneInfo = &player.info.tuneInfo;
-    player.selectedSong = tuneInfo->currentSong;
+    tune.getInfo (tuneInfo);
 
     if (wavOutput)
     {
@@ -509,8 +523,8 @@ main_restart:
 
         // Rev 1.12 (saw) - Modified to change wav name based on subtune
         // Now we have a name
-        if (tuneInfo->songs > 1)
-            sprintf (&wavName[i], "[%u]", tuneInfo->currentSong);
+        if (tuneInfo.songs > 1)
+            sprintf (&wavName[i], "[%u]", tuneInfo.currentSong);
         strcat (&wavName[i], ".wav");
         // lets create the wav object
 #ifdef HAVE_EXCEPTIONS
@@ -543,6 +557,7 @@ main_restart:
         goto main_error;
     }
 
+    player.lib.getInfo (&player.info);
     // cerr << (char) 12 << '\b'; // New Page
     displayTable (sid2_tableStart);
     displayTable (sid2_tableMiddle);
@@ -553,21 +568,21 @@ main_restart:
     cerr << player.info.name + 1 << " V" << player.info.version << endl;
 
     displayTable (sid2_tableSeperator); 
-    if (tuneInfo->numberOfInfoStrings == 3)
+    if (tuneInfo.numberOfInfoStrings == 3)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " Name         : " << tuneInfo->infoString[0] << endl;
+        cerr << " Name         : " << tuneInfo.infoString[0] << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Author       : " << tuneInfo->infoString[1] << endl;
+        cerr << " Author       : " << tuneInfo.infoString[1] << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Copyright    : " << tuneInfo->infoString[2] << endl;
+        cerr << " Copyright    : " << tuneInfo.infoString[2] << endl;
     }
     else
     {
-        for (int infoi = 0; infoi < tuneInfo->numberOfInfoStrings; infoi++)
+        for (int infoi = 0; infoi < tuneInfo.numberOfInfoStrings; infoi++)
         {
             displayTable (sid2_tableMiddle);
-            cerr << " Description  : " << tuneInfo->infoString[infoi] << endl;
+            cerr << " Description  : " << tuneInfo.infoString[infoi] << endl;
         }
     }
 
@@ -575,28 +590,28 @@ main_restart:
     if (verboseOutput)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " File format  : " << tuneInfo->formatString << endl;
+        cerr << " File format  : " << tuneInfo.formatString << endl;
         displayTable (sid2_tableMiddle);
-        cerr << " Filename(s)  : " << tuneInfo->dataFileName << endl;
+        cerr << " Filename(s)  : " << tuneInfo.dataFileName << endl;
         // Second file is only sometimes present
-        if (tuneInfo->infoFileName[0])
+        if (tuneInfo.infoFileName[0])
         {
             displayTable (sid2_tableMiddle);
-            cerr << "              : " << tuneInfo->infoFileName << endl;
+            cerr << "              : " << tuneInfo.infoFileName << endl;
         }
         displayTable (sid2_tableMiddle);
-        cerr << " Condition    : " << tuneInfo->statusString << endl;
+        cerr << " Condition    : " << tuneInfo.statusString << endl;
     }
 
     displayTable (sid2_tableMiddle);
-    cerr << " Setting Song : " << tuneInfo->currentSong
-         << " out of "         << tuneInfo->songs
-         << " (default = "     << tuneInfo->startSong << ')' << endl;
+    cerr << " Setting Song : " << tuneInfo.currentSong
+         << " out of "         << tuneInfo.songs
+         << " (default = "     << tuneInfo.startSong << ')' << endl;
 
     if (verboseOutput)
     {
         displayTable (sid2_tableMiddle);
-        cerr << " Song Speed   : " << tuneInfo->speedString << endl;
+        cerr << " Song Speed   : " << tuneInfo.speedString << endl;
     }
 
     displayTable (sid2_tableMiddle);
@@ -612,13 +627,13 @@ main_restart:
         displayTable (sid2_tableMiddle);
         cerr << " Addresses    : ";
         cerr << "Load=$" << hex << setw(4) << setfill('0')
-             << tuneInfo->loadAddr;
+             << tuneInfo.loadAddr;
         cerr << ", Init=$";
         cerr << hex << setw(4) << setfill('0')
-             << tuneInfo->initAddr;
+             << tuneInfo.initAddr;
         cerr << ", Play=$";
         cerr << hex << setw(4) << setfill('0')
-             << tuneInfo->playAddr << dec << endl;
+             << tuneInfo.playAddr << dec << endl;
 
         displayTable (sid2_tableMiddle);
         cerr << " SID Filters  : ";
@@ -712,6 +727,7 @@ main_restart:
         if (wavOutput)
             player.audioDrv->close();
         cerr << endl << endl;
+        player.restart = false;
         goto main_restart;
     }
 

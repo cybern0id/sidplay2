@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/01/07 15:13:39  s_a_white
+ *  Hardsid update to mute sids when program exits.
+ *
  *  Revision 1.6  2000/12/21 22:48:27  s_a_white
  *  Re-order voices for mono to stereo conversion to match sidplay1.
  *
@@ -41,35 +44,34 @@
 #   include <new>
 #endif
 
-#define PLAYER_CLOCK_FREQ_NTSC 1022727.14
-#define PLAYER_CLOCK_FREQ_PAL   985248.4
-#define PLAYER_VIC_FREQ_PAL         50.0
-#define PLAYER_VIC_FREQ_NTSC        60.0
+const double player::CLOCK_FREQ_NTSC = 1022727.14;
+const double player::CLOCK_FREQ_PAL  = 985248.4;
+const double player::VIC_FREQ_PAL    = 50.0;
+const double player::VIC_FREQ_NTSC   = 60.0;
 
 // These texts are used to override the sidtune settings.
-static const char PLAYER_TXT_PAL_VBI[]  = "50 Hz VBI (PAL)";
-static const char PLAYER_TXT_PAL_CIA[]  = "CIA 1 Timer A (PAL)";
-static const char PLAYER_TXT_NTSC_VBI[] = "60 Hz VBI (NTSC)";
-static const char PLAYER_TXT_NTSC_CIA[] = "CIA 1 Timer A (NTSC)";
-static const char PLAYER_TXT_NA[]       = "NA";
+const char  *player::TXT_PAL_VBI  = "50 Hz VBI (PAL)";
+const char  *player::TXT_PAL_CIA  = "CIA 1 Timer A (PAL)";
+const char  *player::TXT_NTSC_VBI = "60 Hz VBI (NTSC)";
+const char  *player::TXT_NTSC_CIA = "CIA 1 Timer A (NTSC)";
+const char  *player::TXT_NA       = "NA";
 
-// Rev 1.6 (saw) - Added Error Strings
-static const char PLAYER_ERR_CONF_WHILST_ACTIVE[]    = "SIDPLAYER ERROR: Trying to configure player whilst active.";
-static const char PLAYER_ERR_UNSUPPORTED_FREQ[]      = "SIDPLAYER ERROR: Unsupported sampling frequency.";
-static const char PLAYER_ERR_UNSUPPORTED_PRECISION[] = "SIDPLAYER ERROR: Unsupported sample precision.";
-static const char PLAYER_ERR_MEM_ALLOC[]             = "SIDPLAYER ERROR: Memory Allocation Failure.";
-static const char PLAYER_ERR_UNSUPPORTED_MODE[]      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
-static const char PLAYER_ERR_NO_TUNE_LOADED[]        = "SIDPLAYER ERROR: No tune currently loaded to change song of.";
+// Error Strings
+const char  *player::ERR_CONF_WHILST_ACTIVE    = "SIDPLAYER ERROR: Trying to configure player whilst active.";
+const char  *player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported sampling frequency.";
+const char  *player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
+const char  *player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
+const char  *player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
 
 // Set the ICs environment variable to point to
 // this player
 player::player (void)
 // Set default settings for system
-:myTune (NULL), tune (NULL),
+:_tune (NULL),
  ram    (NULL), rom  (NULL),
  _clockSpeed        (SID2_CLOCK_CORRECT),
  _environment       (sid2_envBS),
- _errorString       (PLAYER_TXT_NA),
+ _errorString       (TXT_NA),
  _fastForwardFactor (1.0),
  _forced            (true),
  _optimiseLevel     (SID2_DEFAULT_OPTIMISATION),
@@ -104,10 +106,6 @@ player::~player ()
 {   // Mute sids (Important for Hardsid)
     sid.reset  ();
     sid2.reset ();
-
-    // Remove the loaded song
-    if (myTune != NULL)
-        delete myTune;
 }
 
 int player::clockSpeed (sid2_clock_t clock, bool forced)
@@ -118,11 +116,11 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     _clockSpeed  = clock;
     _forced      = forced;
     // Other paremters set later
-    if (!tune)
+    if (!_tune)
         return 0;
 
     // Refresh Information
-    tune->getInfo (tuneInfo);
+    _tune->getInfo (tuneInfo);
 
     // Detect the Correct Song Speed
     if (clock == SID2_CLOCK_CORRECT)
@@ -142,19 +140,19 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     // Set clock and select speed description string.
     if (clock == SID2_CLOCK_PAL)
     {
-        _cpuFreq = PLAYER_CLOCK_FREQ_PAL;
-        tuneInfo.speedString     = PLAYER_TXT_PAL_VBI;
+        _cpuFreq = CLOCK_FREQ_PAL;
+        tuneInfo.speedString     = TXT_PAL_VBI;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
-            tuneInfo.speedString = PLAYER_TXT_PAL_CIA;
+            tuneInfo.speedString = TXT_PAL_CIA;
         // Will get done later if can't now
         if (ram) ram[0x02a6]     = 1; // PAL
     }
     else if (clock == SID2_CLOCK_NTSC)
     {
-        _cpuFreq = PLAYER_CLOCK_FREQ_NTSC;
-        tuneInfo.speedString     = PLAYER_TXT_NTSC_VBI;
+        _cpuFreq = CLOCK_FREQ_NTSC;
+        tuneInfo.speedString     = TXT_NTSC_VBI;
         if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
-            tuneInfo.speedString = PLAYER_TXT_NTSC_CIA;
+            tuneInfo.speedString = TXT_NTSC_CIA;
         // Will get done later if can't now
         if (ram) ram[0x02a6]     = 0; // NTSC
     }
@@ -163,9 +161,9 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
     if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
     {
         if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
-            cia.reset ((uint_least16_t) (_cpuFreq / PLAYER_VIC_FREQ_PAL + 0.5));
+            cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_PAL + 0.5));
         else // SIDTUNE_CLOCK_NTSC
-            cia.reset ((uint_least16_t) (_cpuFreq / PLAYER_VIC_FREQ_NTSC + 0.5));
+            cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_NTSC + 0.5));
 
         cia.write (0x0e, 0x01); // Start timer
         cia.locked = true;
@@ -175,7 +173,7 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
         // will mess up the song.
         if (playerState == _stopped)
 	{
-            cia.reset ((uint_least16_t) (_cpuFreq / PLAYER_VIC_FREQ_NTSC + 0.5));
+            cia.reset ((uint_least16_t) (_cpuFreq / VIC_FREQ_NTSC + 0.5));
             cia.write (0x0e, 0x01); // Start the timer
         }
     }
@@ -192,14 +190,14 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
 {
     if (playerState == _playing)
     {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_CONF_WHILST_ACTIVE;
+        _errorString = ERR_CONF_WHILST_ACTIVE;
         return -1;
     }
 
     // Check for base sampling frequency
     if ((samplingFreq < 4000) || (samplingFreq > 96000))
     {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_UNSUPPORTED_FREQ;
+        _errorString = ERR_UNSUPPORTED_FREQ;
         return -1;
     }
 
@@ -211,14 +209,14 @@ int player::configure (sid2_playback_t playback, uint_least32_t samplingFreq, in
     case 24:
         if (precision > SID2_MAX_PRECISION)
         {   // Rev 1.6 (saw) - Added descriptive error
-            _errorString = PLAYER_ERR_UNSUPPORTED_PRECISION;
+            _errorString = ERR_UNSUPPORTED_PRECISION;
             return -1;
         }
     break;
 
     default:
         // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_UNSUPPORTED_PRECISION;
+        _errorString = ERR_UNSUPPORTED_PRECISION;
         return -1;
     }
 
@@ -350,14 +348,14 @@ int player::environment (sid2_env_t env)
 {
     if (playerState != _stopped)
     {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_CONF_WHILST_ACTIVE;
+        _errorString = ERR_CONF_WHILST_ACTIVE;
         return -1;
     }
 
     // Not supported yet
     if (env == sid2_envR)
     {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_UNSUPPORTED_MODE;
+        _errorString = ERR_UNSUPPORTED_MODE;
         return -1;
     }
 
@@ -426,7 +424,7 @@ int player::environment (sid2_env_t env)
 
     // Have to reload the song into memory as
     // everything has changed
-    if (tune)
+    if (_tune)
         return initialise ();
 
     return 0;
@@ -436,7 +434,7 @@ int player::fastForward (uint_least8_t percent)
 {
     if (playerState == _playing)
     {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_CONF_WHILST_ACTIVE;
+        _errorString = ERR_CONF_WHILST_ACTIVE;
         return -1;
     }
 
@@ -472,7 +470,7 @@ int player::initialise ()
     // Must re-configure on fly for stereo support!
     (void) configure (_playback, _samplingFreq, _precision, _forceDualSids);
 
-    if (!tune->placeSidTuneInC64mem (ram))
+    if (!_tune->placeSidTuneInC64mem (ram))
     {   // Rev 1.6 (saw) - Allow loop through errors
         _errorString = tuneInfo.statusString;
         return -1;
@@ -509,54 +507,10 @@ int player::initialise ()
     return 0;
 }
 
-int player::loadSong (const char * const title, const uint_least16_t songNumber)
+int player::loadSong (SidTune *tune)
 {
-    // My tune is a tune which belongs and
-    // is fully controlled be player
-    // so try to remove it
-    if (myTune != NULL)
-        delete myTune;
-
-    // Create new sid tune object and load song
-#ifdef HAVE_EXCEPTIONS
-    myTune = new(nothrow) SidTune(title);
-#else
-    myTune = new SidTune(title);
-#endif
-    // Make sure the memory was allocated
-    if (!myTune)
-    {   // Rev 1.6 (saw) - Added descriptive error
-        _errorString = PLAYER_ERR_MEM_ALLOC;
-        return -1;
-    }
-
-    // Make sure the tune loaded correctly
-    if (!(*myTune))
-    {   // Rev 1.6 (saw) - Allow loop through errors
-        _errorString = (myTune->getInfo ()).statusString;
-        return -1;
-    }
-    myTune->selectSong(songNumber);
-    return loadSong (myTune);
-};
-
-// Rev 1.13 (saw) - Added to change to another subtune
-// without reloading the file from disk
-int player::loadSong (const uint_least16_t songNumber)
-{
-    if (!myTune)
-    {
-        _errorString = PLAYER_ERR_NO_TUNE_LOADED;
-        return -1;
-    }
-    myTune->selectSong(songNumber);
-    return loadSong (myTune);
-}
-
-int player::loadSong (SidTune *requiredTune)
-{
-    tune = requiredTune;
-    tune->getInfo(tuneInfo);
+    _tune = tune;
+    _tune->getInfo(tuneInfo);
 
     // Check if environment has not initialised or
     // the user has asked to a different one.
@@ -618,8 +572,8 @@ uint_least32_t player::play (void *buffer, uint_least32_t length)
     uint_least16_t clock = 0;
     //    uint_least8_t  factor = 0;
 
-    // Make sure a tune is loaded
-    if (!tune)
+    // Make sure a _tune is loaded
+    if (!_tune)
         return 0;
 
     // Change size from generic units to native units

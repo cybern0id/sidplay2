@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/07 15:58:37  s_a_white
+ *  SID2_LIB_API now becomes a core define (SID_API).
+ *
  *  Revision 1.1  2000/12/12 19:15:40  s_a_white
  *  Renamed from sidplayer
  *
@@ -42,6 +45,23 @@
 class player: private C64Environment
 {
 private:
+    static const double CLOCK_FREQ_NTSC;
+    static const double CLOCK_FREQ_PAL;
+    static const double VIC_FREQ_PAL;
+    static const double VIC_FREQ_NTSC;
+
+    static const char  *TXT_PAL_VBI;
+    static const char  *TXT_PAL_CIA;
+    static const char  *TXT_NTSC_VBI;
+    static const char  *TXT_NTSC_CIA;
+    static const char  *TXT_NA;
+
+    static const char  *ERR_CONF_WHILST_ACTIVE;
+    static const char  *ERR_UNSUPPORTED_FREQ;
+    static const char  *ERR_UNSUPPORTED_PRECISION;
+    static const char  *ERR_MEM_ALLOC;
+    static const char  *ERR_UNSUPPORTED_MODE;
+
     //SID6510  cpu(6510, "Main CPU");
     SID6510  cpu;
     SID      sid;
@@ -51,7 +71,7 @@ private:
 
     // User Configuration Settings
     struct   SidTuneInfo tuneInfo;
-    SidTune *myTune, *tune;
+    SidTune *_tune;
     uint8_t *ram, *rom;
 
     sid2_clock_t    _clockSpeed;
@@ -169,9 +189,7 @@ private:
     int            environment  (sid2_env_t env);
     int            fastForward  (uint_least8_t percent);
     void           getInfo      (sid2_playerInfo_t *info);
-    int            loadSong     (const char * const title, const uint_least16_t songNumber);
-    int            loadSong     (const uint_least16_t songNumber);
-    int            loadSong     (SidTune *requiredTune);
+    int            loadSong     (SidTune *tune);
     uint_least8_t  mileage      (void) { return _mileage + _seconds; }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
