@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2002/04/18 22:57:28  s_a_white
+ *  Fixed use of track looping/single when creating audio files.
+ *
  *  Revision 1.6  2002/03/11 18:02:56  s_a_white
  *  Display errors like sidplay1.
  *
@@ -394,6 +397,13 @@ bool ConsolePlayer::args (int argc, char *argv[])
         return false;
     }
 #endif
+
+    // Configure engine with settings
+    if (m_engine.config (m_engCfg) < 0)
+    {   // Config failed
+        displayError (m_engine.error ());
+        return false;
+    }
     return true;
 }
 
