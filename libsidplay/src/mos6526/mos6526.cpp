@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/03/21 22:41:45  s_a_white
+ *  Non faked CIA emulation with NMI support.  Removal of Hacked VIC support
+ *  off CIA timer.
+ *
  *  Revision 1.8  2001/03/09 23:44:30  s_a_white
  *  Integrated more 6526 features.  All timer modes and interrupts correctly
  *  supported.
@@ -58,19 +62,12 @@ MOS6526::~MOS6526 ()
 
 void MOS6526::reset (void)
 {
-    reset (0xffff);
-}
-
-void MOS6526::reset (uint_least16_t count)
-{
-    ta  = ta_latch = count;
-    cra = 0;
+    ta  = ta_latch = 0xffff;
+    tb  = tb_latch = 0xffff;
+    cra = crb = 0;
     // Clear off any IRQs
     trigger (0);
-//    icr = (idr = 0);
-    // Temporary bodge
-    idr = 0;
-    icr = 0x1f;
+    icr = idr = 0;
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
@@ -81,6 +78,8 @@ uint8_t MOS6526::read (uint_least8_t addr)
     {
     case 0x4: return endian_16lo8 (ta_latch);
     case 0x5: return endian_16hi8 (ta_latch);
+    case 0x6: return endian_16lo8 (tb_latch);
+    case 0x7: return endian_16hi8 (tb_latch);
 
     case 0xd:
     {   // Clear IRQs, and return interrupt
@@ -103,14 +102,18 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     regs[addr] = data;
     switch (addr)
     {
-    case 0x4:
-        endian_16lo8 (ta_latch, data);
-    break;
-
+    case 0x4: endian_16lo8 (ta_latch, data); break;
     case 0x5:
         endian_16hi8 (ta_latch, data);
-        if (!(cra & 0x01))
+        if (!(cra & 0x01)) // Reload timer if stopped
             ta = ta_latch;
+    break;
+
+    case 0x6: endian_16lo8 (tb_latch, data); break;
+    case 0x7:
+        endian_16hi8 (tb_latch, data); break;
+        if (!(crb & 0x01)) // Reload timer if stopped
+            tb = tb_latch;
     break;
 
     case 0xd:
