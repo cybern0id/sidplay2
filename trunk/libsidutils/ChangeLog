@@ -1,3 +1,9 @@
+Release V1.0.3-4
+
+* Synced INI file reader with libini-1.1.9
+* Added sidusage memory map file support.
+
+
 Release V1.0.2
 
 * Synced INI file reader with libini-1.1.8.  This allows opening of

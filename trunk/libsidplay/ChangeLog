@@ -6,6 +6,11 @@ Support for basic C64 tunes and direct running of C64 (.prg/.c64) files.  Note t
 prgs requiring user feedback (e.g. keyboard) or storage support (e.g. tape/disk
 loads/saves) will not work.
 
+VIC sprite emulation.
+
+CIA Serial Port and I/O port emulation.
+
+
 Changes:
 
 Tidied up handling of mono to stereo channel splitting, especially when driving a
@@ -23,12 +28,15 @@ Stereo MUS files loaded in the wrong order will now display the credits
 correctly and play the tunes on the correct channels (Amiga icon file
 format needs testing).
 
+
 Fixes:
 
 Creation order of new sid-emulations was incorrect with respect to setting the
 mute/volume properties (meaning the new emulation did not see the settings).
 
-ROM/RAM memory not delected on exit.
+ROM/RAM memory not deleted on exit.
+
+Emulated CPU instruction pipeline to overlap instructions on correct cycle.
 
 Other minor fixes.
 
