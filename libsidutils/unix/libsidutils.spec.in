@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 1mdk
+%define release 2mdk
 %define major   1
 
 Summary:        General utility library for use in sidplayers.
@@ -35,11 +35,11 @@ rm -rf $RPM_BUILD_ROOT
 %setup -q
 
 %build
-CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=$RPM_BUILD_ROOT/%{_prefix}
+CXXFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{_prefix}
 make
 
 %install
-make install
+make DESTDIR=$RPM_BUILD_ROOT install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -63,6 +63,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/*.so
 
 %changelog
+* Wed Apr 4 2001 Simon White <s_a_white@email.com> @VERSION@-2mdk
+- Updated --prefix and make install so la file does not end up with
+  a bad install path.
+
 * Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1mdk
 - First spec file.
 
