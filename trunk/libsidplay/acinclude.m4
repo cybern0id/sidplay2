@@ -199,14 +199,15 @@ AC_DEFUN(SID_PATH_LIBRESID,
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        resid_incdirs="$prefix/include src/mos6581 src/mos6581/resid/include /usr/include \
-                       /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
+        resid_incdirs="$includedir $prefix/include src/mos6581 src/mos6581/resid/include \
+                       /usr/include /usr/local/include /usr/lib/resid/include \
+                       /usr/local/lib/resid/include"
         SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="$prefix/lib src/mos6581/resid src/mos6581/resid/lib /usr/lib \
-                       /usr/local/lib /usr/lib/resid/lib /usr/local/lib/resid/lib"
+        resid_libdirs="$libdir $prefix/lib src/mos6581/resid src/mos6581/resid/lib \
+                       /usr/lib /usr/local/lib /usr/lib/resid/lib /usr/local/lib/resid/lib"
         SID_FIND_FILE(libresid.la libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
 
@@ -281,6 +282,7 @@ AC_DEFUN(SID_TRY_LIBRESID,
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+    
 
     AC_TRY_LINK(
         [#include "resid/sid.h"],
@@ -325,6 +327,59 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
 
 
 dnl -------------------------------------------------------------------------
+dnl Check for extended resid features
+dnl -------------------------------------------------------------------------
+
+AC_DEFUN(SID_EXTENDED_LIBRESID,
+[
+    if test "$enable_resid" != no; then
+        AC_MSG_CHECKING([for extended reSID features])
+        sid_cxxflags_save=$CXXFLAGS
+        sid_ldflags_save=$LDFLAGS
+        sid_libs_save=$LIBS
+        sid_cxx_save=$CXX
+
+        if test "$sid_resid_install" = user; then
+            sid_libresid_header="#include \"sid.h\""
+        else
+            sid_libresid_header="#include \"resid/sid.h\""
+        fi
+
+        CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
+        LDFLAGS="$LDFLAGS $sid_resid_libadd"
+        LIBS="-lresid"
+        CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+
+        AC_TRY_LINK(
+            [$sid_libresid_header],
+            [SID mySID;
+             mySID.enable_external_filter(true, 4100);
+             mySID.mute(0,true);
+            ],
+            [sid_libresid_extended=yes],
+            [sid_libresid_extended=no]
+        )
+
+        CXXFLAGS="$sid_cxxflags_save"
+        LDFLAGS="$sid_ldflags_save"
+        LIBS="$sid_libs_save"
+        CXX="$sid_cxx_save"
+
+        if test "$sid_libresid_extended" = no; then
+            # Found library does not link without errors.
+            AC_MSG_ERROR(
+[
+reSID requires patching to function with libsidplay2.
+Patches are available from http://sidplay2.sourceforge.net
+]);
+            AC_MSG_RESULT([$sid_have_resid]);
+        else
+            AC_MSG_RESULT([yes])
+        fi
+    fi
+])
+
+dnl -------------------------------------------------------------------------
 dnl Pass C++ compiler options to libtool which supports C only.
 dnl -------------------------------------------------------------------------
 
@@ -338,8 +393,3 @@ AC_DEFUN(CONFIG_LIBTOOL,
     CC=$save_cc
     CFLAGS=$save_cflags
 ])
-    
-
-
-
-
