@@ -37,7 +37,7 @@ AC_DEFUN(CHECK_BOOL,
     ])
     if test "$test_cv_have_bool" = yes; then
         test_cv_have_bool=yes
-        AC_DEFINE(HAVE_BOOL,)
+        AC_DEFINE(HAVE_BOOL)
     fi
     AC_MSG_RESULT($test_cv_have_bool)
 ])
@@ -61,7 +61,7 @@ AC_DEFUN(CHECK_IOS_BIN,
     ])
     AC_MSG_RESULT($test_cv_have_ios_binary)
     if test "$test_cv_have_ios_binary" = yes; then
-        AC_DEFINE(HAVE_IOS_BIN,)
+        AC_DEFINE(HAVE_IOS_BIN)
     fi
 ])
 
@@ -84,7 +84,7 @@ AC_DEFUN(CHECK_EXCEPTIONS,
     ])
     AC_MSG_RESULT($test_cv_have_exceptions)
     if test "$test_cv_have_exceptions" = yes; then
-        AC_DEFINE(HAVE_EXCEPTIONS,)
+        AC_DEFINE(HAVE_EXCEPTIONS)
     fi
 ])
 
@@ -229,9 +229,9 @@ Please check your installation!
 
     if test "$sid_resid_installed" = no; then
         if test "$sid_resid_local" = yes; then
-            AC_DEFINE(HAVE_LOCAL_RESID,)
+            AC_DEFINE(HAVE_LOCAL_RESID)
         else
-            AC_DEFINE(HAVE_USER_RESID,)
+            AC_DEFINE(HAVE_USER_RESID)
         fi
     fi
 ])
