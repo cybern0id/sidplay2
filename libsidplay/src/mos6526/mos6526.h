@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2002/09/11 22:30:47  s_a_white
+ *  Counter interval writes now go to a new register call prescaler.  This is
+ *  copied to the timer latch/counter as appropriate.
+ *
  *  Revision 1.8  2002/07/20 08:34:52  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -73,12 +77,12 @@ protected:
 
     // Timer A
     uint8_t cra, cra_latch;
-    uint_least16_t ta, ta_latch, ta_prescaler;
+    uint_least16_t ta, ta_latch;
     int  ta_state;
 
     // Timer B
     uint8_t crb;
-    uint_least16_t tb, tb_latch, tb_prescaler;
+    uint_least16_t tb, tb_latch;
 
     uint8_t icr, idr; // Interrupt Control Register
     event_clock_t m_accessClk;
