@@ -12,6 +12,7 @@ EXTRA_DIST = include win
 dist-hook:
 	@rm -rf `find $(distdir) -path \*/CVS`; \
 	rm -f `find $(distdir)/unix -name \*.h`; \
-	for f in `find $(srcdir)/win -name \*.dsp -o -name \*.vcproj`; do \
-	  sed -e 's/$$/\r/' $$f > $(distdir)/$$f; \
+	for f in `find $(distdir)/win -type f -name \*`; do \
+	  sed -e 's/$$/\r/' $$f > $$f~; \
+	  mv -f $$f~ $$f; \
 	done
