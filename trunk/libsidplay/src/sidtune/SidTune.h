@@ -21,12 +21,12 @@
 #ifndef SIDTUNE_H
 #define SIDTUNE_H
 
-#include <fstream.h>
-
 #include "SidTuneTypes.h"
 #include "SidTuneEndian.h"
 #include "Buffer.h"
 #include "SmartPtr.h"
+
+class ofstream;  // <fstream.h>
 
 const uword_sidt SIDTUNE_MAX_SONGS = 256;
 // Also PSID file format limit.
@@ -270,6 +270,25 @@ class SidTune
 
 	virtual bool INFO_fileSupport(const void* dataBuffer, udword_sidt dataBufLen,
 								  const void* infoBuffer, udword_sidt infoBufLen);
+
+    // Error and status message strings.
+    static const char* txt_songNumberExceed;
+    static const char* txt_empty;
+    static const char* txt_unrecognizedFormat;
+    static const char* txt_noDataFile;
+    static const char* txt_notEnoughMemory;
+    static const char* txt_cantLoadFile;
+    static const char* txt_cantOpenFile;
+    static const char* txt_fileTooLong;
+    static const char* txt_dataTooLong;
+    static const char* txt_cantCreateFile;
+    static const char* txt_fileIoError;
+    static const char* txt_PAL_VBI;
+    static const char* txt_PAL_CIA;
+    static const char* txt_NTSC_VBI;
+    static const char* txt_NTSC_CIA;
+    static const char* txt_noErrors;
+    static const char* txt_na;
 
  private:  // ---------------------------------------------------------------
 	
