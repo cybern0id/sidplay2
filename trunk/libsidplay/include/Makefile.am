@@ -1,2 +1,2 @@
 SUBDIRS = sidplay
-EXTRA_DIST = sidenv.h
+EXTRA_DIST = config.h sidenv.h
