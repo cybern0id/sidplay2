@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2004/01/30 19:50:08  s_a_white
+ *  Newer gnu sed dosen't like /w so use posix equivalent.
+ *
  *  Revision 1.20  2004/01/08 09:12:53  s_a_white
  *  Support the TOD frequency divider.
  *
@@ -133,10 +136,10 @@ ntsc        lda #$95
 timer       sta $dc04
             stx $dc05
 
-            ; set VICII raster to line 0 and
+            ; set VICII raster to line 311 and
             ; clear any outstanding irqs
-            lda #$1b
-            ldx #$00
+            lda #$9b
+            ldx #$37
             sta $d011
             stx $d012
             lda $d019
