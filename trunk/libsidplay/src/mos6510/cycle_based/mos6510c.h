@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2002/11/25 20:10:55  s_a_white
+ *  A bus access failure should stop the CPU dead like the cycle never started.
+ *  This is currently simulated using throw (execption handling) for now.
+ *
  *  Revision 1.13  2002/11/21 19:52:48  s_a_white
  *  CPU upgraded to be like other components.  Theres nolonger a clock call,
  *  instead events are registered to occur at a specific time.
@@ -68,14 +72,16 @@
 
 class MOS6510: public C64Environment, public Event
 {
-protected:
-    bool dodump;
-    EventContext &eventContext;
-
+private:
     // External signals
     bool aec; /* Address Controller, blocks all */
     bool rdy; /* Bus Access, blocks reads */
-    
+    bool m_blocked;
+
+protected:
+    bool dodump;
+    EventContext &eventContext;
+   
     // Declare processor operations
     struct ProcessorOperations
     {
@@ -268,8 +274,8 @@ public:
     virtual void credits   (char *str);
     virtual void DumpState (void);
     void         debug     (bool enable) {dodump = enable;}
-    void         aecSignal (bool state) {aec = state;}
-    void         rdySignal (bool state) {rdy = state;}
+    void         aecSignal (bool state);
+    void         rdySignal (bool state);
 
     // Non-standard functions
     virtual void triggerRST (void);
@@ -288,6 +294,8 @@ inline void MOS6510::clock (void)
         (this->*procCycle[i]) ();
     } catch (int_least8_t delta) {
         cycleCount += delta;
+        m_blocked   = true;
+        eventContext.cancel (this);
     }
 }
 
