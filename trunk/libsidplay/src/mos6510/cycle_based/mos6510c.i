@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/03/21 22:27:18  s_a_white
+ *  Change to IRQ error message.
+ *
  *  Revision 1.9  2001/03/19 23:46:35  s_a_white
  *  NMI no longer sets I flag.  RTI and store instructions are no longer
  *  overlapped.
@@ -38,6 +41,10 @@
  ***************************************************************************/
 
 #include "config.h"
+
+#ifdef HAVE_EXCEPTIONS
+#   include <new>
+#endif
 
 // Microsoft Visual C++ Version Number to work around compiler bug
 // Currently both Visual C++ Versions 5, 6 are broken.
