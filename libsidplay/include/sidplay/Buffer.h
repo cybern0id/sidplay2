@@ -21,9 +21,10 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+#include <assert.h>
 #include "sidtypes.h"
 
-template <class T> class SID_EXTERN Buffer_sidtt
+template <class T> class Buffer_sidtt
 {
  public:
 	Buffer_sidtt(void) : dummy(0)
@@ -106,8 +107,15 @@ template <class T> class SID_EXTERN Buffer_sidtt
 	}
 	
  private:	// prevent copying
-	Buffer_sidtt(const Buffer_sidtt&);
-	Buffer_sidtt& operator=(Buffer_sidtt&);  
+	// SAW - Need function body so code can be fully instatiated
+	// for exporting from dll.  Use asserts in debug mode as these
+	// should not be used.
+	Buffer_sidtt(const Buffer_sidtt&) : dummy (0) { assert(0); }
+	Buffer_sidtt& operator=(Buffer_sidtt&)
+	{
+		assert(0);
+		return *((Buffer_sidtt *) 0);
+	}
 };
 
 #endif  /* BUFFER_H */
