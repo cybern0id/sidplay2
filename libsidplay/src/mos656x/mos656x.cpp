@@ -19,14 +19,20 @@
 #include "sidendian.h"
 #include "mos656x.h"
 
+#define MOS6567R56A_SCREEN_HEIGHT  262
+#define MOS6567R56A_SCREEN_WIDTH   64
 #define MOS6567R56A_FIRST_DMA_LINE 0x30
 #define MOS6567R56A_LAST_DMA_LINE  0xf7
 
+#define MOS6567R8_SCREEN_HEIGHT    263
+#define MOS6567R8_SCREEN_WIDTH     65
 #define MOS6567R8_FIRST_DMA_LINE   0x30
 #define MOS6567R8_LAST_DMA_LINE    0xf7
 
+#define MOS6569_SCREEN_HEIGHT      312
+#define MOS6569_SCREEN_WIDTH       63
 #define MOS6569_FIRST_DMA_LINE     0x30
-#define MOS6569_LAST_DMA_LINE      0xff
+#define MOS6569_LAST_DMA_LINE      0xf7
 
 const char *MOS656X::credit =
 {   // Optional information
@@ -48,10 +54,10 @@ void MOS656X::reset ()
     raster_irq   = 0;
     y_scroll     = 0;
     raster_y     = yrasters - 1;
-    raster_x     = xrasters - 1;
+    raster_x     = 0;
     bad_lines_enabled = false;
-    event_context.schedule (this, 1, EVENT_CLOCK_PHI1);
-    m_accessClk  = 0;
+    event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
+    m_rasterClk  = 0;
 }
 
 void MOS656X::chip (mos656x_model_t model)
@@ -60,24 +66,24 @@ void MOS656X::chip (mos656x_model_t model)
     {
     // Seems to be an older NTSC chip
     case MOS6567R56A:
-        yrasters = 262;
-        xrasters = 64;
+        yrasters       = MOS6567R56A_SCREEN_HEIGHT;
+        xrasters       = MOS6567R56A_SCREEN_WIDTH;
         first_dma_line = MOS6567R56A_FIRST_DMA_LINE;
         last_dma_line  = MOS6567R56A_LAST_DMA_LINE;
     break;
 
     // NTSC Chip
     case MOS6567R8:
-        yrasters = 263;
-        xrasters = 65;
+        yrasters       = MOS6567R8_SCREEN_HEIGHT;
+        xrasters       = MOS6567R8_SCREEN_WIDTH;
         first_dma_line = MOS6567R8_FIRST_DMA_LINE;
         last_dma_line  = MOS6567R8_LAST_DMA_LINE;
     break;
 
     // PAL Chip
     case MOS6569:
-        yrasters = 312;
-        xrasters = 63;
+        yrasters       = MOS6569_SCREEN_HEIGHT;
+        xrasters       = MOS6569_SCREEN_WIDTH;
         first_dma_line = MOS6569_FIRST_DMA_LINE;
         last_dma_line  = MOS6569_LAST_DMA_LINE;
     break;
@@ -94,7 +100,7 @@ uint8_t MOS656X::read (uint_least8_t addr)
     switch (addr)
     {
     case 0x11:    // Control register 1 
-        return (raster_y & 0x100) >> 1;
+        return (ctrl1 & 0x7f) | ((raster_y & 0x100) >> 1);
     case 0x12:    // Raster counter
         return raster_y & 0xFF; 
     case 0x19:    // IRQ flags 
@@ -114,6 +120,14 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
     switch (addr)
     {
     case 0x11: // Control register 1
+    {
+        event_clock_t cycles = event_context.getTime (m_rasterClk);
+
+        // Update x raster
+        m_rasterClk += cycles;
+        raster_x    += cycles;
+        raster_x    %= xrasters;
+
         endian_16hi8 (raster_irq, data >> 7);
         ctrl1    = data;
         y_scroll = data & 7;
@@ -125,14 +139,16 @@ void MOS656X::write (uint_least8_t addr, uint8_t data)
         if ((raster_y == first_dma_line) && (data & 0x10))
             bad_lines_enabled = true;
  
-		// Bad Line condition?
+        // Bad Line condition?
         bad_line = (raster_y >= first_dma_line) &&
                    (raster_y <= last_dma_line)  &&
                    ((raster_y & 7) == y_scroll) &&
                    bad_lines_enabled;
 
-        event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
+        if (bad_line)
+            event_context.schedule (this, 0, EVENT_CLOCK_PHI1);
         break;
+    }
 
     case 0x12: // Raster counter
         endian_16lo8 (raster_irq, data);
@@ -175,7 +191,13 @@ void MOS656X::trigger (int irq)
 
 void MOS656X::event (void)
 {
-    event_clock_t delay = 1;
+    event_clock_t delay  = 1;
+    event_clock_t cycles = event_context.getTime (m_rasterClk);
+
+    // Update x raster
+    m_rasterClk += cycles;
+    raster_x    += cycles;
+    raster_x    %= xrasters;
 
     switch (raster_x)
     {
@@ -222,27 +244,17 @@ void MOS656X::event (void)
         delay = xrasters - 54;
         break;
 
-    case 12:
-    case 13:
-        break;
-
     default:
-        if (raster_x > 11)
-	{
-            if (bad_line && (raster_x < 54))
-            {
-                addrctrl (false);
-                delay = 54 - raster_x;
-            }
-            else
-            {   // Skip to the end of raster
-                addrctrl (true);
-                delay = xrasters - raster_x;
-            }
+        if (bad_line && (raster_x < 54))
+        {
+            addrctrl (false);
+            delay = 54 - raster_x;
+        }
+        else
+        {   // Skip to the end of raster
+            delay = xrasters - raster_x;
         }
     }
 
-    raster_x += delay;
-    raster_x %= xrasters;
     event_context.schedule (this, delay, EVENT_CLOCK_PHI1);
 }
