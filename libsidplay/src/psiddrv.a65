@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/09/21 22:32:18  s_a_white
+ *  Prevent some of the real c64 only tunes abusing play != 0.  Some busy
+ *  looping ones may still get away with it...
+ *
  *  Revision 1.9  2002/09/12 20:39:47  s_a_white
  *  Added support for simulating the random delay before the user loads a
  *  program on a real C64.
@@ -74,7 +78,8 @@ speed       .byte 0
 initvec     .word 0
 playvec     .word 0
 rndwait     .word 0
-iomap       .byte 0
+initiomap   .byte 0
+playiomap   .byte 0
 
             ; init/play PSID
 play        jmp (playvec)
@@ -82,25 +87,6 @@ init        jmp (initvec)
 
             ; cold start
 cold        sei
-            ldx #$ff
-            txs
-            cld
-
-            ; turn interrupts off
-            lda #$7f
-            sta $dc0d
-            sta $dd0d
-            lda $dc0d
-            lda $dd0d
-            lda #$00
-            sta $d01a
-            ldx $d019
-            stx $d019
-
-            ; set VICII raster to line 0
-            ldx #$1b
-            stx $d011
-            sta $d012
 
             ; set CIA Timer A to 60Hz
             lda $02a6
@@ -129,21 +115,8 @@ ciainit     stx $dc0d
 doinit      lda #$01
             sta $dc0e
 
-            ; simulate time before user loads tune
-            tya
-            ldx rndwait
-            ldy rndwait+1
-wait        dex
-            bne wait
-            dey
-            bne wait
-            tay
-
             ; set I/O map and call song init routine
-            lda #$2f
-            sta $00
-            lda initvec+1
-            jsr getmap
+            lda initiomap
             sta $01
 
             ; If play address, override bankswitching so
@@ -153,27 +126,40 @@ wait        dex
             beq noplay
             lda #<irqjob
             sta $0314
-            lda playvec+1
-            jsr getmap
-noplay      sta iomap
+            jmp random
+            ; Only release interrupt mask providing
+            ; tunes requirements sufficiently match
+            ; real C64 compatibility.
+noplay      sta playiomap
+            lda $01
+            and #02
+			beq random
+			lda speed
+            beq random
+			cli
 
-            ; SID to full volume
-            lda #$0f
-            sta $d418
+            ; simulate time before user loads tune
+random      tya
+            ldx rndwait
+            ldy rndwait+1
+wait        dex
+            bne wait
+            dey
+            bne wait
+            tay
 
             ; get song number
 getsong     ldx playnum
             dex
-            txa
+			txa
             ldx #0
             ldy #0
-            clc
             jsr init
-setiomap    lda iomap
+setiomap    lda playiomap
             beq run
 
             ; Stop play for c64 only tunes
-            lda #$33
+            lda #$37
             sta $01
             ; Sidplay2 optimisation
 run         brk
@@ -188,14 +174,13 @@ idle        jmp idle
 
 irqjob      lda $01
             pha
-            lda iomap
+            lda playiomap
             sta $01
             lda #0
             jsr play
             pla
             sta $01
-            lda $d019
-            sta $d019
+            inc $d019
 
             ; IRQ Exit (From Kernel ROM)
 irqret      lda $dc0d
@@ -205,22 +190,6 @@ irqret      lda $dc0d
             tax
             pla
 nmijob      rti
-
-            ; get required I/O map to reach address
-getmap      cmp #$e0
-            bcc kern_on
-            lda #$35
-            rts
-kern_on     cmp #$d0
-            bcc io_on
-            lda #$34
-            rts
-io_on       cmp #$a0
-            bcc bas_on
-            lda #$36
-            rts
-bas_on      lda #$37
-            rts
 
             ; sidplay compatibilty irq
 sidplay     php

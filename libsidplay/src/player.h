@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2002/09/12 21:01:31  s_a_white
+ *  Added support for simulating the random delay before the user loads a
+ *  program on a real C64.
+ *
  *  Revision 1.32  2002/09/09 18:01:30  s_a_white
  *  Prevent m_info driver details getting modified when C64 crashes.
  *
@@ -161,7 +165,6 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
-    static const char  *ERR_PSID_SPECIFIC_FLAG;
     static const char  *credit[10]; // 10 credits max
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
@@ -285,6 +288,7 @@ private:
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();
+    uint8_t   iomap          (uint_least16_t addr);
 
     uint8_t readMemByte_player    (uint_least16_t addr);
     uint8_t readMemByte_plain     (uint_least16_t addr);

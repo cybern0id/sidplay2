@@ -183,7 +183,7 @@ uint_least16_t SidTune::selectSong(const uint_least16_t selectedSong)
     // Retrieve song speed definition.
     info.songSpeed = songSpeed[song-1];
     info.clockSpeed = clockSpeed[song-1];
-	// Assign song speed description string depending on clock speed.
+    // Assign song speed description string depending on clock speed.
     // Final speed description is available only after song init.
     if (info.songSpeed == SIDTUNE_SPEED_VBI)
         info.speedString = txt_VBI;
@@ -379,7 +379,7 @@ void SidTune::init()
     info.clockSpeed = SIDTUNE_CLOCK_PAL;
     info.sidModel = SIDTUNE_SIDMODEL_6581;
 #endif
-    info.psidSpecific = false;
+    info.compatibility = SIDTUNE_COMPATIBILITY_C64;
     info.songLength = 0;
     info.relocStartPage = 0;
     info.relocPages = 0;
@@ -511,7 +511,6 @@ void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least3
     else
     {
         // No further single-file-formats available.
-        info.formatString = SidTune::txt_na;
         info.statusString = SidTune::txt_unrecognizedFormat;
     }
     if ( foundFormat )
@@ -737,7 +736,6 @@ void SidTune::getFromFiles(const char* fileName)
 
 // --------------------------------------- Could not find a description file.
 
-                info.formatString = SidTune::txt_na;
                 info.statusString = SidTune::txt_unrecognizedFormat;
                 return;
             }
@@ -787,7 +785,6 @@ void SidTune::getFromFiles(const char* fileName)
                 
 // ---------------------------------------- No corresponding data file found.
 
-                info.formatString = SidTune::txt_na;
                 info.statusString = SidTune::txt_noDataFile;
                 return;
             } // end else if ( = is description file )
@@ -796,7 +793,6 @@ void SidTune::getFromFiles(const char* fileName)
 
             else
             {
-                info.formatString = SidTune::txt_na;
                 info.statusString = SidTune::txt_unrecognizedFormat;
                 return;
             }
@@ -809,7 +805,6 @@ void SidTune::getFromFiles(const char* fileName)
     {
         // returned fileLen was 0 = error. The info.statusString is
         // already set then.
-        info.formatString = SidTune::txt_na;
         return;
     }
 } 
@@ -979,4 +974,17 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
         }
     }
     return success;
+}
+
+bool SidTune::checkRealC64Info (uint_least32_t speed)
+{
+    if (info.loadAddr != 0)
+        return false;
+    if (info.playAddr != 0)
+        return false;
+    if (speed != 0)
+        return false;
+    if (info.compatibility == SIDTUNE_COMPATIBILITY_PSID)
+        return false;
+    return true;
 }
