@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2001/10/02 18:26:36  s_a_white
+ *  Removed ReSID support and updated for new scheduler.
+ *
  *  Revision 1.20  2001/09/20 19:32:39  s_a_white
  *  Support for a null sid emulation to use when a builder create call fails.
  *
@@ -154,7 +157,7 @@ private:
         :Event("Mixer"),
          m_player(*player) {}
     } mixerEvent;
-    friend EventMixer;
+    friend class EventMixer;
 
     class EventRTC: public Event
     {

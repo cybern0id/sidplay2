@@ -83,7 +83,7 @@ private:
          m_scheduler(*context)
         {;}
     } m_timeWarp;
-    friend EventTimeWarp;
+    friend class EventTimeWarp;
 
 private:
     void timeWarp (void);
