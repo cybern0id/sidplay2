@@ -82,6 +82,7 @@ typedef struct
     sid_fc_t       cutoff[0x800];
     uint_least16_t points;
 } sid_filter_t;
+#define sid_filter_t sid_filter_t
 
 typedef unsigned int uint;
 typedef float    float32_t;
