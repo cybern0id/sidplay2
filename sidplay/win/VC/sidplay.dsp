@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /Zi /O2 /I "../../include" /I "../../../libsidplay/include" /I "../../../libsidutils/include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /Zi /O2 /I "../../include" /I "../../../libsidplay/include" /I "../../../libsidutils/include" /I "../../../sidplay2w" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -65,7 +65,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../../include" /I "../../../libsidplay/include" /I "../../../libsidutils/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /I "../../include" /I "../../../libsidplay/include" /I "../../../libsidutils/include" /I "../../../sidplay2w" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -81,6 +81,141 @@ LINK32=link.exe
 
 # Name "sidplay - Win32 Release"
 # Name "sidplay - Win32 Debug"
+# Begin Group "SID Emulations"
+
+# PROP Default_Filter ""
+# Begin Group "ReSID"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\envelope.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\envelope.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\extfilt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\extfilt.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\filter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\filter.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\pot.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\pot.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\sid.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\sid.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\siddefs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\spline.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\version.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\voice.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\voice.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave6581__ST.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave6581_P_T.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave6581_PS_.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave6581_PST.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave8580__ST.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave8580_P_T.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave8580_PS_.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid\wave8580_PST.cpp
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE="..\..\..\sidplay2w\sidemu\hardsid-builder.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\hardsid.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\hardsid.h
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\sidplay2w\sidemu\resid-builder.cpp"
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\sidplay2w\sidemu\resid.h
+# End Source File
+# End Group
+# Begin Group "Audio Drivers"
+
+# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\..\src\audio\AudioBase.h
@@ -115,15 +250,52 @@ SOURCE=..\..\src\audio\sunos\audiodrv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\config.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\audio\directx\directx.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\src\audio\directx\directx.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\mmsystem\mmsystem.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\mmsystem\mmsystem.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\null\null.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\null\null.h
+# End Source File
+# End Group
+# Begin Group "Audio Formats"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\audio\wav\WavFile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\wav\WavFile.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\audio\wav\WavFileDefs.h
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=..\..\src\args.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\config.h
 # End Source File
 # Begin Source File
 
@@ -147,43 +319,15 @@ SOURCE=..\..\src\main.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\main.h
+SOURCE=..\..\src\menu.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\audio\mmsystem\mmsystem.cpp
+SOURCE=..\..\src\player.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\audio\mmsystem\mmsystem.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\audio\null\null.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\audio\null\null.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\timer.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\timer.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\audio\wav\WavFile.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\audio\wav\WavFile.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\audio\wav\WavFileDefs.h
+SOURCE=..\..\src\player.h
 # End Source File
 # End Target
 # End Project
