@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2001/07/25 17:01:13  s_a_white
+ *  Support for new configuration interface.
+ *
  *  Revision 1.14  2001/07/14 16:46:16  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -141,9 +144,6 @@ private:
         float64_t     m_fclk;
         EventContext &m_eventContext;
 
-        void    reset   (void)
-        {   m_seconds  = 0; }
-
         void event (void)
         {
             event_clock_t cycles;
@@ -157,18 +157,25 @@ private:
     public:
         EventRTC (EventContext *context)
         :Event("RTC"),
-         m_eventContext(*context)
-        {reset ();}
+         m_eventContext(*context),
+         m_seconds(0)
+        {;}
 
         event_clock_t getTime () {return m_seconds;}
-        void          clock   (float64_t period)
+
+        void reset (void)
         {
-            event_clock_t cycles = (event_clock_t) period;
-            reset ();
-            m_period = period;
-            m_fclk   = m_period - cycles;
+            event_clock_t cycles = (event_clock_t) m_period;
+            m_seconds = 0;
+            m_fclk    = m_period - cycles;
             m_eventContext.schedule (this, cycles);
         }
+
+        void clock (float64_t period)
+        {
+            m_period = period;
+            reset ();
+        }   
     } rtc;
 
     // User Configuration Settings
