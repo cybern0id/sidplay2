@@ -74,6 +74,5 @@ public:
     bool filter   (const sid_filter_t *filter);
     void model    (sid2_model_t model);
     // Must lock the SID before using the standard functions.
-    void lock     (c64env *env);
-    bool lock     (void) const { return m_locked; }
+    bool lock     (c64env *env);
 };
