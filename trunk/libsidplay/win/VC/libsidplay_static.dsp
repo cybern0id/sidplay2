@@ -85,6 +85,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\..\src\char.bin
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\config.cpp
 # End Source File
 # Begin Source File
@@ -301,6 +305,10 @@ SOURCE=..\..\src\sidtune\InfoFile.cpp
 # Begin Source File
 
 SOURCE=..\..\src\sidtune\MUS.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\sidtune\p00.cpp
 # End Source File
 # Begin Source File
 
