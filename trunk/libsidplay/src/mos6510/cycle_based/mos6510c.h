@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/02/13 21:03:33  s_a_white
+ *  Changed inlines to non-inlines due to function bodies not being in header.
+ *
  *  Revision 1.2  2000/12/11 19:04:32  s_a_white
  *  AC99 Update.
  *
@@ -24,21 +27,64 @@
 #ifndef _mos6510c_h_
 #define _mos6510c_h_
 
+#include "sidtypes.h"
+#include "sidendian.h"
+
+
 class MOS6510: public C64Environment
 {
-public:
-    MOS6510 ();
-    virtual       ~MOS6510 ();
-    virtual        void reset     (void);
-    virtual inline void clock     (void);
-    virtual        void credits   (char *str);
-    virtual        void DumpState (void);
+protected:
+    // Declare processor operations
+    struct ProcessorOperations
+    {
+        void         (MOS6510::**cycle)(void);
+        int_least8_t  lastCycle;
+        bool          overlap;
+        int_least8_t  lastAddrCycle;
+        uint_least8_t opcode;
+    };
 
-public: // Non-standard functions
-    void triggerRST (void);
-    void triggerNMI (void);
-    void triggerIRQ (void);
-    void clearIRQ   (void);
+    void   (MOS6510::*fetchCycle[1]) (void);
+    struct ProcessorOperations  instrTable[0x100];
+    struct ProcessorOperations  interruptTable[3];
+    struct ProcessorOperations *instrCurrent;
+
+    uint_least16_t instrStartPC;
+    uint_least8_t  instrOpcode;
+    void (MOS6510::**procCycle) (void);
+    int_least8_t   lastAddrCycle;
+    int_least8_t   lastCycle;
+    int_least8_t   cycleCount;
+
+    // Pointers to the current instruction cycle
+    uint_least16_t Cycle_EffectiveAddress;
+    int8_t         Cycle_Data;
+    uint_least16_t Cycle_Pointer;
+
+    int8_t         Register_Accumulator;
+    uint8_t        Register_X;
+    uint8_t        Register_Y;
+    uint_least32_t Register_ProgramCounter;
+    uint8_t        Register_Status;
+    int_least8_t   Register_c_Flag;
+    int_least8_t   Register_n_Flag;
+    int_least8_t   Register_v_Flag;
+    int_least8_t   Register_z_Flag;
+    uint_least16_t Register_StackPointer;
+    uint_least16_t Instr_Operand;
+
+    // Interrupts
+    struct
+    {
+        uint_least16_t pending;
+        uint_least8_t  irqs;
+    } interrupts;
+
+    uint8_t        Debug_Data;
+    uint_least16_t Debug_EffectiveAddress;
+    uint_least8_t  Debug_Opcode;
+    uint_least16_t Debug_Operand;
+    uint_least16_t Debug_ProgramCounter;
 
 protected:
     void        Initialise       (void);
@@ -165,56 +211,45 @@ protected:
     inline void Perform_ADC   (void);
     inline void Perform_SBC   (void);
 
-    // Declare processor operations
-    struct ProcessorOperations
-    {
-        void         (MOS6510::**cycle)(void);
-        int_least8_t  lastCycle;
-        bool          overlap;
-        int_least8_t  lastAddrCycle;
-        uint_least8_t opcode;
-    };
+public:
+    MOS6510 ();
+    virtual ~MOS6510 ();
+    virtual void reset     (void);
+    virtual void clock     (void);
+    virtual void credits   (char *str);
+    virtual void DumpState (void);
 
-    struct ProcessorOperations  instrTable[0x100];
-    struct ProcessorOperations  interruptTable[3];
-    struct ProcessorOperations *instr;
-
-    uint_least16_t instrStartPC;
-    uint_least8_t  instrOpcode;
-    void    (MOS6510::**procCycle) (void);
-    int_least8_t   lastAddrCycle;
-    int_least8_t   lastCycle;
-    int_least8_t   cycleCount;
-
-    // Pointers to the current instruction cycle
-    uint_least16_t Cycle_EffectiveAddress;
-    int8_t         Cycle_Data;
-    uint_least16_t Cycle_Pointer;
-
-    int8_t         Register_Accumulator;
-    uint8_t        Register_X;
-    uint8_t        Register_Y;
-    uint_least32_t Register_ProgramCounter;
-    uint8_t        Register_Status;
-    int_least8_t   Register_c_Flag;
-    int_least8_t   Register_n_Flag;
-    int_least8_t   Register_v_Flag;
-    int_least8_t   Register_z_Flag;
-    uint_least16_t Register_StackPointer;
-    uint_least16_t instr_Operand;
-
-    // Interrupts
-    struct
-    {
-        uint_least16_t pending;
-        uint_least8_t  irqs;
-    } interrupts;
-
-    uint8_t        Debug_Data;
-    uint_least16_t Debug_EffectiveAddress;
-    uint_least8_t  Debug_Opcode;
-    uint_least16_t Debug_Operand;
-    uint_least16_t Debug_ProgramCounter;
+    // Non-standard functions
+    void triggerRST (void);
+    void triggerNMI (void);
+    void triggerIRQ (void);
+    void clearIRQ   (void);
 };
+
+
+//-------------------------------------------------------------------------//
+// Emulate One Complete Cycle                                              //
+inline void MOS6510::clock (void)
+{
+MOS6510_clock:
+    {
+        int_least8_t i = cycleCount++;
+        (this->*procCycle[i]) ();
+    }
+
+#ifdef MOS6510_DEBUG
+    DumpState ();
+#endif // MOS6510_DEBUG
+
+    if (cycleCount <= lastCycle)
+        return;
+
+    cycleCount = 0;
+    procCycle  = fetchCycle;
+    // 6510 contains a simple pipe line
+    // which is handled here
+    if (instrCurrent->overlap)
+        goto MOS6510_clock;
+}
 
 #endif // _mos6510c_h_

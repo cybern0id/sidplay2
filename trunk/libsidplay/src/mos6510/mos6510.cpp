@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/02/13 23:01:10  s_a_white
+ *  envReadMemDataByte now used for debugging.
+ *
  *  Revision 1.4  2000/12/11 19:03:16  s_a_white
  *  AC99 Update.
  *
@@ -62,7 +65,7 @@ void MOS6510::DumpState (void)
     if (cycleCount < 0)
         return;
 
-    if (cycleCount != (*instr).lastAddrCycle) return;
+    if (cycleCount != instrCurrent->lastAddrCycle) return;
     printf(" PC   I  A  X  Y   SP  DR PR NV-BDIZC  Instruction\n");
     printf("%04x ", instrStartPC);
 
@@ -97,7 +100,7 @@ void MOS6510::DumpState (void)
     if (getFlagC()) printf ("1"); else printf ("0");
 
     opcode  = instrOpcode;
-    operand = instr_Operand;
+    operand = Instr_Operand;
     data    = Cycle_Data;
 
     switch (opcode)

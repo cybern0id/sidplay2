@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/02/13 21:02:16  s_a_white
+ *  Small tidy up and possibly a small performace increase.
+ *
  *  Revision 1.3  2000/12/11 19:04:32  s_a_white
  *  AC99 Update.
  *
@@ -95,16 +98,6 @@ void SID6510::reset ()
     MOS6510::reset ();
 }
 
-void SID6510::clock (void)
-{   // Call inherited emulate
-    MOS6510::clock ();
-
-    // Sidplay requires that we check to see if
-    // the stack has overflowed.  This then returns
-    // control back to sidplay so music can be played
-    status &= (endian_16hi8  (Register_StackPointer)   == SP_PAGE);
-    status &= (endian_32hi16 (Register_ProgramCounter) == 0);
-}
 
 //**************************************************************************************
 // For sidplay compatibility the memory handle should always be non-banked!  To be able
