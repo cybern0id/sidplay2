@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/03/27 19:00:49  s_a_white
+ *  Default record and play lengths can now be set in the sidplay2.ini file.
+ *
  *  Revision 1.2  2001/03/26 18:13:07  s_a_white
  *  Support individual filters for 6581 and 8580.
  *
@@ -57,8 +60,8 @@ IniConfig::~IniConfig ()
 void IniConfig::clear ()
 {
     SAFE_FREE (sidplay2_s.database);
-    sidplay2_s.playLength   = 0;
-    sidplay2_s.recordLength = 0;
+    sidplay2_s.playLength   = 0;           // INFINITE
+    sidplay2_s.recordLength = 3 * 60 + 30; // 3.5 minutes
 
     console_s.ansi          = false;
     console_s.topLeft       = '+';
