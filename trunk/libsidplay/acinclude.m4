@@ -162,7 +162,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
     if test "$sid_resid_library" != NO; then
         # Help to try and better locate library just from --with-resid option
         resid_libdirs="$sid_resid_library $sid_resid_library/lib $sid_resid_library/.libs"
-        SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
+        SID_FIND_FILE(libresid.la libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
     fi
 
@@ -207,7 +207,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
         # Search common locations where library might be stored.
         resid_libdirs="src/mos6581/resid src/mos6581/resid/lib /usr/lib /usr/local/lib \
                        /usr/lib/resid/lib /usr/local/lib/resid/lib"
-        SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
+        SID_FIND_FILE(libresid.la libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
 
         if test "$sid_resid_includes" = NO || test "$sid_resid_library" = NO; then
@@ -275,10 +275,12 @@ AC_DEFUN(SID_TRY_LIBRESID,
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
+    sid_cxx_save=$CXX
 
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
+    CXX="libtool $CXX"
 
     AC_TRY_LINK(
         [#include "resid/sid.h"],
@@ -290,6 +292,7 @@ AC_DEFUN(SID_TRY_LIBRESID,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+    CXX="$sid_cxx_save"
 ])
 
 dnl Function used by SID_PATH_LIBRESID.
@@ -300,10 +303,12 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
     sid_cxxflags_save=$CXXFLAGS
     sid_ldflags_save=$LDFLAGS
     sid_libs_save=$LIBS
+    sid_cxx_save=$CXX
 
     CXXFLAGS="$CXXFLAGS $sid_resid_incadd"
     LDFLAGS="$LDFLAGS $sid_resid_libadd"
     LIBS="-lresid"
+    CXX="libtool $CXX"
 
     AC_TRY_LINK(
         [#include "sid.h"],
@@ -315,6 +320,7 @@ AC_DEFUN(SID_TRY_USER_LIBRESID,
     CXXFLAGS="$sid_cxxflags_save"
     LDFLAGS="$sid_ldflags_save"
     LIBS="$sid_libs_save"
+    CXX="$sid_cxx_save"
 ])
 
 

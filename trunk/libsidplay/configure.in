@@ -22,6 +22,10 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
 
+dnl Initialize libtool.
+AC_LIBTOOL_WIN32_DLL
+CONFIG_LIBTOOL
+
 dnl Check for hardsid card.
 CHECK_HARDSID
 if test "$sid_have_hardsid" = yes; then
@@ -87,14 +91,11 @@ else
     SID_SUBST_UNDEF(SID_HAVE_STDBOOL_H)
 fi
 
-dnl Initialize libtool.
-AC_LIBTOOL_WIN32_DLL
-CONFIG_LIBTOOL
-
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/include/sidplay -Wall"
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include/sidplay \$(RESID_INCLUDES) -Wall"
 
 AC_OUTPUT(
+libsidplay.spec \
 Makefile \
 include/Makefile \
 include/sidplay/Makefile \
