@@ -21,8 +21,8 @@ Display help.
 \fB\-f<num>\fR
 Set frequency in Hz. (default: 44100)
 .TP
-\fB\-nf\fR
-No filter emulation.  Will reduce CPU overhead at the cost of reduced sound quality.
+\fB\-nf[filter]\fR
+No/new filter emulation.  Providing [filter] will redefine reSIDs internal filter (see the sidplay2 homepage for filter file definition).  If [filter] is not provided then the filter will be disabled.  This will reduce CPU overhead at the cost of reduced sound quality.
 .TP
 \fB\-ns\fR
 Emulate MOS8580 waveforms. (default: MOS6581)
@@ -31,7 +31,7 @@ Emulate MOS8580 waveforms. (default: MOS6581)
 Select track number. (default: preset)
 .TP
 \fB\-s\fR
-Stereo Hardware support.  However even when enabled the left and right channels will be playing the same music unless the song is identified as being stereo.  For Sidplay other options are provided to produce special effects when in stereo mode, but Sidplay2 does not as yet support these.
+Stereo Hardware support.  For Sidplay the channels for the sid will be split into left and right creating a stereo effect.  The same effect is present for Sidplay2 unless the tune is identified as stereo.  If this is the case then sid 1 and 2 become the left and right channels respectively.  For Sidplay other options are provided to produce special effects when in stereo mode, but Sidplay2 does not as yet support these.
 .TP
 \fB\-v\fR
 Verbose output while playing.
@@ -47,22 +47,19 @@ in the case of the stereo sid format as currently there is no way
 to identfy them.  Stereo MUS files are however automatically
 detected.  The second sid appears in the 0xD500 address range.
 .TP
-\fB\-ne\fR
-No external filter emulation.  Will reduce CPU overhead at the cost of reduced sound quality.
+\fB\-m<b|r>\fR
+Mode switch (default -mr).  Currently supported modes are:
+.br
+    Sidplays\ \ Bankswitching Mode (-mb).
+.br
+    Sidplay2s\ Real C64 emulation mode (-mr).
+
 .TP
 \fB\-nf<name>\fR
 New SID filter description filename using an ini file format.
 .TP
 \fB\-p<num>\fR
-Set bit precision for samples. The default is 16, but this value will be affected by the hardware available on the platform you are running..
-.TP
-\fB\-sl\fR
-Left channel only.
-Playback left channel only from stereo datafile.
-.TP
-\fB\-sr\fR
-Right channel only.
-Playback right channel only from stereo datafile.
+Set bit precision for samples. The default is 16, but this value will be affected by the hardware available on the platform you are running.
 .TP
 \fB\-O<num>\fR
 Optimisation level. (default: 0)
@@ -70,6 +67,9 @@ Optimisation level. (default: 0)
 Optimisation\ 0\ -\ C64 emulation is kept fully cycle synced at all times and requires atleast a P300 for mono sid tunes.  Stereo sid tunes are expected to require a greater CPU.
 .br
 Optimisation\ 1\ -\ Allows the CPU to run by itself and only regains sync with the Sound Interface Device (SID) when a sample is required.  This reduces sound accuracy, but does allow playback of mono sids on a P166.  Again stereo sids require faster CPUs.
+.TP
+\fB\-s<l|r>\fR
+Playback the left or right stereo channel only.
 .TP
 \fB\-t<num>\fR
 Set play length in [mins]:secs format. (0 is endless)
@@ -80,8 +80,8 @@ Set VIC NTSC clock speed (America, 60Hz).
 \fB\-vp\fR
 Set VIC PAL clock speed (Europe, 50Hz).
 .TP
-\fB\-w\fR
-Create WAV-file.  Output filename is <datafile>.wav and currently cannot be changed
+\fB\-w[name]\fR
+Create WAV-file.  The default output filename is <datafile>[n].wav where [n] is the sid number should there be more than one tune in the sid.  This allows batch conversion of sid tunes without them overwritting each other.  By providing a name you override this default behaviour.  The output file will be <name> and no tune number is added and <name> IS NOT checked for or appended with a legal wav file extension.
 
 .SH SIDPLAY OPTIONS
 .TP
