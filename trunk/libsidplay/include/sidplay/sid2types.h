@@ -19,6 +19,7 @@
 #define _sid2types_h_
 
 #include "sidtypes.h"
+#include "event.h"
 
 class   sidbuilder;
 struct  SidTuneInfo;
@@ -28,6 +29,14 @@ typedef enum {sid2_left  = 0, sid2_mono,  sid2_stereo, sid2_right} sid2_playback
 typedef enum {sid2_envPS = 0, sid2_envTP, sid2_envBS,  sid2_envR } sid2_env_t;
 typedef enum {SID2_MODEL_CORRECT, SID2_MOS6581, SID2_MOS8580}      sid2_model_t;
 typedef enum {SID2_CLOCK_CORRECT, SID2_CLOCK_PAL, SID2_CLOCK_NTSC} sid2_clock_t;
+
+typedef enum
+{   // Soundcard sample format
+    SID2_LITTLE_SIGNED,
+    SID2_LITTLE_UNSIGNED,
+    SID2_BIG_SIGNED,
+    SID2_BIG_UNSIGNED
+} sid2_sample_t;
 
 /* Environment Modes
 sid2_envPS = Playsid
@@ -53,6 +62,7 @@ struct sid2_config_t
     bool                sidSamples;
     uint_least32_t      leftVolume;
     uint_least32_t      rightVolume;
+    sid2_sample_t       sampleFormat;
 };
 
 struct sid2_info_t
@@ -61,8 +71,9 @@ struct sid2_info_t
     uint               channels;
     uint_least16_t     driverAddr;
     const char        *name;
-    const SidTuneInfo *tuneInfo;
+    const SidTuneInfo *tuneInfo; // May not need this
     const char        *version;
+    EventContext      *eventContext;
 };
 
-#endif /* _sid2types_h_ */
+#endif // _sid2types_h_
