@@ -156,10 +156,8 @@ void MOS656X::trigger (int irq)
     if (!irq)
     {   // Clear any requested IRQs
         if (idr & MOS656X_INTERRUPT_REQUEST)
-        {
-            idr = 0;
             interrupt (false);
-        }
+        idr = 0;
         return;
     }
 

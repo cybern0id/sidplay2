@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/07/20 08:34:52  s_a_white
+ *  Remove unnecessary and pointless conts.
+ *
  *  Revision 1.4  2002/03/03 22:04:08  s_a_white
  *  Tidy.
  *
@@ -206,10 +209,8 @@ void MOS6526::trigger (int irq)
     if (!irq)
     {   // Clear any requested IRQs
         if (idr & INTERRUPT_REQUEST)
-        {
-            idr = 0;
             interrupt (false);
-        }
+        idr = 0;
         return;
     }
 
