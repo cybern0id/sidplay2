@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/09/17 19:00:28  s_a_white
+ *  Constructor moved out of line.
+ *
  *  Revision 1.3  2001/09/15 13:03:50  s_a_white
  *  timeWarp now zeros m_eventClk instead of m_pendingEventClk which
  *  fixes a inifinite loop problem when driving libsidplay1.
@@ -27,7 +30,7 @@
 #include "event.h"
 #define EVENT_TIMEWARP_COUNT 0x0FFFFF
 
-EventContext::EventContext (const char * const name)
+EventScheduler::EventScheduler (const char * const name)
 :m_name(name),
  m_pendingEvents(NULL),
  m_timeWarp(this)
@@ -36,7 +39,7 @@ EventContext::EventContext (const char * const name)
 }
 
 // Usefull to prevent clock overflowing
-void EventContext::timeWarp ()
+void EventScheduler::timeWarp ()
 {
     Event *e = m_pendingEvents;
     if (e != NULL)
@@ -58,7 +61,7 @@ void EventContext::timeWarp ()
     schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT);
 }
 
-void EventContext::reset (void)
+void EventScheduler::reset (void)
 {    // Remove all events
     Event *e = m_pendingEvents;
     while (e != NULL)
@@ -72,7 +75,7 @@ void EventContext::reset (void)
 }
 
 // Add event to ordered pending queue
-void EventContext::schedule (Event *event, event_clock_t cycles)
+void EventScheduler::schedule (Event *event, event_clock_t cycles)
 {
     uint clk = m_eventClk + cycles;
     if (event->m_pending)
@@ -108,7 +111,7 @@ void EventContext::schedule (Event *event, event_clock_t cycles)
 }
 
 // Cancel a pending event
-void EventContext::cancel (Event *event)
+void EventScheduler::cancel (Event *event)
 {
     if (event == m_pendingEvents)
         cancelPending (*event);
