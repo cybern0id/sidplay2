@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2001/04/21 13:28:31  s_a_white
+ *  Updated help information.
+ *
  *  Revision 1.12  2001/04/21 10:28:22  s_a_white
  *  Fix -w flag to take an optional filename.
  *
@@ -160,7 +163,7 @@ int main(int argc, char *argv[])
     sid2_env_t      playerMode    = sid2_envR;
     bool            wavOutput     = false;
     uint            sidFile       = 0;
-	char           *wavName       = 0;
+    char           *wavName       = 0;
     void           *nextBuffer    = NULL;
     uint_least32_t  runtime       = 0;
     bool            timeValid     = false;
@@ -448,10 +451,20 @@ int main(int argc, char *argv[])
 
                     case 'n':
                         emulation.clockSpeed = SID2_CLOCK_NTSC;
+                        if (argv[i][x] == 'f')
+                        {
+                            x++;
+                            emulation.clockForced = true;
+                        }
                     break;
 
                     case 'p':
                         emulation.clockSpeed = SID2_CLOCK_PAL;
+                        if (argv[i][x] == 'f')
+                        {
+                            x++;
+                            emulation.clockForced = true;
+                        }
                     break;
 
                     case 'f':
@@ -459,18 +472,19 @@ int main(int argc, char *argv[])
                     break;
 
                     default:
+                        x = 0;
                     break;
                     }
                 break;
 
                 case 'w':
                     wavOutput = true;
-					if (argv[i][x] != '\0')
-					{
-						wavName = &argv[i][x];
-	                    while (argv[i][x] != '\0')
-		                    x++;
-					}
+                    if (argv[i][x] != '\0')
+                    {
+                        wavName = &argv[i][x];
+                        while (argv[i][x] != '\0')
+                            x++;
+                    }
                 break;
 
                 default:
@@ -606,46 +620,46 @@ main_restart:
     if (wavOutput)
     {
         WavFile *wavFile    = 0;
-		bool     deleteName = false;
+        bool     deleteName = false;
 
-		if (!wavName)
-		{
-			// Generate a name for the wav file
-			size_t  length, i;
+        if (!wavName)
+        {
+            // Generate a name for the wav file
+            size_t  length, i;
 
-			length = strlen (tuneInfo.dataFileName);
-			i      = length;
-			while (i > 0)
-			{
-				if (tuneInfo.dataFileName[--i] == '.')
-					break;
-			}
-			if (!i) i = length;
+            length = strlen (tuneInfo.dataFileName);
+            i      = length;
+            while (i > 0)
+            {
+                if (tuneInfo.dataFileName[--i] == '.')
+                    break;
+            }
+            if (!i) i = length;
         
 #ifdef HAVE_EXCEPTIONS
-	        wavName = new(nothrow) char[i + 10];
+            wavName = new(nothrow) char[i + 10];
 #else
-	        wavName = new char[i + 10];
+            wavName = new char[i + 10];
 #endif
-			if (!wavName)
-			{
-				displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
-				goto main_error;
-			}
+            if (!wavName)
+            {
+                displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
+                goto main_error;
+            }
 
             deleteName = true;
-			strcpy (wavName, tuneInfo.dataFileName);
-			// Prevent extension ".sid.wav"
-			wavName[i] = '\0';
+            strcpy (wavName, tuneInfo.dataFileName);
+            // Prevent extension ".sid.wav"
+            wavName[i] = '\0';
 
-			// Rev 1.12 (saw) - Modified to change wav name based on subtune
-			// Now we have a name
-			if (tuneInfo.songs > 1)
-				sprintf (&wavName[i], "[%u]", tuneInfo.currentSong);
-			strcat (&wavName[i], ".wav");
-		}
+            // Rev 1.12 (saw) - Modified to change wav name based on subtune
+            // Now we have a name
+            if (tuneInfo.songs > 1)
+                sprintf (&wavName[i], "[%u]", tuneInfo.currentSong);
+            strcat (&wavName[i], ".wav");
+        }
 
-		// lets create the wav object
+        // lets create the wav object
 #ifdef HAVE_EXCEPTIONS
         wavFile = new(nothrow) WavFile;
 #else
@@ -654,16 +668,16 @@ main_restart:
 
         if (!wavFile)
         {
-			if (deleteName)
-				SAFE_DELETE (wavName);
+            if (deleteName)
+                SAFE_DELETE (wavName);
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
 
         player.audioDrv = wavFile;
         nextBuffer = (char *) wavFile->open (audioCfg, wavName, true);
-		if (deleteName)
-			SAFE_DELETE (wavName);
+        if (deleteName)
+            SAFE_DELETE (wavName);
 
         if (!runtime)
             runtime = sidplay2.recordLength;
@@ -1070,8 +1084,9 @@ void displaySyntax (char* arg0)
         << " -t<num>      set play length in [m:]s format (0 is endless)" << endl
 
         << " -v           verbose output" << endl
-        << " -vf          force song speed by preventing speed fixing" << endl
-        << " -v<p|n>      set VIC PAL/NTSC clock speed (default: defined by song)" << endl
+        << " -vf          force current song speed by preventing speed fixing" << endl
+        << " -v<p|n>[f]   set VIC PAL/NTSC clock speed (default: defined by song)" << endl
+        << "              Append 'f' to force the new song speed, same as -vn -vf" << endl
 
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl
         << endl
