@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2002/11/28 20:35:06  s_a_white
+ *  Reduced number of thrown exceptions when dma occurs.
+ *
  *  Revision 1.28  2002/11/25 20:10:55  s_a_white
  *  A bus access failure should stop the CPU dead like the cycle never started.
  *  This is currently simulated using throw (execption handling) for now.
@@ -2336,7 +2339,7 @@ MOS6510::MOS6510 (EventContext *context)
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
 #   ifdef HAVE_EXCEPTIONS
-                    instr->cycle = new(nothrow) (void (MOS6510::*[cycleCount]) (void));
+                    instr->cycle = new(std::nothrow) (void (MOS6510::*[cycleCount]) (void));
 #   else
                     instr->cycle = new (void (MOS6510::*[cycleCount]) (void));
 #   endif
@@ -2428,7 +2431,7 @@ MOS6510::MOS6510 (EventContext *context)
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
 #   ifdef HAVE_EXCEPTIONS
-                    instr->cycle = new(nothrow) (void (MOS6510::*[cycleCount]) (void));
+                    instr->cycle = new(std::nothrow) (void (MOS6510::*[cycleCount]) (void));
 #   else
                     instr->cycle = new (void (MOS6510::*[cycleCount]) (void));
 #   endif
