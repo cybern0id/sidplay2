@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/12/11 19:38:13  s_a_white
+ *  More GCC3 Fixes.
+ *
  *  Revision 1.4  2001/07/14 16:53:29  s_a_white
  *  Updated to use new audio base class.
  *
@@ -47,7 +50,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #if defined(HAVE_NETBSD)
@@ -229,7 +232,7 @@ void *Audio_OSS::open (AudioConfig &cfg, const char *)
     ioctl (_audiofd, SNDCTL_DSP_GETBLKSIZE, &temp);
     cfg.bufSize = (unsigned) temp;
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(nothrow) int_least8_t[cfg.bufSize];
+    _sampleBuffer = new(std::nothrow) int_least8_t[cfg.bufSize];
 #else
     _sampleBuffer = new int_least8_t[cfg.bufSize];
 #endif

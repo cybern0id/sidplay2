@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/01/10 19:04:01  s_a_white
+ *  Interface changes for audio drivers.
+ *
  *  Revision 1.5  2001/12/11 19:38:13  s_a_white
  *  More GCC3 Fixes.
  *
@@ -26,7 +29,7 @@
 #ifdef   HAVE_IRIX
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 #include <stdio.h>
@@ -97,7 +100,7 @@ void *Audio_Irix::open (AudioConfig& cfg, const char *)
 
     // Allocate memory same size as buffer
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(nothrow) int_least8_t[blockSize];
+    _sampleBuffer = new(std::nothrow) int_least8_t[blockSize];
 #else
     _sampleBuffer = new int_least8_t[blockSize];
 #endif

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.13  2001/12/11 19:24:15  s_a_white
  *  More GCC3 Fixes.
  *
@@ -70,12 +73,12 @@
 #include "player.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new.h>
+#   include <new>
 #endif
 
 sidplay2::sidplay2 ()
 #ifdef HAVE_EXCEPTIONS
-: sidplayer (*(new(nothrow) SIDPLAY2_NAMESPACE::Player))
+: sidplayer (*(new(std::nothrow) SIDPLAY2_NAMESPACE::Player))
 #else
 : sidplayer (*(new SIDPLAY2_NAMESPACE::Player))
 #endif

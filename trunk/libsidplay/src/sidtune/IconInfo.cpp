@@ -34,13 +34,13 @@
 #include "sidendian.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 #include <string.h>
 #if defined(HAVE_STRSTREA_H)
-  #include <strstrea.h>
+#   include <strstrea.h>
 #else
-  #include <strstream.h>
+#   include <strstream.h>
 #endif
 
 // Amiga Workbench specific structures.
@@ -300,7 +300,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength
 
     // A separate safe buffer is used for each tooltype string.
 #ifdef HAVE_EXCEPTIONS
-    SmartPtr_sidtt<char> spCmpBuf(new(nothrow) char[safeBufferSize],safeBufferSize,true);
+    SmartPtr_sidtt<char> spCmpBuf(new(std::nothrow) char[safeBufferSize],safeBufferSize,true);
 #else
     SmartPtr_sidtt<char> spCmpBuf(new char[safeBufferSize],safeBufferSize,true);
 #endif

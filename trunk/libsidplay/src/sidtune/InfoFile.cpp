@@ -21,15 +21,15 @@
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#include <new.h>
+#   include <new>
 #endif
 #include <fstream.h>
 #include <iostream.h>
 #include <iomanip.h>
 #if defined(HAVE_STRSTREA_H)
-  #include <strstrea.h>
+#   include <strstrea.h>
 #else
-  #include <strstream.h>
+#   include <strstream.h>
 #endif
 #include <ctype.h>
 #include <string.h>
@@ -100,7 +100,7 @@ bool SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
 	
 		// Using a temporary instance of an input string chunk.
 #ifdef HAVE_EXCEPTIONS
-		char* pParseChunk = new(nothrow) char[parseChunkLen+1];
+        char* pParseChunk = new(std::nothrow) char[parseChunkLen+1];
 #else
 		char* pParseChunk = new char[parseChunkLen+1];
 #endif
