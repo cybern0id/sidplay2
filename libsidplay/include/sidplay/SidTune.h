@@ -49,19 +49,15 @@ const uint_least32_t SIDTUNE_MAX_FILELEN = 65536+2+0x7C;
 const int SIDTUNE_SPEED_VBI = 0;        // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
 
-const int SIDTUNE_CLOCK_UNKNOWN = 0;
-const int SIDTUNE_CLOCK_PAL     = 1;    // These are also used in the
-const int SIDTUNE_CLOCK_NTSC    = 2;    // emulator engine!
-const int SIDTUNE_CLOCK_ANY     =
-    SIDTUNE_CLOCK_PAL |
-    SIDTUNE_CLOCK_NTSC;                 // Compatible at both speeds
+const int SIDTUNE_CLOCK_UNKNOWN = 0x00;
+const int SIDTUNE_CLOCK_PAL     = 0x01; // These are also used in the
+const int SIDTUNE_CLOCK_NTSC    = 0x02; // emulator engine!
+const int SIDTUNE_CLOCK_ANY     = (SIDTUNE_CLOCK_PAL | SIDTUNE_CLOCK_NTSC);
 
-const int SIDTUNE_SIDMODEL_UNKNOWN = 0;
-const int SIDTUNE_SIDMODEL_6581    = 1; // These are also used in the
-const int SIDTUNE_SIDMODEL_8580    = 2; // emulator engine!
-const int SIDTUNE_SIDMODEL_ANY     =
-    SIDTUNE_SIDMODEL_6581 |
-    SIDTUNE_SIDMODEL_8580;              // Compatible on all sid revisions
+const int SIDTUNE_SIDMODEL_UNKNOWN = 0x00;
+const int SIDTUNE_SIDMODEL_6581    = 0x01; // These are also used in the
+const int SIDTUNE_SIDMODEL_8580    = 0x02; // emulator engine!
+const int SIDTUNE_SIDMODEL_ANY     = (SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580);
 
 // Required to export template
 #ifndef _SidTune_cpp_
@@ -312,10 +308,8 @@ class SID_EXTERN Tune
     static const char* txt_dataTooLong;
     static const char* txt_cantCreateFile;
     static const char* txt_fileIoError;
-    static const char* txt_PAL_VBI;
-    static const char* txt_PAL_CIA;
-    static const char* txt_NTSC_VBI;
-    static const char* txt_NTSC_CIA;
+    static const char* txt_VBI;
+    static const char* txt_CIA;
     static const char* txt_noErrors;
     static const char* txt_na;
 

@@ -50,10 +50,8 @@ const char* SidTune::txt_fileTooLong = "SIDTUNE ERROR: Input data too long";
 const char* SidTune::txt_dataTooLong = "SIDTUNE ERROR: Size of music data exceeds C64 memory";
 const char* SidTune::txt_cantCreateFile = "SIDTUNE ERROR: Could not create output file";
 const char* SidTune::txt_fileIoError = "SIDTUNE ERROR: File I/O error";
-const char* SidTune::txt_PAL_VBI = "50 Hz VBI (PAL)";
-const char* SidTune::txt_PAL_CIA = "CIA 1 Timer A (PAL)";
-const char* SidTune::txt_NTSC_VBI = "60 Hz VBI (NTSC)";
-const char* SidTune::txt_NTSC_CIA = "CIA 1 Timer A (NTSC)";
+const char* SidTune::txt_VBI = "VBI";
+const char* SidTune::txt_CIA = "CIA 1 Timer A";
 const char* SidTune::txt_noErrors = "No errors";
 const char* SidTune::txt_na = "N/A";
 
@@ -185,21 +183,12 @@ uint_least16_t SidTune::selectSong(const uint_least16_t selectedSong)
     // Retrieve song speed definition.
     info.songSpeed = songSpeed[song-1];
     info.clockSpeed = clockSpeed[song-1];
-    // Assign song speed description string depending on clock speed.
-    if (info.clockSpeed == SIDTUNE_CLOCK_PAL)
-    {
-        if (info.songSpeed == SIDTUNE_SPEED_VBI)
-            info.speedString = SidTune::txt_PAL_VBI;
-        else  //if info.songSpeed == SIDTUNE_SPEED_CIA
-            info.speedString = SidTune::txt_PAL_CIA;
-    }
-    else  //if (info.clockSpeed == SIDTUNE_CLOCK_NTSC)
-    {
-        if (info.songSpeed == SIDTUNE_SPEED_VBI)
-            info.speedString = SidTune::txt_NTSC_VBI;
-        else  //if info.songSpeed == SIDTUNE_SPEED_CIA
-            info.speedString = SidTune::txt_NTSC_CIA;
-    }
+	// Assign song speed description string depending on clock speed.
+    // Final speed description is available only after song init.
+    if (info.songSpeed == SIDTUNE_SPEED_VBI)
+        info.speedString = txt_VBI;
+    else
+        info.speedString = txt_CIA;
     return info.currentSong;
 }
 
