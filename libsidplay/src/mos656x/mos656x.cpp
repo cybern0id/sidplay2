@@ -36,8 +36,8 @@ const char *MOS656X::credit =
 
 
 MOS656X::MOS656X (EventContext *context)
-:event_context(*context),
- event_raster(this)
+:Event("VIC Raster"),
+ event_context(*context)
 {
     chip  (MOS6569);
 }
@@ -50,7 +50,7 @@ void MOS656X::reset ()
     raster_y     = yrasters - 1;
     raster_x     = xrasters - 1;
     bad_lines_enabled = false;
-    event_context.schedule (&event_raster, 1);
+    event_context.schedule (this, 1);
     m_accessClk  = 0;
 }
 
@@ -163,7 +163,7 @@ void MOS656X::trigger (int irq)
     }
 }
 
-void MOS656X::rasterEvent (void)
+void MOS656X::event (void)
 {
     event_clock_t delay = 1;
 
@@ -219,5 +219,5 @@ void MOS656X::rasterEvent (void)
 
     raster_x += delay;
     raster_x %= xrasters;
-    event_context.schedule (&event_raster, delay);
+    event_context.schedule (this, delay);
 }
