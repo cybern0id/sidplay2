@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2002/01/30 01:42:08  jpaana
+ *  Don't include config.h as it isn't always available and is included elsewhere already
+ *
  *  Revision 1.1  2002/01/28 22:35:20  s_a_white
  *  Initial Release.
  *
@@ -36,8 +39,9 @@ private:
     static uint m_instance;
     char   m_errorBuffer[100];
     std::vector<sidemu *> sidobjs;
+
 #ifdef HAVE_MSWINDOWS
-    init ();
+    int init (void);
 #endif
 
 public:
@@ -49,7 +53,6 @@ public:
     //    return values: 0 endless, positive is available sids.
     // use bool operator to determine error
     uint        devices (bool used);
-    uint        create  (uint sids);
     sidemu     *lock    (c64env *env, sid2_model_t model);
     void        unlock  (sidemu *device);
     void        remove  (void);
@@ -57,6 +60,8 @@ public:
     const char *credits (void);
     void        flush   (void);
     void        filter  (bool enable);
+
+    uint        create  (uint sids);
 };
 
 #endif // _hardsid_h_
