@@ -1,25 +1,20 @@
-/* include/config.h.  Generated automatically by configure.  */
-/* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
-/* config.h (template) */
+/* Setup for Microsoft Visual C++ Version 5 */
 #ifndef _config_h_
 #define _config_h_
 
-/* @FOO@ : Define or undefine value FOO as appropriate. */
+#define PACKAGE "libsidutils"
+#define VERSION "0.0.0"
 
 /* Operating System */
-#define HAVE_UNIX
+#define HAVE_MSWINDOWS
 
 /* Define if your C++ compiler implements exception-handling.  */
-#define HAVE_EXCEPTIONS 1
+/* #define HAVE_EXCEPTIONS */
 
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-/* #undef WORDS_BIGENDIAN */
+/* Define if you support file names longer than 14 characters.  */
+#define HAVE_LONG_FILE_NAMES
 
-/* Name of package */
-#define PACKAGE "libsidutils"
+/* Define if you have the <strstrea.h> header file.  */
+#define HAVE_STRSTREA_H
 
-/* Version number of package */
-#define VERSION "1.0.1"
-
-#endif /* _config_h_ */
+#endif // _config_h_
