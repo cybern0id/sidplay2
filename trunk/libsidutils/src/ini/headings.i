@@ -152,7 +152,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
             unsigned long crc32;
             unsigned char accel;
 
-            crc32     = createCrc32 (0, heading, strlen (heading));
+            crc32     = __ini_createCrc32 (heading, strlen (heading));
             pNew->crc = crc32;
             // Rev 1.3 - Add accelerator list
             accel = (unsigned char) crc32 & 0x0FF;
@@ -247,7 +247,7 @@ struct section_tag *__ini_locateHeading (ini_t *ini, char *heading)
 #ifdef INI_USE_HASH_TABLE
     // Rev 1.3 - Revised to use new accelerator
     unsigned long crc32;
-    crc32 = createCrc32 (0, heading, strlen (heading));
+    crc32 = __ini_createCrc32 (heading, strlen (heading));
 
     // Search for heading
     for (current_h = ini->sections[(unsigned char) crc32 & 0x0FF]; current_h; current_h = current_h->pNext_Acc)

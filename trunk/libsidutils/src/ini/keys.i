@@ -199,7 +199,7 @@ struct key_tag *__ini_createKey (ini_t *ini, char *key)
             unsigned long crc32;
             unsigned char accel;
 
-            crc32     = createCrc32 (0, key, strlen (key));
+            crc32     = __ini_createCrc32 (key, strlen (key));
             pNew->crc = crc32;
             // Rev 1.3 - Add accelerator list
             accel = (unsigned char) crc32 & 0x0FF;
@@ -291,7 +291,7 @@ struct key_tag *__ini_locateKey (ini_t *ini, char *key)
 #ifdef INI_USE_HASH_TABLE
     {   // Rev 1.3 - Added
         unsigned long crc32;
-        crc32 = createCrc32 (0, key, strlen (key));
+        crc32 = __ini_createCrc32 (key, strlen (key));
 
         // Search for key
         for (current_k = section->keys[(unsigned char) crc32 & 0x0FF]; current_k; current_k = current_k->pNext_Acc)
