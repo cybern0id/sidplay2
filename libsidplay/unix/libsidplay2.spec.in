@@ -48,7 +48,7 @@ for developing applications to use %{name}.
 touch resid-%{resid}/*
 
 %build
-%configure
+%configure --with-sidbuilders=%{builders}
 %make
 cd resid-%{resid}
 %configure --libdir=%{builders} --disable-shared

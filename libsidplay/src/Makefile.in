@@ -109,6 +109,7 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+builders = @builders@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 host = @host@
