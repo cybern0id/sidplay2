@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.8  2001/11/16 19:25:33  s_a_white
  *  Removed m_context as where getting mixed with parent class.
  *
@@ -79,21 +82,21 @@ void Player::mixer (void)
 inline
 int_least32_t Player::monoOutGenericLeftIn (uint_least8_t bits)
 {
-    return sid->output (bits) * m_leftVolume / VOLUME_MAX;
+    return sid[0]->output (bits) * m_leftVolume / VOLUME_MAX;
 }
 
 inline
 int_least32_t Player::monoOutGenericStereoIn (uint_least8_t bits)
 {
     // Convert to mono
-    return ((sid->output (bits) * m_leftVolume) +
-        (sid2->output (bits) * m_rightVolume)) / (VOLUME_MAX * 2);
+    return ((sid[0]->output (bits) * m_leftVolume) +
+        (sid[1]->output (bits) * m_rightVolume)) / (VOLUME_MAX * 2);
 }
 
 inline
 int_least32_t Player::monoOutGenericRightIn (uint_least8_t bits)
 {
-    return sid2->output (bits) * m_rightVolume / VOLUME_MAX;
+    return sid[1]->output (bits) * m_rightVolume / VOLUME_MAX;
 }
 
 

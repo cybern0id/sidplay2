@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2002/01/14 23:16:27  s_a_white
+ *  Prevent multiple initialisations if already stopped.
+ *
  *  Revision 1.33  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -154,7 +157,6 @@ const char  *Player::ERR_UNSUPPORTED_FREQ      = "SIDPLAYER ERROR: Unsupported s
 const char  *Player::ERR_UNSUPPORTED_PRECISION = "SIDPLAYER ERROR: Unsupported sample precision.";
 const char  *Player::ERR_MEM_ALLOC             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 const char  *Player::ERR_UNSUPPORTED_MODE      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
-const char  *Player::ERR_REQUIRES_REAL_C64     = "SIDPLAYER ERROR: Song requires Real C64 mode.";
 
 const char  *Player::credit[];
 
@@ -189,8 +191,10 @@ Player::Player (void)
     mos6510.setEnvironment (this);
 
     // SID Initialise
-    sid  = &xsid;
-    sid2 = &nullsid;
+    for (int i = 0; i < SID2_MAX_SIDS; i++)
+        sid[i] = &nullsid;
+    xsid.emulation(sid[0]);
+    sid[0] = &xsid;
 
     // Setup exported info
     m_info.credits         = credit;
@@ -201,12 +205,13 @@ Player::Player (void)
     m_info.version         = VERSION;
     m_info.eventContext    = &context();
     // Number of SIDs support by this library
-    m_info.maxsids         = 2;
+    m_info.maxsids         = SID2_MAX_SIDS;
+    m_info.environment     = sid2_envR;
 
     // Configure default settings
     m_cfg.clockForced     = false;
     m_cfg.clockSpeed      = SID2_CLOCK_CORRECT;
-    m_cfg.environment     = sid2_envR;
+    m_cfg.environment     = m_info.environment;
     m_cfg.forceDualSids   = false;
     m_cfg.frequency       = SID2_DEFAULT_SAMPLING_FREQ;
     m_cfg.optimisation    = SID2_DEFAULT_OPTIMISATION;
@@ -289,24 +294,16 @@ int Player::load (SidTune *tune)
         m_info.tuneInfo = NULL;
         return 0;
     }
-
-    m_tune->getInfo(m_tuneInfo);
-    if ((m_cfg.environment   != sid2_envR) &&
-        (m_tuneInfo.playAddr == 0xffff))
-    {
-        m_errorString = ERR_REQUIRES_REAL_C64;
-        return -1;
-    }
     m_info.tuneInfo = &m_tuneInfo;
 
     // Un-mute all voices
     xsid.mute (false);
 
-    uint_least8_t i = 3;
-    while (i--)
+    for (int i = 0; i < SID2_MAX_SIDS; i++)
     {
-        sid->voice  (i, 0, false);
-        sid2->voice (i, 0, false);
+        uint_least8_t v = 3;
+        while (v--)
+            sid[i]->voice (v, 0, false);
     }
 
     // Must re-configure on fly for stereo support!
@@ -407,7 +404,7 @@ void Player::evalBankSelect (uint8_t data)
 
 uint8_t Player::readMemByte_player (uint_least16_t addr)
 {
-    if (m_environment == sid2_envR)
+    if (m_info.environment == sid2_envR)
         return readMemByte_sidplaybs (addr);
     return readMemByte_plain (addr);
 }
@@ -426,7 +423,7 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        if (m_cfg.environment == sid2_envR)
+        if (m_info.environment == sid2_envR)
         {
             switch (endian_16hi8 (addr))
             {
@@ -458,8 +455,8 @@ uint8_t Player::readMemByte_playsid (uint_least16_t addr)
 
     // Read real sid for these
     if ((addr & 0xff00) == m_sidAddress[1])
-        return sid2->read ((uint8_t) addr);
-    return sid->read ((uint8_t) tempAddr);
+        return sid[1]->read ((uint8_t) addr);
+    return sid[0]->read ((uint8_t) tempAddr);
 }
 
 uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
@@ -538,7 +535,7 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
     // Not SID ?
     if (( tempAddr & 0xff00 ) != 0xd400 )
     {
-        if (m_cfg.environment == sid2_envR)
+        if (m_info.environment == sid2_envR)
         {
             switch (endian_16hi8 (addr))
             {
@@ -587,13 +584,13 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
         // Support dual sid
         if ((addr & 0xff00) == m_sidAddress[1])
         {
-            sid2->write (addr & 0xff, data);
+            sid[1]->write (addr & 0xff, data);
             // Prevent sid write accessing other sid
             // if not doing mono to stereo conversion.
             if (m_sidAddress[1] != m_sidAddress[0])
                 return;
         }
-        sid->write (tempAddr & 0xff, data);
+        sid[0]->write (tempAddr & 0xff, data);
     }
 }
 
@@ -629,16 +626,19 @@ void Player::writeMemByte_sidplay (uint_least16_t addr, uint8_t data)
 // These must be available for use:
 void Player::envReset (void)
 {
+    int i;
+
     // Select Sidplay1 compatible CPU or real thing
     cpu = &sid6510;
-    sid6510.environment (m_cfg.environment);
+    sid6510.environment (m_info.environment);
     if (m_tuneInfo.playAddr == 0xffff)
         cpu = &mos6510;
 
     m_scheduler.reset ();
-    sid->reset  ();
-    sid2->reset ();
-    if (m_cfg.environment == sid2_envR)
+    for (i = 0; i < SID2_MAX_SIDS; i++)
+        sid[i]->reset ();
+
+    if (m_info.environment == sid2_envR)
     {
         cia.reset  ();
         cia2.reset ();
@@ -656,14 +656,14 @@ void Player::envReset (void)
     memset (m_ram, 0, 0x10000);
     memset (m_rom, 0, 0x10000);
     memset (m_rom + 0xE000, RTSn, 0x2000);
-    if (m_environment != sid2_envPS)
+    if (m_info.environment != sid2_envPS)
         memset (m_rom + 0xA000, RTSn, 0x2000);
 
     m_ram[0] = 0x2F;
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
     evalBankSelect(0x37);
 
-    if (m_cfg.environment == sid2_envR)
+    if (m_info.environment == sid2_envR)
     {   // Install some basic rom functionality
         /* EA31 IRQ return: jmp($0310). */
         m_rom[0xea31] = JMPw;
@@ -710,8 +710,8 @@ void Player::envReset (void)
         m_ram[0x02a6] = 0;
 
     // Set master volume to fix some bad songs
-    sid->write  (0x18, 0x0f);
-    sid2->write (0x18, 0x0f);
+    for (i = 0; i < SID2_MAX_SIDS; i++)
+        sid[i]->write (0x18, 0x0f);
 }
 
 uint8_t Player::envReadMemByte (uint_least16_t addr)
@@ -731,7 +731,7 @@ uint8_t Player::envReadMemDataByte (uint_least16_t addr)
 
 bool Player::envCheckBankJump (uint_least16_t addr)
 {
-    switch (m_environment)
+    switch (m_info.environment)
     {
     case sid2_envBS:
         if (addr >= 0xA000)

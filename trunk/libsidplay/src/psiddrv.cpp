@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/12/21 21:54:14  s_a_white
+ *  Improved compatibility if Sidplay1 bankswitching mode.
+ *
  *  Revision 1.7  2001/12/13 08:28:08  s_a_white
  *  Added namespace support to fix problems with xsidplay.
  *
@@ -94,7 +97,7 @@ int Player::psidDrvInstall ()
         memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size - 13);
 
         // Setup hardware vectors
-        switch (m_cfg.environment)
+        switch (m_info.environment)
         {
         case sid2_envBS:
             memcpy (&m_rom[0xfffa], &m_ram[0x0318],   2);
@@ -111,7 +114,7 @@ int Player::psidDrvInstall ()
 
         // Support older modes ability to ignore the IRQ
         // vectors if valid play
-        if ((m_cfg.environment != sid2_envR) && m_tuneInfo.playAddr)
+        if ((m_info.environment != sid2_envR) && m_tuneInfo.playAddr)
         {   // Get the addr of the sidplay vector
             uint_least16_t addr = endian_little16(&reloc_driver[2]);
             // Get the brkjob vector.  Add 3 to get the irqjob vector
