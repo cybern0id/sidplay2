@@ -171,18 +171,23 @@ void ReSID::sampling (uint_least32_t freq)
 }
 
 // Set execution environment and lock sid to it
-void ReSID::lock (c64env *env)
+bool ReSID::lock (c64env *env)
 {
     if (env == NULL)
     {
+        if (!m_locked)
+            return false;
         m_locked  = false;
         m_context = NULL;
     }
     else
     {
+        if (m_locked)
+            return false;
         m_locked  = true;
         m_context = &env->context ();
     }
+    return true;
 }
 
 // Set the emulated SID model
