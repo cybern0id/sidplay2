@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/03/01 23:47:00  s_a_white
+ *  Support for sample mode to be selected at runtime.
+ *
  *  Revision 1.4  2001/02/08 20:58:01  s_a_white
  *  Help screen bug fix for default precision and optimisation, which were printed
  *  as characters.
@@ -126,7 +129,7 @@ static inline int_least32_t generateMusic (AudioConfig &cfg, void *buffer);
 int main(int argc, char *argv[])
 {
     sid2_playback_t playback      = sid2_mono;
-    sid2_env_t      playerMode    = sid2_envBS;
+    sid2_env_t      playerMode    = sid2_envR;
     bool            wavOutput     = false;
     uint            sidFile       = 0;
     void           *nextBuffer    = NULL;
@@ -577,6 +580,7 @@ main_restart:
     }
 
     player.lib.getInfo (&player.info);
+    tuneInfo = player.info.tuneInfo;
     // cerr << (char) 12 << '\b'; // New Page
     displayTable (sid2_tableStart);
     displayTable (sid2_tableMiddle);
@@ -644,15 +648,13 @@ main_restart:
     {
         displayTable (sid2_tableSeperator);
         displayTable (sid2_tableMiddle);
-        cerr << " Addresses    : ";
-        cerr << "Load=$" << hex << setw(4) << setfill('0')
-             << tuneInfo.loadAddr;
-        cerr << ", Init=$";
-        cerr << hex << setw(4) << setfill('0')
-             << tuneInfo.initAddr;
-        cerr << ", Play=$";
-        cerr << hex << setw(4) << setfill('0')
-             << tuneInfo.playAddr << dec << endl;
+        cerr << " Addresses    : " << hex;
+		cerr.setf(ios::uppercase);
+        cerr << "Load=$"   << setw(4) << setfill('0') << tuneInfo.loadAddr;
+        cerr << ", Init=$" << setw(4) << setfill('0') << tuneInfo.initAddr;
+        cerr << ", Play=$" << setw(4) << setfill('0') << tuneInfo.playAddr;
+		cerr << dec << endl;
+        cerr.unsetf(ios::uppercase);
 
         displayTable (sid2_tableMiddle);
         cerr << " SID Filters  : ";
@@ -895,7 +897,7 @@ void displaySyntax (char* arg0)
         << " -v<p|n>      set VIC PAL/NTSC clock speed (default: defined by song)" << endl
 
         << " -w           create wav file (default: <datafile>.wav)" << endl
-//        << " -w<name>     explicitly defines wav output name" << endl
+//        << " -w[name]     explicitly defines wav output name" << endl
         << endl
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
