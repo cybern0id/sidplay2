@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2004/01/08 08:59:20  s_a_white
+ *  Support the TOD frequency divider.
+ *
  *  Revision 1.14  2004/01/06 21:28:27  s_a_white
  *  Initial TOD support (code taken from vice)
  *
@@ -76,6 +79,7 @@
  *
  ***************************************************************************/
 
+#include <stdio.h>
 #include <string.h>
 #include "sidendian.h"
 #include "mos6526.h"
@@ -92,10 +96,12 @@ enum
 
 enum
 {
-    TOD_TEN    = 8,
+    TOD_TEN = 8,
     TOD_SEC = 9,
     TOD_MIN = 10,
-    TOD_HR  = 11
+    TOD_HR  = 11,
+    SDR     = 12,
+    CRA     = 14
 };
 
 const char *MOS6526::credit =
@@ -126,7 +132,9 @@ void MOS6526::reset (void)
 {
     ta  = ta_latch = 0xffff;
     tb  = tb_latch = 0xffff;
-    cra = crb = 0;
+    cra = crb = sdr_out = 0;
+    sdr_count = 0;
+    sdr_buffered = false;
     // Clear off any IRQs
     trigger (0);
     cnt_high  = true;
@@ -174,12 +182,23 @@ uint8_t MOS6526::read (uint_least8_t addr)
     switch (addr)
     {
     case 0x0: // Simulate a serial port
-        dpa = ((dpa << 1) | (dpa >> 7)) & 0xff;
-        if (dpa & 0x80)
-            return 0xff;
-        return 0x3f;
+        return 0x7f;
     case 0x1:
-        return 0xff;
+    {
+        uint8_t data = 0xff;
+        // Timers can appear on the port
+        if (cra & 0x02)
+        {
+            data &= ~0x40;
+#warning fix me
+        }
+        if (crb & 0x02)
+        {
+            data &= ~0x80;
+#warning fix me
+        }
+        return data;
+    }
     case 0x4: return endian_16lo8 (ta);
     case 0x5: return endian_16hi8 (ta);
     case 0x6: return endian_16lo8 (tb);
@@ -210,7 +229,7 @@ uint8_t MOS6526::read (uint_least8_t addr)
         return ret;
     }
 
-    case 0x0e: return cra;
+    case CRA:  return cra;
     case 0x0f: return crb;
     default:  return regs[addr];
     }
@@ -241,9 +260,12 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
     switch (addr)
     {
-    case 0x4: endian_16lo8 (ta_latch, data); break;
+    case 0x4: endian_16lo8 (ta_latch, data);
+      printf ("CIA-TAL: %d, %02x\n", event_context.getTime (m_phase), data);
+        break;
     case 0x5:
         endian_16hi8 (ta_latch, data);
+        printf ("CIA-TAH: %d, %02x\n", event_context.getTime (m_phase), data);
         if (!(cra & 0x01)) // Reload timer if stopped
             ta = ta_latch;
     break;
@@ -283,6 +305,11 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
             trigger (INTERRUPT_ALARM);
         break;
 
+    case SDR:
+        if (cra & 0x40)
+            sdr_buffered = true;
+        break;
+
     case 0xd:
         if (data & 0x80)
             icr |= data & 0x1f;
@@ -291,22 +318,26 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
         trigger (idr);
     break;
 
-    case 0x0e:
+    case CRA:
         // Check for forced load
         cra = data;
+      printf ("CIA-CRA: %d\n", event_context.getTime (m_phase));
         if (data & 0x10)
         {
+      printf ("CIA-CRA: Forced\n");
             cra &= (~0x10);
             ta   = ta_latch;
         }
 
         if ((data & 0x21) == 0x01)
         {   // Active
+      printf ("CIA-CRA: Started\n");
             event_context.schedule (&event_ta, (event_clock_t) ta + 1,
                                     m_phase);
         } else
         {   // Inactive
             ta = ta_latch;
+      printf ("CIA-CRA: Canceled\n");
             event_context.cancel (&event_ta);
         }
     break;
@@ -343,6 +374,7 @@ void MOS6526::trigger (int irq)
         if (idr & INTERRUPT_REQUEST)
             interrupt (false);
         idr = 0;
+      printf ("CIA-IDR: Interrupts cleared\n");
         return;
     }
 
@@ -355,6 +387,7 @@ void MOS6526::trigger (int irq)
             interrupt (true);
         }
     }
+      printf ("CIA-IDR: Interrupts pending\n");
 }
 
 void MOS6526::ta_event (void)
@@ -382,6 +415,22 @@ void MOS6526::ta_event (void)
     }
     trigger (INTERRUPT_TA);
     
+    // Handle serial port
+    if (regs[CRA] & 0x40)
+    {
+        if (sdr_count)
+        {
+            if (!--sdr_count)
+                trigger (INTERRUPT_SP);
+        }
+        if (!sdr_count && sdr_buffered)
+        {
+            sdr_out = regs[SDR];
+            sdr_buffered = false;
+            sdr_count = 16; // Output rate 8 bits at ta / 2
+        }
+    }
+
     switch (crb & 0x61)
     {
     case 0x01: tb -= cycles; break;
