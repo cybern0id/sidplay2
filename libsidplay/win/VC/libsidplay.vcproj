@@ -330,6 +330,9 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\..\src\sidtune\p00.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\sidtune\PP20.cpp">
 					<FileConfiguration
 						Name="Release|Win32">
@@ -544,6 +547,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;cc;cxx;c;i">
+			<File
+				RelativePath="..\..\src\char.bin">
+			</File>
 			<File
 				RelativePath="..\..\src\config.cpp">
 				<FileConfiguration

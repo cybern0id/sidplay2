@@ -185,6 +185,10 @@ SOURCE=..\..\src\sidtune\MUS.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\sidtune\p00.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\sidtune\PP20.cpp
 # End Source File
 # Begin Source File
@@ -336,6 +340,10 @@ SOURCE=..\..\include\sidplay\sidusage.h
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;cc;cxx;c;i"
+# Begin Source File
+
+SOURCE=..\..\src\char.bin
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\src\config.cpp
