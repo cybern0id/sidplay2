@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/07/14 13:04:34  s_a_white
+ *  Accumulator is now unsigned, which improves code readability.
+ *
  *  Revision 1.6  2001/03/09 22:27:46  s_a_white
  *  Speed optimisation update.
  *
@@ -63,12 +66,6 @@ void MOS6510::DumpState (void)
     uint8_t        opcode, data;
     uint_least16_t operand, address;
 
-    // Only display decode instruction when enough cycles have
-    // been read to make sense of the data
-    if (cycleCount < 0)
-        return;
-
-    if (cycleCount != instrCurrent->lastAddrCycle) return;
     printf(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction\n");
     printf("%04x ",   instrStartPC);
     printf("%u ",     interrupts.irqs);
