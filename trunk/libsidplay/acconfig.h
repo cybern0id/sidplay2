@@ -44,8 +44,6 @@
 /* Define to disable RESID */
 #undef DISABLE_RESID
 
-/* Define to use HARDSID Soundcard */
-#undef HAVE_HARDSID
 @TOP@
 
 /* Define if the C++ compiler supports BOOL */

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/01/18 22:14:38  s_a_white
+ *  Added HardSID configure options and tests
+ *
  *  Revision 1.4  2000/12/13 12:00:55  mschwendt
  *  Fix: HAVE_*_RESID is defined in config.h, _NOT_ sidconfig.h
  *
@@ -41,7 +44,3 @@
 #endif
 
 #endif // DISABLE_RESID
-
-#ifdef HAVE_HARDSID
-#   include "hardsid/hardsid.h"
-#endif

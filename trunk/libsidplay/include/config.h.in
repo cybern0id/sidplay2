@@ -45,8 +45,6 @@
 /* Define to disable RESID */
 #undef DISABLE_RESID
 
-/* Define to use HARDSID Soundcard */
-#undef HAVE_HARDSID
 
 /* Define if you support file names longer than 14 characters.  */
 #undef HAVE_LONG_FILE_NAMES
