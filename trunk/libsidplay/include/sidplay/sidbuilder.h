@@ -19,7 +19,7 @@
 #define _sidbuilder_h_
 
 #include <vector>
-#include "sidtypes.h"
+#include "sid2types.h"
 #include "component.h"
 #include "c64env.h"
 
