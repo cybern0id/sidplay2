@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2002/03/12 18:48:03  s_a_white
+ *  Tidied illegal instruction debug print out.
+ *
  *  Revision 1.22  2001/12/11 19:24:15  s_a_white
  *  More GCC3 Fixes.
  *
@@ -103,6 +106,7 @@ const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
   0x2f,0x2d,0x2d,0x7c,0x7c,0x7c,0x7c,0x2d,0x2d,0x2d,0x2f,0x5c,0x5c,0x2f,0x2f,0x23
 };
 */
+
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
@@ -165,6 +169,10 @@ void MOS6510::PushSR (void)
 // increment S, Pop P off stack
 void MOS6510::PopSR (void)
 {
+    bool newFlagI, oldFlagI;
+    oldFlagI = getFlagI ();
+
+    // Get status register off stack
     Register_StackPointer++;
     {
         uint_least16_t addr = Register_StackPointer;
@@ -176,6 +184,13 @@ void MOS6510::PopSR (void)
     setFlagV (Register_Status   & (1 << SR_OVERFLOW));
     setFlagZ (!(Register_Status & (1 << SR_ZERO)));
     setFlagC (Register_Status   & (1 << SR_CARRY));
+
+    // I flag change is delayed by 1 instruction
+    newFlagI = getFlagI ();
+    interrupts.irqLatch = oldFlagI ^ newFlagI;
+    // Check to see if interrupts got re-enabled
+    if (!newFlagI && interrupts.irqs)
+        interrupts.irqRequest = true;
 }
 
 
@@ -196,9 +211,9 @@ enum
 enum
 {
     iNONE = 0,
-    iRST  = (1 << oRST),
-    iNMI  = (1 << oNMI),
-    iIRQ  = (1 << oIRQ)
+    iRST  = 1 << oRST,
+    iNMI  = 1 << oNMI,
+    iIRQ  = 1 << oIRQ
 };
 
 void MOS6510::triggerRST (void)
@@ -216,9 +231,11 @@ void MOS6510::triggerNMI (void)
 void MOS6510::triggerIRQ (void)
 {   // IRQ Suppressed
     if (!getFlagI ())
-        interrupts.pending |= iIRQ;
+        interrupts.irqRequest = true;
     if (!interrupts.irqs++)
         interrupts.irqClock = eventContext.getTime ();
+
+   printf ("IRQ receive clock cycle %u - %u\n", cycleCount, interrupts.irqClock);
 
     if (interrupts.irqs > iIRQSMAX)
     {
@@ -233,55 +250,57 @@ void MOS6510::clearIRQ (void)
     {   
         if (!(--interrupts.irqs))
         {   // Clear off the interrupts
-            interrupts.pending  &= (~iIRQ);
+            interrupts.irqRequest = false;
         }
     }
 }
 
-void MOS6510::interruptPending (void)
+bool MOS6510::interruptPending (void)
 {
-    int_least8_t       offset;
-    const int_least8_t offTable[] = {oNONE, oRST, oNMI, oRST,
-                                     oIRQ,  oRST, oNMI, oRST};
+    int_least8_t offset, pending;
+    static const int_least8_t offTable[] = {oNONE, oRST, oNMI, oRST,
+                                            oIRQ,  oRST, oNMI, oRST};
+    // Update IRQ pending
+    if (!interrupts.irqLatch)
+    {
+        interrupts.pending &= ~iIRQ;
+        if (interrupts.irqRequest)
+            interrupts.pending |= iIRQ;
+    }
 
-    // Service the highest priority interrupt
-    offset = offTable[interrupts.pending];
+    pending = interrupts.pending;
 MOS6510_interruptPending_check:
+    // Service the highest priority interrupt
+    offset = offTable[pending];
     switch (offset)
     {
     case oNONE:
-        FetchOpcode ();
-        return;
+        return false;
 
     case oNMI:
     {
         // Try to determine if we should be processing the NMI yet
-           event_clock_t cycles = eventContext.getTime (interrupts.nmiClock);
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClock);
         if (cycles >= interrupts.delay)
         {
             interrupts.pending &= ~iNMI;
             break;
         }
 
-        // No check for other interrupts
-        if (interrupts.pending & iIRQ)
-        {
-            offset = oIRQ;
-            goto MOS6510_interruptPending_check;
-        }
-        offset = oNONE;
+        // NMI delayed so check for other interrupts
+        pending &= ~iNMI;
         goto MOS6510_interruptPending_check;
     }
-        
+
     case oIRQ:
     {
         // Try to determine if we should be processing the IRQ yet
-           event_clock_t cycles = eventContext.getTime (interrupts.irqClock);
+        event_clock_t cycles = eventContext.getTime (interrupts.irqClock);
         if (cycles >= interrupts.delay)
             break;
 
-        // Nope, can't do it yet
-        offset = oNONE;
+        // NMI delayed so check for other interrupts
+        pending &= ~iIRQ;
         goto MOS6510_interruptPending_check;
     }
 
@@ -310,10 +329,10 @@ MOS6510_interruptPending_check:
 #endif
 
     // Start the interrupt
-    interrupts.delay = MOS6510_INTERRUPT_DELAY;
-    instrCurrent     = &interruptTable[offset];
-    procCycle        = instrCurrent->cycle;
-    cycleCount       = 0;
+    instrCurrent = &interruptTable[offset];
+    procCycle    = instrCurrent->cycle;
+    cycleCount   = 0;
+    return true;
 }
 
 void MOS6510::RSTRequest (void)
@@ -336,9 +355,7 @@ void MOS6510::IRQRequest (void)
 {
     PushSR   (false);
     setFlagI (true);
-    // No need to keep this pending, disable them
-    // and re-enable them later
-    interrupts.pending &= (~iIRQ);
+    interrupts.irqRequest = false;
 }
 
 void MOS6510::IRQ1Request (void)
@@ -350,6 +367,12 @@ void MOS6510::IRQ2Request (void)
 {
     endian_16hi8  (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFF));
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
+}
+
+void MOS6510::NextInstr (void)
+{
+    if (!interruptPending ())
+        FetchOpcode ();
 }
 
 
@@ -364,7 +387,10 @@ void MOS6510::IRQ2Request (void)
 // Fetch opcode, increment PC
 // Addressing Modes: All
 void MOS6510::FetchOpcode (void)
-{
+{   // On new instruction all interrupt delays are reset
+    interrupts.delay    = MOS6510_INTERRUPT_DELAY;
+    interrupts.irqLatch = false;
+
     instrStartPC  = endian_32lo16 (Register_ProgramCounter++);
     instrOpcode   = envReadMemByte (instrStartPC);
     // Convert opcode to pointer in instruction table
@@ -647,13 +673,19 @@ void MOS6510::brk_instr (void)
 {
     PushSR   ();
     setFlagI (true);
-    // No need to keep this pending, disable them
-    // and re-enable them later
-    interrupts.pending &= (~iIRQ);
+    interrupts.irqRequest = false;
 
-    // Check for an NMI, this is a CPU bug really
+    // Check for an NMI, and switch over if pending
     if (interrupts.pending & iNMI)
-        procCycle = instrCurrent->cycle;
+    {
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClock);
+        if (cycles >= interrupts.delay)
+        {
+            interrupts.pending &= ~iNMI;
+            instrCurrent = &interruptTable[oNMI];
+            procCycle    = &instrCurrent->cycle[cycleCount];
+        }
+    }
 }
 
 void MOS6510::cld_instr (void)
@@ -663,9 +695,13 @@ void MOS6510::cld_instr (void)
 
 void MOS6510::cli_instr (void)
 {
+    bool oldFlagI = getFlagI ();
     setFlagI (false);
+    // I flag change is delayed by 1 instruction
+    interrupts.irqLatch = oldFlagI ^ getFlagI ();
+    // Check to see if interrupts got re-enabled
     if (interrupts.irqs)
-        interrupts.pending |= iIRQ;
+        interrupts.irqRequest = true;
 }
 
 void MOS6510::jmp_instr (void)
@@ -690,17 +726,9 @@ void MOS6510::pha_instr (void)
     Register_StackPointer--;
 }
 
-void MOS6510::plp_instr (void)
-{
-    PopSR ();
-    // Check to see if interrupts got re-enabled
-    if (!getFlagI ())
-    {   // Yep, now see if any Women (erm IRQs) require servicing
-        if (interrupts.irqs)
-            interrupts.pending |= iIRQ;
-    }
-}
-
+/* RTI does not delay the IRQ I flag change as it is set 3 cycles before
+ * the end of the opcode, and thus the 6510 has enough time to call the
+ * interrupt routine as soon as the opcode ends, if necessary. */
 void MOS6510::rti_instr (void)
 {
 #ifdef MOS6510_DEBUG
@@ -709,12 +737,7 @@ void MOS6510::rti_instr (void)
 #endif
 
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
-    // Check to see if interrupts got re-enabled
-    if (!getFlagI ())
-    {   // Yep, ok check if they need servicing
-        if (interrupts.irqs)
-            interrupts.pending |= iIRQ;
-    }
+    interrupts.irqLatch = false;
 }
 
 void MOS6510::rts_instr (void)
@@ -760,10 +783,11 @@ void MOS6510::sed_instr (void)
 
 void MOS6510::sei_instr (void)
 {
+    bool oldFlagI = getFlagI ();
     setFlagI (true);
-    // No need to keep this pending, disable them
-    // and re-enable them later
-    interrupts.pending &= (~iIRQ);
+    // I flag change is delayed by 1 instruction
+    interrupts.irqLatch   = oldFlagI ^ getFlagI ();
+    interrupts.irqRequest = false;
 }
 
 void MOS6510::sta_instr (void)
@@ -976,9 +1000,9 @@ void MOS6510::asla_instr (void)
     setFlagsNZ (Register_Accumulator <<= 1);
 }
 
-void MOS6510::bcc_instr (void)
+void MOS6510::branch_instr (bool condition)
 {
-    if (!getFlagC ())
+    if (condition)
 #ifdef MOS6510_ACCURATE_CYCLES
     {
         uint8_t page;
@@ -987,59 +1011,33 @@ void MOS6510::bcc_instr (void)
 
         // Handle page boundary crossing
         if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
+        {
+            cycleCount++;
+            interrupts.delay++;
+        }
     }
     else
     {
         cycleCount += 2;
     }
 #else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
+    Register_ProgramCounter += (int8_t) Cycle_Data;
 #endif
+}
+
+void MOS6510::bcc_instr (void)
+{
+    branch_instr (!getFlagC ());
 }
 
 void MOS6510::bcs_instr (void)
 {
-    if (getFlagC ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (getFlagC ());
 }
 
 void MOS6510::beq_instr (void)
 {
-    if (getFlagZ ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (getFlagZ ());
 }
 
 void MOS6510::bit_instr (void)
@@ -1051,112 +1049,27 @@ void MOS6510::bit_instr (void)
 
 void MOS6510::bmi_instr (void)
 {
-    if (getFlagN ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (getFlagN ());
 }
 
 void MOS6510::bne_instr (void)
 {
-    if (!getFlagZ ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (!getFlagZ ());
 }
 
 void MOS6510::bpl_instr(void)
 {
-    if (!getFlagN ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (!getFlagN ());
 }
 
 void MOS6510::bvc_instr (void)
 {
-    if (!getFlagV ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (!getFlagV ());
 }
 
 void MOS6510::bvs_instr (void)
 {
-    if (getFlagV ())
-#ifdef MOS6510_ACCURATE_CYCLES
-    {
-        uint8_t page;
-        page = endian_32hi8 (Register_ProgramCounter);
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-
-        // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-           cycleCount++;
-    }
-    else
-    {
-        cycleCount += 2;
-    }
-#else
-        Register_ProgramCounter += (int8_t) Cycle_Data;
-#endif
+    branch_instr (getFlagV ());
 }
 
 void MOS6510::clc_instr (void)
@@ -2050,7 +1963,7 @@ MOS6510::MOS6510 (EventContext *context)
 #ifdef MOS6510_ACCURATE_CYCLES
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
 #endif
-                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::plp_instr;
+                cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::PopSR;
                 cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::WasteCycle;
             break;
 
@@ -2222,7 +2135,7 @@ MOS6510::MOS6510 (EventContext *context)
                 exit(1);
             }
  
-            cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::interruptPending;
+            cycleCount++; if (pass) procCycle[cycleCount] = &MOS6510::NextInstr;
             cycleCount++;
             if (!pass)
             {   // Pass 1 - Allocate Memory
@@ -2353,7 +2266,7 @@ MOS6510::MOS6510 (EventContext *context)
 
     Cycle_EffectiveAddress = 0;
     Cycle_Data             = 0;
-    fetchCycle[0]          = &MOS6510::interruptPending;
+    fetchCycle[0]          = &MOS6510::NextInstr;
 
     dodump = false;
     Initialise ();
@@ -2408,27 +2321,29 @@ void MOS6510::Initialise (void)
     // Set PC to some value
     Register_ProgramCounter = 0;
     // IRQs pending check
+    interrupts.irqLatch   = false;
+    interrupts.irqRequest = false;
     if (interrupts.irqs)
-        interrupts.pending |= iIRQ;
+        interrupts.irqRequest = true;
 }
 
 //-------------------------------------------------------------------------//
 // Reset CPU Emulation                                                     //
 void MOS6510::reset (void)
 {
-    // Internal Stuff
-    Initialise ();
-
     // Reset Interrupts
     interrupts.pending = false;
     interrupts.irqs    = 0;
+    interrupts.delay   = MOS6510_INTERRUPT_DELAY;
+
+    // Internal Stuff
+    Initialise ();
 
     // Requires External Bits
     // Read from reset vector for program entry point
     endian_16lo8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFC));
     endian_16hi8 (Cycle_EffectiveAddress, envReadMemDataByte (0xFFFD));
     Register_ProgramCounter = Cycle_EffectiveAddress;
-    interrupts.delay        = MOS6510_INTERRUPT_DELAY;
 //    filepos = 0;
 }
 

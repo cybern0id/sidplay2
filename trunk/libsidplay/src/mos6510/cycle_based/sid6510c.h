@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2002/03/12 18:47:13  s_a_white
+ *  Made IRQ in sidplay1 compatibility modes behaves like JSR.  This fixes tunes
+ *  that have kernel switched out.
+ *
  *  Revision 1.11  2002/02/07 18:02:10  s_a_white
  *  Real C64 compatibility fixes. Debug of BRK works again. Fixed illegal
  *  instructions to work like sidplay1.
@@ -63,8 +67,10 @@ class SID6510: public MOS6510
 {
 private:
     // Sidplay Specials
-    bool       m_sleeping;
-    sid2_env_t m_mode;
+    bool          m_sleeping;
+    sid2_env_t    m_mode;
+    event_clock_t m_delayClk, m_delayCycles;
+    bool          m_framelock;
 
 public:
     SID6510 (EventContext *context);
@@ -79,8 +85,14 @@ public:
     void triggerNMI (void);
     void triggerIRQ (void);
 
+protected:
+    void FetchOpcode (void);
+
 private:
+    void  (MOS6510::*delayCycle[1]) (void);
+
     inline void sid_illegal (void);
+    inline void sid_delay   (void);
     inline void sid_brk  (void);
     inline void sid_jmp  (void);
     inline void sid_rts  (void);
@@ -91,13 +103,9 @@ private:
 
 
 inline void SID6510::clock (void)
-{
-    // Allow the cpu to idle for sidplay compatibility
-    if (m_sleeping)
-        return;
-
-    // Call inherited clock
-    MOS6510::clock ();
+{   // Allow the cpu to idle for sidplay compatibility
+    if (!m_sleeping)
+        MOS6510::clock ();
 }
 
 #endif // _sid6510c_h_

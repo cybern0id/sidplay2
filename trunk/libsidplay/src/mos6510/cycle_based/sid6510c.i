@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2002/10/15 23:52:14  s_a_white
+ *  Fix sidplay2 cpu sleep optimisation and NMIs.
+ *
  *  Revision 1.21  2002/09/23 22:50:55  s_a_white
  *  Reverted update 1.20 as was incorrect.  Only need to
  *  change MOS6510 to SID6510 for compliancy.
@@ -89,7 +92,8 @@
 
 SID6510::SID6510 (EventContext *context)
 :MOS6510(context),
- m_mode(sid2_envR)
+ m_mode(sid2_envR),
+ m_framelock(false)
 {   // Ok start all the hacks for sidplay.  This prevents
     // execution of code in roms.  For real c64 emulation
     // create object from base class!  Also stops code
@@ -158,6 +162,10 @@ SID6510::SID6510 (EventContext *context)
             }
         }
     }
+
+    // Used to insert busy delays into the CPU emulation
+    delayCycle[0] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_delay);
 }
     
 void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
@@ -173,9 +181,38 @@ void SID6510::reset (uint8_t a, uint8_t x, uint8_t y)
 
 void SID6510::reset ()
 {
-    m_sleeping = false;
+    m_sleeping  = false;
     // Call inherited reset
     MOS6510::reset ();
+}
+
+void SID6510::FetchOpcode (void)
+{
+    if (m_mode == sid2_envR)
+    {
+        MOS6510::FetchOpcode ();
+        return;
+    }
+    
+    // Sid tunes end by wrapping the stack.  For compatibilty it
+    // has to be handled.
+    m_sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
+    m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+    if (!m_sleeping)
+        MOS6510::FetchOpcode ();
+
+    if (m_framelock == false)
+    {
+        m_framelock = true;
+        // Simulate sidplay1 frame based execution
+        while (!m_sleeping)
+            MOS6510::clock ();
+
+        // The CPU is about to sleep.  Since these are old sidplay1
+        // modes it can only be woken with a reset
+        envSleep ();
+        m_framelock = false;
+    }
 }
 
 
@@ -197,10 +234,12 @@ void SID6510::sid_brk (void)
     sid_rts ();
 #endif
 
-    // Sid tunes end by wrapping the stack.  For compatibilty it
-    // has to be handled.
-    m_sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
-    m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+    if (m_mode == sid2_envR)
+    {   // Sid tunes end by wrapping the stack.  For compatibilty it
+        // has to be handled.
+        m_sleeping |= (endian_16hi8  (Register_StackPointer)   != SP_PAGE);
+        m_sleeping |= (endian_32hi16 (Register_ProgramCounter) != 0);
+    }
 
     if (!m_sleeping)
     {
@@ -208,35 +247,24 @@ void SID6510::sid_brk (void)
         return;
     }
 
-    // The CPU is about to sleep.  It can only be woken by a
-    // reset or interrupt.
-    envSleep ();
     Initialise ();
 
+    // Simulate a delay for JMPw
+    m_delayClk = eventContext.getTime ();
+    procCycle  = delayCycle;
+
     // Remember where the BRK optimisation
-	// exists in memory and rely on it next time
+    // exists in memory and rely on it next time
     Register_ProgramCounter = pc - 2;
-    if (m_mode != sid2_envR)
-    {   // In sidplay1 modes RTI acts like RTS.  RTS adds 1 to
-        // return address, so compensate here
-        Register_ProgramCounter--;
-    }
 
     // Check for outstanding interrupts
-    interrupts.delay = 0;
-    if (interrupts.pending)
-    {   // Start processing the interrupt
-        if (interrupts.irqs)
-        {
-            interrupts.irqs--;
-            triggerIRQ ();
-        }
-        else
-        {
-            MOS6510::clock ();
-            m_sleeping = false;
-        }
+    if (interrupts.irqs)
+    {
+        interrupts.irqs--;
+        triggerIRQ ();
     }
+    else if (interrupts.pending)
+        m_sleeping = false;
 }
 
 void SID6510::sid_jmp (void)
@@ -303,6 +331,16 @@ void SID6510::sid_illegal (void)
 #endif
 }
 
+void SID6510::sid_delay (void)
+{
+    cycleCount = 0;
+    if (++m_delayCycles >= 3)
+    {
+        (void) interruptPending ();
+        m_delayCycles = 0;
+    }
+}
+
 
 //**************************************************************************************
 // Sidplay compatibility interrupts.  Basically wakes CPU if it is m_sleeping
@@ -311,10 +349,7 @@ void SID6510::triggerRST (void)
 {   // All modes
     MOS6510::triggerRST ();
     if (m_sleeping)
-    {
-        MOS6510::clock ();
         m_sleeping = false;
-    }
 }
 
 void SID6510::triggerNMI (void)
@@ -324,7 +359,7 @@ void SID6510::triggerNMI (void)
         MOS6510::triggerNMI ();
         if (m_sleeping)
         {
-            MOS6510::clock ();
+            m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
         }
     }
@@ -335,18 +370,21 @@ void SID6510::triggerIRQ (void)
     switch (m_mode)
     {
     default:
-        if (interrupts.irqs)
-            return;
-        // Deliberate run on
+#ifdef MOS6510_DEBUG
+        if (dodump)
+        {
+            printf ("****************************************************\n");
+            printf (" Fake IRQ Routine\n");
+            printf ("****************************************************\n");
+        }
+#endif
+        reset ();
+        return;
     case sid2_envR:
         MOS6510::triggerIRQ ();
         if (m_sleeping)
-        {
-            MOS6510::clock ();
-            // Can't support overlapped IRQs in older
-            // environment modes and RTIs are RTSs.
-            if (m_mode != sid2_envR)
-                clearIRQ ();
+        {   // Simulate busy loop
+            m_delayCycles = eventContext.getTime (m_delayClk) % 3;
             m_sleeping = false;
         }
     }
