@@ -146,7 +146,6 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
     }
 
     fileOffset         = endian_big16(pHeader->data);
-    info.c64dataLen    = bufLen - fileOffset;
     info.loadAddr      = endian_big16(pHeader->load);
     info.initAddr      = endian_big16(pHeader->init);
     info.playAddr      = endian_big16(pHeader->play);
@@ -196,17 +195,6 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 #endif // SIDTUNE_PSID2NG
     }
 
-    {   // Limit check end page to make sure it's legal
-        int startp, endp;
-        startp = info.relocStartPage;
-        endp   = startp + (info.relocPages - 1);
-        if (endp > 0xff)
-        {
-            endp = 0xff;
-            info.relocPages = (uint_least8_t) (endp - startp + 1);
-        }
-    }
-
     // Reserved meaning for possible future use
     if ( info.playAddr == 0xffff )
         info.playAddr  = 0;
@@ -232,6 +220,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         fileOffset += 2;
     }
 
+    info.c64dataLen = bufLen - fileOffset;
     if ( resolveAddrs((uint_least8_t*)buffer + fileOffset) == false )
         return false;
 
