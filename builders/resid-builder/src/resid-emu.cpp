@@ -54,13 +54,19 @@ ReSID::ReSID (sidbuilder *builder)
     p += strlen (p) + 1;
     *p = '\0';
 
-	if (!&m_sid)
-	{
-		m_error  = "RESID ERROR: Unable to create sid object";
-		m_status = false;
+    if (!&m_sid)
+    {
+        m_error  = "RESID ERROR: Unable to create sid object";
+        m_status = false;
         return;
-	}
+    }
     reset (0);
+}
+
+ReSID::~ReSID ()
+{
+    if (&m_sid)
+        delete &m_sid;
 }
 
 bool ReSID::filter (const sid_filter_t *filter)
@@ -147,13 +153,13 @@ int_least32_t ReSID::output (uint_least8_t bits)
 
 void ReSID::filter (bool enable)
 {
-	m_sid.enable_filter (enable);
+    m_sid.enable_filter (enable);
 }
 
 void ReSID::voice (uint_least8_t num, uint_least8_t volume,
                    bool mute)
 {   // At this time only mute is supported
-	m_sid.mute (num, mute);
+    m_sid.mute (num, mute);
 }
     
 void ReSID::gain (int_least8_t percent)
@@ -193,8 +199,8 @@ bool ReSID::lock (c64env *env)
 // Set the emulated SID model
 void ReSID::model (sid2_model_t model)
 {
-	if (model == SID2_MOS8580)
+    if (model == SID2_MOS8580)
         m_sid.set_chip_model (RESID::MOS8580);
-	else
+    else
         m_sid.set_chip_model (RESID::MOS6581);
 }
