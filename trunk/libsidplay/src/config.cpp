@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2002/02/18 21:59:10  s_a_white
+ *  Added two new clock modes (FIXED).  Seems to be a requirement for
+ *  HVSC/sidplayw.
+ *
  *  Revision 1.19  2002/02/04 22:08:14  s_a_white
  *  Fixed main voice/sample gains.
  *
@@ -130,7 +134,7 @@ int Player::config (const sid2_config_t &cfg)
         // Reset tune info
         m_tune->getInfo(m_tuneInfo);
         // External Setups
-        if (sidCreate (cfg.sidEmulation, cfg.sidModel) < 0)
+        if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
         {
             m_errorString      = cfg.sidEmulation->error ();
             m_cfg.sidEmulation = NULL;
@@ -138,7 +142,8 @@ int Player::config (const sid2_config_t &cfg)
         }
         // Must be this order:
         // Determine clock speed
-        cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockForced);
+        cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
+                              cfg.clockForced);
         // Fixed point conversion 16.16
         m_samplePeriod = (event_clock_t) (cpuFreq /
                          (float64_t) cfg.frequency *
@@ -277,69 +282,69 @@ Player_configure_error:
 }
 
 // Clock speed changes due to loading a new song
-float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
+float64_t Player::clockSpeed (sid2_clock_t userClock, sid2_clock_t defaultClock,
+                              bool forced)
 {
-    float64_t cpuFreq  = CLOCK_FREQ_PAL;
-    int       intended = (m_tune->getInfo()).clockSpeed;
+    float64_t cpuFreq = CLOCK_FREQ_PAL;
 
     // Mirror a real C64
     if (m_tuneInfo.playAddr == 0xffff)
         forced = true;
 
     // Detect the Correct Song Speed
-    switch (clock)
+    // Determine song speed when unknown
+    if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_UNKNOWN)
     {
-    // Switch system as indicated by the tune but default
-    // PAL if no indication is present
-    case SID2_CLOCK_PAL_DEFAULT:
-        clock = SID2_CLOCK_PAL;
-        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        if (intended == SIDTUNE_CLOCK_NTSC)
+        switch (defaultClock)
         {
-            clock = SID2_CLOCK_NTSC;
-            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        }
-        break;
-    // Switch system as indicated by the tune but default
-    // NTSC if no indication present
-    case SID2_CLOCK_NTSC_DEFAULT:
-        clock = SID2_CLOCK_NTSC;
-        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        if (intended == SIDTUNE_CLOCK_PAL)
-        {
-            clock = SID2_CLOCK_PAL;
+        case SID2_CLOCK_PAL:
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        }
-        break;
-    // All tunes unless specified are NTSC and require
-    // speed fixing for PAL
-    case SID2_CLOCK_PAL_FIXED:
-        clock = SID2_CLOCK_PAL;
-        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        if (intended & SIDTUNE_CLOCK_PAL)
-            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        break;
-    // All tunes unless specified are PAL and require
-    // speed fixing for NTSC
-    case SID2_CLOCK_NTSC_FIXED:
-        clock = SID2_CLOCK_NTSC;
-        m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        if (intended & SIDTUNE_CLOCK_NTSC)
+            break;
+        case SID2_CLOCK_NTSC:
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
-        break;        
-    default:
-        // Causes us to set speed to something
-        if ((m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_UNKNOWN) ||
-            (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_ANY))
+            break;
+        case SID2_CLOCK_CORRECT:
+            // No default so base it on emulation clock
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_ANY;
+        }
+    }
+
+    // Since song will run correct at any clock speed
+    // set tune speed to the current emulation
+    if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_ANY)
+    {
+        if (userClock == SID2_CLOCK_CORRECT)
+            userClock  = defaultClock;
+            
+        switch (userClock)
         {
-            forced = true;
+        case SID2_CLOCK_PAL:
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
+            break;
+        case SID2_CLOCK_NTSC:
+            m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
+            break;
+        }
+    }
+
+    if (userClock == SID2_CLOCK_CORRECT)
+    {
+        switch (m_tuneInfo.clockSpeed)
+        {
+        case SIDTUNE_CLOCK_NTSC:
+            userClock = SID2_CLOCK_NTSC;
+            break;
+        case SIDTUNE_CLOCK_PAL:
+        default:
+            userClock = SID2_CLOCK_PAL;
+            break;
         }
     }
 
     if (forced)
     {
         m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
-        if (clock == SID2_CLOCK_NTSC)
+        if (userClock == SID2_CLOCK_NTSC)
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
     }
 
@@ -348,7 +353,7 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
     else // if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
         vic.chip (MOS6567R8);
 
-    if (clock == SID2_CLOCK_PAL)
+    if (userClock == SID2_CLOCK_PAL)
     {
         cpuFreq = CLOCK_FREQ_PAL;
         m_tuneInfo.speedString = TXT_PAL_VBI;
@@ -357,7 +362,7 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
         else if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
             m_tuneInfo.speedString = TXT_PAL_VBI_FIXED;
     }
-    else // if (clock == SID2_CLOCK_NTSC)
+    else // if (userClock == SID2_CLOCK_NTSC)
     {
         cpuFreq = CLOCK_FREQ_NTSC;
         m_tuneInfo.speedString = TXT_NTSC_VBI;
@@ -471,7 +476,8 @@ int Player::environment (sid2_env_t env)
 
 // Integrate SID emulation from the builder class into
 // libsidplay2
-int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
+int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
+                       sid2_model_t defaultModel)
 {
     sid[0] = xsid.emulation ();
     
@@ -502,31 +508,64 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t model)
             sid[i] = &nullsid;
     }
     else
-    {
-        switch (model)
+    {   // Detect the Correct SID model
+        // Determine model when unknown
+        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_UNKNOWN)
         {
-        case SID2_MOS6581_DEFAULT:
-            model = SID2_MOS6581;
-            if ((m_tune->getInfo()).sidModel == SIDTUNE_SIDMODEL_8580)
-                model = SID2_MOS8580;
-            break;
-        case SID2_MOS8580_DEFAULT:
-            model = SID2_MOS8580;
-            if ((m_tune->getInfo()).sidModel == SIDTUNE_SIDMODEL_6581)
-                model = SID2_MOS6581;
-            break;
-        default:
-            break;
+            switch (defaultModel)
+            {
+            case SID2_MOS6581:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+                break;
+            case SID2_MOS8580:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+                break;
+            case SID2_MODEL_CORRECT:
+                // No default so base it on emulation clock
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_ANY;
+            }
+        }
+
+        // Since song will run correct on any sid model
+        // set it to the current emulation
+        if (m_tuneInfo.sidModel == SIDTUNE_CLOCK_ANY)
+        {
+            if (userModel == SID2_MODEL_CORRECT)
+                userModel  = defaultModel;
+            
+            switch (userModel)
+            {
+            case SID2_MOS6581:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+                break;
+            case SID2_MOS8580:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+                break;
+            }
+        }
+
+        if (userModel == SID2_CLOCK_CORRECT)
+        {
+            switch (m_tuneInfo.sidModel)
+            {
+            case SIDTUNE_SIDMODEL_8580:
+                userModel = SID2_MOS8580;
+                break;
+            case SIDTUNE_SIDMODEL_6581:
+            default:
+                userModel = SID2_MOS6581;
+                break;
+            }
         }
 
         // Set the tunes sid model
         m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-        if (model == SID2_MOS8580)
+        if (userModel == SID2_MOS8580)
             m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
 
         for (int i = 0; i < SID2_MAX_SIDS; i++)
         {   // Get first SID emulation
-            sid[i] = builder->lock (this, model);
+            sid[i] = builder->lock (this, userModel);
             if (!sid[i])
                 sid[i] = &nullsid;
             if ((i == 0) && !*builder)
