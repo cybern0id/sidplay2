@@ -44,7 +44,7 @@ struct psidHeader           // all values big-endian
     char author[32];        // terminated by a trailing zero
     char copyright[32];     //
     uint8_t flags[2];       // only version 0x0002
-    uint8_t relocStart;     // only version 0x0002B
+    uint8_t relocStartPage; // only version 0x0002B
     uint8_t relocPages;     // only version 0x0002B
     uint8_t reserved[2];    // only version 0x0002
 };
@@ -154,7 +154,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         if (flags & PSID_SIDMODEL_8580)
             info.sidModel |= SIDTUNE_SIDMODEL_8580;
 
-        info.relocStartPage = pHeader->relocStart;
+        info.relocStartPage = pHeader->relocStartPage;
         info.relocPages     = pHeader->relocPages;
 #endif // SIDTUNE_PSID2NG
     }
@@ -230,8 +230,8 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
 
     endian_big16(myHeader.flags,tmpFlags);
     endian_big16(myHeader.reserved,0);
-    myHeader.relocStart = info.relocStartPage;
-    myHeader.relocPages = info.relocPages;
+    myHeader.relocStartPage = info.relocStartPage;
+    myHeader.relocPages     = info.relocPages;
     for ( uint i = 0; i < 32; i++ )
     {
         myHeader.name[i] = 0;
