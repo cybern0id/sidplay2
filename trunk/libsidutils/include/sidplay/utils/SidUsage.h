@@ -52,18 +52,9 @@ private:
     bool           readMM     (FILE *file, sid2_usage_t &usage, const char *ext);
     // Sid Memory Map (MM file)
     bool           readSMM    (FILE *file, sid2_usage_t &usage, const char *ext);
-    bool           readSMM0   (FILE *file, sid2_usage_t &usage,
-                               const IffHeader &header);
-    void           writeSMM0  (FILE *file, const sid2_usage_t &usage);
+    void           writeSMM   (FILE *file, const sid2_usage_t &usage);
     void           writeMAP   (FILE *file, const sid2_usage_t &usage);
     void           filterMAP  (int from, int to, uint_least8_t mask);
-
-protected:
-    uint_least32_t readChunk  (FILE *file, Chunk &chunk);
-    bool           writeChunk (FILE *file, const Chunk &chunk,
-                               uint_least32_t type,
-                               uint_least32_t length = 0);
-    uint_least32_t skipChunk  (FILE *file);
 
 public:
     SidUsage ();
