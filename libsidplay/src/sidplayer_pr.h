@@ -152,6 +152,7 @@ private:
     void        pause        (void);
     udword_sidt play         (void *buffer, udword_sidt length);
     int         loadSong     (const char * const title, const uword_sidt songNumber);
+    int         loadSong     (const uword_sidt songNumber);
     int         loadSong     (SidTune *requiredTune);
     int         environment  (env_sidt env);
     void        getInfo      (playerInfo_sidt *info);

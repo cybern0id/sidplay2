@@ -42,6 +42,7 @@ static const char SIDPLAYER_ERR_UNSUPPORTED_FREQ[]      = "SIDPLAYER ERROR: Unsu
 static const char SIDPLAYER_ERR_UNSUPPORTED_PRECISION[] = "SIDPLAYER ERROR: Unsupported sample precision.";
 static const char SIDPLAYER_ERR_MEM_ALLOC[]             = "SIDPLAYER ERROR: Memory Allocation Failure.";
 static const char SIDPLAYER_ERR_UNSUPPORTED_MODE[]      = "SIDPLAYER ERROR: Unsupported Environment Mode (Coming Soon).";
+static const char SIDPLAYER_ERR_NO_TUNE_LOADED[]        = "SIDPLAYER ERROR: No tune currently loaded to change song of.";
 
 // Set the ICs environment variable to point to
 // this sidplayer_pr
@@ -293,9 +294,22 @@ int sidplayer_pr::loadSong (const char * const title, const uword_sidt songNumbe
     return loadSong (myTune);
 };
 
+// Rev 1.13 (saw) - Added to change to another subtune
+// without reloading the file from disk
+int sidplayer_pr::loadSong (const uword_sidt songNumber)
+{
+    if (!myTune)
+	{
+        _errorString = SIDPLAYER_ERR_NO_TUNE_LOADED;
+        return -1;
+	}
+    myTune->selectSong(songNumber);
+    return loadSong (myTune);
+}
+
 int sidplayer_pr::loadSong (SidTune *requiredTune)
 {
-    tune   = requiredTune;
+    tune = requiredTune;
     tune->getInfo(tuneInfo);
 
     // Determine if first sid is enabled
@@ -407,7 +421,6 @@ int sidplayer_pr::initialise ()
         return -1;
     }
 
-    _seconds = 0;
     // Rev 2.0.4 (saw) - Added for new time ounter
     _currentPeriod  = 0;
     _sampleCount    = 0;
@@ -444,6 +457,8 @@ int sidplayer_pr::initialise ()
     // Get the next sequence of notes
     nextSequence ();
     playerState  = _stopped;
+    // Rev 1.12 (ms) - Added to fix timer
+    _seconds     = 0;
     // Rev 1.11 - Added to cause timer update for 0:00
     // Performance related issue!
     _updateClock = true;
@@ -986,6 +1001,9 @@ udword_sidt sidplayer::play (void *buffer, udword_sidt length)
 
 int sidplayer::loadSong (const char * const title, const uword_sidt songNumber)
 {   return player->loadSong (title, songNumber); }
+
+int sidplayer::loadSong (const uword_sidt songNumber)
+{   return player->loadSong (songNumber); }
 
 int sidplayer::loadSong (SidTune *requiredTune)
 {   return player->loadSong (requiredTune); }
