@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2001/08/20 18:29:55  s_a_white
+ *  SID Model now obtained from info structure.
+ *
  *  Revision 1.16  2001/07/25 17:11:32  s_a_white
  *  Support new libsidplay2 configuration interface.
  *
@@ -162,7 +165,7 @@ public:
         singleTrack  = false;
 
         // Read configuration settings
-        cfg = lib.configure ();
+        cfg = lib.config ();
         ini.read ();
     }
 } player;
@@ -594,7 +597,7 @@ int main(int argc, char *argv[])
         player.cfg.sidFilterDef = player.ini.filter (player.cfg.sidModel);
 
     // Configure Emulation
-    if (player.lib.configure (player.cfg) < 0)
+    if (player.lib.config (player.cfg) < 0)
     {
         cerr << argv[0] << "\n" << player.lib.error () << endl;
         goto main_error;
