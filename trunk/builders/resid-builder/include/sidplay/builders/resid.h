@@ -26,49 +26,6 @@
 #include <sidplay/sidbuilder.h>
 #include <sidplay/event.h>
 
-class ReSID: public sidemu
-{
-private:
-    EventContext  *m_context;
-    class SID     &m_sid;
-    event_clock_t  m_accessClk;
-    int_least32_t  m_gain;
-    static char    m_credit[100];
-    const  char   *m_error;
-    bool           m_status;
-    bool           m_locked;
-
-public:
-    ReSID  (sidbuilder *builder);
-    ~ReSID (void) {;}
-
-    // Standard component functions
-    const char   *credits (void) {return m_credit;}
-    void          reset   (void);
-    uint8_t       read    (const uint_least8_t addr);
-    void          write   (const uint_least8_t addr, const uint8_t data);
-    const char   *error   (void) {return m_error;}
-
-    // Standard SID functions
-    int_least32_t output  (const uint_least8_t bits);
-    void          filter  (const bool enable);
-    void          voice   (const uint_least8_t num, const uint_least8_t volume,
-                           const bool mute);
-    void          gain    (const int_least8_t precent);
-
-    operator bool () { return m_status; }
-    static   int  devices (char *error);
-
-    // Specific to resid
-    void sampling (uint freq);
-    bool filter   (const sid_filter_t *filter);
-    void model    (sid2_model_t model);
-    // Must lock the SID before using the standard functions.
-    void lock     (c64env *env);
-    bool lock     (void) const { return m_locked; }
-};
-
-
 
 /***************************************************************************
  * ReSID Builder Class

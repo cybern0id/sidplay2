@@ -16,23 +16,14 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "resid.h"
 #include "config.h"
 
 #if HAVE_EXCEPTIONS
 #   include <new.h>
 #endif
 
-// Allow resid to be in more than one location
-#ifdef HAVE_LOCAL_RESID
-#   include "resid/sid.h"
-#else
-#   ifdef HAVE_USER_RESID
-#       include "sid.h"
-#   else
-#       include <resid/sid.h>
-#   endif
-#endif
+#include "resid.h"
+#include "resid-emu.h"
 
 
 char ReSID::m_credit[];
@@ -41,9 +32,9 @@ ReSID::ReSID (sidbuilder *builder)
 :sidemu(builder),
  m_context(NULL),
 #ifdef HAVE_EXCEPTIONS
- m_sid(*(new(nothrow) SID)),
+ m_sid(*(new(nothrow) RESID::SID)),
 #else
- m_sid(*(new SID)),
+ m_sid(*(new RESID::SID)),
 #endif
  m_gain(100),
  m_status(true),
@@ -53,7 +44,7 @@ ReSID::ReSID (sidbuilder *builder)
     m_error = "N/A";
 
     // Setup credits
-    sprintf (p, "ReSID V%s Engine:", resid_version_string);
+    sprintf (p, "ReSID V%s Engine:", RESID::resid_version_string);
     p += strlen (p) + 1;
     strcpy  (p, "\tCopyright (C) 1999 Dag Lem <resid@nimrod.no>");
     p += strlen (p) + 1;
@@ -70,9 +61,9 @@ ReSID::ReSID (sidbuilder *builder)
 
 bool ReSID::filter (const sid_filter_t *filter)
 {
-    fc_point fc[0x802];
-    const    fc_point *f0 = fc;
-    int      points = 0;
+    RESID::fc_point fc[0x802];
+    const RESID::fc_point *f0 = fc;
+    int   points = 0;
 
     if (filter == NULL)
     {   // Select default filter
@@ -90,7 +81,7 @@ bool ReSID::filter (const sid_filter_t *filter)
         {
             const sid_fc_t *fin, *fprev;
             const sid_fc_t  fstart = {-1, 0};
-            fc_point       *fout   = fc;
+            RESID::fc_point *fout = fc;
             fprev = &fstart;
             fin   = cutoff;
             // Last check, make sure they are list in numerical order
@@ -100,8 +91,8 @@ bool ReSID::filter (const sid_filter_t *filter)
                 if ((*fprev)[0] >= (*fin)[0])
                     return false;
                 fout++;
-                (*fout)[0] = (sound_sample) (*fin)[0];
-                (*fout)[1] = (sound_sample) (*fin)[1];
+                (*fout)[0] = (RESID::sound_sample) (*fin)[0];
+                (*fout)[1] = (RESID::sound_sample) (*fin)[1];
                 fprev      = fin++;
             }
             // Updated ReSID interpolate requires we
@@ -116,7 +107,7 @@ bool ReSID::filter (const sid_filter_t *filter)
 
     // function from reSID
     points--;
-    interpolate (f0, f0 + points, m_sid.fc_plotter (), 1.0);
+    RESID::interpolate (f0, f0 + points, m_sid.fc_plotter (), 1.0);
     return true;
 }
 
@@ -176,7 +167,7 @@ void ReSID::gain (const int_least8_t percent)
 
 void ReSID::sampling (uint_least32_t freq)
 {
-    m_sid.set_sampling_parameters (1000000, SAMPLE_FAST, freq);
+    m_sid.set_sampling_parameters (1000000, RESID::SAMPLE_FAST, freq);
 }
 
 // Set execution environment and lock sid to it
@@ -198,7 +189,7 @@ void ReSID::lock (c64env *env)
 void ReSID::model (sid2_model_t model)
 {
 	if (model == SID2_MOS8580)
-        m_sid.set_chip_model (MOS8580);
+        m_sid.set_chip_model (RESID::MOS8580);
 	else
-        m_sid.set_chip_model (MOS6581);
+        m_sid.set_chip_model (RESID::MOS6581);
 }
