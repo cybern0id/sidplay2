@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2001/12/13 08:28:08  s_a_white
+ *  Added namespace support to fix problems with xsidplay.
+ *
  *  Revision 1.11  2001/12/11 19:24:15  s_a_white
  *  More GCC3 Fixes.
  *
@@ -378,9 +381,15 @@ int Player::environment (sid2_env_t env)
         load (NULL);
     }
 
-    // Have to reload the song into memory as
-    // everything has changed
-    return initialise ();
+    {   // Have to reload the song into memory as
+        // everything has changed
+        int ret;
+        sid2_env_t old = m_cfg.environment;
+        m_cfg.environment = env;
+        ret = initialise ();
+        m_cfg.environment = old;
+        return ret;
+    }
 }
 
 // Integrate SID emulation from the builder class into
