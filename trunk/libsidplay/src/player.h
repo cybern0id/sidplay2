@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/07/14 16:46:16  s_a_white
+ *  Sync with sidbuilder class project.
+ *
  *  Revision 1.13  2001/07/14 12:50:58  s_a_white
  *  Support for credits and debuging.  External filter selection removed.  RTC
  *  and samples obtained in a more efficient way.  Support for component
@@ -100,6 +103,9 @@ private:
     static const char  *ERR_FILTER_DEFINITION;
     static const char  *credit[10]; // 10 credits max
 
+    static const char  *ERR_PSIDDRV_NO_SPACE; 
+    static const char  *ERR_PSIDDRV_RELOC;
+
     //SID6510  cpu(6510, "Main CPU");
     SID6510 sid6510;
     MOS6510 mos6510;
@@ -113,8 +119,6 @@ private:
     c64vic  vic;
     sidemu *sid;
     sidemu *sid2;
-
-    sidbuilder *m_builder;
 
     class EventMixer: public Event
     {
@@ -168,23 +172,22 @@ private:
     } rtc;
 
     // User Configuration Settings
-    struct   SidTuneInfo tuneInfo;
-    SidTune *_tune;
-    uint8_t *ram, *rom;
+    sidbuilder   *m_builder;
+    SidTuneInfo   m_tuneInfo;
+    SidTune      *m_tune;
+    uint8_t      *m_ram, *m_rom;
+    sid2_info_t   m_info;
+    sid2_config_t m_cfg;
 
-    sid2_clock_t    _clockSpeed;
-    sid2_env_t      _environment;
-    const char     *_errorString;
-    float64_t       _fastForwardFactor;
-    bool            _forced;
-    uint_least8_t   _optimiseLevel;
-    uint_least32_t  _sampleCount;
-    uint_least32_t  _samplingFreq;
-    uint_least32_t  _mileage;
-    uint_least32_t  _seconds;
-    int_least32_t   _userLeftVolume;
-    int_least32_t   _userRightVolume;
-    volatile enum  {_playing = 0, _paused, _stopped} playerState;
+
+    sid2_env_t      m_environment;
+    const char     *m_errorString;
+    float64_t       m_fastForwardFactor;
+    uint_least32_t  m_mileage;
+    int_least32_t   m_leftVolume;
+    int_least32_t   m_rightVolume;
+    volatile sid2_player_t m_playerState;
+    volatile bool   m_running;
 
     // Mixer settings
     float64_t      m_sampleClock;
@@ -194,23 +197,10 @@ private:
     char          *m_sampleBuffer;
 
     // Internal Configuration Settings
-    volatile bool   m_running;
-    uint_least8_t   _channels;
-    bool            _digiChannel;
-    bool            _forceDualSids;
-    sid2_playback_t _playback;
-    int             _precision;
-    int_least32_t   _leftVolume;
-    int_least32_t   _rightVolume;
 
     // C64 environment settings
-    float64_t       _cpuFreq;
-    uint8_t         _bankReg;
-    uint_least16_t  _sidAddress[2];
-    bool            _sidEnabled[2];
-    bool            _filter;
-    sid2_model_t    _sidModel;
-    bool            _sidSamples;
+    uint8_t        m_bankReg;
+    uint_least16_t m_sidAddress[2];
 
     // temp stuff -------------
     bool   isKernal;
@@ -221,17 +211,19 @@ private:
     // ------------------------
 
 private:
-    void clock          (void);
-    int  initialise     (void);
-    void nextSequence   (void);
-    void mixer          (void);
-    void mixerReset     (void);
-    void mileageCorrect (void)
-    {   // If just finished a song, round samples to correct mileage
-        if (_sampleCount >= (_samplingFreq / 2))
-            _mileage++;
-        _sampleCount = 0;
-    }
+    float64_t clockSpeed     (sid2_clock_t clock, bool forced);
+    int       environment    (sid2_env_t env);
+    void      extFilter      (uint fc);
+    int       initialise     (void);
+    void      nextSequence   (void);
+    void      mixer          (void);
+    void      mixerReset     (void);
+    void      mileageCorrect (void);
+    void      sidEmulation   (sidbuilder *builder);
+    void      sidFilter      (bool enable);
+    int       sidFilterDef   (const sid_filter_t *filter);
+    void      sidModel       (sid2_model_t model);
+    void      sidSamples     (bool enable);
 
     uint8_t readMemByte_player    (uint_least16_t addr);
     uint8_t readMemByte_plain     (uint_least16_t addr);
@@ -249,7 +241,7 @@ private:
     uint8_t (Player::*m_readMemDataByte)(uint_least16_t);
 
     uint8_t  readMemRamByte (const uint_least16_t addr)
-    {   return ram[addr]; }
+    {   return m_ram[addr]; }
 
     // Environment Function entry Points
     inline void    envReset           (void);
@@ -263,7 +255,7 @@ private:
         char name[0x100] = "e:/emulators/c64/games/prgs/";
         strcat (name, file);
         strcat (name, ".sid");
-        _tune->load (name);
+        m_tune->load (name);
         stop ();
     }
 
@@ -289,78 +281,31 @@ private:
     uint_least32_t stereoOut16MonoIn    (char *buffer);
     uint_least32_t stereoOut16StereoIn  (char *buffer);
 
-    void extFilter (uint fc)
-    {
-        double cutoff = fc;
-        mos6581_1.exfilter (cutoff);
-        mos6581_1.exfilter (cutoff);
-    }
-
     void interruptIRQ (const bool state);
     void interruptNMI (void);
     void interruptRST (void);
 
+    // PSID driver
+    int  psidDrvInstall (void);
+    void psidRelocAddr  (void);
+
 public:
     Player ();
 
-    int            clockSpeed   (sid2_clock_t clock, bool forced);
-    int            configure    (sid2_playback_t mode, uint_least32_t samplingFreq, int precision,
-                                 bool forceDualSid);
-    int            environment  (sid2_env_t env);
-    int            fastForward  (uint_least8_t percent);
-    void           getInfo      (sid2_playerInfo_t *info);
+    const sid2_config_t &configure (void) { return m_cfg; }
+    const sid2_info_t   &info      (void) { return m_info; }
+
+    int            configure    (const sid2_config_t &cfg);
+    int            fastForward  (uint percent);
     int            loadSong     (SidTune *tune);
-    uint_least8_t  mileage      (void) { return _mileage + _seconds; }
+    uint_least8_t  mileage      (void) { return m_mileage + time(); }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
+    sid2_player_t  state        (void) { return m_playerState; }
     void           stop         (void);
     uint_least32_t time         (void) {return rtc.getTime (); }
-    void           sidSamples   (bool enable);
-    int            loadFilter   (const sid_fc_t *cutoffs, uint_least16_t points);
-    const char   **credits      (void) {return credit;}
-    void           emulation    (sidbuilder *builder);
     void           debug        (bool enable) { cpu->debug (enable); }
-
-    void           optimisation (uint_least8_t level)
-    {
-        if (level > SID2_MAX_OPTIMISATION)
-            level = SID2_MAX_OPTIMISATION;
-        _optimiseLevel = level;
-    }
-
-    // Rev 2.0.4 (saw) - Added filter settings
-    void filter (bool enabled)
-    {
-        _filter = enabled;
-        sid->filter  (enabled);
-        sid2->filter (enabled);
-
-        if (m_builder)
-        {   // Mirror settings in internal SIDs
-            mos6581_1.filter (enabled);
-            mos6581_2.filter (enabled);
-        }
-    }
-
-    void sidModel (sid2_model_t model)
-    {
-        if (_sidModel == model)
-            return;
-        _sidModel = model;
-        if (model != SID2_MODEL_CORRECT)
-        {
-            sid->model  (model);
-            sid2->model (model);
-            if (m_builder)
-            {   // Mirror settings in internal SIDs
-                mos6581_1.model (model);
-                mos6581_2.model (model);
-            }
-        }
-    }
-
-    const char *getErrorString (void)
-    {   return _errorString; }
+    const char    *error        (void) { return m_errorString; }
 };
 
 inline void Player::interruptIRQ (const bool state)
