@@ -21,13 +21,14 @@
 fake6526::fake6526 ()
 {
     defCount = 0xFFFF;
-    cra      = 0;
-    locked   = false;
+    reset ();
 }
 
 void fake6526::reset (void)
 {
-    count = (setCount = defCount);
+    locked = false;
+    count  = (setCount = defCount);
+    cra    = 0;
 }
 
 void fake6526::reset (uword_sidt _count)
