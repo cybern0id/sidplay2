@@ -104,8 +104,8 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in TODO acconfig.h acinclude.m4 aclocal.m4 configure \
 	configure.in libsidutils.spec.in unix/config.guess \
-	unix/config.sub unix/install-sh unix/ltmain.sh unix/missing \
-	unix/mkinstalldirs
+	unix/config.sub unix/depcomp unix/install-sh unix/ltmain.sh \
+	unix/missing unix/mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
 all: all-recursive
 
