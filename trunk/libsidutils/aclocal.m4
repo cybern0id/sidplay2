@@ -135,7 +135,7 @@ Please check your installation!
         LIBSIDPLAY2_LDFLAGS=`$PKG_CONFIG --libs libsidplay2`
     else
         LIBSIDPLAY2_DIRS="$LIBSIDPLAY2_LIBDIR $LIBSIDPLAY2_LIBDIR/lib \
-                          $LIBSIDPLAY2_LIBDIR/.libs"
+                          $LIBSIDPLAY2_LIBDIR/src"
         SID_FIND_FILE(libsidplay2.la,$LIBSIDPLAY2_DIRS,LIBSIDPLAY2_LIBDIR)
         LIBSIDPLAY2_LDFLAGS="-L$LIBSIDPLAY2_LIBDIR -lsidplay2"
     fi
@@ -163,7 +163,7 @@ AC_DEFUN(LIBSIDPLAY2_TRY_COMPILE,
     sid_ldflags_save=$LDFLAGS
     sid_cxx_save=$CXX
 
-    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
     LDFLAGS="$LDFLAGS $LIBSIDPLAY2_LDFLAGS"
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
