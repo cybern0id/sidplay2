@@ -37,11 +37,7 @@
 #   include <new>
 #endif
 #include <string.h>
-#if defined(HAVE_STRSTREA_H)
-#   include <strstrea.h>
-#else
-#   include <strstream.h>
-#endif
+#include <strstream>
 
 // Amiga Workbench specific structures.
 
@@ -366,7 +362,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength
         // Now check all possible keywords.
         if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_address) == 0 )
         {
-            istrstream addrIn(cmpBuf + strlen(_sidtune_keyword_address),
+            std::istrstream addrIn(cmpBuf + strlen(_sidtune_keyword_address),
                               toolLen - strlen(_sidtune_keyword_address));
             info.loadAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
             info.initAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
@@ -379,7 +375,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_songs) == 0 )
         {
-            istrstream numIn( cmpBuf + strlen(_sidtune_keyword_songs),
+            std::istrstream numIn( cmpBuf + strlen(_sidtune_keyword_songs),
                               toolLen - strlen(_sidtune_keyword_songs) );
             if ( !numIn )
             {
@@ -391,7 +387,7 @@ bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_speed) == 0 )
         {
-            istrstream speedIn( cmpBuf + strlen(_sidtune_keyword_speed),
+            std::istrstream speedIn( cmpBuf + strlen(_sidtune_keyword_speed),
                                 toolLen - strlen(_sidtune_keyword_speed) );
             if ( !speedIn )
             {

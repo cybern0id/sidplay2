@@ -28,14 +28,13 @@
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
-#include <fstream.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 #include <string.h>
-#include <limits.h>
+#include <limits>
 
 #if defined(HAVE_IOS_OPENMODE)
-    typedef ios::openmode openmode;
+    typedef std::ios::openmode openmode;
 #else
     typedef int openmode;
 #endif
@@ -260,18 +259,18 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
     uint_least32_t fileLen = 0;
 
     // This sucks big time
-    openmode createAtrr = ios::in;
+    openmode createAtrr = std::ios::in;
 #ifdef HAVE_IOS_NOCREATE
-    createAtrr |= ios::nocreate;
+    createAtrr |= std::ios::nocreate;
 #endif
     // Open binary input file stream at end of file.
 #if defined(HAVE_IOS_BIN)
-    createAtrr |= ios::bin;
+    createAtrr |= std::ios::bin;
 #else
-    createAtrr |= ios::binary;
+    createAtrr |= std::ios::binary;
 #endif
 
-    fstream myIn(fileName,createAtrr);
+    std::fstream myIn(fileName,createAtrr);
     // As a replacement for !is_open(), bad() and the NOT-operator don't seem
     // to work on all systems.
 #if defined(DONT_HAVE_IS_OPEN)
@@ -286,9 +285,9 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
     else
     {
 #if defined(HAVE_SEEKG_OFFSET)
-        fileLen = (myIn.seekg(0,ios::end)).offset();
+        fileLen = (myIn.seekg(0,std::ios::end)).offset();
 #else
-        myIn.seekg(0,ios::end);
+        myIn.seekg(0,std::ios::end);
         fileLen = (uint_least32_t)myIn.tellg();
 #endif
 #ifdef HAVE_EXCEPTIONS
@@ -300,7 +299,7 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
             info.statusString = SidTune::txt_notEnoughMemory;
             return false;
         }
-        myIn.seekg(0,ios::beg);
+        myIn.seekg(0,std::ios::beg);
         uint_least32_t restFileLen = fileLen;
         // 16-bit compatible loading. Is this really necessary?
         while ( restFileLen > INT_MAX )
@@ -469,7 +468,7 @@ void SidTune::getFromStdIn()
     // This way we avoid choking on huge data.
     uint_least32_t i = 0;
     char datb;
-    while (cin.get(datb) && i<SIDTUNE_MAX_FILELEN)
+    while (std::cin.get(datb) && i<SIDTUNE_MAX_FILELEN)
         fileBuf[i++] = (uint_least8_t) datb;
     info.dataFileLen = i;
     getFromBuffer(fileBuf,info.dataFileLen);
@@ -850,7 +849,7 @@ void SidTune::convertOldStyleSpeedToTables(uint_least32_t speed, int clock)
 // File format conversion ---------------------------------------------------
 //
                 
-bool SidTune::saveToOpenFile(ofstream& toFile, const uint_least8_t* buffer,
+bool SidTune::saveToOpenFile(std::ofstream& toFile, const uint_least8_t* buffer,
                              uint_least32_t bufLen )
 {
     uint_least32_t lenToWrite = bufLen;
@@ -880,17 +879,17 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-        openmode createAttr = ios::out;
+        openmode createAttr = std::ios::out;
 #if defined(HAVE_IOS_BIN)
-        createAttr |= ios::bin;
+        createAttr |= std::ios::bin;
 #else
-        createAttr |= ios::binary;
+        createAttr |= std::ios::binary;
 #endif
         if ( overWriteFlag )
-            createAttr |= ios::trunc;
+            createAttr |= std::ios::trunc;
         else
-            createAttr |= ios::app;
-        ofstream fMyOut( fileName, createAttr );
+            createAttr |= std::ios::app;
+        std::ofstream fMyOut( fileName, createAttr );
         if ( !fMyOut || fMyOut.tellp()>0 )
         { 
             info.statusString = SidTune::txt_cantCreateFile;
@@ -926,12 +925,12 @@ bool SidTune::saveSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open ASCII output file stream.
-        openmode createAttr = ios::out;
+        openmode createAttr = std::ios::out;
         if ( overWriteFlag )
-            createAttr |= ios::trunc;
+            createAttr |= std::ios::trunc;
         else
-            createAttr |= ios::app;
-        ofstream fMyOut( fileName, createAttr );
+            createAttr |= std::ios::app;
+        std::ofstream fMyOut( fileName, createAttr );
         if ( !fMyOut || fMyOut.tellp()>0 )
         { 
             info.statusString = SidTune::txt_cantCreateFile;
@@ -960,17 +959,17 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-        openmode createAttr = ios::out;
+        openmode createAttr = std::ios::out;
 #if defined(HAVE_IOS_BIN)
-        createAttr |= ios::bin;
+        createAttr |= std::ios::bin;
 #else
-        createAttr |= ios::binary;
+        createAttr |= std::ios::binary;
 #endif
       if ( overWriteFlag )
-            createAttr |= ios::trunc;
+            createAttr |= std::ios::trunc;
         else
-            createAttr |= ios::app;
-        ofstream fMyOut( fileName, createAttr );
+            createAttr |= std::ios::app;
+        std::ofstream fMyOut( fileName, createAttr );
         if ( !fMyOut || fMyOut.tellp()>0 )
         {
             info.statusString = SidTune::txt_cantCreateFile;

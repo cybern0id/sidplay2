@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream.h>
 #include <string.h>
 
 #include "config.h"
@@ -191,7 +190,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 }
 
 
-bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBuffer)
+bool SidTune::PSID_fileSupportSave(std::ofstream& fMyOut, const uint_least8_t* dataBuffer)
 {
     psidHeader myHeader;
     endian_big32((uint_least8_t*)myHeader.id,0x50534944);  // 'PSID'
