@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/03/23 23:20:29  s_a_white
+ *  Removed redundant reset prototype.
+ *
  *  Revision 1.2  2001/03/22 22:41:45  s_a_white
  *  Replaced tab characters
  *
@@ -82,7 +85,7 @@ inline void MOS6526::clock (void)
 {
     bool ta_underflow = false;
     if ((cra & 0x21) == 0x01)
-        (void) ta_clock ();
+        ta_underflow  = ta_clock ();
 
     if (crb & 0x01)
     {
