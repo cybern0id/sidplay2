@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2004/05/31 08:42:41  s_a_white
+ *  Move setting of inits bank register to after I/O accesses, as it can
+ *  be switched out should init lie underneath it.
+ *
  *  Revision 1.31  2004/03/20 16:15:56  s_a_white
  *  Use a kernel call to reset the hardware.  This covers everything including
  *  newly emulated stuff like serial ports.
@@ -237,9 +241,6 @@ ciaclear    lda $dc0d
             ; C64 tunes (initiomap = 0) thus
             ; providing a more realistic environment
             lda #$37
-            ; cli dosen't come into effect until
-            ; after the sta!
-            cli
 setbank     sta $01
 
 setregs     lda flags
