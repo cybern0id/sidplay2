@@ -2,9 +2,6 @@
 #ifndef _config_h_
 #define _config_h_
 
-/* Operating System */
-#define HAVE_MSWINDOWS
-
 /* Define if your C++ compiler implements exception-handling.  */
 /* #define HAVE_EXCEPTIONS 1 */
 

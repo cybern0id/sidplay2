@@ -16,11 +16,14 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/12/06 18:29:33  s_a_white
+ *  Now redirects to real config.h
+ *
  ***************************************************************************/
 
 #if defined(HAVE_UNIX)
 #   include "../unix/config.h"
-#elif defined(HAVE_WINDOWS)
+#elif defined(HAVE_MSWINDOWS)
 #   include "../win/VC/config.h"
 #else
 #   error Platform not supported!
