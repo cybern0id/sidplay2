@@ -41,7 +41,7 @@ public:
     c64xsid (c64env *env, sidemu *sid)
     :XSID(&env->eventContext),
      m_env(*env), m_sid(sid), m_gain(100)
-    {reset ();}
+    {;}
     
     // Standard component interface
     const char *error (void) {return "";}
