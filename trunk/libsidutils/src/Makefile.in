@@ -134,7 +134,7 @@ SUBDIRS = MD5 ini
 # The library.
 lib_LTLIBRARIES = libsidutils.la
 
-libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp
+libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp SidUsage.h smm0.h
 
 libsidutils_la_LIBADD = ./MD5/libMD5.la ./ini/libini.la \
 $(LIBSIDPLAY2_LDFLAGS)
@@ -166,6 +166,13 @@ LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
 	$(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
+	$(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libsidutils_la_SOURCES)
 
