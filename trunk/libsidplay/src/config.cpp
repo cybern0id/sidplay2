@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2004/01/08 09:01:34  s_a_white
+ *  Support the TOD frequency divider.
+ *
  *  Revision 1.38  2004/01/06 21:35:19  s_a_white
  *  Setup the TOD clocks.
  *
@@ -240,14 +243,25 @@ int Player::config (const sid2_config_t &cfg)
             // Start the real time clock event
             rtc.clock  (cpuFreq);
         }
-
-        m_sidAddress[0] = m_tuneInfo.sidChipBase1;
-        m_sidAddress[1] = m_tuneInfo.sidChipBase2;
     }
     sidSamples (cfg.sidSamples);
 
+    // Setup sid mapping table
+    // Note this should be based on m_tuneInfo.sidChipBase1
+    // but this is only temporary code anyway
+    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
+        m_sidmapper[i] = 0;
+    }
+    if (m_tuneInfo.sidChipBase2)
+    {
+        monosid = false;
+        // Assumed to be in d4xx-d7xx range
+        m_sidmapper[(m_tuneInfo.sidChipBase2 >> 5) &
+                    (SID2_MAPPER_SIZE - 1)] = 1;
+    }
+
     // All parameters check out, so configure player.
-    monosid = !m_sidAddress[1];
+    monosid = !m_tuneInfo.sidChipBase2;
     m_info.channels = 1;
     m_emulateStereo = false;
     if (cfg.playback == sid2_stereo)
@@ -261,7 +275,10 @@ int Player::config (const sid2_config_t &cfg)
 
     // Only force dual sids if second wasn't detected
     if (monosid && cfg.forceDualSids)
-        m_sidAddress[1] = 0xd500; // Assumed
+    {
+        monosid = false;
+        m_sidmapper[(0xd500 >> 5) & (SID2_MAPPER_SIZE - 1)] = 1; // Assumed
+    }
 
     m_leftVolume  = cfg.leftVolume;
     m_rightVolume = cfg.rightVolume;
@@ -281,6 +298,7 @@ int Player::config (const sid2_config_t &cfg)
             //        m_leftVolume  /= 2;
             //    m_rightVolume *= 3;
             //    m_rightVolume /= 2;
+            monosid = false;
         }
 
         if (cfg.playback == sid2_left)
@@ -292,15 +310,10 @@ int Player::config (const sid2_config_t &cfg)
     switch (cfg.precision)
     {
     case 8:
-        if (!m_sidAddress[1])
+        if (monosid)
         {
             if (cfg.playback == sid2_stereo)
-            {
-                if (m_emulateStereo)
-                    output = &Player::stereoOut8StereoIn;
-                else
-                    output = &Player::stereoOut8MonoIn;
-            }
+                output = &Player::stereoOut8MonoIn;
             else
                 output = &Player::monoOut8MonoIn;
         }
@@ -328,15 +341,10 @@ int Player::config (const sid2_config_t &cfg)
     break;
             
     case 16:
-        if (!m_sidAddress[1])
+        if (monosid)
         {
             if (cfg.playback == sid2_stereo)
-            {
-                if (m_emulateStereo)
-                    output = &Player::stereoOut16StereoIn;
-                else
-                    output = &Player::stereoOut16MonoIn;
-            }
+                output = &Player::stereoOut16MonoIn;
             else
                 output = &Player::monoOut16MonoIn;
         }
