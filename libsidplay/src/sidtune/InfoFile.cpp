@@ -64,17 +64,18 @@ static const uint_least16_t sidMinFileSize = 1+sizeof(keyword_id);  // Just to a
 static const uint_least16_t parseChunkLen = 80;                     // Enough for all keywords incl. their values.
 
 
-SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least32_t dataBufLen,
-                                             const void* sidBuffer, uint_least32_t sidBufLen)
+SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& dataBuf,
+                                             Buffer_sidtt<const uint_least8_t>& sidBuf)
 {
+    uint_least32_t sidBufLen = sidBuf.len();
     // Make sure SID buffer pointer is not zero.
     // Check for a minimum file size. If it is smaller, we will not proceed.
-    if ((sidBuffer==0) || (sidBufLen<sidMinFileSize))
+    if (sidBufLen<sidMinFileSize)
     {
         return LOAD_NOT_MINE;
     }
 
-    const char* pParseBuf = (const char*)sidBuffer;
+    const char* pParseBuf = (const char*)sidBuf.get();
     // First line has to contain the exact identification string.
     if ( SidTuneTools::myStrNcaseCmp( pParseBuf, keyword_id ) == 0 )
     {
@@ -134,7 +135,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
             else
             {
                 // Calculate number of chars between current pos and end of buf.
-                restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuffer);
+                restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuf.get());
             }
 #ifdef HAVE_SSTREAM
             std::string sParse( pParseBuf, restLen );            
@@ -313,6 +314,8 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
         info.numberOfInfoStrings = 3;
         // We finally accept the input data.
         info.formatString = text_format;
+        if ( info.musPlayer && !dataBuf.isEmpty() )
+            return MUS_load (dataBuf);
         return LOAD_OK;
     }
     return LOAD_NOT_MINE;
@@ -322,29 +325,31 @@ SidTune::LoadStatus SidTune::SID_fileSupport(const void* dataBuffer, uint_least3
 bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
 {
     toFile << keyword_id << std::endl;
+    int compatibility = info.compatibility;
 
-    switch ( info.compatibility )
+    if ( info.musPlayer )
     {
-    case SIDTUNE_COMPATIBILITY_PSID:
-    case SIDTUNE_COMPATIBILITY_C64:
-        toFile << keyword_address << std::hex << std::setw(4)
-               << std::setfill('0') << 0 << ','
-               << std::hex << std::setw(4) << info.initAddr << ","
-               << std::hex << std::setw(4) << info.playAddr << std::endl;
-        break;
-    case SIDTUNE_COMPATIBILITY_R64:
-        toFile << keyword_address << std::hex << std::setw(4)
-               << std::setfill('0') << info.initAddr << std::endl;
-        break;
+        compatibility = SIDTUNE_COMPATIBILITY_C64;
     }
 
-    toFile << keyword_songs << std::dec << (int)info.songs << ","
-           << (int)info.startSong << std::endl;
-
-    switch ( info.compatibility )
+    switch ( compatibility )
     {
     case SIDTUNE_COMPATIBILITY_PSID:
     case SIDTUNE_COMPATIBILITY_C64:
+        toFile << keyword_address << std::setfill('0')
+            << std::hex << std::setw(4) << 0 << ',';
+
+        if ( info.musPlayer )
+        {
+            toFile << std::setw(4) << 0 << ','
+                   << std::setw(4) << 0 << std::endl;
+        }
+        else
+        {
+            toFile << std::hex << std::setw(4) << info.initAddr << ','
+                   << std::hex << std::setw(4) << info.playAddr << std::endl;
+        }
+
         {
             uint_least32_t oldStyleSpeed = 0;
             int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
@@ -360,22 +365,53 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
                 << oldStyleSpeed << std::endl;
         }
         break;
+    case SIDTUNE_COMPATIBILITY_R64:
+        toFile << keyword_address << std::hex << std::setw(4)
+            << std::setfill('0') << info.initAddr << std::endl;
+        break;
     }
 
-    toFile << keyword_name << info.infoString[0] << std::endl
-           << keyword_author << info.infoString[1] << std::endl
-           << keyword_released << info.infoString[2] << std::endl;
+    toFile << keyword_songs << std::dec << (int)info.songs << ","
+           << (int)info.startSong << std::endl;
+
+    // @FIXME@ Need better solution.  Make it possible to override MUS strings
+    if ( info.numberOfInfoStrings == 3 )
+    {
+        toFile << keyword_name << info.infoString[0] << std::endl
+               << keyword_author << info.infoString[1] << std::endl
+               << keyword_released << info.infoString[2] << std::endl;
+    }
+    else
+    {
+        toFile << keyword_name << std::endl << keyword_author << std::endl
+               << keyword_released << std::endl;
+    }
 
     if ( info.musPlayer )
     {
         toFile << keyword_musPlayer << std::endl;
     }
-    if ( info.relocStartPage )
+    else
     {
-        toFile
-            << keyword_reloc << std::setfill('0')
-            << std::hex << std::setw(2) << (int) info.relocStartPage << ","
-            << std::hex << std::setw(2) << (int) info.relocPages << std::endl;
+        if ( compatibility == SIDTUNE_COMPATIBILITY_PSID )
+        {
+            toFile << keyword_compatibility << "PSID" << std::endl;
+        }
+        else if ( compatibility == SIDTUNE_COMPATIBILITY_R64 )
+        {
+            toFile << keyword_compatibility << "R64" << std::endl;
+        }
+        else if ( compatibility == SIDTUNE_COMPATIBILITY_BASIC )
+        {
+            toFile << keyword_compatibility << "BASIC" << std::endl;
+        }
+        if ( info.relocStartPage )
+        {
+            toFile
+                << keyword_reloc << std::setfill('0')
+                << std::hex << std::setw(2) << (int) info.relocStartPage << ","
+                << std::hex << std::setw(2) << (int) info.relocPages << std::endl;
+        }
     }
     if ( info.clockSpeed != SIDTUNE_CLOCK_UNKNOWN )
     {
@@ -410,18 +446,6 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
             break;
         }
         toFile << std::endl;
-    }
-    if ( info.compatibility == SIDTUNE_COMPATIBILITY_PSID )
-    {
-        toFile << keyword_compatibility << "C64" << std::endl;
-    }
-    else if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
-    {
-        toFile << keyword_compatibility << "R64" << std::endl;
-    }
-    else if ( info.compatibility == SIDTUNE_COMPATIBILITY_BASIC )
-    {
-        toFile << keyword_compatibility << "BASIC" << std::endl;
     }
 
     if ( !toFile )
