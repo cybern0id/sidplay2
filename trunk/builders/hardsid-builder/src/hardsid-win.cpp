@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/01/17 08:30:48  s_a_white
+ *  Event scheduler phase support.
+ *
  *  Revision 1.7  2002/10/17 18:36:43  s_a_white
  *  Prevent multiple unlocks causing a NULL pointer access.
  *
@@ -129,9 +132,10 @@ void HardSID::reset (uint8_t volume)
 void HardSID::voice (uint_least8_t num, uint_least8_t volume,
                      bool mute)
 {
-    if (num >= voices)
-        return;
-    hsid2.Mute ((BYTE) m_instance, (BYTE) num, (BOOL) mute);
+    if (hsid2.Version >= HSID_VERSION_207)
+        hsid2.Mute2 ((BYTE) m_instance, (BYTE) num, (BOOL) mute, FALSE);
+    else
+        hsid2.Mute  ((BYTE) m_instance, (BYTE) num, (BOOL) mute);
 }
 
 // Set execution environment and lock sid to it
