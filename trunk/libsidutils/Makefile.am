@@ -11,3 +11,4 @@ EXTRA_DIST = win
 
 dist-hook:
 		rm -rf `find $(distdir) -path \*/CVS`
+		rm -f $(distdir)/\*.h
