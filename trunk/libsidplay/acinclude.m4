@@ -122,7 +122,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
     dnl Be pessimistic.
     sid_resid_library=NO
     sid_resid_includes=NO
-    sid_resid_installed=yes
+    sid_resid_install=system
 
     AC_ARG_WITH(resid,
         [  --with-resid=DIR
@@ -150,35 +150,47 @@ AC_DEFUN(SID_PATH_LIBRESID,
 
     # Use library path given by user (if any).
     if test "$sid_resid_library" != NO; then
+        # Help to try and better locate library just from --with-resid option
+        resid_libdirs="$sid_resid_library $sid_resid_library/lib $sid_resid_library/.libs"
+        SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
+        sid_resid_library=$resid_foundlibdir
         sid_resid_libadd="-L$sid_resid_library"
-   fi
+    fi
 
     # Use include path given by user (if any).
     if test "$sid_resid_includes" != NO; then
+        resid_libdirs="$sid_resid_library $sid_resid_library/include"
+        SID_FIND_FILE(sid.h resid/sid.h,$resid_libdirs,resid_foundlibdir)
+        sid_resid_library=$resid_foundlibdir
         sid_resid_incadd="-I$sid_resid_includes"
-        sid_resid_installed=no
-        sid_resid_local=yes
+        sid_resid_install=user
     fi
 
     # Run test compilation.
-    SID_TRY_LIBRESID
-    if test "$sid_libresid_works" = no; then
-        sid_resid_local=no
+    if test "$sid_libresid_install" = user; then
         SID_TRY_USER_LIBRESID
+        if test "$sid_libresid_works" = no; then
+            sid_resid_install=local
+        fi
+    fi
+    
+    if test "$sid_libresid_works" != user; then
+        SID_TRY_LIBRESID
     fi
 
     if test "$sid_libresid_works" = no; then
+        sid_resid_install=local
         # Test compilation failed.
         # Need to search for library and headers
         # Search common locations where header files might be stored.
-        sid_resid_installed=no
-        sid_resid_local=yes
-        resid_incdirs="src/mos6581 /usr/include /usr/local/include /usr/lib/resid/include /usr/local/lib/resid/include"
+        resid_incdirs="src/mos6581 src/mos6581/resid/include /usr/include /usr/local/include \
+                       /usr/lib/resid/include /usr/local/lib/resid/include"
         SID_FIND_FILE(resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
 
         # Search common locations where library might be stored.
-        resid_libdirs="src/mos6581 /usr/lib /usr/local/lib /usr/lib/resid /usr/local/lib/resid"
+        resid_libdirs="src/mos6581/resid src/mos6581/resid/lib /usr/lib /usr/local/lib \
+                       /usr/lib/resid/lib /usr/local/lib/resid/lib"
         SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
 
@@ -211,7 +223,7 @@ AC_DEFUN(SID_PATH_LIBRESID,
         if test "$sid_have_resid" = no; then
             AC_MSG_ERROR(
 [
-reSID library and/or headers found not found.
+reSID library and/or header files not found.
 Please check your installation!
 ]);
         fi
@@ -227,8 +239,8 @@ Please check your installation!
     AC_SUBST(RESID_LDADD)
     AC_SUBST(RESID_INCLUDES)
 
-    if test "$sid_resid_installed" = no; then
-        if test "$sid_resid_local" = yes; then
+    if test "$sid_resid_install" != system; then
+        if test "$sid_resid_install" = local; then
             AC_DEFINE(HAVE_LOCAL_RESID)
         else
             AC_DEFINE(HAVE_USER_RESID)
