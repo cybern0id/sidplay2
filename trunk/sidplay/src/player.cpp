@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2003/02/23 08:59:20  s_a_white
+ *  Displayed keyboard checks at high quiet levels.   At these quiet levels we
+ *  are most likely being run from within another program.
+ *
  *  Revision 1.23  2003/02/22 09:41:59  s_a_white
  *  Made crcs be printed for every subtune automatically.
  *
@@ -260,6 +264,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
     m_driver.cfg.frequency = m_engCfg.frequency;
     m_driver.cfg.precision = m_engCfg.precision;
     m_driver.cfg.channels  = 1; // Mono
+    m_driver.cfg.bufSize   = 0; // Recalculate
     if (m_engCfg.playback == sid2_stereo)
         m_driver.cfg.channels = 2;
 
