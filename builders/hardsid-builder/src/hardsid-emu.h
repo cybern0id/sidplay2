@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/08/09 18:11:35  s_a_white
+ *  Added backwards compatibility support for older hardsid.dll.
+ *
  *  Revision 1.4  2002/07/20 08:36:24  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -44,6 +47,7 @@
 
 #define HSID_VERSION_MIN (WORD) 0x0200
 #define HSID_VERSION_204 (WORD) 0x0204
+#define HSID_VERSION_207 (WORD) 0x0207
 
 //**************************************************************************
 // Version 2 Interface
@@ -52,6 +56,7 @@ typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
 typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
 typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
 typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
+typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
 typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
 typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
 typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
@@ -74,6 +79,7 @@ struct HsidDLL2
     HsidDLL2_Lock_t    Lock;
     HsidDLL2_Unlock_t  Unlock;
     HsidDLL2_Mute_t    Mute;
+    HsidDLL2_Mute2_t   Mute2;
     HsidDLL2_MuteAll_t MuteAll;
     HsidDLL2_Reset_t   Reset;
     HsidDLL2_Reset2_t  Reset2;

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/10/17 18:37:43  s_a_white
+ *  Exit unlock function early once correct sid is found.
+ *
  *  Revision 1.5  2002/08/20 19:21:53  s_a_white
  *  Updated version information.
  *
@@ -290,7 +293,6 @@ int HardSIDBuilder::init ()
     hsid2.Devices  = (HsidDLL2_Devices_t) GetProcAddress(dll, "HardSID_Devices");
     hsid2.Filter   = (HsidDLL2_Filter_t)  GetProcAddress(dll, "HardSID_Filter");
     hsid2.Flush    = (HsidDLL2_Flush_t)   GetProcAddress(dll, "HardSID_Flush");
-    hsid2.Mute     = (HsidDLL2_Mute_t)    GetProcAddress(dll, "HardSID_Mute");
     hsid2.MuteAll  = (HsidDLL2_MuteAll_t) GetProcAddress(dll, "HardSID_MuteAll");
     hsid2.Read     = (HsidDLL2_Read_t)    GetProcAddress(dll, "HardSID_Read");
     hsid2.Sync     = (HsidDLL2_Sync_t)    GetProcAddress(dll, "HardSID_Sync");
@@ -304,6 +306,12 @@ int HardSIDBuilder::init ()
         hsid2.Unlock = (HsidDLL2_Unlock_t) GetProcAddress(dll, "HardSID_Unlock");
         hsid2.Reset2 = (HsidDLL2_Reset2_t) GetProcAddress(dll, "HardSID_Reset2");
     }
+
+    if (hsid2.Version < HSID_VERSION_207)
+        hsid2.Mute   = (HsidDLL2_Mute_t)   GetProcAddress(dll, "HardSID_Mute");
+    else
+        hsid2.Mute2  = (HsidDLL2_Mute2_t)  GetProcAddress(dll, "HardSID_Mute2");
+
     hsid2.Instance = dll;
     m_status       = true;
     return 0;
