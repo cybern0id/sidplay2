@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/14 12:47:39  s_a_white
+ *  Mixer routines simplified.  Added new and more efficient method of
+ *  determining when an output samples is required.
+ *
  *  Revision 1.3  2001/03/01 23:46:37  s_a_white
  *  Support for sample mode to be selected at runtime.
  *
@@ -44,11 +48,11 @@ void Player::mixer (void)
 {
     event_clock_t cycles;
     char   *buf    = m_sampleBuffer + m_sampleIndex;
-    m_sampleClock += m_samplePeriod;
+    m_sampleClock += (m_samplePeriod * m_fastForwardFactor);
     cycles = (event_clock_t) m_sampleClock;
     m_sampleClock -= (event_clock_t) cycles;
     m_sampleIndex += (this->*output) (buf);
-
+ 
     // Schedule next sample event
     eventContext.schedule (&mixerEvent, cycles);
 
@@ -64,21 +68,21 @@ void Player::mixer (void)
 inline
 int_least32_t Player::monoOutGenericLeftIn (uint_least8_t bits)
 {
-    return sid->output (bits) * _leftVolume / VOLUME_MAX;
+    return sid->output (bits) * m_leftVolume / VOLUME_MAX;
 }
 
 inline
 int_least32_t Player::monoOutGenericStereoIn (uint_least8_t bits)
 {
     // Convert to mono
-    return ((sid->output  (bits) * _leftVolume) +
-        (sid2->output (bits) * _rightVolume)) / (VOLUME_MAX * 2);
+    return ((sid->output (bits) * m_leftVolume) +
+        (sid2->output (bits) * m_rightVolume)) / (VOLUME_MAX * 2);
 }
 
 inline
 int_least32_t Player::monoOutGenericRightIn (uint_least8_t bits)
 {
-    return sid2->output (bits) * _rightVolume / VOLUME_MAX;
+    return sid2->output (bits) * m_rightVolume / VOLUME_MAX;
 }
 
 
@@ -154,5 +158,3 @@ uint_least32_t Player::stereoOut16StereoIn (char *buffer)
                (uint_least16_t) monoOutGenericRightIn (16));
     return (2 * sizeof (uint_least16_t));
 }
-
-

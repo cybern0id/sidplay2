@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/07/14 16:46:16  s_a_white
+ *  Sync with sidbuilder class project.
+ *
  *  Revision 1.8  2001/07/14 12:57:38  s_a_white
  *  Added credits and debug functions.  Removed external filter.
  *
@@ -70,8 +73,11 @@ sidplay2::sidplay2 ()
 sidplay2::~sidplay2 ()
 {   if (&sidplayer) delete &sidplayer; }
 
-void sidplay2::configure (sid2_playback_t mode, uint_least32_t samplingFreq, uint_least8_t precision, bool forceDualSid)
-{   sidplayer.configure (mode, samplingFreq, precision, forceDualSid); }
+int sidplay2::configure (const sid2_config_t &cfg)
+{   return sidplayer.configure (cfg); }
+
+const sid2_config_t &sidplay2::configure (void)
+{   return sidplayer.configure (); }
 
 void sidplay2::stop (void)
 {   sidplayer.stop (); }
@@ -85,14 +91,8 @@ uint_least32_t sidplay2::play (void *buffer, uint_least32_t length)
 int sidplay2::loadSong (SidTune *tune)
 {   return sidplayer.loadSong (tune); }
 
-int sidplay2::environment (sid2_env_t env)
-{   return sidplayer.environment (env); }
-
-void sidplay2::getInfo (sid2_playerInfo_t *info)
-{   sidplayer.getInfo (info); }
-
-void sidplay2::optimisation (uint_least8_t level)
-{   sidplayer.optimisation (level); }
+const sid2_info_t &sidplay2::info ()
+{   return sidplayer.info (); }
 
 uint_least32_t sidplay2::time (void)
 {   return sidplayer.time (); }
@@ -100,32 +100,14 @@ uint_least32_t sidplay2::time (void)
 uint_least32_t sidplay2::mileage (void)
 {   return sidplayer.mileage (); }
 
-void sidplay2::filter (bool enabled)
-{   sidplayer.filter (enabled); }
+const char *sidplay2::error (void)
+{   return sidplayer.error (); }
 
-void sidplay2::sidModel (sid2_model_t model)
-{   sidplayer.sidModel (model); }
-
-void sidplay2::clockSpeed (sid2_clock_t clock, bool forced)
-{   sidplayer.clockSpeed (clock, forced); }
-
-const char *sidplay2::getErrorString (void)
-{   return sidplayer.getErrorString (); }
-
-int  sidplay2::fastForward  (uint_least8_t percent)
+int  sidplay2::fastForward  (uint percent)
 {   return sidplayer.fastForward (percent); }
-
-void sidplay2::sidSamples (bool enable)
-{   sidplayer.sidSamples (enable); }
-
-int sidplay2::loadFilter (const sid_fc_t *cutoffs, uint_least16_t points)
-{   return sidplayer.loadFilter (cutoffs, points); }
-
-const char **sidplay2::credits (void)
-{   return sidplayer.credits (); }
-
-void sidplay2::emulation (sidbuilder *builder)
-{   sidplayer.emulation (builder); }
 
 void sidplay2::debug (bool enable)
 {   sidplayer.debug (enable); }
+
+sid2_player_t sidplay2::state (void)
+{   return sidplayer.state (); }
