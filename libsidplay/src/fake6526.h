@@ -33,6 +33,7 @@ class fake6526: public C64Environment
 {
 private:
     uint8_t        regs[0x10];
+	bool           idr;
     uint8_t        cra;  // Timer A Control Register
     uint_least16_t ta_latch;
     uint_least16_t ta;   // Timer A Count (reduces to zero)
@@ -63,6 +64,7 @@ inline void fake6526::clock (void)
         {   // one shot, stop timer A
             cra &= (~0x01);
         }
+		idr = true;
         envTriggerIRQ ();
     }
 }
