@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/10/28 21:28:35  s_a_white
+ *  For none real mode if play != 0 we now always jump to irqjob instead of
+ *  playAddr.
+ *
  *  Revision 1.4  2001/10/02 18:31:24  s_a_white
  *  No longer dies if relocStartPages != 0 byr relocPages == 0.  For none real
  *  evironment modes, play is always followed even if interrupt handlers are
@@ -41,7 +45,7 @@
 const char *Player::ERR_PSIDDRV_NO_SPACE = "ERROR: No space to install psid driver in C64 ram"; 
 const char *Player::ERR_PSIDDRV_RELOC    = "ERROR: Failed whilst relocating psid driver";
 
-extern "C" int reloc65(char** buf, int* fsize, int addr);
+extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
 int Player::psidDrvInstall ()
 {
@@ -71,7 +75,7 @@ int Player::psidDrvInstall ()
         uint8_t *reloc_driver = psid_driver;
         int      reloc_size   = sizeof (psid_driver);
 
-        if (!reloc65 ((char **) &reloc_driver, &reloc_size, relocAddr - 13))
+        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 13))
         {
             m_errorString = ERR_PSIDDRV_RELOC;
             return -1;
