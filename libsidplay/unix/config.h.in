@@ -39,8 +39,8 @@
    has been provided that includes the resid directory name and therefore
    resids include files are available by calling them directly.
 */
-#undef SID_HAVE_LOCAL_RESID
-#undef SID_HAVE_USER_RESID
+#undef HAVE_LOCAL_RESID
+#undef HAVE_USER_RESID
 
 /* Define if your processor stores words with the least significant
    byte first (like Intel and VAX).  */
