@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/08/12 18:22:45  s_a_white
+ *  Fixed bug in Player::sidEmulation call.
+ *
  *  Revision 1.2  2001/07/27 12:51:40  s_a_white
  *  Removed warning.
  *
@@ -389,8 +392,12 @@ void Player::sidModel (sid2_model_t model)
             mos6581_1.model (model);
             mos6581_2.model (model);
         }
-    }
 
+        // Set the tunes sid model
+        m_tuneInfo.sidRev8580 = false;
+        if (model == SID2_MOS8580)
+            m_tuneInfo.sidRev8580 = true;
+    }
 }
 
 void Player::sidSamples (bool enable)
