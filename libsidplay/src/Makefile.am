@@ -1,5 +1,5 @@
 
-SUBDIRS    = c64 mos6510 mos6526 mos656x mos6581 sidtune xsid
+SUBDIRS    = c64 mos6510 mos6526 mos656x mos6581 sidtune xsid sid6526
 EXTRA_DIST = psiddrv.a65 psiddrv.bin
 
 
@@ -15,7 +15,7 @@ reloc65.c sidplay2.cpp
 libsidplay2_la_LIBADD  = ./c64/libc64.la \
 ./mos6510/libmos6510.la ./mos6526/libmos6526.la \
 ./mos656x/libmos656x.la ./xsid/libxsid.la \
-./sidtune/libsidtune.la \
+./sidtune/libsidtune.la ./sid6526/libsid6526.la \
 $(RESID_LDADD) -lresid -lstdc++
 
 # We substitute the libtool-specific library version in configure.in.
