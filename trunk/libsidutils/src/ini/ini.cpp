@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.4  2001/08/30 21:36:15  s_a_white
+ * Synced ini parser with libini-1.1.7.  Fixes various bugs.
+ *
  * Revision 1.10  2001/08/23 19:59:18  s_a_white
  * ini_append fix so not freeing wrong buffer.
  *
@@ -197,11 +200,11 @@ ini_t *__ini_open (const char *name, ini_mode_t mode)
     if (!file)
     {   // File doesn't exist and we are not allowed
         // to create one
-		if (mode != INI_NEW)
+        if (mode != INI_NEW)
             goto ini_openError;
 
-		// Seems we can make so new one, check and
-		// make sure
+        // Seems we can make so new one, check and
+        // make sure
         file = fopen (ini->filename, "wb");
         if (!file)
             goto ini_openError;
@@ -211,12 +214,12 @@ ini_t *__ini_open (const char *name, ini_mode_t mode)
     // Open backup file
     if (ini->mode == INI_READ)
         ini->ftmp = tmpfile ();
-	else
-	{
+    else
+    {
         ini->filename[length - 1] = '~';
         ini->ftmp = fopen (ini->filename, "wb+");
         ini->filename[length - 1] = name[length - 1];
-	}
+    }
 
     if (!ini->ftmp)
         goto ini_openError;
@@ -238,11 +241,11 @@ ini_openError:
         if (ini->ftmp)
         {   // Close and remove backup file
             fclose (ini->ftmp);
-			if (ini->mode != INI_READ)
-			{
+            if (ini->mode != INI_READ)
+            {
                 ini->filename[strlen (ini->filename) - 1] = '~';
                 remove (ini->filename);
-			}
+            }
         }
         if (ini->filename)
             free (ini->filename);
@@ -314,14 +317,14 @@ int __ini_close (ini_t *ini, bool flush)
     // Cleanup
     fclose (ini->ftmp);
 
-	if (ini->mode != INI_READ)
-	{   // If no mods were made, delete tmp file
+    if (ini->mode != INI_READ)
+    {   // If no mods were made, delete tmp file
         if (!ini->changed || ini->newfile)
-		{
+        {
             ini->filename[strlen (ini->filename) - 1] = '~';
             remove (ini->filename);
-		}
-	}
+        }
+    }
 
     __ini_delete (ini);
     free (ini->filename);
@@ -657,17 +660,17 @@ __ini_storeError:
  ********************************************************************************************************************/
 ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode)
 {
-	ini_mode_t _mode;
-	if (!mode)
-		return NULL;
-	// Convert mode
+    ini_mode_t _mode;
+    if (!mode)
+        return NULL;
+    // Convert mode
     switch (*mode)
-	{
-	case 'r': _mode = INI_READ;  break;
-	case 'w': _mode = INI_NEW;   break;
-	case 'a': _mode = INI_EXIST; break;
+    {
+    case 'r': _mode = INI_READ;  break;
+    case 'w': _mode = INI_NEW;   break;
+    case 'a': _mode = INI_EXIST; break;
     default: return NULL;
-	}
+    }
     return (ini_fd_t) __ini_open (name, _mode);
 }
 
@@ -861,6 +864,12 @@ ini_appendError:
 }
 
 #endif // INI_ADD_EXTRAS
+
+// Sidplay-2.0.7 backwards compatibilty function
+extern "C" ini_fd_t INI_LINKAGE ini_new (const char *name)
+{
+    return ini_open (name, "w");
+}
 
 
 // Add Code Modules
