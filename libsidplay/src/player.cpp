@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.80  2004/05/26 19:42:44  s_a_white
+ *  Fixed exceed c64 data memory check.
+ *
  *  Revision 1.79  2004/05/24 23:11:15  s_a_white
  *  Fixed email addresses displayed to end user.
  *
@@ -345,15 +348,13 @@ Player::Player (void)
 // Set default settings for system
 :c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
- sid6510 (&m_scheduler),
- mos6510 (&m_scheduler),
- cpu     (&sid6510),
+ cpu     (&m_scheduler),
  xsid    (this, &nullsid),
  cia     (this),
  cia2    (this),
  sid6526 (this),
  vic     (this),
- mixerEvent (this),
+ m_mixerEvent ("Mixer", *this, &Player::mixer),
  rtc        (&m_scheduler),
  m_tune (NULL),
  m_ram  (NULL),
@@ -372,8 +373,7 @@ Player::Player (void)
     m_rand = (uint_least32_t) rand ();
     
     // Set the ICs to use this environment
-    sid6510.setEnvironment (this);
-    mos6510.setEnvironment (this);
+    cpu.setEnvironment (this);
 
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
@@ -471,21 +471,21 @@ void Player::fakeIRQ (void)
     }
 
     // Setup the entry point and restart the cpu
-    cpu->triggerIRQ ();
-    sid6510.reset   (playAddr, 0, 0, 0);
+    cpu.triggerIRQ ();
+    cpu.reset (playAddr, 0, 0, 0);
 }
 
 int Player::fastForward (uint percent)
 {
     if (percent > 3200)
     {
-        m_errorString = "SIDPLAYER ERROR: Percentage value out of range";
+        m_errorString = "SIDPLAYER ERROR: Percentage value out of range.";
         return -1;
     }
     {
         float64_t fastForwardFactor;
         fastForwardFactor   = (float64_t) percent / 100.0;
-        // Conversion to fixed point 8.24
+        // Conversion to fixed point 16.16
         m_samplePeriod      = (event_clock_t) ((float64_t) m_samplePeriod /
                               m_fastForwardFactor * fastForwardFactor);
         m_fastForwardFactor = fastForwardFactor;
@@ -526,7 +526,7 @@ int Player::initialise ()
 
     if (!m_tune->placeSidTuneInC64mem (m_ram))
     {   // Rev 1.6 (saw) - Allow loop through errors
-        m_errorString = m_tuneInfo.statusString;
+        m_errorString = (m_tune->getInfo()).statusString;
         return -1;
     }
 
@@ -553,7 +553,7 @@ int Player::load (SidTune *tune)
     {
         uint_least8_t v = 3;
         while (v--)
-            sid[i]->voice (v, 0, false);
+            sid[i]->mute (v, false);
     }
 
     {   // Must re-configure on fly for stereo support!
@@ -914,8 +914,7 @@ void Player::reset (void)
     m_sid2crcCount = m_info.sid2crcCount = 0;
 
     // Select Sidplay1 compatible CPU or real thing
-    cpu = &sid6510;
-    sid6510.environment (m_info.environment);
+    cpu.environment (m_info.environment);
 
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
@@ -1099,14 +1098,14 @@ void Player::envReset (bool safe)
         evalBankSelect (bank);
         m_playBank = iomap (m_tuneInfo.playAddr);
         if (m_info.environment != sid2_envPS)
-            sid6510.reset (m_tuneInfo.initAddr, song, 0, 0);
+            cpu.reset (m_tuneInfo.initAddr, song, 0, 0);
         else
-            sid6510.reset (m_tuneInfo.initAddr, song, song, song);
+            cpu.reset (m_tuneInfo.initAddr, song, song, song);
     }
     else
     {
         evalBankSelect (0x37);
-        cpu->reset ();
+        cpu.reset ();
     }
 
     mixerReset ();
