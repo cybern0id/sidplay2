@@ -364,21 +364,20 @@ bool Body::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
     if (!length)
         return Chunk::read (file, usage, length);
 
-    m_pages = 0;
-    for (;;)
+    for (m_pages = 0; length; m_pages++)
     {
         uint8_t page = 0;
         if (!_read (file, &page, sizeof(uint8_t), length))
             return false;
 
-        // Check for a termination byte
+		// Check for a normal information termination byte.  If no extended
+		// information it may optionally be present, else it is compulsory
         if (!page && m_pages)
             break;
 
         m_usage[m_pages].page = page;
         if (!_read (file, m_usage[m_pages].flags, sizeof(uint8_t) * 0x100, length))
             return false;
-        m_pages++;
     }
 
     // Extract usage information
@@ -400,17 +399,6 @@ bool Body::read (FILE *file, sid2_usage_t &usage, uint_least32_t length)
         int end = (int) usage.end + 1;
         for (int addr = usage.start; addr < end; addr++)
             usage.memory[addr] |= SID_LOAD_IMAGE;
-    }
-
-    // Check for a normal information termination byte.  If no extended
-    // information it may optionally be present, else it is compulsory
-    if (length)
-    {
-        uint8_t tmp = 0;
-        if (!_read (file, &tmp, sizeof (tmp), length))
-            return false;
-        if (tmp != 0)
-            return false;
     }
     return Chunk::read (file, usage, length);
 }
