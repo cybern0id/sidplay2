@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.55  2002/11/27 00:16:51  s_a_white
+ *  Make sure driver info gets reset and exported properly.
+ *
  *  Revision 1.54  2002/11/25 21:09:41  s_a_white
  *  Reset address for old sidplay1 modes now directly passed to the CPU.  This
  *  prevents tune corruption and banking issues for the different modes.
@@ -783,6 +786,11 @@ void Player::reset (void)
         // Since we don't yet run the kernal power up
         // routines, set somethings here.
         endian_little16 (&m_ram[0x028f], 0xEB48); // keyboard poll
+        m_rom[0xfd69] = 0x9f; // Bypass memory check
+        endian_little16 (&m_rom[0xa000], 0xA004);
+        endian_little16 (&m_rom[0xa002], 0xA004);
+        m_rom[0xa004] = JMPw;
+        endian_little16 (&m_rom[0xa005], 0xA004);
     }
     else // !sid2_envR
     {
