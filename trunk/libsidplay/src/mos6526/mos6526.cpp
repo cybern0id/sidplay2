@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2004/03/14 23:07:50  s_a_white
+ *  Remove warning in Visual C about precendence order.
+ *
  *  Revision 1.18  2004/03/09 20:52:30  s_a_white
  *  Added missing header.
  *
@@ -163,6 +166,7 @@ void MOS6526::reset (void)
     icr = idr = 0;
     m_accessClk = 0;
     dpa = 0xf0;
+    memset (regs, 0, sizeof (regs));
 
     // Reset tod
     memset(m_todclock, 0, sizeof(m_todclock));
@@ -207,8 +211,7 @@ uint8_t MOS6526::read (uint_least8_t addr)
         return (regs[PRA] | ~regs[DDRA]);
     case PRB:
     {
-        uint8_t data = regs[DDRB];
-        data = data | (regs[PRB] & data);
+        uint8_t data = regs[PRB] | ~regs[DDRB];
         // Timers can appear on the port
         if (cra & 0x02)
         {
