@@ -147,6 +147,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
             clock |= SIDTUNE_CLOCK_PAL;
         if (flags & PSID_CLOCK_NTSC)
             clock |= SIDTUNE_CLOCK_NTSC;
+        info.clockSpeed = clock;
 
         info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
         if (flags & PSID_SIDMODEL_6581)
