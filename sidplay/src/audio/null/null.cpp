@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
 #include "null.h"
@@ -84,6 +87,6 @@ void Audio_Null::close (void)
 {
     if (!isOpen)
         return;
-    delete _sampleBuffer;
+    delete [] _sampleBuffer;
     isOpen = false;
 }
