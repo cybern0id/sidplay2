@@ -54,33 +54,37 @@ void channel::reset ()
 }
 
 inline void channel::clock (udword_sidt delta_t)
-{
+{   // Emulate a CIA timer
     if (!cycleCount) return;
     if (delta_t == 1)
-    {
-        (this->*_clock) ();
+    {   // Rev 1.4 (saw) - Optimisation to prevent _clock being
+        // called un-necessarily.
+#ifdef XSID_DEBUG
+        cycles++;
+#endif
+        if (!--cycleCount)
+            (this->*_clock) ();
         return;
     }
 
     // Slightly optimised clocking routine
     // for clock periods > than 1
     while (cycleCount <= delta_t)
-    {
+    {   // Rev 1.4 (saw) - Changed to reflect change above
 #ifdef XSID_DEBUG
-        cycles    += (cycleCount - 1);
+        cycles  += cycleCount;
 #endif
-        delta_t   -= cycleCount;
-        cycleCount = 1;
+        delta_t -= cycleCount;
         (this->*_clock) ();
         // Check to see if the sequence finished
         if (!cycleCount) return;
     }
     
     // Reduce the cycleCount by whats left
-    cycleCount -= delta_t;
 #ifdef XSID_DEBUG
     cycles     += delta_t;
 #endif
+    cycleCount -= delta_t;
 }
 
 #ifndef XSID_USE_SID_VOLUME
@@ -185,55 +189,49 @@ void channel::sampleInit ()
 }
 
 void channel::sampleClock ()
-{   // Emulate a CIA timer
-#ifdef XSID_DEBUG
-    cycles++;
-#endif
-    if (!--cycleCount)
+{
+    cycleCount   = samPeriod;
+    if (address >= samEndAddr)
     {
-        cycleCount   = samPeriod;
-        if (address >= samEndAddr)
+        if (samRepeat != 0xFF)
         {
-            if (samRepeat != 0xFF)
-            {
-                if (samRepeat)
-                    samRepeat--;
-                else
-                    samRepeatAddr = address;
-            }
-
-            address      = samRepeatAddr;
-            if (address >= samEndAddr)
-            {
-#ifdef XSID_DEBUG
-                printf ("XSID [%lu]: Sample Stop (%lu Cycles, %lu Outputs)\n",
-                    (unsigned long) this, cycles, outputs);
-#endif
-#ifdef XSID_USE_SID_VOLUME
-                // Rev 2.0.5 (saw) - Locate Origin
-                sample  = (samMin + samMax) / 2;
-                changed = true;
-#endif
-                free ();
-                checkForInit ();
-                return;
-            }
+            if (samRepeat)
+                samRepeat--;
+            else
+                samRepeatAddr = address;
         }
 
-        // We have reached the required sample
-        // So now we need to extract the right nibble
-        sample     = sampleCalculate ();
+        address      = samRepeatAddr;
+        if (address >= samEndAddr)
+        {
+#ifdef XSID_DEBUG
+            printf ("XSID [%lu]: Sample Stop (%lu Cycles, %lu Outputs)\n",
+                (unsigned long) this, cycles, outputs);
+#endif
+#ifdef XSID_USE_SID_VOLUME
+            // Rev 2.0.5 (saw) - Locate Origin
+            sample  = (samMin + samMax) / 2;
+            changed = true;
+#endif
+            free ();
+            checkForInit ();
+            return;
+        }
+    }
+
+    // We have reached the required sample
+    // So now we need to extract the right nibble
+    sample     = sampleCalculate ();
 
 #ifdef XSID_USE_SID_VOLUME
-        // Rev 2.0.5 (saw) - Added to track origin
-        if (sample < samMin)
-	    samMin = sample;
-	else if (sample > samMax)
-            samMax = sample;
-        changed    = true;
+    // Rev 2.0.5 (saw) - Added to track origin
+    if (sample < samMin)
+        samMin = sample;
+    else if (sample > samMax)
+        samMax = sample;
+    changed    = true;
 #endif
-        samNibble &= 1;
-    }
+    samNibble &= 1;
 }
 
 sbyte_sidt channel::sampleCalculate ()
@@ -318,43 +316,37 @@ void channel::galwayInit()
 }
 
 void channel::galwayClock ()
-{   // Emulate a CIA timer
-#ifdef XSID_DEBUG
-    cycles++;
-#endif
-    if (!--cycleCount)
+{
+    if (--galLength)
     {
-        if (--galLength)
-        {
-            cycleCount = samPeriod;
-        }
-        else if (galTones == 0xff)
-        {   // The counter has completed
-#ifdef XSID_DEBUG
-            printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
-                (unsigned long) this, cycles, outputs);
-            if (reg[convertAddr (0x1d)])
-                printf ("XSID [%lu]: Starting Delayed Sequence\n");
-#endif
-            free ();
-            checkForInit ();
-            return;
-        }
-        else
-        {
-            galwayTonePeriod ();
-        }
-
-        // See Galway Example...
-        galVolume += volShift;
-        galVolume &= 0x0f;
-#ifndef XSID_USE_SID_VOLUME
-        sample  = sampleConvertTable[galVolume];
-#else
-        sample  = galVolume;
-        changed = true;
-#endif
+        cycleCount = samPeriod;
     }
+    else if (galTones == 0xff)
+    {   // The counter has completed
+#ifdef XSID_DEBUG
+        printf ("XSID [%lu]: Galway Stop (%lu Cycles, %lu Outputs)\n",
+            (unsigned long) this, cycles, outputs);
+        if (reg[convertAddr (0x1d)])
+            printf ("XSID [%lu]: Starting Delayed Sequence\n");
+#endif
+        free ();
+        checkForInit ();
+        return;
+    }
+    else
+    {
+        galwayTonePeriod ();
+    }
+
+    // See Galway Example...
+    galVolume += volShift;
+    galVolume &= 0x0f;
+#ifndef XSID_USE_SID_VOLUME
+    sample  = sampleConvertTable[galVolume];
+#else
+    sample  = galVolume;
+    changed = true;
+#endif
 }
 
 void channel::galwayTonePeriod ()
