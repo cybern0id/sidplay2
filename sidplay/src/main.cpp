@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2001/03/26 18:14:20  s_a_white
+ *  Removed debug code.
+ *
  *  Revision 1.7  2001/03/21 22:54:55  s_a_white
  *  Support for ini config file and libsidutils tools.
  *
@@ -146,7 +149,7 @@ int main(int argc, char *argv[])
     uint            sidFile       = 0;
     void           *nextBuffer    = NULL;
     uint_least32_t  runtime       = 0;
-    uint_least32_t  usertime      = 0;
+    bool            timeValid     = false;
     bool            verboseOutput = false;
     bool            force2SID     = false;
 
@@ -405,7 +408,10 @@ int main(int argc, char *argv[])
                     }
 
                     if (!start)
-                        usertime  = time;
+                    {
+                        timeValid = true;
+                        runtime   = time;
+                    }
                     else
                         starttime = time;
 
@@ -544,7 +550,7 @@ int main(int argc, char *argv[])
     }
 
     // Load song length database
-    if (!usertime)
+    if (!timeValid)
         player.database.open (player.ini.songLengthDB ());
 
 main_restart:
@@ -562,12 +568,11 @@ main_restart:
     }
 
     // See if we can get the songs length
-    runtime = usertime;
-    if (!runtime)
+    if (!timeValid)
     {
         int_least32_t ret = player.database.getSongLength (tune);
         if (ret > 0)
-        runtime = ret;
+            runtime = ret;
     }
 
     // Rev 1.12 (saw) Moved to allow modification of wav filename
@@ -751,6 +756,8 @@ main_restart:
     if (runtime)
         cerr << setw(2) << setfill('0') << ((runtime / 60) % 100)
              << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
+    else if (timeValid)
+        cerr << "FOREVER" << endl;
     else
         cerr << "UNKNOWN" << endl;
 
@@ -864,7 +871,7 @@ main_restart:
 
         if (!player.restart)
         {
-            if (!(wavOutput || usertime))
+            if (!(wavOutput || timeValid))
             {   // It's annoying to exit at end of song when there is lots
                 // of subtunes and we were skipping through and accidently waited
                 // too long on a short track.  As a result increment naturally to
