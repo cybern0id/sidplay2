@@ -43,7 +43,7 @@ int __ini_listEval (ini_t *ini)
     if (ini->list)
     {
         free (ini->list);
-        ini->list = '\0';
+        ini->list = NULL;
     }
 
     // Re-evaluate with new settings
@@ -52,7 +52,7 @@ int __ini_listEval (ini_t *ini)
         return -1;
     if (!length)
     {
-        ini->listIndex  = '\0';
+        ini->listIndex  = 0;
         ini->listLength = 0;
         if (ini->selected->selected == &ini->tmpKey)
             return -1; // Can't read tmpKey
@@ -139,12 +139,15 @@ char *__ini_listRead (ini_t *ini)
     if (!ini->list)
     {
         if (__ini_listEval (ini) < 0)
-            return 0;
+            return NULL;
+        // Handle an empty list
+        if (!ini->listLength)
+            return "";
     }
 
     // Check to see if we are trying to get a value beyond the end of the list
     if (ini->listIndex >= ini->listLength)
-        return 0;
+        return NULL;
     p = ini->listIndexPtr;
     // Auto increment pointers to next index
     ini->listIndexPtr += (strlen (ini->listIndexPtr) + 1);
@@ -302,6 +305,8 @@ int __ini_listIndexLength (ini_t *ini)
     {   // No list yet.  So try to get one
         if (__ini_listEval (ini) < 0)
             return -1;
+        if (!ini->listLength)
+            return 0;
     }
 
     // Now return length
