@@ -43,9 +43,6 @@ static const uint_least16_t SIDTUNE_SID2_BASE_ADDR = 0xd500;
 bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
                               Buffer_sidtt<const uint8_t>& strBuf)
 {
-    // Remove any format description or format error string.
-    info.formatString = 0;
-
     // Clear info strings.
     for (int i = 0; i < SIDTUNE_MAX_CREDIT_STRINGS; i++)
         infoString[i][0] = 0;
