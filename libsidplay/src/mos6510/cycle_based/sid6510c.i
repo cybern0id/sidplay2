@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2003/02/20 18:59:46  s_a_white
+ *  Prevent interrupts waking up the CPU when the I flag is set.
+ *
  *  Revision 1.30  2003/01/20 18:37:08  s_a_white
  *  Stealing update.  Apparently the cpu does a memory read from any non
  *  write cycle (whether it needs to or not) resulting in those cycles
@@ -211,7 +214,8 @@ void SID6510::reset (uint_least16_t pc, uint8_t a, uint8_t x, uint8_t y)
 
 void SID6510::reset ()
 {
-    m_sleeping  = false;
+    m_sleeping = false;
+    m_timeout  = false;
     // Call inherited reset
     MOS6510::reset ();
 }
@@ -244,7 +248,7 @@ void SID6510::FetchOpcode (void)
 
     if (m_framelock == false)
     {
-        uint timeout = 1000000;
+        uint timeout = 6000000;
         m_framelock = true;
         // Simulate sidplay1 frame based execution
         while (!m_sleeping && timeout)
@@ -253,7 +257,10 @@ void SID6510::FetchOpcode (void)
             timeout--;
         }
         if (!timeout)
-            printf ("\n\nINFINITE LOOP DETECTED *********************************\n");
+        {
+            printf   ("\n\nINFINITE LOOP DETECTED *********************************\n");
+            envReset ();
+        }
         sleep ();
         m_framelock = false;
     }
