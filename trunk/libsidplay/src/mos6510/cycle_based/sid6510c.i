@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/02/07 18:02:10  s_a_white
+ *  Real C64 compatibility fixes. Debug of BRK works again. Fixed illegal
+ *  instructions to work like sidplay1.
+ *
  *  Revision 1.17  2002/02/06 17:49:12  s_a_white
  *  Fixed sign comparison warning.
  *
@@ -106,13 +110,25 @@ SID6510::SID6510 (EventContext *context)
 
     {   // Since no real IRQs, all RTIs mapped to RTS
         // Required for fix bad tunes in old modes
+        uint n;
         procCycle = instrTable[RTIn].cycle;
-        for (uint n = 0; n < instrTable[RTIn].cycles; n++)
+        for (n = 0; n < instrTable[RTIn].cycles; n++)
         {
             if (procCycle[n] == &MOS6510::PopSR)
             {
                 procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
                     (&SID6510::sid_rti);
+                break;
+            }
+        }
+
+        procCycle = interruptTable[oIRQ].cycle;
+        for (n = 0; n < interruptTable[oIRQ].cycles; n++)
+        {
+            if (procCycle[n] == &MOS6510::IRQRequest)
+            {
+                procCycle[n] = reinterpret_cast <void (MOS6510::*)()>
+                    (&SID6510::sid_irq);
                 break;
             }
         }
@@ -196,8 +212,9 @@ void SID6510::sid_brk (void)
     }
     Register_ProgramCounter = Register_StackPointer;
     if (m_mode == sid2_envR)
-    {   // Remove spare byte which will then be
-        // replaced by SR.
+    {   // in sidplay1 RTI behaves like RTS which mean
+        // the return address is already +1. A real
+        // RTI dosen't do this.
         Register_ProgramCounter++;
     }
 
@@ -254,10 +271,19 @@ void SID6510::sid_rti (void)
         PopSR ();
         return;
     }
-
+    
     // Fake RTS
     sid_rts ();
     FetchOpcode ();
+}
+
+void SID6510::sid_irq (void)
+{
+    MOS6510::IRQRequest ();
+    if (m_mode != sid2_envR)
+    {   // RTI behaves like RTI in sidplay1 modes
+        Register_StackPointer++;
+    }
 }
 
 // Sidplay Suppresses Illegal Instructions
