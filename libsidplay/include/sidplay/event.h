@@ -30,9 +30,10 @@ class SID_EXTERN Event
 {
     friend class EventScheduler;
 
-public:
-    const char * const m_name;
-    event_clock_t m_clk;
+private:
+    const char * const  m_name;
+    class EventContext *m_context;
+    event_clock_t       m_clk;
 
     /* This variable is set by the event context
        when it is scheduled */
@@ -46,18 +47,40 @@ public:
     Event(const char * const name)
         : m_name(name),
           m_pending(false) {}
+    ~Event() {}
 
-    virtual void event (void) = 0;
-    bool    pending () { return m_pending; }
+    virtual void event(void) = 0;
+    bool    pending  () { return m_pending; }
+    void    cancel   ();
+    void    schedule (EventContext &context, event_clock_t cycles,
+                      event_phase_t phase);
+};
+
+template< class This >
+class EventCallback: public Event
+{
+private:
+    typedef void (This::*Callback) ();
+    This          &m_this;
+    Callback const m_callback;
+    void event(void) { (m_this.*m_callback) (); }
+
+public:
+    EventCallback (const char * const name, This &_this, Callback callback)
+      : Event(name), m_this(_this),
+        m_callback(callback) {}
 };
 
 // Public Event Context
 class EventContext
 {
+    friend class Event;
+
+protected:
+    virtual void cancel   (Event &event) = 0;
+    virtual void schedule (Event &event, event_clock_t cycles, event_phase_t phase) = 0;
+
 public:
-    virtual void cancel   (Event *event) = 0;
-    virtual void schedule (Event *event, event_clock_t cycles,
-                           event_phase_t phase) = 0;
     virtual event_clock_t getTime (event_phase_t phase) const = 0;
     virtual event_clock_t getTime (event_clock_t clock, event_phase_t phase) const = 0;
     virtual event_phase_t phase () const = 0;
@@ -67,37 +90,18 @@ public:
 class EventScheduler: public EventContext, public Event
 {
 private:
-    event_clock_t m_absClk;
+    EventCallback<EventScheduler> m_timeWarp;
     uint  m_events;
-
-    class SID_EXTERN EventTimeWarp: public Event
-    {
-    private:
-        EventScheduler &m_scheduler;
-
-        void event (void)
-        {
-            m_scheduler.event ();
-        }
-
-    public:
-        EventTimeWarp (EventScheduler *context)
-        :Event("Time Warp"),
-         m_scheduler(*context)
-        {;}
-    } m_timeWarp;
-    friend class EventTimeWarp;
+    uint  m_events_future;
 
 private:
-    void event    (void);
-    void dispatch (Event &e)
-    {
-        cancelPending (e);
-        //printf ("Event \"%s\"\n", e.m_name);
-        e.event ();
-    }
+    void event (void);
 
-    void cancelPending (Event &event)
+protected:
+    void schedule (Event &event, event_clock_t cycles,
+                   event_phase_t phase);
+
+    void cancel   (Event &event)
     {
         event.m_pending      = false;
         event.m_prev->m_next = event.m_next;
@@ -107,26 +111,39 @@ private:
 
 public:
     EventScheduler (const char * const name);
-    void cancel    (Event *event);
     void reset     (void);
-    void schedule  (Event *event, event_clock_t cycles,
-                    event_phase_t phase);
 
     void clock (void)
     {
 //        m_clk++;
 //        while (m_events && (m_clk >= m_next->m_clk))
 //            dispatch (*m_next);
-        m_clk = m_next->m_clk;
-        dispatch (*m_next);
+        Event &e = *m_next;
+        m_clk = e.m_clk;
+        cancel (e);
+        //printf ("Event \"%s\"\n", e.m_name);
+        e.event();
     }
 
     // Get time with respect to a specific clock phase
     event_clock_t getTime (event_phase_t phase) const
-    {   return (m_absClk + m_clk + (phase ^ 1)) >> 1; }
+    {   return (m_clk + (phase ^ 1)) >> 1; }
     event_clock_t getTime (event_clock_t clock, event_phase_t phase) const
     {   return ((getTime (phase) - clock) << 1) >> 1; } // 31 bit res.
-    event_phase_t phase () const { return (event_phase_t) ((m_absClk + m_clk) & 1); }
+    event_phase_t phase () const { return (event_phase_t) (m_clk & 1); }
 };
+
+
+inline void Event::schedule (EventContext &context, event_clock_t cycles,
+                             event_phase_t phase)
+{
+    context.schedule (*this, cycles, phase);
+}
+
+inline void Event::cancel ()
+{
+    if (m_pending)
+        m_context->cancel (*this);
+}
 
 #endif // _event_h_
