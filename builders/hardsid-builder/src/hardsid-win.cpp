@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/06/26 11:17:28  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *  Merged sidplay2/w volume/mute changes.
+ *
  *  Revision 1.13  2004/04/15 15:19:31  s_a_white
  *  Only insert delays from the periodic event into output stream if
  *  HARDSID_DELAY_CYCLES has passed (removes unnecessary hw writes)
@@ -141,8 +145,7 @@ void HardSID::reset (uint8_t volume)
     hsid2.Sync ((BYTE) m_instance);
 
     if (m_eventContext != NULL)
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
-                  EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 void HardSID::volume (uint_least8_t num, uint_least8_t level)
@@ -182,8 +185,7 @@ bool HardSID::lock (c64env *env)
         }
         m_locked = true;
         m_eventContext = &env->context ();
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
-                  EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
     return true;
 }
@@ -192,16 +194,12 @@ void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     if (cycles < HARDSID_DELAY_CYCLES)
-    {
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES - cycles,
-                  EVENT_CLOCK_PHI1);
-    }
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES - cycles, m_phase);
     else
     {
         m_accessClk += cycles;
         hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES,
-                  EVENT_CLOCK_PHI1);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
 }
 
