@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2002/03/04 19:30:15  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.13  2002/01/30 00:34:15  s_a_white
  *  Printing builder error message instead of not enough memory.
  *
@@ -258,7 +261,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
             m_engCfg.playback  = sid2_stereo;
         break;
     default:
-        cerr << m_name << "\n" << "ERROR: " << m_driver.cfg.channels
+        cerr << m_name << ": " << "ERROR: " << m_driver.cfg.channels
              << " audio channels not supported" << endl;
         return false;
     }
@@ -365,7 +368,7 @@ bool ConsolePlayer::open (void)
 
     if ((m_state & ~playerFast) == playerRestart)
     {
-        cerr << endl << endl;
+        cerr << endl;
         if (m_state & playerFast)
             m_driver.selected->reset ();
         m_state = playerStopped;
@@ -375,7 +378,7 @@ bool ConsolePlayer::open (void)
     m_track.selected = m_tune.selectSong (m_track.selected);
     if (m_engine.load (&m_tune) < 0)
     {
-        cerr << m_name << "\n" << m_engine.error () << endl;
+        displayError (m_engine.error ());
         return false;
     }
 
@@ -423,7 +426,7 @@ bool ConsolePlayer::open (void)
     {   // Check to make start time dosen't exceed end
         if (m_timer.stop & (m_timer.start >= m_timer.stop))
         {
-            cerr << m_name << "\n" << "ERROR: Start time exceeds song length!" << endl;
+            displayError ("ERROR: Start time exceeds song length!");
             return false;
         }
     }
@@ -457,12 +460,11 @@ void ConsolePlayer::close ()
 
     // Correctly leave ansi mode and get prompt to
     // end up in a suitable location
+    if ((m_iniCfg.console ()).ansi)
+        cerr << '\x1b' << "[0m";
 #ifndef HAVE_MSWINDOWS
     cerr << endl;
 #endif
-    if ((m_iniCfg.console ()).ansi)
-        cerr << '\x1b' << "[0m";
-    cerr << endl;
 }
 
 // Flush any hardware sid fifos so all music is played
@@ -588,8 +590,7 @@ void ConsolePlayer::event (void)
 
 void ConsolePlayer::displayError (const char *error)
 {
-    cerr << m_name << endl;
-    cerr << error << endl;
+    cerr << m_name << ": " << error << endl;
 }
 
 

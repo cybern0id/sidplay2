@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2002/01/30 00:33:00  s_a_white
+ *  Error message now multiline.
+ *
  *  Revision 1.25  2001/12/07 18:22:33  s_a_white
  *  Player quit fixes.
  *
@@ -118,7 +121,7 @@ int main(int argc, char *argv[])
 
 main_restart:
     if (!player.open ())
-        return EXIT_FAILURE;
+        goto main_error;
 
     // Install signal error handlers
     if ((signal (SIGINT,  &sighandler) == SIG_ERR)
@@ -140,6 +143,7 @@ main_restart:
         if (!player.play ())
             break;
     }
+    cerr << endl;
 
 #ifdef HAVE_UNIX
     keyboard_disable_raw ();
@@ -182,7 +186,7 @@ void sighandler (int signum)
 
 void displayError (const char *arg0, uint num)
 {
-    cerr << arg0 << endl;
+    cerr << arg0 << ": ";
 
     switch (num)
     {
