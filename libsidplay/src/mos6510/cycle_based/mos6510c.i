@@ -59,10 +59,10 @@ void MOS6510::PushSR (void)
 	endian_16hi8 (addr, SP_PAGE);
     /* Rev 1.04 - Corrected flag mask */
     Register_Status &= ((1 << SR_NOTUSED) | (1 << SR_DECIMAL) | (1 << SR_BREAK));
-    if (getFlagN ()) Register_Status |= (1 << SR_NEGATIVE);
-    if (getFlagV ()) Register_Status |= (1 << SR_OVERFLOW);
-    if (getFlagZ ()) Register_Status |= (1 << SR_ZERO);
-    if (getFlagC ()) Register_Status |= (1 << SR_CARRY);
+    Register_Status |= (getFlagN () << SR_NEGATIVE);
+    Register_Status |= (getFlagV () << SR_OVERFLOW);
+    Register_Status |= (getFlagZ () << SR_ZERO);
+    Register_Status |= (getFlagC () << SR_CARRY);
     envWriteMemByte (addr, Register_Status);
     Register_StackPointer--;
 }
@@ -70,18 +70,17 @@ void MOS6510::PushSR (void)
 // increment S, Pop P off stack
 void MOS6510::PopSR (void)
 {
-    uint8_t data;
-    uint_least16_t addr;
     Register_StackPointer++;
-    addr = Register_StackPointer;
-	endian_16hi8 (addr, SP_PAGE);
-    data = envReadMemByte (addr);
-    Register_Status = data;
+    {
+        uint_least16_t addr = Register_StackPointer;
+	    endian_16hi8 (addr, SP_PAGE);
+        Register_Status     = envReadMemByte (addr);
+    }
     setFlagB (false);
-    setFlagN (data);
-    setFlagV (data   & (1 << SR_OVERFLOW));
-    setFlagZ (!(data & (1 << SR_ZERO)));
-    setFlagC (data   & (1 << SR_CARRY));
+    setFlagN (Register_Status);
+    setFlagV (Register_Status   & (1 << SR_OVERFLOW));
+    setFlagZ (!(Register_Status & (1 << SR_ZERO)));
+    setFlagC (Register_Status   & (1 << SR_CARRY));
 }
 
 
