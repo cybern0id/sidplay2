@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/01/23 21:26:28  s_a_white
+ *  Only way to load a tune now is by passing in a sidtune object.  This is
+ *  required for songlength database support.
+ *
  *  Revision 1.1  2000/12/12 19:14:44  s_a_white
  *  Library wrapper.
  *
@@ -28,6 +32,12 @@
 // This interface can be directly replaced with a libsidplay1 or C interface wrapper.
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
+
+//#ifdef HAVE_MSWINDOWS
+// Support for DLLs
+#   define SID_EXPORT __declspec(dllexport)
+//#endif
+
 #include "config.h"
 #include "player.h"
 
