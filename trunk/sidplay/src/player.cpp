@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2002/06/16 19:44:21  s_a_white
+ *  Changing resid filter works again.
+ *
  *  Revision 1.16  2002/04/18 22:57:28  s_a_white
  *  Fixed use of track looping/single when creating audio files.
  *
@@ -74,6 +77,9 @@
 
 #include "player.h"
 #include "keyboard.h"
+
+// Previous song select timeout (3 secs)
+#define SID2_PREV_SONG_TIMEOUT 30
 
 #ifdef HAVE_RESID_BUILDER
 #   include <sidplay/builders/resid.h>
@@ -623,10 +629,14 @@ void ConsolePlayer::decodeKeys ()
         case A_LEFT_ARROW:
             m_state = playerFastRestart;
             if (!m_track.single)
-            {
-                m_track.selected--;
-                if (m_track.selected < 1)
-                    m_track.selected = m_track.songs;
+            {   // Only select previous song if less than timeout
+                // else restart current song
+                if (m_engine.time() < SID2_PREV_SONG_TIMEOUT)
+                {
+                    m_track.selected--;
+                    if (m_track.selected < 1)
+                        m_track.selected = m_track.songs;
+                }
             }
         break;
 
