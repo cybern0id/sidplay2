@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2001/07/14 12:59:53  s_a_white
+ *  XSID effeciency increased.  Now uses new component classes and event
+ *  generation.
+ *
  *  Revision 1.13  2001/03/25 19:51:23  s_a_white
  *  Performance update.
  *
@@ -379,10 +383,11 @@ XSID::XSID (EventContext *context)
 :Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),
- muted(false)
+ muted(false),
+ suppressed(false),
+ wasRunning(false)
 {
     sidSamples (true);
-    reset ();
 }
 
 void XSID::reset ()
