@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/12/01 20:16:23  s_a_white
+ *  Player changed to ConsolePlayer.
+ *
  *  Revision 1.1  2001/11/27 19:10:44  s_a_white
  *  Initial Release.
  *
@@ -79,7 +82,7 @@ private:
 #ifdef HAVE_RESID_BUILDER
     static const char  RESID_ID[];
 #endif
-#ifdef HAVE_HARDSID_BUIDLER
+#ifdef HAVE_HARDSID_BUILDER
     static const char  HARDSID_ID[];
 #endif
 
