@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2003/01/23 17:32:37  s_a_white
+ *  Redundent code removal.
+ *
  *  Revision 1.8  2003/01/17 08:35:46  s_a_white
  *  Event scheduler phase support.
  *
@@ -48,7 +51,7 @@
 EventScheduler::EventScheduler (const char * const name)
 :Event(name),
  m_events(0),
- m_phase(EVENT_CLOCK_PHI1),
+// m_phase(EVENT_CLOCK_PHI1),
  m_timeWarp(this)
 {
     m_next = this;
@@ -56,18 +59,20 @@ EventScheduler::EventScheduler (const char * const name)
     reset ();
 }
 
-// Usefull to prevent clock overflowing
-void EventScheduler::timeWarp ()
+// Used to prevent overflowing by timewarping
+// the event clocks
+void EventScheduler::event ()
 {
     Event *e     = this;
     uint   count = m_events;
+    m_absClk    += m_clk;
     while (count--)
     {   // Reduce all event clocks and clip them
         // so none go negative
         e = e->m_next;
-        e->m_clk -= m_eventClk;
+        e->m_clk -= m_clk;
     }
-    m_eventClk = 0;
+    m_clk = 0;
     // Re-schedule the next timeWarp
     schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT, EVENT_CLOCK_PHI1);
 }
@@ -81,18 +86,20 @@ void EventScheduler::reset (void)
         e = e->m_next;
         e->m_pending = false;
     }
-    m_next     = this;
-    m_prev     = this;
-    m_eventClk = m_schedClk = 0;
+    m_next = this;
+    m_prev = this;
+    m_clk  = m_absClk = 0;
     m_events   = 0;
-    timeWarp ();
+    event ();
 }
 
 // Add event to ordered pending queue
 void EventScheduler::schedule (Event *event, event_clock_t cycles,
                                event_phase_t phase)
 {
-    event_clock_t clk = m_eventClk + ((cycles << 1) | (phase ^ m_phase));
+    event_clock_t clk = m_clk + (cycles << 1);
+    clk += (((m_absClk + clk) & 1) ^ phase);
+
     if (!event->m_pending)
     {   // Now put in the correct place so we don't need to keep
         // searching the list later.
