@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2003/01/20 18:37:08  s_a_white
+ *  Stealing update.  Apparently the cpu does a memory read from any non
+ *  write cycle (whether it needs to or not) resulting in those cycles
+ *  being stolen.
+ *
  *  Revision 1.16  2003/01/17 08:42:09  s_a_white
  *  Event scheduler phase support.  Better handling the operation of IRQs
  *  during stolen cycles.
@@ -188,7 +193,6 @@ protected:
     inline void FetchHighPointer     (void);
     inline void FetchEffAddrDataByte (void);
     inline void PutEffAddrDataByte   (void);
-    inline void FetchPutEffAddrDataByte (void);
     inline void PushLowPC            (void);
     inline void PushHighPC           (void);
     inline void PushSR               (bool b_flag);
