@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2003/01/24 19:31:59  s_a_white
+ *  An attempt at allowing configuration whilst paused without the tune restarting.
+ *
  *  Revision 1.30  2003/01/23 17:33:22  s_a_white
  *  Redundent code removal.
  *
@@ -196,6 +199,9 @@ int Player::config (const sid2_config_t &cfg)
             m_cfg.sidEmulation = NULL;
             goto Player_configure_restore;
         }
+
+        m_sidAddress[0] = m_tuneInfo.sidChipBase1;
+        m_sidAddress[1] = m_tuneInfo.sidChipBase2;
     }
     sidSamples (cfg.sidSamples);
 
@@ -203,9 +209,6 @@ int Player::config (const sid2_config_t &cfg)
     m_info.channels = 1;
     if (cfg.playback == sid2_stereo)
         m_info.channels++;
-
-    m_sidAddress[0]  = m_tuneInfo.sidChipBase1;
-    m_sidAddress[1]  = m_tuneInfo.sidChipBase2;
 
     // Only force dual sids if second wasn't detected
     if (!m_sidAddress[1] && cfg.forceDualSids)
@@ -217,10 +220,7 @@ int Player::config (const sid2_config_t &cfg)
     if (cfg.playback != sid2_mono)
     {   // Try Spliting channels across 2 sids
         if (!m_sidAddress[1])
-        {
-            m_sidAddress[1] = m_sidAddress[0];
-
-            // Mute Voices
+        {   // Mute Voices
             sid[0]->voice (0, 0, true);
             sid[0]->voice (2, 0, true);
             sid[1]->voice (1, 0, true);
