@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.71  2004/02/11 20:59:17  s_a_white
+ *  PACKAGE_NAME should be defined from PACKAGE not NAME.
+ *
  *  Revision 1.70  2004/01/31 17:12:15  s_a_white
  *  Support new & old automake package defines.
  *
@@ -341,10 +344,15 @@ Player::Player (void)
     mos6510.setEnvironment (this);
 
     // SID Initialise
-    for (int i = 0; i < SID2_MAX_SIDS; i++)
+    {for (int i = 0; i < SID2_MAX_SIDS; i++)
         sid[i] = &nullsid;
+	}
     xsid.emulation(sid[0]);
     sid[0] = &xsid;
+    // Setup sid mapping table
+    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
+        m_sidmapper[i] = 0;
+	}
 
     // Setup exported info
     m_info.credits         = credit;
@@ -665,10 +673,10 @@ uint8_t Player::readMemByte_io (uint_least16_t addr)
         }
     }
 
-    // Read real sid for these
-    if ((addr & 0xff00) == m_sidAddress[1])
-        return sid[1]->read (tempAddr & 0xff);
-    return sid[0]->read (tempAddr & 0xff);
+    {   // Read real sid for these
+        int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
+        return sid[i]->read (tempAddr & 0xff);
+    }
 }
 
 uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
@@ -795,17 +803,13 @@ void Player::writeMemByte_playsid (uint_least16_t addr, uint8_t data)
     if (( tempAddr & 0x00ff ) >= 0x001d )
         xsid.write16 (addr & 0x01ff, data);
     else // Mirrored SID.
-    {   // SID.
+    {
+        int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
         // Convert address to that acceptable by resid
+        sid[i]->write (tempAddr & 0xff, data);
         // Support dual sid
-        if ((addr & 0xff00) == m_sidAddress[1])
-        {
+        if (m_emulateStereo)
             sid[1]->write (tempAddr & 0xff, data);
-            return;
-        }
-        else if (m_emulateStereo)
-            sid[1]->write (tempAddr & 0xff, data);
-        sid[0]->write (tempAddr & 0xff, data);
     }
 }
 
@@ -855,7 +859,14 @@ void Player::reset (void)
 
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i]->reset (0x0f);
+    {
+        sidemu &s = *sid[i];
+        // Synchronise the waveform generators
+        s.write (0x04, 0x08);
+        s.write (0x0b, 0x08);
+        s.write (0x12, 0x08);
+        s.reset (0x0f);
+    }
 
     if (m_info.environment == sid2_envR)
     {
@@ -884,13 +895,6 @@ void Player::reset (void)
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         if (m_tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
             memcpy (&m_rom[0xa000], basic, sizeof (basic));
-        else
-        {   // Direct start of basic to our psid driver code
-            endian_little16 (&m_rom[0xa000], 0xA004);
-            endian_little16 (&m_rom[0xa002], 0xA004);
-            m_rom[0xa004] = JMPw;
-            endian_little16 (&m_rom[0xa005], 0xA004);
-        }
 
         // Copy in power on settings.  These were created by running
         // the kernel reset routine and storing the usefull values
