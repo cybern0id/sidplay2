@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2002/08/09 18:11:35  s_a_white
+ *  Added backwards compatibility support for older hardsid.dll.
+ *
  *  Revision 1.3  2002/07/20 08:36:24  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -57,12 +60,12 @@ HardSIDBuilder::HardSIDBuilder (const char * const name)
     if (m_instance == 0)
     {   // Setup credits
         char *p = HardSID::credit;
-        sprintf (p, "HardSID V1.00 Engine:");
+        sprintf (p, "HardSID V%s Engine:", VERSION);
         p += strlen (p) + 1;
 #ifdef HAVE_MSWINDOWS
-        strcpy  (p, "\tCopyright (C) 1999 Simon White <s_a_white@email.com>");
+        strcpy  (p, "\t(C) 1999-2002 Simon White <sidplay2@yahoo.com>");
 #else
-        strcpy  (p, "\tCopyright (C) 2001-2002 Jarno Paanenen <jpaana@s2.org>");
+        strcpy  (p, "\t(C) 2001-2002 Jarno Paanenen <jpaana@s2.org>");
 #endif
         p += strlen (p) + 1;
         *p = '\0';
