@@ -88,35 +88,44 @@ else
     SID_SUBST_UNDEF(SID_HAVE_STDBOOL_H)
 fi
 
+dnl NetBSD
+AC_CHECK_LIB(ossaudio, main, [LIBAUDIO=-lossaudio AC_SUBST(LIBAUDIO)]) 
 
-audiodrv_libadd=""
 AC_MSG_CHECKING(which audio subsystem is available)
+audiodrv_libadd=""
 case "$host" in
-  *linux*) AC_DEFINE(HAVE_OSS,)
+  *linux*) AC_DEFINE(HAVE_OSS)
     audiodrv_libadd="./audio/oss/liboss.a"
     AC_MSG_RESULT(oss)
        ;;
-  *freebsd*) AC_DEFINE(HAVE_OSS,)
+  *freebsd*) AC_DEFINE(HAVE_OSS)
     audiodrv_libadd="./audio/oss/liboss.a"
     AC_MSG_RESULT(oss)
        ;;
-  *hpux*) AC_DEFINE(HAVE_HPUX,)
+  *hpux*) AC_DEFINE(HAVE_HPUX)
     AC_MSG_RESULT(hpux)
        ;;
-  *sgi*) AC_DEFINE(HAVE_SGI,)
+  *sgi*) AC_DEFINE(HAVE_SGI)
     AC_MSG_RESULT(sgi)
        ;;
-  *solaris*) AC_DEFINE(HAVE_SUNOS,)
+  *solaris*) AC_DEFINE(HAVE_SUNOS)
     audiodrv_libadd="./audio/sunos/libsunos.a"
     AC_MSG_RESULT(sparc)
        ;;
-  *sunos*) AC_DEFINE(HAVE_SUNOS,)
+  *sunos*) AC_DEFINE(HAVE_SUNOS)
     audiodrv_libadd="./audio/sunos/libsunos.a"
     AC_MSG_RESULT(sparc)
        ;;
-  *netbsd*) AC_DEFINE(HAVE_OSS,)
+  *netbsd*) AC_DEFINE(HAVE_OSS)
     audiodrv_libadd="./audio/oss/liboss.a"
     AC_MSG_RESULT(oss)
+       ;;
+  *cygwin*) AC_DEFINE(HAVE_MMSYSTEM)
+    audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
+    AC_MSG_RESULT(mmsystem)
+       ;;
+  *) AC_DEFINE(HAVE_WAV_ONLY)
+    AC_MSG_RESULT(wav only)
        ;;
 esac
 AUDIODRV_LDADD="$audiodrv_libadd"
@@ -127,7 +136,7 @@ AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/unix"
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -Wall"
 
 AC_OUTPUT(
 Makefile \
