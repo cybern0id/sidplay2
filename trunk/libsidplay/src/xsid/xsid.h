@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2001/07/14 16:48:35  s_a_white
+ *  Sync with sidbuilder class project.
+ *
  *  Revision 1.14  2001/07/14 12:59:39  s_a_white
  *  XSID effeciency increased.  Now uses new component classes and event
  *  generation.
@@ -115,7 +118,7 @@ private:
     const char * const m_name;
     EventContext &m_context;
     XSID         &m_xsid;
-    friend XSID;
+    friend class XSID;
 
     class SampleEvent: public Event
     {
@@ -128,7 +131,7 @@ private:
         :Event("xSID Sample"),
          m_ch(*ch) {}
     } sampleEvent;
-    friend SampleEvent;
+    friend class SampleEvent;
 
     class GalwayEvent: public Event
     {
@@ -141,7 +144,7 @@ private:
         :Event("xSID Galway"),
          m_ch(*ch) {}
     } galwayEvent;
-    friend GalwayEvent;
+    friend class GalwayEvent;
 
     uint8_t  reg[0x10];
     enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
@@ -210,7 +213,7 @@ private:
 
 class XSID: public sidemu, private Event
 {
-    friend channel;
+    friend class channel;
 
 private:
     channel ch4;

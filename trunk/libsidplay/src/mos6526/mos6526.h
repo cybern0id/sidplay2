@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/07/14 16:46:59  s_a_white
+ *  Sync with sidbuilder class project.
+ *
  *  Revision 1.5  2001/07/14 13:03:33  s_a_white
  *  Now uses new component classes and event generation.
  *
@@ -112,9 +115,9 @@ protected:
              m_cia(*cia) {}
     } event_tb;
 
-    friend EventTa;
-//    friend EventStateMachineA;
-    friend EventTb;
+    friend class EventTa;
+//    friend class EventStateMachineA;
+    friend class EventTb;
 
 protected:
     MOS6526 (EventContext *context);

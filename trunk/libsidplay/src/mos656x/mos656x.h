@@ -55,7 +55,7 @@ protected:
              m_vic(*vic) {}
     } event_raster;
 
-    friend EventRaster;
+    friend class EventRaster;
 
 protected:
     MOS656X (EventContext *context);
