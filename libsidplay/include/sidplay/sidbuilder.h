@@ -18,17 +18,22 @@
 #ifndef _sidbuilder_h_
 #define _sidbuilder_h_
 
-#include <vector>
 #include "sid2types.h"
 #include "component.h"
 #include "c64env.h"
 
 
 // Inherit this class to create a new SID emulations for libsidplay2.
+class sidbuilder;
 class sidemu: public component
 {
+private:
+    sidbuilder *m_builder;
+
 public:
-    virtual ~sidemu (void) {;}
+    sidemu (sidbuilder *builder)
+    :m_builder (builder) {;}
+    virtual ~sidemu () {;}
 
     // Standard component functions
     virtual void    reset (void) = 0;
@@ -37,44 +42,34 @@ public:
     virtual const   char *credits (void) = 0;
 
     // Standard SID functions
-    virtual int_least32_t output (const uint_least8_t bits) = 0;
-    virtual void          model  (const sid2_model_t model) = 0;
-    virtual void          filter (const bool enable) = 0;
-    virtual void          voice  (const uint_least8_t num,
-                                  const uint_least8_t vol,
-                                  const bool mute) = 0;
-    virtual void          gain   (const int_least8_t precent) = 0;
+    virtual int_least32_t output  (const uint_least8_t bits) = 0;
+    virtual void          voice   (const uint_least8_t num,
+                                   const uint_least8_t vol,
+                                   const bool mute) = 0;
+    virtual void          gain    (const int_least8_t precent) = 0;
+    sidbuilder           *builder (void) const { return m_builder; }
 };
 
 
-class Player;
 class sidbuilder
 {
 private:
-    friend Player;
     const char * const m_name;
 
 protected:
     bool m_status;
-    std::vector<sidemu *> sidobjs;
-
-    virtual sidemu *create (c64env *env) = 0;
-    void    remove ()
-    {
-        int size = sidobjs.size ();
-        for (int i = 0; i < size; i++)
-            delete sidobjs[i];
-        sidobjs.clear();
-    }
 
 public:
     // Determine current state of object (true = okay, false = error).
     sidbuilder(const char * const name)
         : m_name(name), m_status (true) {;}
-    const char * const name (void) { return m_name; }
-    operator bool()  { return m_status; }
-    virtual ~sidbuilder() { remove (); }
-    virtual const char *error (void) = 0;
+    virtual ~sidbuilder() {;}
+
+    virtual  sidemu      *lock   (c64env *env, sid2_model_t model) = 0;
+    virtual  void         unlock (sidemu *device) = 0;
+    const    char        *name   (void) const { return m_name; }
+    virtual  const  char *error  (void) const = 0;
+    operator bool() const { return m_status; }
 };
 
 #endif // _sidbuilder_h_
