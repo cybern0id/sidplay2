@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.43  2004/02/29 14:33:59  s_a_white
+ *  If an interrupt occurs during a branch instruction but after the decision
+ *  has occured then it should not be delayed.
+ *
  *  Revision 1.42  2003/10/29 22:18:04  s_a_white
  *  IRQs are now only taken in on phase 1 as previously they could be clocked
  *  in on both phases of the cycle resulting in them sometimes not being
@@ -219,7 +223,6 @@ void MOS6510::aecSignal (bool state)
     if (state && m_blocked)
     {   // Correct IRQs that appeard before the steal
         event_clock_t stolen = clock - m_stealingClk;
-    printf ("STOLEN: %d, %d\n", clock, stolen);
         interrupts.nmiClk += stolen;
         interrupts.irqClk += stolen;
         // IRQs that appeared during the steal must have
@@ -371,7 +374,6 @@ MOS6510_interruptPending_check:
         event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
         if (cycles > MOS6510_INTERRUPT_DELAY)
         {
-            printf ("NMI %d\n", eventContext.getTime (m_extPhase));
             interrupts.pending &= ~iNMI;
             break;
         }
@@ -386,10 +388,7 @@ MOS6510_interruptPending_check:
         // Try to determine if we should be processing the IRQ yet
         event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_extPhase);
         if (cycles > MOS6510_INTERRUPT_DELAY)
-{
-            printf ("IRQ %d\n", eventContext.getTime (m_extPhase));
             break;
-}
 
         // NMI delayed so check for other interrupts
         pending &= ~iIRQ;
