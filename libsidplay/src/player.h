@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2002/04/14 21:46:50  s_a_white
+ *  PlaySID reads fixed to come from RAM only.
+ *
  *  Revision 1.27  2002/03/12 18:43:59  s_a_white
  *  Tidy up handling of envReset on illegal CPU instructions.
  *
@@ -332,7 +335,7 @@ private:
 
     // PSID driver
     int  psidDrvInstall (SidTuneInfo &tuneInfo);
-    void psidRelocAddr  (SidTuneInfo &tuneInfo);
+    void psidRelocAddr  (SidTuneInfo &tuneInfo, int startp, int endp);
 
 public:
     Player ();

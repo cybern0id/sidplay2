@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2002/03/12 18:43:59  s_a_white
+ *  Tidy up handling of envReset on illegal CPU instructions.
+ *
  *  Revision 1.12  2002/03/03 22:02:36  s_a_white
  *  Sidplay2 PSID driver length now exported.
  *
@@ -74,16 +77,29 @@ extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
 {
     uint_least16_t relocAddr;
+    int startlp = tuneInfo.loadAddr >> 8;
+    int endlp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
     
     // Check if we need to find the reloc addr
     if ((tuneInfo.relocStartPage == 0) ||
         (tuneInfo.relocPages     == 0))
-    {
-        psidRelocAddr (tuneInfo);
+    {   // Tune is clean so find some free ram around the
+        // load image
+        psidRelocAddr (tuneInfo, startlp, endlp);
+    }
+    else
+    {   // Check for reloc information describing used space
+        // instead of free space
+        int startxp = tuneInfo.relocStartPage;
+        int endxp   = startxp + (tuneInfo.relocPages - 1);
+        if ((startxp <= startlp) && (endxp >= endlp))
+        {   // Is describing used space so find some free
+            // ram outside this range
+            psidRelocAddr (tuneInfo, startxp, endxp);
+        }
     }
 
-    if ((tuneInfo.relocStartPage == 0xff) ||
-        (tuneInfo.relocPages < 1))
+    if (tuneInfo.relocPages == 0)
     {
         m_errorString = ERR_PSIDDRV_NO_SPACE;
         return -1;
@@ -144,6 +160,17 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
             m_ram[addr] = JMPw;
             endian_little16 (&m_ram[addr + 1], vec);
         }
+
+        {   // Experimental exit to basic support
+            uint_least16_t addr;
+            addr = endian_little16(&reloc_driver[13]) - 2;
+            addr = endian_little16(&m_ram[addr]);
+            m_rom[0xa7ae] = LDXb;
+            m_rom[0xa7af] = 0xff;
+            m_rom[0xa7b0] = TXSn;
+            m_rom[0xa7b1] = JMPw;
+            endian_little16 (&m_rom[0xa7b2], addr);
+        }
     }
 
     {   // Setup the Initial entry point
@@ -172,13 +199,8 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo)
 }
 
 
-void Player::psidRelocAddr (SidTuneInfo &tuneInfo)
-{
-    // Start and end pages.
-    int startp =  tuneInfo.loadAddr >> 8;
-    int endp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
-
-    // Used memory ranges.
+void Player::psidRelocAddr (SidTuneInfo &tuneInfo, int startp, int endp)
+{   // Used memory ranges.
     bool pages[256];
     int  used[] = {0x00,   0x03,
                    0xa0,   0xbf,
