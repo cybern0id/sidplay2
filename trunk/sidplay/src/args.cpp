@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/02/20 18:50:43  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.9  2002/11/06 19:08:46  s_a_white
  *  Added --none to command line for selecting no sid (debug purposes).
  *
@@ -317,8 +320,14 @@ bool ConsolePlayer::args (int argc, char *argv[])
                 m_driver.output = OUT_NULL;
             }
 #endif // HAVE_HARDSID_BUILDER
-            // For debug
+            // These two are for debug
             else if (strncmp (&argv[i][1], "-none", 5) == 0)
+            {
+                m_driver.sid    = EMU_NONE;
+                m_driver.output = OUT_NULL;
+            }
+
+            else if (strncmp (&argv[i][1], "-nosid", 6) == 0)
             {
                 m_driver.sid = EMU_NONE;
             }
