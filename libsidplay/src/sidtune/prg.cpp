@@ -24,8 +24,8 @@ static const char _sidtune_format_prg[] = "Tape image file (PRG)";
 static const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
 
 
-SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName, const void* buffer,
-                                             const uint_least32_t bufLen)
+SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName,
+                                             Buffer_sidtt<const uint_least8_t>& dataBuf)
 {
     const char *ext = SidTuneTools::fileExtOfPath(const_cast<char *>(fileName));
     if ( (MYSTRICMP(ext,".prg")!=0) &&
@@ -35,7 +35,7 @@ SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName, const void* b
     }
 
     info.formatString = _sidtune_format_prg;
-    if (bufLen < 2)
+    if (dataBuf.len() < 2)
     {
         info.formatString = _sidtune_truncated;
         return LOAD_ERROR;
@@ -45,10 +45,7 @@ SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName, const void* b
     info.songs         = 1;
     info.startSong     = 1;
     info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
-    info.numberOfInfoStrings = 3;
-    info.infoString[0] = "<?>";
-    info.infoString[1] = info.infoString[0];
-    info.infoString[2] = info.infoString[0];
+    info.numberOfInfoStrings = 0;
 
     // Create the speed/clock setting table.
     convertOldStyleSpeedToTables(~0, info.clockSpeed);

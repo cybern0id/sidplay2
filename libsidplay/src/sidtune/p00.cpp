@@ -1,5 +1,5 @@
 /*
- * C64 PRG file format support.
+ * C64 P00 file format support.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,15 @@
 // the filename from the cbm name (16 to 8 conversion)
 // but we only need to worry about that when writing files
 // should we want pc64 compatibility.  The extension numbers
-// are just an index to try to avoid repeats.
+// are just an index to try to avoid repeats.  Name conversion
+// works by creating an initial filename from alphanumeric
+// and ' ', '-' characters only with the later two being
+// converted to '_'.  Then it parses the filename
+// from end to start removing characters stopping as soon
+// as the filename becomes <= 8.  The removal of characters
+// occurs in three passes, the first removes all '_', then
+// vowels and finally numerics.  If the filename is still
+// greater than 8 it is trucated. struct X00Header
 struct X00Header
 {
     char    id[X00_ID_LEN];     // C64File
@@ -55,12 +63,13 @@ static const char _sidtune_format_rel[] = "Unsupported tape image file (REL)";
 static const char _sidtune_truncated[]  = "ERROR: File is most likely truncated";
 
 
-SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName, const void* buffer,
-                                             const uint_least32_t bufLen)
+SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName,
+                                             Buffer_sidtt<const uint_least8_t>& dataBuf)
 {
     const char      *ext     = SidTuneTools::fileExtOfPath(const_cast<char *>(fileName));
     const char      *format  = 0;
-    const X00Header *pHeader = reinterpret_cast<const X00Header*>(buffer);
+    const X00Header *pHeader = reinterpret_cast<const X00Header*>(dataBuf.get());
+    uint_least32_t   bufLen  = dataBuf.len ();
 
     // Combined extension & magic field identification
     if (strlen (ext) != 4)
@@ -116,7 +125,7 @@ SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName, const void* b
 
     {   // Decode file name
         SmartPtr_sidtt<const uint8_t> spPet((const uint8_t*)pHeader->name,X00_NAME_LEN);
-        MUS_decodePetLine(spPet,infoString[0]);
+        convertPetsciiToAscii(spPet,infoString[0]);
     }
 
     // Automatic settings
@@ -124,10 +133,8 @@ SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName, const void* b
     info.songs         = 1;
     info.startSong     = 1;
     info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
-    info.numberOfInfoStrings = 3;
+    info.numberOfInfoStrings = 1;
     info.infoString[0] = infoString[0];
-    info.infoString[1] = "<?>";
-    info.infoString[2] = info.infoString[1];
 
     // Create the speed/clock setting table.
     convertOldStyleSpeedToTables(~0, info.clockSpeed);
