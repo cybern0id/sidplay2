@@ -15,6 +15,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
 #include <string.h>
 #include <stdio.h>
@@ -25,13 +28,13 @@
 // Convert from 4 bit resolution to 8 bits
 /* Rev 2.0.5 (saw) - Removed for a more non-linear equivalent
    which better models the SIDS master volume register
-const sbyte_sidt channel::sampleConvertTable[16] =
+const int8_t channel::sampleConvertTable[16] =
 {
     '\x80', '\x91', '\xa2', '\xb3', '\xc4', '\xd5', '\xe6', '\xf7',
     '\x08', '\x19', '\x2a', '\x3b', '\x4c', '\x5d', '\x6e', '\x7f'
 };
 */
-const sbyte_sidt channel::sampleConvertTable[16] =
+const int8_t channel::sampleConvertTable[16] =
 {
     '\x80', '\x94', '\xa9', '\xbc', '\xce', '\xe1', '\xf2', '\x03',
     '\x1b', '\x2a', '\x3b', '\x49', '\x58', '\x66', '\x73', '\x7f'
@@ -53,7 +56,7 @@ void channel::reset ()
     free ();
 }
 
-inline void channel::clock (udword_sidt delta_t)
+inline void channel::clock (uint_least16_t delta_t)
 {   // Emulate a CIA timer
     if (!cycleCount) return;
     if (delta_t == 1)
@@ -88,9 +91,9 @@ inline void channel::clock (udword_sidt delta_t)
 }
 
 #ifndef XSID_USE_SID_VOLUME
-inline sbyte_sidt channel::output ()
+inline int32_t channel::output ()
 #else
-inline ubyte_sidt channel::output ()
+inline uint8_t channel::output ()
 #endif
 {
 #ifdef XSID_DEBUG
@@ -110,7 +113,7 @@ void channel::free ()
 void channel::checkForInit ()
 {   // Check to see mode of operation
     // See xsid documentation
-    ubyte_sidt state = reg[convertAddr (0x1d)];
+    uint8_t state = reg[convertAddr (0x1d)];
 
     if (!state) return;
     if (state == 0xFD)
@@ -123,7 +126,7 @@ void channel::checkForInit ()
     }
     else // if (state >= 0xFC)
     {
-	    sampleInit ();
+        sampleInit ();
     }
 }
 
@@ -141,20 +144,20 @@ void channel::sampleInit ()
 
     // Check all important parameters are legal
     _clock        = &channel::silence;
-    volShift      = (ubyte_sidt) (0 - (sbyte_sidt) reg[convertAddr (0x1d)]) >> 1;
+    volShift      = (uint_least8_t) (0 - (int8_t) reg[convertAddr (0x1d)]) >> 1;
     reg[convertAddr (0x1d)] = 0;
-    address       = ((uword_sidt) reg[convertAddr (0x1f)] << 8) | reg[convertAddr (0x1e)];
-    samEndAddr    = ((uword_sidt) reg[convertAddr (0x3e)] << 8) | reg[convertAddr (0x3d)];
+    address       = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr (0x1e)];
+    samEndAddr    = ((uint_least16_t) reg[convertAddr (0x3e)] << 8) | reg[convertAddr (0x3d)];
     if (samEndAddr <= address) return;
     samScale      = reg[convertAddr (0x5f)];
-    samPeriod     = (((uword_sidt) reg[convertAddr (0x5e)] << 8) | reg[convertAddr (0x5d)]) >> samScale;
+    samPeriod     = (((uint_least16_t) reg[convertAddr (0x5e)] << 8) | reg[convertAddr (0x5d)]) >> samScale;
     if (!samPeriod) return;
 
     // Load the other parameters
     samNibble     = 0;
     samRepeat     = reg[convertAddr (0x3f)];
     samOrder      = reg[convertAddr (0x7d)];
-    samRepeatAddr = ((uword_sidt) reg[convertAddr (0x7f)] << 8) | reg[convertAddr (0x7e)];
+    samRepeatAddr = ((uint_least16_t) reg[convertAddr (0x7f)] << 8) | reg[convertAddr (0x7e)];
     cycleCount    = samPeriod;
 
     // Support Galway Samples, but that
@@ -173,7 +176,7 @@ void channel::sampleInit ()
     samMax  = sample;
 #endif
 
-#ifdef XSID_FULL_DEBUG
+#if XSID_DEBUG > 1
     printf ("XSID [%lu]: Sample Start Address:  0x%04x\n", (unsigned long) this, address);
     printf ("XSID [%lu]: Sample End Address:    0x%04x\n", (unsigned long) this, samEndAddr);
     printf ("XSID [%lu]: Sample Repeat Address: 0x%04x\n", (unsigned long) this, samRepeatAddr);
@@ -234,9 +237,9 @@ void channel::sampleClock ()
     samNibble &= 1;
 }
 
-sbyte_sidt channel::sampleCalculate ()
+int8_t channel::sampleCalculate ()
 {
-    ubyte_sidt tempSample = envReadMemByte (address);
+    uint_least8_t tempSample = envReadMemByte (address);
     if (samOrder == SO_LOWHIGH)
     {
         if (samScale == 0)
@@ -264,7 +267,7 @@ sbyte_sidt channel::sampleCalculate ()
 #ifndef XSID_USE_SID_VOLUME
     return sampleConvertTable[(tempSample & 0x0f) >> volShift];
 #else
-    return ((tempSample & 0x0f) >> volShift);
+    return (int8_t) ((tempSample & 0x0f) >> volShift);
 #endif
 }
 
@@ -293,7 +296,7 @@ void channel::galwayInit()
     if (!galNullWait)   return;
 
     // Load the other parameters
-    address  = ((uword_sidt) reg[convertAddr (0x1f)] << 8) | reg[convertAddr(0x1e)];
+    address  = ((uint_least16_t) reg[convertAddr (0x1f)] << 8) | reg[convertAddr(0x1e)];
     volShift = reg[convertAddr (0x3e)] & 0x0f;
     mode     = FM_GALWAY;
     active   = true;
@@ -301,7 +304,7 @@ void channel::galwayInit()
 #ifndef XSID_USE_SID_VOLUME
     sample  = sampleConvertTable[galVolume];
 #else
-    sample  = galVolume;
+    sample  = (int8_t) galVolume;
     changed = true;
 #endif
 
@@ -344,7 +347,7 @@ void channel::galwayClock ()
 #ifndef XSID_USE_SID_VOLUME
     sample  = sampleConvertTable[galVolume];
 #else
-    sample  = galVolume;
+    sample  = (int8_t) galVolume;
     changed = true;
 #endif
 }
@@ -367,10 +370,10 @@ void channel::silence ()
 }
 
 
-void XSID::write (uword_sidt addr, ubyte_sidt data)
+void XSID::write (uint_least16_t addr, uint8_t data)
 {
-    channel   *ch;
-    ubyte_sidt tempAddr;
+    channel *ch;
+    uint8_t tempAddr;
 
     // Make sure address is legal
     if ((addr & 0xfe8c) ^ 0x000c)
@@ -380,20 +383,29 @@ void XSID::write (uword_sidt addr, ubyte_sidt data)
     if (addr & 0x0100)
         ch = &ch5;
 
-    tempAddr = (ubyte_sidt) addr;
+    tempAddr = (uint8_t) addr;
     ch->write (tempAddr, data);
-#ifdef XSID_FULL_DEBUG
+#if XSID_DEBUG > 1
     printf ("XSID: Addr 0x%02x, Data 0x%02x\n", tempAddr, data);
 #endif
 
     if (addr == 0x1d)
+    {
+        if (muted)
+        {
+#if XSID_DEBUG
+            printf ("XSID: Muted\n");
+#endif
+            ch->write (tempAddr, 0xFD);
+        }
         ch->checkForInit ();
+    }       
 }
 
-ubyte_sidt XSID::read (uword_sidt addr)
+uint8_t XSID::read (uint_least16_t addr)
 {
-    channel   *ch;
-    ubyte_sidt tempAddr;
+    channel *ch;
+    uint8_t  tempAddr;
 
     // Make sure address is legal
     if ((addr & 0xfe8c) ^ 0xd40c)
@@ -407,7 +419,7 @@ ubyte_sidt XSID::read (uword_sidt addr)
     if (addr & 0x0100)
         ch = &ch5;
 
-    tempAddr = (ubyte_sidt) addr;
+    tempAddr = (uint8_t) addr;
     return ch->read (tempAddr);
 }
 
@@ -415,13 +427,13 @@ ubyte_sidt XSID::read (uword_sidt addr)
 // to the mode.  It's kept like this so I don't have to
 // keep updating 2 bits of code
 #ifndef XSID_USE_SID_VOLUME
-sdword_sidt XSID::output (ubyte_sidt bits)
+int32_t XSID::output (uint_least8_t bits)
 {
-    sdword_sidt sample = 0;
+    int_least32_t sample = 0;
 #else
-ubyte_sidt XSID::output ()
+uint8_t XSID::output ()
 {
-    ubyte_sidt sample = 0;
+    uint8_t sample = 0;
 #endif // XSID_USE_SID_VOLUME
     sample += ch4.output ();
     sample += ch5.output ();
@@ -437,6 +449,7 @@ void XSID::reset ()
 {
     ch4.reset ();
     ch5.reset ();
+    muted = false;
 }
 
 #ifdef XSID_USE_SID_VOLUME
@@ -444,7 +457,7 @@ void XSID::setSidVolume (bool cached)
 {
     if (ch4.changed || ch5.changed)
     {
-        ubyte_sidt volume = output () & 0x0f;
+        uint8_t volume = output () & 0x0f;
         volume |= (envReadMemDataByte (sidVolAddr, true) & 0xf0);
         ch4.changed = false;
         ch5.changed = false;
@@ -453,7 +466,7 @@ void XSID::setSidVolume (bool cached)
 }
 #endif
 
-void XSID::clock (udword_sidt delta_t)
+void XSID::clock (uint_least16_t delta_t)
 {
 #ifdef XSID_USE_SID_VOLUME
     bool wasRunning;
@@ -478,7 +491,7 @@ void XSID::clock (udword_sidt delta_t)
         // samples can have nasty pulsing effects
         if (ch4.isGalway ())
         {
-            ubyte_sidt sidVolume = envReadMemDataByte (sidVolAddr, true);
+            uint8_t sidVolume = envReadMemDataByte (sidVolAddr, true);
             envWriteMemByte (sidVolAddr, sidVolume);
         }
         else

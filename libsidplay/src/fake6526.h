@@ -14,6 +14,9 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
 #ifndef _fake6526_h_
 #define _fake6526_h_
@@ -24,6 +27,14 @@
 
 class fake6526: public C64Environment
 {
+private:
+    uint8_t regs[0x10];
+    uint8_t cra;             // Timer A Control Register
+    uint_least16_t defCount; // On a reset setCount will always go to defCount
+                             // value of -1 means off.
+    uint_least16_t setCount; // The last set count either by reset or programming CIA
+    uint_least16_t _count;   // Current count (reduces to zero)
+
 public:
     bool locked; // Prevent code changing CIA.
 
@@ -35,25 +46,17 @@ public:
     void reset (void);
 
     // Specific:
-    void       reset (uword_sidt _count);
-    ubyte_sidt read  (ubyte_sidt addr);
-    void       write (ubyte_sidt addr, ubyte_sidt data);
-
-private:
-    ubyte_sidt regs[0x10];
-    ubyte_sidt cra;      // Timer A Control Register
-    uword_sidt defCount; // On a reset setCount will always go to defCount
-                         // value of -1 means off.
-    uword_sidt setCount; // The last set count either by reset or programming CIA
-    uword_sidt count;    // Current count (reduces to zero)
+    void    reset (uint_least16_t count);
+    uint8_t read  (uint_least8_t  addr);
+    void    write (uint_least8_t  addr, uint8_t data);
 };
 
 inline void fake6526::clock (void)
 {   // Make sure count is running
     if (!(cra & 0x01)) return;
-    if (!--count)
+    if (!--_count)
     {
-        count = setCount;
+        _count = setCount;
         envTriggerIRQ ();
     }
 }

@@ -15,15 +15,18 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
 /*
-Effectively there is only 1 channel, which can either perform Gawlay Noise
+Effectively there is only 1 channel, which can either perform Galway Noise
 or Sampling.  However, to achieve all the effects on a C64, 2 sampling
 channels are required.  No divide by 2 is required and is compensated for
 automatically in the C64 machine code.
 
 Confirmed by Warren Pilkington using the tune Turbo Outrun:
-A new sample must interrupt an existing sample running on he same channel.
+A new sample must interrupt an existing sample running on the same channel.
 
 Confirmed by Michael Schwendt and Antonia Vera using the tune Game Over:
 A Galway noise sequence cannot interrupt another.  However the last of
@@ -55,86 +58,75 @@ These effects are however be present in the oringial SID music.
 
 // XSID configuration settings
 #define XSID_USE_SID_VOLUME
-//#define XSID_DEBUG
-//#define XSID_FULL_DEBUG
+//#define XSID_DEBUG 1
 
-
-// Support global debug options
+// Support global debug option
 #ifdef DEBUG
-#   define XSID_DEBUG
+#   define XSID_DEBUG DEBUG
 #endif
-
-#ifdef FULL_DEBUG
-#   define XSID_FULL_DEBUG
-#endif
-
-#ifdef XSID_FULL_DEBUG
-#   define XSID_DEBUG
-#endif
-
 
 class channel: public C64Environment
 {
 private:
     // General
-    ubyte_sidt  reg[0x10];
-    enum  {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
-    bool        active;
-    uword_sidt  address;
-    uword_sidt  cycleCount; // Counts to zero and triggers!
-    ubyte_sidt  volShift;
-    void  (channel::*_clock) (void);
+    uint8_t  reg[0x10];
+    enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
+    bool     active;
+    void    (channel::*_clock) (void);
+    uint_least16_t address;
+    uint_least16_t cycleCount; // Counts to zero and triggers!
+    uint_least8_t  volShift;
 
     // Sample Section
-    ubyte_sidt  samRepeat;
-    ubyte_sidt  samScale;
-    enum       {SO_LOWHIGH = 0, SO_HIGHLOW = 1};
-    ubyte_sidt  samOrder;
-    ubyte_sidt  samNibble;
-    uword_sidt  samEndAddr;
-    uword_sidt  samRepeatAddr;
-    uword_sidt  samPeriod;
+    uint_least8_t  samRepeat;
+    uint_least8_t  samScale;
+    enum {SO_LOWHIGH = 0, SO_HIGHLOW = 1};
+    uint_least8_t  samOrder;
+    uint_least8_t  samNibble;
+    uint_least16_t samEndAddr;
+    uint_least16_t samRepeatAddr;
+    uint_least16_t samPeriod;
 
 #ifdef XSID_USE_SID_VOLUME
     // Rev 2.0.5 (saw) - Added to locate sample origin
-    ubyte_sidt  samMin;
-    ubyte_sidt  samMax;
+    uint_least8_t  samMin;
+    uint_least8_t  samMax;
 #endif
 
     // Galway Section
-    ubyte_sidt  galTones;
-    ubyte_sidt  galInitLength;
-    ubyte_sidt  galLength;
-    ubyte_sidt  galVolume;
-    ubyte_sidt  galLoopWait;
-    ubyte_sidt  galNullWait;
+    uint_least8_t  galTones;
+    uint_least8_t  galInitLength;
+    uint_least8_t  galLength;
+    uint_least8_t  galVolume;
+    uint_least8_t  galLoopWait;
+    uint_least8_t  galNullWait;
 
 private:
-    void   free        (void);
-    void   silence     (void);
-    void   sampleInit  (void);
-    void   sampleClock (void);
-    void   galwayInit  (void);
-    void   galwayClock (void);
+    void free        (void);
+    void silence     (void);
+    void sampleInit  (void);
+    void sampleClock (void);
+    void galwayInit  (void);
+    void galwayClock (void);
 
     // Compress address to not leave so many spaces
-    ubyte_sidt convertAddr(ubyte_sidt addr)
+    uint_least8_t convertAddr(uint_least8_t addr)
     { return (((addr) & 0x3) | ((addr) >> 3) & 0x0c); }
 
 public:
     channel (void);
-    void       reset    (void);
-    void       clock    (udword_sidt delta_t);
-    ubyte_sidt read     (ubyte_sidt addr)
+    void    reset    (void);
+    void    clock    (uint_least16_t delta_t);
+    uint8_t read     (uint_least8_t  addr)
     { return reg[convertAddr (addr)]; }
-    void       write    (ubyte_sidt addr, ubyte_sidt data)
+    void    write    (uint_least8_t addr, uint8_t data)
     { reg[convertAddr (addr)] = data; }
-    bool       isGalway (void)
+    bool    isGalway (void)
     { return mode == FM_GALWAY; }
 
-    inline void       checkForInit     (void);
-    inline sbyte_sidt sampleCalculate  (void);
-    inline void       galwayTonePeriod (void);
+    inline void   checkForInit     (void);
+    inline int8_t sampleCalculate  (void);
+    inline void   galwayTonePeriod (void);
 
     // Used to indocate if channel is running
     operator bool()  const { return (active);  }
@@ -142,22 +134,22 @@ public:
 
 #ifdef XSID_DEBUG
 private:
-    udword_sidt cycles;
-    udword_sidt outputs;
+    uint_fast32_t cycles;
+    uint_fast32_t outputs;
 #endif
 
 #ifdef XSID_USE_SID_VOLUME
 public:
-    bool        changed;
-    sdword_sidt sample;
-    ubyte_sidt  output (void);
+    bool    changed;
+    uint8_t sample;
+    uint8_t output (void);
 #else
 private:
-    static const sbyte_sidt sampleConvertTable[16];
+    static const int8_t sampleConvertTable[16];
 
 public:
-    sdword_sidt sample;
-    sbyte_sidt  output (void);
+    int_least32_t sample;
+    int_least32_t output (void);
 #endif
 };
 
@@ -170,23 +162,26 @@ class XSID: public C64Environment
 #endif
 {
 private:
-    channel     ch4;
-    channel     ch5;
-    udword_sidt sidVolAddr;
+    channel ch4;
+    channel ch5;
+    bool    muted;
+    uint_least16_t sidVolAddr;
 
 private:
     void checkForInit  (channel *ch);
 
 public:
-    void        reset  (void);
-    ubyte_sidt  read   (uword_sidt addr);
-    void        write  (uword_sidt addr, ubyte_sidt data);
-    void        clock  (udword_sidt delta_t = 1);
-    void        setEnvironment (C64Environment *envp);
+    void    reset (void);
+    void    mute  (bool enable)
+    {   muted = enable; }
+    uint8_t read  (uint_least16_t addr);
+    void    write (uint_least16_t addr, uint8_t data);
+    void    clock (uint_least16_t delta_t = 1);
+    void    setEnvironment (C64Environment *envp);
 
 #ifdef XSID_USE_SID_VOLUME
 public:
-    void setSIDAddress (udword_sidt addr)
+    void setSIDAddress (uint_least16_t addr)
     {
         sidVolAddr = addr + 0x18;
     }
@@ -194,15 +189,16 @@ public:
     XSID ()
     {
         setSIDAddress (0xd400);
+        muted = false;
     }
 
 private:
-    void setSidVolume (bool cached = false);
-    ubyte_sidt output ();
+    void    setSidVolume (bool cached = false);
+    uint8_t output ();
 #else
 public:
     // This provides standard 16 bit outputs
-    sdword_sidt output (ubyte_sidt bits = 16);
+    int_least32_t output (uint_least8_t bits = 16);
 #endif
 };
 
