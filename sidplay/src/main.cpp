@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2001/07/25 17:11:32  s_a_white
+ *  Support new libsidplay2 configuration interface.
+ *
  *  Revision 1.15  2001/07/14 12:38:19  s_a_white
  *  Added sid loop counter, to exit multi-sid tunes.  Added -b to set start
  *  of song.  0xffff songs now get reported as sys.  Support for sidbuilder
@@ -878,7 +881,7 @@ main_restart:
         cerr << "Filter = "
              << ((player.cfg.sidFilter == true) ? "Yes" : "No");
         cerr << ", Model = "
-             << ((player.cfg.sidModel == SID2_MOS6581) ? "6851" : "8580")
+             << ((info.tuneInfo->sidRev8580) ? "8580" : "6581")
              << endl;
         displayTable (sid2_tableMiddle);
         textColour   (yellow, true);
