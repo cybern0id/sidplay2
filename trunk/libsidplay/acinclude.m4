@@ -154,16 +154,22 @@ AC_DEFUN(SID_PATH_LIBRESID,
         resid_libdirs="$sid_resid_library $sid_resid_library/lib $sid_resid_library/.libs"
         SID_FIND_FILE(libresid.a libresid.so,$resid_libdirs,resid_foundlibdir)
         sid_resid_library=$resid_foundlibdir
+    fi
+
+    if test "$sid_resid_library" != NO; then
         sid_resid_libadd="-L$sid_resid_library"
     fi
 
     # Use include path given by user (if any).
     if test "$sid_resid_includes" != NO; then
         resid_incdirs="$sid_resid_includes $sid_resid_includes/include"
-        SID_FIND_FILE(sid.h,$resid_incdirs,resid_foundincdir)
+        SID_FIND_FILE(sid.h resid/sid.h,$resid_incdirs,resid_foundincdir)
         sid_resid_includes=$resid_foundincdir
-        sid_resid_incadd="-I$sid_resid_includes"
+    fi
+
+    if test "$sid_resid_includes" != NO; then
         sid_resid_install=user
+        sid_resid_incadd="-I$sid_resid_includes"
     fi
 
     # Run test compilation.
