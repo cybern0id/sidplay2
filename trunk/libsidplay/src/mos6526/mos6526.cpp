@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2004/02/29 14:29:44  s_a_white
+ *  Serial port emulation.
+ *
  *  Revision 1.15  2004/01/08 08:59:20  s_a_white
  *  Support the TOD frequency divider.
  *
@@ -79,7 +82,6 @@
  *
  ***************************************************************************/
 
-#include <stdio.h>
 #include <string.h>
 #include "sidendian.h"
 #include "mos6526.h"
@@ -96,18 +98,29 @@ enum
 
 enum
 {
+    PRA     = 0,
+    PRB     = 1,
+    DDRA    = 2,
+    DDRB    = 3,
+    TAL     = 4,
+    TAH     = 5,
+    TBL     = 6,
+    TBH     = 7,
     TOD_TEN = 8,
     TOD_SEC = 9,
     TOD_MIN = 10,
     TOD_HR  = 11,
     SDR     = 12,
-    CRA     = 14
+    ICR     = 13,
+    IDR     = 13,
+    CRA     = 14,
+    CRB     = 15
 };
 
 const char *MOS6526::credit =
 {   // Optional information
     "*MOS6526 (CIA) Emulation:\0"
-    "\tCopyright (C) 2001 Simon White <sidplay2@email.com>\0"
+    "\tCopyright (C) 2001-2004 Simon White <" S_A_WHITE_EMAIL ">\0"
 };
 
 
@@ -132,6 +145,7 @@ void MOS6526::reset (void)
 {
     ta  = ta_latch = 0xffff;
     tb  = tb_latch = 0xffff;
+    ta_underflow = tb_underflow = false;
     cra = crb = sdr_out = 0;
     sdr_count = 0;
     sdr_buffered = false;
@@ -181,28 +195,31 @@ uint8_t MOS6526::read (uint_least8_t addr)
 
     switch (addr)
     {
-    case 0x0: // Simulate a serial port
-        return 0x7f;
-    case 0x1:
+    case PRA: // Simulate a serial port
+        return (regs[PRA] | ~regs[DDRA]);
+    case PRB:
     {
-        uint8_t data = 0xff;
+        uint8_t data = regs[DDRB];
+        data = data | (regs[PRB] & data);
         // Timers can appear on the port
         if (cra & 0x02)
         {
-            data &= ~0x40;
-#warning fix me
+            data &= 0xbf;
+            if (ta_underflow)
+                data |= 0x40;
         }
         if (crb & 0x02)
         {
-            data &= ~0x80;
-#warning fix me
+            data &= 0x7f;
+            if (tb_underflow)
+                data |= 0x80;
         }
         return data;
     }
-    case 0x4: return endian_16lo8 (ta);
-    case 0x5: return endian_16hi8 (ta);
-    case 0x6: return endian_16lo8 (tb);
-    case 0x7: return endian_16hi8 (tb);
+    case TAL: return endian_16lo8 (ta);
+    case TAH: return endian_16hi8 (ta);
+    case TBL: return endian_16lo8 (tb);
+    case TBH: return endian_16hi8 (tb);
 
     // TOD implementation taken from Vice
     // TOD clock is latched by reading Hours, and released
@@ -221,7 +238,7 @@ uint8_t MOS6526::read (uint_least8_t addr)
             m_todlatched = true;
         return m_todlatch[addr - TOD_TEN];
 
-    case 0xd:
+    case IDR:
     {   // Clear IRQs, and return interrupt
         // data register
         uint8_t ret = idr;
@@ -230,7 +247,7 @@ uint8_t MOS6526::read (uint_least8_t addr)
     }
 
     case CRA:  return cra;
-    case 0x0f: return crb;
+    case CRB: return crb;
     default:  return regs[addr];
     }
 }
@@ -240,38 +257,44 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     event_clock_t cycles;
     if (addr > 0x0f) return;
 
-    regs[addr]   = data;
-    cycles       = event_context.getTime (m_accessClk, m_phase);
-    m_accessClk += cycles;
+    regs[addr] = data;
+    cycles     = event_context.getTime (m_accessClk, m_phase);
 
-    // Sync up timers
-    if ((cra & 0x21) == 0x01)
+    if (cycles)
     {
-        ta -= cycles;
-        if (!ta)
-            ta_event ();
-    }
-    if ((crb & 0x61) == 0x01)
-    {
-        tb -= cycles;
-        if (!tb)
-            tb_event ();
+        m_accessClk += cycles;
+        // Sync up timers
+        if ((cra & 0x21) == 0x01)
+        {
+            ta -= cycles;
+            if (!ta)
+                ta_event ();
+            // Pulse only lasts for 1 cycle
+            else if (cra & 0x04)
+                ta_underflow = false;
+        }
+        if ((crb & 0x61) == 0x01)
+        {
+            tb -= cycles;
+            if (!tb)
+                tb_event ();
+            // Pulse only lasts for 1 cycle
+            else if (crb & 0x04)
+                tb_underflow = false;
+        }
     }
 
     switch (addr)
     {
-    case 0x4: endian_16lo8 (ta_latch, data);
-      printf ("CIA-TAL: %d, %02x\n", event_context.getTime (m_phase), data);
-        break;
-    case 0x5:
+    case TAL: endian_16lo8 (ta_latch, data); break;
+    case TAH:
         endian_16hi8 (ta_latch, data);
-        printf ("CIA-TAH: %d, %02x\n", event_context.getTime (m_phase), data);
         if (!(cra & 0x01)) // Reload timer if stopped
             ta = ta_latch;
     break;
 
-    case 0x6: endian_16lo8 (tb_latch, data); break;
-    case 0x7:
+    case TBL: endian_16lo8 (tb_latch, data); break;
+    case TBH:
         endian_16hi8 (tb_latch, data);
         if (!(crb & 0x01)) // Reload timer if stopped
             tb = tb_latch;
@@ -310,7 +333,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
             sdr_buffered = true;
         break;
 
-    case 0xd:
+    case ICR:
         if (data & 0x80)
             icr |= data & 0x1f;
         else
@@ -319,30 +342,44 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
     break;
 
     case CRA:
-        // Check for forced load
+        // Reset the underflow flipflop for the data port
+        if ((data & 1) && !(cra & 1))
+        {
+            ta_underflow = true;
+            // Pulse mode
+            if (data & 0x06 == 0x02)
+                ta_underflow = false;
+        }
         cra = data;
-      printf ("CIA-CRA: %d\n", event_context.getTime (m_phase));
+
+        // Check for forced load
         if (data & 0x10)
         {
-      printf ("CIA-CRA: Forced\n");
             cra &= (~0x10);
             ta   = ta_latch;
         }
 
         if ((data & 0x21) == 0x01)
         {   // Active
-      printf ("CIA-CRA: Started\n");
             event_context.schedule (&event_ta, (event_clock_t) ta + 1,
                                     m_phase);
         } else
         {   // Inactive
             ta = ta_latch;
-      printf ("CIA-CRA: Canceled\n");
             event_context.cancel (&event_ta);
         }
     break;
 
-    case 0x0f:
+    case CRB:
+        // Reset the underflow flipflop for the data port
+        if ((data & 1) && !(crb & 1))
+        {
+            tb_underflow = true;
+            // Pulse mode
+            if (data & 0x06 == 0x02)
+                tb_underflow = false;
+        }
+
         // Check for forced load
         crb = data;
         if (data & 0x10)
@@ -374,7 +411,6 @@ void MOS6526::trigger (int irq)
         if (idr & INTERRUPT_REQUEST)
             interrupt (false);
         idr = 0;
-      printf ("CIA-IDR: Interrupts cleared\n");
         return;
     }
 
@@ -387,7 +423,6 @@ void MOS6526::trigger (int irq)
             interrupt (true);
         }
     }
-      printf ("CIA-IDR: Interrupts pending\n");
 }
 
 void MOS6526::ta_event (void)
@@ -405,6 +440,7 @@ void MOS6526::ta_event (void)
     m_accessClk += cycles;
 
     ta = ta_latch;
+    ta_underflow ^= true; // toggle flipflop
     if (cra & 0x08)
     {   // one shot, stop timer A
         cra &= (~0x01);
@@ -469,6 +505,7 @@ void MOS6526::tb_event (void)
 
     m_accessClk = event_context.getTime (m_phase);
     tb = tb_latch;
+    tb_underflow ^= true; // toggle flipflop
     if (crb & 0x08)
     {   // one shot, stop timer A
         crb &= (~0x01);
