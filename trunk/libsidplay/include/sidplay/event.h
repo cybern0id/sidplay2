@@ -125,7 +125,7 @@ public:
     event_clock_t getTime (event_phase_t phase) const
     {   return (m_absClk + m_clk + (phase ^ 1)) >> 1; }
     event_clock_t getTime (event_clock_t clock, event_phase_t phase) const
-    {   return getTime (phase) - clock; }
+    {   return ((getTime (phase) - clock) << 1) >> 1; } // 31 bit res.
     event_phase_t phase () const { return (event_phase_t) ((m_absClk + m_clk) & 1); }
 };
 
