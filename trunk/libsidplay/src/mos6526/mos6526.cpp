@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2004/03/09 20:44:34  s_a_white
+ *  Full serial and I/O port implementation.  No keyboard/joystick support as we
+ *  are not that kind of emulator.
+ *
  *  Revision 1.16  2004/02/29 14:29:44  s_a_white
  *  Serial port emulation.
  *
@@ -83,6 +87,7 @@
  ***************************************************************************/
 
 #include <string.h>
+#include "config.h"
 #include "sidendian.h"
 #include "mos6526.h"
 
