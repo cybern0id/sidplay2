@@ -23,6 +23,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2004/02/16 23:47:28  s_a_white
+ *  Nolonger hide the presence of BRK/NMI for PSID tunes in real c64 mode.
+ *  Throw an exception instead as these tunes are broke and need fixing.
+ *
  *  Revision 1.24  2004/02/16 21:44:34  s_a_white
  *  Due to various tune breakages leave the default raster line as 0 for
  *  PSID tunes (use proper default for RSIDs only).
@@ -128,6 +132,7 @@ rndwait     .word 0
 initiomap   .byte 0
 playiomap   .byte 0
 video       .byte 0
+flags       .byte 0
 
             ; init/play PSID
 play        jmp (playvec)
@@ -212,12 +217,12 @@ wait        dex
             bne wait
             tay
 
-            ; get song number
-getsong     ldx playnum
-            dex
-            txa
+setregs     lda flags
+            pha
             ldx #0
             ldy #0
+            lda playnum
+            plp
             jsr init
 setiomap    lda initiomap
             beq idle
