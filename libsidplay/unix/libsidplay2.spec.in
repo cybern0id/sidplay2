@@ -89,6 +89,9 @@ rm -rf $RPM_BUILD_ROOT
 %{builders}/*.a
 
 %changelog
+* Mon Jun 14 2004 Simon White <s_a_white@email.com> 2.1.1-1
+- Imported all Windows changes.
+
 * Fri Nov 23 2001 Simon White <s_a_white@email.com> 2.1.0-1
 - New interface using sidbuilder classes.  GCC3 and PSID 2NG
   support.
