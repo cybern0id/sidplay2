@@ -22,7 +22,7 @@ AC_C_BIGENDIAN
 dnl Checks what version of Unix we have and soundcard support
 AC_CHECK_HEADERS(sys/ioctl.h linux/soundcard.h machine/soundcard.h  \
 soundcard.h sys/audio.h sun/audioio.h sun/dbriio.h sys/audioio.h  \
-audio.h dmedia/audio.h)
+audio.h dmedia/audio.h sys/soundcard.h)
 
 AH_TOP(
 [/* Define supported audio driver */
