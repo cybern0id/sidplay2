@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/03/09 22:27:46  s_a_white
+ *  Speed optimisation update.
+ *
  *  Revision 1.5  2001/02/13 23:01:10  s_a_white
  *  envReadMemDataByte now used for debugging.
  *
@@ -66,29 +69,15 @@ void MOS6510::DumpState (void)
         return;
 
     if (cycleCount != instrCurrent->lastAddrCycle) return;
-    printf(" PC   I  A  X  Y   SP  DR PR NV-BDIZC  Instruction\n");
-    printf("%04x ", instrStartPC);
-
-    if (interrupts.pending & 0x4)
-        printf ("1");
-    else
-        printf ("0");
-    if (interrupts.pending & 0x2)
-        printf ("1");
-    else
-        printf ("0");
-    if (interrupts.pending & 0x1)
-        printf ("1");
-    else
-        printf ("0");
-
-    printf(" %02x ", (uint8_t) Register_Accumulator);
+    printf(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction\n");
+    printf("%04x ",   instrStartPC);
+    printf("%u ",     interrupts.irqs);
+    printf("%02x ",   Register_Accumulator);
     printf("%02x ",   Register_X);
     printf("%02x ",   Register_Y);
     printf("01%02x ", endian_16lo8 (Register_StackPointer));
-
-    printf("%02x ", envReadMemDataByte (0));
-    printf("%02x ", envReadMemDataByte (1));
+    printf("%02x ",   envReadMemDataByte (0));
+    printf("%02x ",   envReadMemDataByte (1));
 
     if (getFlagN()) printf ("1"); else printf ("0");
     if (getFlagV()) printf ("1"); else printf ("0");
@@ -466,7 +455,7 @@ void MOS6510::DumpState (void)
 #ifdef MOS6510_DEBUG
     case NOPax_:
 #endif
-        printf("ay %04x,Y", operand);
+        printf("ax %04x,X", operand);
         printf(" [%04x]", address);
     break;
 

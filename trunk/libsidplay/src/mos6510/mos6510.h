@@ -16,13 +16,16 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2000/12/11 19:03:16  s_a_white
+ *  AC99 Update.
+ *
  ***************************************************************************/
 
 #ifndef _mos6510_h_
 #define _mos6510_h_
 
 #include "config.h"
-#include "sidtypes.h"
+#include "component.h"
 #include "sidenv.h"
 
 #undef  MOS6510_VERSION
@@ -33,6 +36,7 @@
 #define MOS6510_DATE    "23th May 2000"
 #define MOS6510_AUTHOR  "Simon White"
 #define MOS6510_EMAIL   "s_a_white@email.com"
+#define MOS6510_INTERRUPT_DELAY 2
 
 #include "opcodes.h"
 #include "conf6510.h"
