@@ -38,6 +38,7 @@ void fake6526::reset (uint_least16_t count)
     locked = false;
     ta     = ta_latch = count;
     cra    = 0;
+	idr    = 0;
 }
 
 uint8_t fake6526::read (uint_least8_t addr)
@@ -48,6 +49,13 @@ uint8_t fake6526::read (uint_least8_t addr)
     {
     case 0x4: return endian_16lo8 (ta_latch);
     case 0x5: return endian_16hi8 (ta_latch);
+    case 0xd:
+        if (idr)
+        {
+            idr = false;
+            envClearIRQ ();
+        }
+        // Deliberate run on
     default:  return regs[addr];
     }
 }
