@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2005/03/22 19:10:28  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.19  2005/03/20 22:52:22  s_a_white
  *  Add MK4 synchronous stream support.
  *
@@ -298,7 +303,7 @@ int HardSID::open (int &handle, char *error)
     return avail;
 }
 
-void HardSID::close (int &m_handle)
+void HardSID::close (int m_handle)
 {
     if (m_handle >= 0)
         ::close (m_handle);
