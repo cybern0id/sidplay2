@@ -8,6 +8,10 @@
 #define SID_SIZEOF_INT       4
 #define SID_SIZEOF_LONG_INT  4
 
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+#define SID_WORDS_LITTLEENDIAN
+
 /* Define if your compiler supports type "bool".
    If not, a user-defined signed integral type will be used.  */
 #define SID_HAVE_BOOL
@@ -23,8 +27,8 @@
 #   define SID_HAVE_BAD_COMPILER
 #endif
 
-#ifndef SID2_LIB_API
-#   define SID2_LIB_API __declspec(dllimport)
+#ifndef SID_API
+#   define SID_API __declspec(dllimport)
 #endif
 
 #endif // _sidconfig_h_
