@@ -1,12 +1,11 @@
 TODO <libsidplay2>:
 
-*Remove bit fields in status register flags.  This could lead to compatibilty problems
-on other platforms (Done)
+* hardsid support <Started>
+
+* Song length database support <Started>
 
 *Fix _encoding to properly use PCM_UNSIGNED or PCM_SIGNED.  See sidmixer.cpp
  and audiodrv.cpp
-
-*Voice muting (See end of file)
 
 *Convert MOS6510 Cycle_Data and Register_Accumulator registers to ubyte_sidt.
  Upon changing these, the code will need a serious debugging setion. <Anyone?>
@@ -19,25 +18,15 @@ on other platforms (Done)
 
 *New Bank Switching implementation for remappable componenets <Started>
 
-*Implement Real C64 Mode <Need more info on NMIs, anyone got a real C64> (Done)
-
-*Find Timing bug in sidplay2 <Either CIA is wrong or output calculation> (Been checked)
-
-*Implement playsid and transp modes <done>
-
-*Change types to _sidt <done>
-
-*Support Stereo mus files on one cpu. <done>
+*Implement Real C64 Mode
 
 *Can someone optimise reSID? <Clock, output, read, write, in this order>
 
-*Change xSID to use reSIDs/hardsids 0x18 register directly <Done>
-
-*Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
+Fastforward, Rewind.  Suggestions made by me to Grant about this... <Under test>
 
 *Length detection <Started, based on Mikes>
 
-*What access do you need for other applocations <Suggestions please>
+*What access do you need for other applications <Suggestions please>
 
 *Support for credit access, both from sid and imported components.
 
@@ -56,48 +45,34 @@ sidplay2@email.com
 
 *Add 16 bit support. (possibly 24bit) <Done, not 24 yet>
 
-*Quad sids <Probably not>
+*Quad sids
 
 *Provide a C interface to the library.
-
-* Anyone with a C64, could they confirm the operation of the sid Game Over
-  by Martin Galway. (Specific the Galway Noise beat, section of interest
-  starts at 40 secs in on the default song). Maybe someone could record
-  it from a real C64 and send it to me as an mp3 or wav file? <Done>
-
-* Need to find more songs which mix Galway Noise and Samples, anyone? <Done>
-
-*MORE...?
-
 
 
 
 
 TODO: <sidplay2>
-*Change main.cpp to use buffers of size frag <done>
 
-*Find out why the music goes beserk sometimes when syncs are used with SNDCTL_DSP_SYNC <Done>
+*Add configuration file support.
+
+*Add ANSI support <Done in experimnetal, requires configuration file for real
+ release>
 
 *Find out why there is a pause after a seconds or so play and try to correct.
-The system seems to start and become heavily loaded and then continue fine.
-Something is happening, not sure what.  Can we make it do whatever it is
-before playback of sound begins.
+ The system seems to start and become heavily loaded and then continue fine.
+ Something is happening, not sure what.  Can we make it do whatever it is
+ before playback of sound begins.
 
 *Find out why when you step over the Linux sound write function the soundcard
  plays rubbish (bug)?
 
 *Take audiodrvs from sidplay.
- Linux <Done>
+ Linux (OSS only) <Done>
  DirectX <Done>
  Windows MMSYSTEM <Done>
  SPARC <Done>
  SGI
  HPUX
 
-*Add proper help/error messages for bad command line parameters. <done>
-
-*Convert Wav to a driver <done>
-
 *Anyone want to provide support for other music formats? <IFF?>
-
-*MORE...?
