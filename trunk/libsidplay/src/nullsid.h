@@ -36,7 +36,7 @@ public:
     int_least32_t output (const uint_least8_t) { return 0; }
     void          voice  (const uint_least8_t, const uint_least8_t,
                           const bool) { ; }
-    void          gain   (const uint_least8_t) { ; }
+    void          gain   (const int_least8_t) { ; }
 };
 
 #endif // _nullsid_h_
