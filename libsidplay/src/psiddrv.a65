@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2004/02/08 21:30:28  s_a_white
+ *  Default VIC raster line should be 311
+ *
  *  Revision 1.21  2004/01/30 19:50:08  s_a_white
  *  Newer gnu sed dosen't like /w so use posix equivalent.
  *
@@ -229,7 +232,10 @@ irqjob      lda $01
             sta $d019
 
             ; IRQ Exit (code from Kernel ROM)
-irqret      lda $dc0d
+irqret      lda initiomap
+            bne irqret2
+            jmp $ea31
+irqret2     lda $dc0d
             pla
             tay
             pla
