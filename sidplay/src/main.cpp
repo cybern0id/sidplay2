@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/03/27 17:14:39  s_a_white
+ *  Time length can be made INFINITE by using -t0 on the command line.
+ *
  *  Revision 1.8  2001/03/26 18:14:20  s_a_white
  *  Removed debug code.
  *
@@ -158,6 +161,7 @@ int main(int argc, char *argv[])
     SidTuneMod      tune (0);
     struct          SidTuneInfo tuneInfo;
 
+    IniConfig::sidplay2_section  sidplay2;
     IniConfig::audio_section     audio;
     IniConfig::emulation_section emulation;
 
@@ -167,6 +171,7 @@ int main(int argc, char *argv[])
 
     // Load ini settings
     player.ini.read ();
+    sidplay2      = player.ini.sidplay2();
     audio         = player.ini.audio();
     emulation     = player.ini.emulation();
 
@@ -551,7 +556,7 @@ int main(int argc, char *argv[])
 
     // Load song length database
     if (!timeValid)
-        player.database.open (player.ini.songLengthDB ());
+        player.database.open (sidplay2.database);
 
 main_restart:
     player.selectedSong = tune.selectSong (player.selectedSong);
@@ -573,6 +578,8 @@ main_restart:
         int_least32_t ret = player.database.getSongLength (tune);
         if (ret > 0)
             runtime = ret;
+        else if (!wavOutput)
+            runtime = sidplay2.playLength;
     }
 
     // Rev 1.12 (saw) Moved to allow modification of wav filename
@@ -635,9 +642,13 @@ main_restart:
         delete wavName;
 
         if (!runtime)
-        {   // Can't have endless runtime for Wav Output
-            // Use default of 3 mins 30 secs
-            runtime = 3 * 60 + 30;
+        {
+            runtime = sidplay2.recordLength;
+            // Can't have endless runtime for Wav Output
+            if (!runtime)
+            {   // Use default of 3 mins 30 secs
+                runtime = 3 * 60 + 30;
+            }
         }
     }
 

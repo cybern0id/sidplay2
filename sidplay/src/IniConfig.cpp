@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/03/26 18:13:07  s_a_white
+ *  Support individual filters for 6581 and 8580.
+ *
  ***************************************************************************/
 
 #include <stdlib.h>
@@ -36,22 +39,26 @@ const char *IniConfig::FILE_NAME = "sidplay2.ini";
 
 
 IniConfig::IniConfig ()
-:status(true),
- database(NULL)
+:status(true)
 {   // Initialise everything else
+    sidplay2_s.database    = NULL;
     emulation_s.filter6581 = NULL;
     emulation_s.filter8580 = NULL;
     clear ();
 }
+
 
 IniConfig::~IniConfig ()
 {
     clear ();
 }
 
+
 void IniConfig::clear ()
 {
-    SAFE_FREE (database);
+    SAFE_FREE (sidplay2_s.database);
+    sidplay2_s.playLength   = 0;
+    sidplay2_s.recordLength = 0;
 
     console_s.ansi          = false;
     console_s.topLeft       = '+';
@@ -92,6 +99,7 @@ bool IniConfig::readInt (ini_fd_t ini, char *key, int &value)
     value = i;
     return true;
 }
+
 
 bool IniConfig::readString (ini_fd_t ini, char *key, char *&str)
 {
@@ -146,7 +154,6 @@ bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
     if (!ret)
         return false;
 
-    ret = true;
     // Check if we have an actual chanracter
     if (str[0] == '\'')
     {
@@ -163,19 +170,74 @@ bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
 }
 
 
+bool IniConfig::readTime (ini_fd_t ini, char *key, int &value)
+{
+    char *str, *sep;
+    int   time;
+    bool  ret = readString (ini, key, str);
+    if (!ret)
+        return false;
+
+    if (!*str)
+        return false;
+
+    sep = strstr (str, ":");
+    if (!sep)
+    {   // User gave seconds
+        time = atoi (str);
+    }
+    else
+    {   // Read in MM:SS format
+        int val;
+        *sep = '\0';
+        val  = atoi (str);
+        if (val < 0 || val > 99)
+            goto IniCofig_readTime_error;
+        time = val * 60;
+        val  = atoi (sep + 1);
+        if (val < 0 || val > 59)
+            goto IniCofig_readTime_error;
+        time += val;
+    }
+
+    value = time;
+    free (str);
+return ret;
+
+IniCofig_readTime_error:
+    free (str);
+    return false;
+}
+
+
+bool IniConfig::readSidplay2 (ini_fd_t ini)
+{
+    bool ret = true;
+    int  time;
+    ret &= readString (ini, "Songlength Database", sidplay2_s.database);
+
+    if (readTime (ini, "Default Play Length", time))
+        sidplay2_s.playLength   = (uint_least32_t) time;
+    if (readTime (ini, "Default Record Length", time))
+        sidplay2_s.recordLength = (uint_least32_t) time;
+
+    return ret;
+}
+
+
 bool IniConfig::readConsole (ini_fd_t ini)
 {
     bool ret = true;
     (void) ini_locateHeading (ini, "Console");
-    status &= readBool (ini, "Ansi",                console_s.ansi);
-    status &= readChar (ini, "Char Top Left",       console_s.topLeft);
-    status &= readChar (ini, "Char Top Right",      console_s.topRight);
-    status &= readChar (ini, "Char Bottom Left",    console_s.bottomLeft);
-    status &= readChar (ini, "Char Bottom Right",   console_s.bottomRight);
-    status &= readChar (ini, "Char Vertical",       console_s.vertical);
-    status &= readChar (ini, "Char Horizontal",     console_s.horizontal);
-    status &= readChar (ini, "Char Junction Left",  console_s.junctionLeft);
-    status &= readChar (ini, "Char Junction Right", console_s.junctionRight);
+    ret &= readBool (ini, "Ansi",                console_s.ansi);
+    ret &= readChar (ini, "Char Top Left",       console_s.topLeft);
+    ret &= readChar (ini, "Char Top Right",      console_s.topRight);
+    ret &= readChar (ini, "Char Bottom Left",    console_s.bottomLeft);
+    ret &= readChar (ini, "Char Bottom Right",   console_s.bottomRight);
+    ret &= readChar (ini, "Char Vertical",       console_s.vertical);
+    ret &= readChar (ini, "Char Horizontal",     console_s.horizontal);
+    ret &= readChar (ini, "Char Junction Left",  console_s.junctionLeft);
+    ret &= readChar (ini, "Char Junction Right", console_s.junctionRight);
     return ret;
 }
 
@@ -187,13 +249,13 @@ bool IniConfig::readAudio (ini_fd_t ini)
 
     {
         int frequency = (int) audio_s.frequency;
-        status &= readInt (ini, "Frequency", frequency);
+        ret &= readInt (ini, "Frequency", frequency);
         audio_s.frequency = (unsigned long) frequency;
     }
 
     {
         int channels = 0;
-        status &= readInt (ini, "Channels",  channels);
+        ret &= readInt (ini, "Channels",  channels);
         if (channels)
         {
             audio_s.playback = sid2_mono;
@@ -202,7 +264,7 @@ bool IniConfig::readAudio (ini_fd_t ini)
         }
     }
 
-    status &= readInt (ini, "BitsPerSample", audio_s.precision);
+    ret &= readInt (ini, "BitsPerSample", audio_s.precision);
     return ret;
 }
 
@@ -214,7 +276,7 @@ bool IniConfig::readEmulation (ini_fd_t ini)
 
     {
         int clockSpeed = -1;
-        status &= readInt (ini, "ClockSpeed", clockSpeed);
+        ret &= readInt (ini, "ClockSpeed", clockSpeed);
         if (clockSpeed != -1)
         {
             emulation_s.clockSpeed = SID2_CLOCK_PAL;
@@ -223,28 +285,28 @@ bool IniConfig::readEmulation (ini_fd_t ini)
         }
     }
 
-    status &= readBool (ini, "ForceSongSpeed", emulation_s.clockForced);
+    ret &= readBool (ini, "ForceSongSpeed", emulation_s.clockForced);
 
     {
         bool mos8580 = false;
-        status &= readBool (ini, "MOS8580", mos8580);
+        ret &= readBool (ini, "MOS8580", mos8580);
         if (mos8580)
             emulation_s.sidModel = SID2_MOS8580;
     }
 
-    status &= readBool (ini, "UseFilter",    emulation_s.filter);
-    status &= readBool (ini, "UseExtFilter", emulation_s.extFilter);
+    ret &= readBool (ini, "UseFilter",    emulation_s.filter);
+    ret &= readBool (ini, "UseExtFilter", emulation_s.extFilter);
 
     {
         int optimiseLevel = -1;
-        status &= readInt  (ini, "OptimiseLevel", optimiseLevel);
+        ret &= readInt  (ini, "OptimiseLevel", optimiseLevel);
         if (optimiseLevel != -1)
             emulation_s.optimiseLevel = optimiseLevel;
     }
 
-    status &= readString (ini, "Filter6581", emulation_s.filter6581);
-    status &= readString (ini, "Filter8580", emulation_s.filter8580);
-    status &= readBool   (ini, "SidSamples", emulation_s.sidSamples);
+    ret &= readString (ini, "Filter6581", emulation_s.filter6581);
+    ret &= readString (ini, "Filter8580", emulation_s.filter8580);
+    ret &= readBool   (ini, "SidSamples", emulation_s.sidSamples);
 
     // These next two change the ini section!
     if (emulation_s.filter6581)
@@ -254,7 +316,7 @@ bool IniConfig::readEmulation (ini_fd_t ini)
         {
             filter6581.read (emulation_s.filter6581);
             if (!filter6581)
-                status = false;
+                ret = false;
         }
     }
 
@@ -265,7 +327,7 @@ bool IniConfig::readEmulation (ini_fd_t ini)
         {
             filter8580.read (emulation_s.filter8580);
             if (!filter8580)
-                status = false;
+                ret = false;
         }
     }
 
@@ -327,7 +389,7 @@ void IniConfig::read ()
 
     // This may not exist here...
     (void) ini_locateHeading (ini, "SIDPlay2");
-    status &= readString    (ini, "Songlength Database", database);
+    status &= readSidplay2  (ini);
     status &= readConsole   (ini);
     status &= readAudio     (ini);
     status &= readEmulation (ini);
