@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.45  2003/06/27 21:15:25  s_a_white
+ *  Tidy up mono to stereo sid conversion, only allowing it theres sufficient
+ *  support from the emulation.  Allow user to override whether they want this
+ *  to happen.
+ *
  *  Revision 1.44  2003/05/28 20:11:19  s_a_white
  *  Support the psiddrv overlapping unused parts of the tunes load image.
  *
@@ -421,7 +426,8 @@ public:
     sid2_player_t  state        (void) const { return m_playerState; }
     void           stop         (void);
     uint_least32_t time         (void) const {return rtc.getTime (); }
-    void           debug        (bool enable) { cpu->debug (enable); }
+    void           debug        (bool enable, FILE *out)
+                                { cpu->debug (enable, out); }
     const char    *error        (void) const { return m_errorString; }
 };
 
