@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/04/09 17:11:03  s_a_white
+ *  Added INI file version number so theres a possibility for automated updates
+ *  should the keys/sections change names (or meaning).
+ *
  *  Revision 1.3  2001/03/27 19:00:49  s_a_white
  *  Default record and play lengths can now be set in the sidplay2.ini file.
  *
@@ -69,7 +73,6 @@ public:
         bool          clockForced;
         sid2_model_t  sidModel; 
         bool          filter;
-        bool          extFilter;
         char         *filter6581;
         char         *filter8580;
         uint_least8_t optimiseLevel;

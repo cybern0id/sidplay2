@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/04/09 17:11:03  s_a_white
+ *  Added INI file version number so theres a possibility for automated updates
+ *  should the keys/sections change names (or meaning).
+ *
  *  Revision 1.4  2001/03/27 19:35:33  s_a_white
  *  Moved default record length for wav files from main.cpp to IniConfig.cpp.
  *
@@ -83,9 +87,8 @@ void IniConfig::clear ()
 
     emulation_s.clockSpeed    = SID2_CLOCK_CORRECT;
     emulation_s.clockForced   = false;
-    emulation_s.sidModel      = SID2_MOS6581;
+    emulation_s.sidModel      = SID2_MODEL_CORRECT;
     emulation_s.filter        = true;
-    emulation_s.extFilter     = true;
     emulation_s.optimiseLevel = SID2_DEFAULT_OPTIMISATION;
     emulation_s.sidSamples    = true;
 
@@ -156,7 +159,7 @@ bool IniConfig::readBool (ini_fd_t ini, char *key, bool &boolean)
 
 bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
 {
-    char *str;
+    char *str, c;
     bool  ret = readString (ini, key, str);
     if (!ret)
         return false;
@@ -165,12 +168,16 @@ bool IniConfig::readChar (ini_fd_t ini, char *key, char &ch)
     if (str[0] == '\'')
     {
         if (str[2] != '\'')
-        ret = false;
+            ret = false;
         else
-            ch = str[1];
+            c = str[1];
     } // Nope is number
     else
-      ch = (char) atoi (str);
+        c = (char) atoi (str);
+
+    // Clip off special characters
+    if ((unsigned) c >= 32)
+        ch = c;
 
     free (str);
     return ret;
