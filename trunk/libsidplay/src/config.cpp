@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2002/01/15 19:12:54  s_a_white
+ *  PSID2NG update.
+ *
  *  Revision 1.14  2002/01/14 23:18:56  s_a_white
  *  Make sure xsid releases the old sid emulation when there are errors gaining
  *  a new one.
@@ -288,6 +291,13 @@ float64_t Player::clockSpeed (sid2_clock_t clock, bool forced)
         }
         break;
     default:
+        // Causes us to set speed to something
+        if ((m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_UNKNOWN) ||
+            (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_ANY))
+        {
+            forced = true;
+        }
+
         if (forced)
         {
             m_tuneInfo.clockSpeed = SIDTUNE_CLOCK_PAL;
