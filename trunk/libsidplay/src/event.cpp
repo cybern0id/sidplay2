@@ -15,23 +15,35 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
+/***************************************************************************
+ *  $Log: not supported by cvs2svn $
+ ***************************************************************************/
 
 
 #include "event.h"
+#define EVENT_TIMEWARP_COUNT 0x0FFFFF
 
 // Usefull to prevent clock overflowing
-void EventContext::timeWarp (int cycles)
+void EventContext::timeWarp ()
 {
     Event *e = m_pendingEvents;
-    while (e != NULL)
+    if (e != NULL)
     {
-        e->m_clk += cycles;
-        e = e->m_next;
+        event_clock_t cycles = m_eventClk;
+        do
+        {   // Reduce all event clocks and clip them
+            // so none go negative
+            event_clock_t clk = e->m_clk;
+            e->m_clk = 0;
+            if (clk >= cycles)
+                e->m_clk = clk - cycles;
+            e = e->m_next;
+        } while (e != NULL);
+        m_pendingEventClk = m_pendingEvents->m_clk;
     }
-    m_pendingEventClk += cycles;
-    m_eventClk        += cycles;
+    m_eventClk = 0;
     // Re-schedule the next timeWarp
-    schedule (&m_timeWarp, 0xfffff);
+    schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT);
 }
 
 void EventContext::reset (void)
@@ -44,6 +56,7 @@ void EventContext::reset (void)
     }
     m_pendingEvents   = NULL;
     m_pendingEventClk = m_eventClk = m_schedClk = 0;
+    timeWarp ();
 }
 
 // Add event to ordered pending queue
@@ -86,15 +99,7 @@ void EventContext::schedule (Event *event, event_clock_t cycles)
 void EventContext::cancel (Event *event)
 {
     if (event == m_pendingEvents)
-    {
-        event->m_pending = false;
-        m_pendingEvents  = event->m_next;
-        if (m_pendingEvents != NULL)
-        {
-            m_pendingEvents->m_prev = NULL;
-            m_pendingEventClk = m_pendingEvents->m_clk;
-        }
-    }
+        cancelPending (*event);
     else if (event->m_pending)
     {
         event->m_pending = false;
