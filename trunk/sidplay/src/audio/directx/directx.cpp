@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/11/21 00:04:18  s_a_white
+ *  Buffer alignment issues fixed.
+ *
  *  Revision 1.4  2001/10/30 23:35:35  s_a_white
  *  Added pause support.
  *
@@ -36,7 +39,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }

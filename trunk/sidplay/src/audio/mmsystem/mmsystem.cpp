@@ -18,6 +18,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/11/21 00:04:36  s_a_white
+ *  Buffer alignment issues fixed.
+ *
  *  Revision 1.4  2001/11/16 19:32:51  s_a_white
  *  Removed warning.
  *
@@ -37,7 +40,7 @@
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 Audio_MMSystem::Audio_MMSystem ()

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/12/07 18:22:33  s_a_white
+ *  Player quit fixes.
+ *
  *  Revision 1.5  2001/12/05 22:22:48  s_a_white
  *  Added playerFast flag.
  *
@@ -36,7 +39,7 @@
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 #include "player.h"

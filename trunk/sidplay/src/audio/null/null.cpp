@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/08/21 21:57:14  jpaana
+ *  Don't try to resize the buffer if the size is given (confuses other audiodrivers)
+ *
  *  Revision 1.4  2001/07/14 16:55:51  s_a_white
  *  Cast _sampleBuffer from void * for delete to avoid warning
  *  message.
@@ -35,7 +38,7 @@
 #include "null.h"
 #include "config.h"
 #ifdef HAVE_EXCEPTIONS
-#   include <new>
+#   include <new.h>
 #endif
 
 Audio_Null::Audio_Null ()

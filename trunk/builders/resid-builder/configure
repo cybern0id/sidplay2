@@ -13030,7 +13030,7 @@ else
         cat >conftest.$ac_ext <<_ACEOF
 #line 13031 "configure"
 #include "confdefs.h"
-#include <new>
+#include <new.h>
 int
 main ()
 {
