@@ -43,43 +43,43 @@ class SidTuneTools
 {
  public:
 
-	// Wrapper for ``strnicmp'' without third argument.
-	static int myStrNcaseCmp(const char* s1, const char* s2)
-	{
-	    return MYSTRNICMP(s1,s2,strlen(s2));
-	}
+    // Wrapper for ``strnicmp'' without third argument.
+    static int myStrNcaseCmp(const char* s1, const char* s2)
+    {
+        return MYSTRNICMP(s1,s2,strlen(s2));
+    }
 
-	// Own version of strdup, which uses new instead of malloc.
-	static char* myStrDup(const char *source);
+    // Own version of strdup, which uses new instead of malloc.
+    static char* myStrDup(const char *source);
 
-	// Return pointer to file name position in complete path.
-	static char* fileNameWithoutPath(char* s);
+    // Return pointer to file name position in complete path.
+    static char* fileNameWithoutPath(char* s);
 
-	// Return pointer to file name position in complete path.
-	// Special version: file separator = forward slash.
-	static char* slashedFileNameWithoutPath(char* s);
+    // Return pointer to file name position in complete path.
+    // Special version: file separator = forward slash.
+    static char* slashedFileNameWithoutPath(char* s);
 
-	// Return pointer to file name extension in path.
-	// Searching backwards until first dot is found.
-	static char* fileExtOfPath(char* s);
+    // Return pointer to file name extension in path.
+    // Searching backwards until first dot is found.
+    static char* fileExtOfPath(char* s);
 
-	// Parse input string stream. Read and convert a hexa-decimal number up 
-	// to a ``,'' or ``:'' or ``\0'' or end of stream.
-	static uint_least32_t readHex(std::istrstream& parseStream);
+    // Parse input string stream. Read and convert a hexa-decimal number up 
+    // to a ``,'' or ``:'' or ``\0'' or end of stream.
+    static uint_least32_t readHex(std::istrstream& parseStream);
 
-	// Parse input string stream. Read and convert a decimal number up 
-	// to a ``,'' or ``:'' or ``\0'' or end of stream.
-	static uint_least32_t readDec(std::istrstream& parseStream);
+    // Parse input string stream. Read and convert a decimal number up 
+    // to a ``,'' or ``:'' or ``\0'' or end of stream.
+    static uint_least32_t readDec(std::istrstream& parseStream);
 
-	// Search terminated string for next newline sequence.
-	// Skip it and return pointer to start of next line.
-	static const char* returnNextLine(const char* pBuffer);
+    // Search terminated string for next newline sequence.
+    // Skip it and return pointer to start of next line.
+    static const char* returnNextLine(const char* pBuffer);
 
-	// Skip any characters in an input string stream up to '='.
-	static void skipToEqu(std::istrstream& parseStream);
+    // Skip any characters in an input string stream up to '='.
+    static void skipToEqu(std::istrstream& parseStream);
 
-	// Start at first character behind '=' and copy rest of string.
-	static void copyStringValueToEOL(const char* pSourceStr, char* pDestStr, int destMaxLen);
+    // Start at first character behind '=' and copy rest of string.
+    static void copyStringValueToEOL(const char* pSourceStr, char* pDestStr, int destMaxLen);
 };
 
 #endif  /* TOOLS_H */

@@ -159,9 +159,6 @@ const uint_least16_t safeBufferSize = 64;  // for string comparison, stream pars
 bool SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength,
                                const void* infoBuffer, uint_least32_t infoLength)
 {
-    // Remove any format description or format error string.
-    info.formatString = 0;
-
     // Require a first minimum safety size.
     uint_least32_t minSize = 1+sizeof(struct DiskObject);
     if (infoLength < minSize)
