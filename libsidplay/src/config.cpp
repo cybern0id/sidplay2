@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2003/07/17 19:29:00  s_a_white
+ *  Don't try to channel split stereo tunes in stereo audio mode.
+ *
  *  Revision 1.36  2003/07/16 20:52:30  s_a_white
  *  Basic tunes can only run in a real C64 environment.
  *
@@ -210,6 +213,9 @@ int Player::config (const sid2_config_t &cfg)
                              (1 << 16) * m_fastForwardFactor);
             // Setup fake cia
             sid6526.clock ((uint_least16_t)(cpuFreq / VIC_FREQ_PAL + 0.5));
+            // @FIXME@ see mos6526.h for details
+            cia.clock  (cpuFreq);
+            cia2.clock (cpuFreq);
             if (m_tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A ||
                 m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
             {
