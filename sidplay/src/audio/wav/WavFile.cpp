@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/11/22 08:43:48  s_a_white
+ *  Added WAV_ to HAVE_IOS_OPENMODE
+ *
  *  Revision 1.5  2001/11/21 23:18:08  s_a_white
  *  Wrapped ios::openmode as not supported by VC.
  *
@@ -50,7 +53,7 @@
 #if defined(WAV_HAVE_IOS_OPENMODE)
     typedef ios::openmode openmode;
 #else
-    typedef int createAttr;
+    typedef int openmode;
 #endif
 
 
