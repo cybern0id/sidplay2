@@ -346,6 +346,17 @@ Player::Player (void)
     credit[5] = NULL;
 }
 
+Player::~Player ()
+{
+   if (m_ram == m_rom)
+      delete [] m_ram;
+   else
+   {
+      delete [] m_rom;
+      delete [] m_ram;
+   }
+}
+
 // Makes the next sequence of notes available.  For sidplay compatibility
 // this function should be called from interrupt event
 void Player::fakeIRQ (void)
@@ -397,7 +408,8 @@ int Player::initialise ()
     m_mileage += time ();
 
     reset ();
-    if (psidDrvInstall (m_tuneInfo, m_info) < 0)
+
+    if (psidDrvReloc (m_tuneInfo, m_info) < 0)
         return -1;
 
     // The Basic ROM sets these values on loading a file.
@@ -415,6 +427,8 @@ int Player::initialise ()
         return -1;
     }
 
+
+    psidDrvInstall (m_info);
     rtc.reset ();
     envReset  (false);
     return 0;
@@ -878,9 +892,10 @@ void Player::envReset (bool safe)
             tuneInfo.initAddr       = 0x0800;
             tuneInfo.songSpeed      = SIDTUNE_SPEED_CIA_1A;
             info.environment        = m_info.environment;
-            psidDrvInstall (tuneInfo, info);
-            // Install prg
+            psidDrvReloc (tuneInfo, info);
+            // Install prg & driver
             memcpy (&m_ram[0x0800], prg, sizeof (prg));
+            psidDrvInstall (info);
         }
         else
         {   // If theres no irqs, song wont continue
