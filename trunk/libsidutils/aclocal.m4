@@ -131,7 +131,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
         if test "$sid_libsidplay2_includes" != NO; then
             libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
         fi
-        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $prefix/include /usr/include \
+        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $sid_prefix/include /usr/include \
                              /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
         SID_FIND_FILE(sidplay/sidplay2.h,$libsidplay2_incdirs,libsidplay2_foundincdir)
         sid_libsidplay2_includes=$libsidplay2_foundincdir
@@ -142,7 +142,7 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
             libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib \
                                  $sid_libsidplay2_library/src"
         fi
-        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $prefix/lib /usr/lib /usr/local/lib \
+        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $sid_prefix/lib /usr/lib /usr/local/lib \
                              /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
         SID_FIND_FILE(libsidplay2.la,$libsidplay2_libdirs,libsidplay2_foundlibdir)
         sid_libsidplay2_library=$libsidplay2_foundlibdir

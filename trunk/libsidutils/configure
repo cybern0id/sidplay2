@@ -13038,7 +13038,12 @@ LIBTOOL='$(SHELL) $(top_builddir)/libtool'
     CC=$save_cc
     CFLAGS=$save_cflags
 
-    echo "$as_me:13041: checking for working SIDPlay2 library and headers" >&5
+sid_prefix=$prefix
+if test "$sid_prefix" = NONE; then
+    sid_prefix="$ac_default_prefix"
+fi
+
+    echo "$as_me:13046: checking for working SIDPlay2 library and headers" >&5
 echo $ECHO_N "checking for working SIDPlay2 library and headers... $ECHO_C" >&6
 
         sid_libsidplay2_library=NO
@@ -13086,7 +13091,7 @@ fi;
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13089 "configure"
+#line 13094 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int
@@ -13098,16 +13103,16 @@ sidplay2 *player;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13101: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13106: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13104: \$? = $ac_status" >&5
+  echo "$as_me:13109: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13107: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13112: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13110: \$? = $ac_status" >&5
+  echo "$as_me:13115: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   sid_libsidplay2_works=yes
 else
@@ -13133,7 +13138,7 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
         if test "$sid_libsidplay2_includes" != NO; then
             libsidplay2_incdirs="$sid_libsidplay2_includes $sid_libsidplay2_includes/include"
         fi
-        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $prefix/include /usr/include \
+        libsidplay2_incdirs="$libsidplay2_incdirs $includedir $sid_prefix/include /usr/include \
                              /usr/local/include /usr/lib/sidplay2/include /usr/local/lib/sidplay2/include"
 
     libsidplay2_foundincdir=NO
@@ -13156,7 +13161,7 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
             libsidplay2_libdirs="$sid_libsidplay2_library $sid_libsidplay2_library/lib \
                                  $sid_libsidplay2_library/src"
         fi
-        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $prefix/lib /usr/lib /usr/local/lib \
+        libsidplay2_libdirs="$libsidplay2_libdirs $libdir $sid_prefix/lib /usr/lib /usr/local/lib \
                              /usr/lib/sidplay2/lib /usr/local/lib/sidplay2/lib"
 
     libsidplay2_foundlibdir=NO
@@ -13196,7 +13201,7 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
     CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     cat >conftest.$ac_ext <<_ACEOF
-#line 13199 "configure"
+#line 13204 "configure"
 #include "confdefs.h"
 #include <sidplay/sidplay2.h>
 int
@@ -13208,16 +13213,16 @@ sidplay2 *player;
 }
 _ACEOF
 rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:13211: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13216: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13214: \$? = $ac_status" >&5
+  echo "$as_me:13219: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:13217: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13222: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13220: \$? = $ac_status" >&5
+  echo "$as_me:13225: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   sid_libsidplay2_works=yes
 else
@@ -13238,10 +13243,10 @@ rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
             fi
         fi
 
-        echo "$as_me:13241: result: library $sid_libsidplay2_library, headers $sid_libsidplay2_includes" >&5
+        echo "$as_me:13246: result: library $sid_libsidplay2_library, headers $sid_libsidplay2_includes" >&5
 echo "${ECHO_T}library $sid_libsidplay2_library, headers $sid_libsidplay2_includes" >&6
         if test "$sid_have_libsidplay2" = no; then
-            { { echo "$as_me:13244: error:
+            { { echo "$as_me:13249: error:
 libsidplay2 library and/or header files not found.
 Please check your installation!
 " >&5
@@ -13251,7 +13256,7 @@ Please check your installation!
 " >&2;}
    { (exit 1); exit 1; }; };
         elif test "$sid_libsidplay2_works" = no; then
-            { { echo "$as_me:13254: error:
+            { { echo "$as_me:13259: error:
 libsidplay2 build test failed with found library and header files.
 Please check your installation!
 " >&5
@@ -13264,14 +13269,14 @@ Please check your installation!
     else
         # Simply print 'yes' without printing the standard path.
         sid_have_libsidplay2=yes
-        echo "$as_me:13267: result: $sid_have_libsidplay2" >&5
+        echo "$as_me:13272: result: $sid_have_libsidplay2" >&5
 echo "${ECHO_T}$sid_have_libsidplay2" >&6;
     fi
 
     LIBSIDPLAY2_LDADD="$sid_libsidplay2_libadd"
     LIBSIDPLAY2_INCLUDES="$sid_libsidplay2_incadd"
 
-echo "$as_me:13274: checking whether byte ordering is bigendian" >&5
+echo "$as_me:13279: checking whether byte ordering is bigendian" >&5
 echo $ECHO_N "checking whether byte ordering is bigendian... $ECHO_C" >&6
 if test "${ac_cv_c_bigendian+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -13279,7 +13284,7 @@ else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat >conftest.$ac_ext <<_ACEOF
-#line 13282 "configure"
+#line 13287 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -13296,20 +13301,20 @@ main ()
 }
 _ACEOF
 rm -f conftest.$ac_objext
-if { (eval echo "$as_me:13299: \"$ac_compile\"") >&5
+if { (eval echo "$as_me:13304: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
-  echo "$as_me:13302: \$? = $ac_status" >&5
+  echo "$as_me:13307: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:13305: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13310: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13308: \$? = $ac_status" >&5
+  echo "$as_me:13313: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat >conftest.$ac_ext <<_ACEOF
-#line 13312 "configure"
+#line 13317 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -13326,16 +13331,16 @@ main ()
 }
 _ACEOF
 rm -f conftest.$ac_objext
-if { (eval echo "$as_me:13329: \"$ac_compile\"") >&5
+if { (eval echo "$as_me:13334: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
-  echo "$as_me:13332: \$? = $ac_status" >&5
+  echo "$as_me:13337: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:13335: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13340: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13338: \$? = $ac_status" >&5
+  echo "$as_me:13343: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   ac_cv_c_bigendian=yes
 else
@@ -13351,12 +13356,12 @@ fi
 rm -f conftest.$ac_objext conftest.$ac_ext
 if test $ac_cv_c_bigendian = unknown; then
 if test "$cross_compiling" = yes; then
-  { { echo "$as_me:13354: error: cannot run test program while cross compiling" >&5
+  { { echo "$as_me:13359: error: cannot run test program while cross compiling" >&5
 echo "$as_me: error: cannot run test program while cross compiling" >&2;}
    { (exit 1); exit 1; }; }
 else
   cat >conftest.$ac_ext <<_ACEOF
-#line 13359 "configure"
+#line 13364 "configure"
 #include "confdefs.h"
 int
 main ()
@@ -13372,15 +13377,15 @@ main ()
 }
 _ACEOF
 rm -f conftest$ac_exeext
-if { (eval echo "$as_me:13375: \"$ac_link\"") >&5
+if { (eval echo "$as_me:13380: \"$ac_link\"") >&5
   (eval $ac_link) 2>&5
   ac_status=$?
-  echo "$as_me:13378: \$? = $ac_status" >&5
+  echo "$as_me:13383: \$? = $ac_status" >&5
   (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (eval echo "$as_me:13380: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13385: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13383: \$? = $ac_status" >&5
+  echo "$as_me:13388: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   ac_cv_c_bigendian=no
 else
@@ -13393,7 +13398,7 @@ rm -f core core.* *.core conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
 fi
 fi
 fi
-echo "$as_me:13396: result: $ac_cv_c_bigendian" >&5
+echo "$as_me:13401: result: $ac_cv_c_bigendian" >&5
 echo "${ECHO_T}$ac_cv_c_bigendian" >&6
 if test $ac_cv_c_bigendian = yes; then
 
@@ -13403,14 +13408,14 @@ EOF
 
 fi
 
-    echo "$as_me:13406: checking whether nothrow allocator is available" >&5
+    echo "$as_me:13411: checking whether nothrow allocator is available" >&5
 echo $ECHO_N "checking whether nothrow allocator is available... $ECHO_C" >&6
     if test "${test_cv_have_exceptions+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
         cat >conftest.$ac_ext <<_ACEOF
-#line 13413 "configure"
+#line 13418 "configure"
 #include "confdefs.h"
 #include <new>
 int
@@ -13422,16 +13427,16 @@ char* buf = new(nothrow) char[1024];
 }
 _ACEOF
 rm -f conftest.$ac_objext
-if { (eval echo "$as_me:13425: \"$ac_compile\"") >&5
+if { (eval echo "$as_me:13430: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
-  echo "$as_me:13428: \$? = $ac_status" >&5
+  echo "$as_me:13433: \$? = $ac_status" >&5
   (exit $ac_status); } &&
          { ac_try='test -s conftest.$ac_objext'
-  { (eval echo "$as_me:13431: \"$ac_try\"") >&5
+  { (eval echo "$as_me:13436: \"$ac_try\"") >&5
   (eval $ac_try) 2>&5
   ac_status=$?
-  echo "$as_me:13434: \$? = $ac_status" >&5
+  echo "$as_me:13439: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
   test_cv_have_exceptions=yes
 else
@@ -13444,7 +13449,7 @@ rm -f conftest.$ac_objext conftest.$ac_ext
 
 fi
 
-    echo "$as_me:13447: result: $test_cv_have_exceptions" >&5
+    echo "$as_me:13452: result: $test_cv_have_exceptions" >&5
 echo "${ECHO_T}$test_cv_have_exceptions" >&6
     if test "$test_cv_have_exceptions" = yes; then
         cat >>confdefs.h <<\EOF
@@ -13536,7 +13541,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:13539: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:13544: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -13712,7 +13717,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:13715: error: ambiguous option: $1
+    { { echo "$as_me:13720: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -13731,7 +13736,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:13734: error: unrecognized option: $1
+  -*) { { echo "$as_me:13739: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -13786,7 +13791,7 @@ do
   "src/MD5/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/MD5/Makefile" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "include/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
-  *) { { echo "$as_me:13789: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:13794: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -14041,7 +14046,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:14044: creating $ac_file" >&5
+    { echo "$as_me:14049: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -14059,7 +14064,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:14062: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:14067: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -14072,7 +14077,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:14075: error: cannot find input file: $f" >&5
+           { { echo "$as_me:14080: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -14133,7 +14138,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:14136: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:14141: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -14144,7 +14149,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:14147: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:14152: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -14157,7 +14162,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:14160: error: cannot find input file: $f" >&5
+           { { echo "$as_me:14165: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -14274,7 +14279,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:14277: $ac_file is unchanged" >&5
+      { echo "$as_me:14282: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
