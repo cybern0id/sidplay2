@@ -88,9 +88,12 @@ EXTRA_DIST = cycle_based
 noinst_LTLIBRARIES = libmos6510.la
 
 libmos6510_la_SOURCES = mos6510.cpp mos6510.h conf6510.h opcodes.h 
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src/mos6510
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
@@ -100,7 +103,6 @@ am_libmos6510_la_OBJECTS = mos6510.lo
 libmos6510_la_OBJECTS = $(am_libmos6510_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

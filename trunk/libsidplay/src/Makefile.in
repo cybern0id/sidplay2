@@ -105,9 +105,12 @@ libsidplay2_la_LIBADD = ./c64/libc64.la \
 
 # We substitute the libtool-specific library version in configure.in.
 libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
@@ -120,7 +123,6 @@ am_libsidplay2_la_OBJECTS = config.lo event.lo player.lo psiddrv.lo \
 libsidplay2_la_OBJECTS = $(am_libsidplay2_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

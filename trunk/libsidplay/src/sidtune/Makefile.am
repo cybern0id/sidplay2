@@ -12,3 +12,6 @@ SidTune.cpp \
 SidTuneCfg.h \
 SidTuneTools.cpp \
 SidTuneTools.h
+
+# Remove bad default includes
+DEFAULT_INCLUDES=

@@ -86,9 +86,12 @@ install_sh = @install_sh@
 noinst_LTLIBRARIES = libsid6526.la
 
 libsid6526_la_SOURCES = sid6526.cpp sid6526.h
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src/sid6526
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
@@ -98,7 +101,6 @@ am_libsid6526_la_OBJECTS = sid6526.lo
 libsid6526_la_OBJECTS = $(am_libsid6526_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

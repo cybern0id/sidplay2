@@ -97,9 +97,12 @@ SidTuneCfg.h \
 SidTuneTools.cpp \
 SidTuneTools.h
 
+
+# Remove bad default includes
+DEFAULT_INCLUDES = 
 subdir = src/sidtune
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_HEADER = $(top_builddir)/unix/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
@@ -110,7 +113,6 @@ am_libsidtune_la_OBJECTS = IconInfo.lo InfoFile.lo MUS.lo PP20.lo \
 libsidtune_la_OBJECTS = $(am_libsidtune_la_OBJECTS)
 
 DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
