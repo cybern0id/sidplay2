@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/09/01 11:11:19  s_a_white
+ *  This is the old fake6526 code required for sidplay1 environment modes.
+ *
  ***************************************************************************/
 
 #ifndef _sid6526_h_
@@ -40,7 +43,7 @@ private:
     uint8_t cra;             // Timer A Control Register
     uint_least16_t ta_latch;
     uint_least16_t ta;       // Current count (reduces to zero)
-    uint_least16_t rnd;
+    uint_least32_t rnd;
     uint_least16_t m_count;
     bool locked; // Prevent code changing CIA.
 

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/03/03 22:03:49  s_a_white
+ *  Tidy.
+ *
  *  Revision 1.4  2001/10/02 18:01:36  s_a_white
  *  Support for cleaned c64env.
  *
@@ -43,6 +46,7 @@ const char * const SID6526::credit =
 SID6526::SID6526 (c64env *env)
 :m_env(*env),
  m_eventContext(m_env.context ()),
+ rnd(0),
  m_taEvent(*this)
 {
     clock (0xffff);
@@ -52,9 +56,9 @@ SID6526::SID6526 (c64env *env)
 void SID6526::reset (void)
 {
     locked = false;
-    ta  = ta_latch = m_count;
-    cra = 0;
-    rnd = (uint_least16_t) time(NULL);
+    ta   = ta_latch = m_count;
+    cra  = 0;
+    rnd += time(NULL) & 0xff;
     m_accessClk = 0;
 }
 
@@ -70,7 +74,7 @@ uint8_t SID6526::read (uint_least8_t addr)
     case 0x11:
     case 0x12:
         rnd = rnd * 13 + 1;
-        return (uint8_t) rnd >> 3;
+        return (uint8_t) (rnd >> 3);
     break;
     default:
         return regs[addr];
