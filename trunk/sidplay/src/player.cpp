@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2002/08/19 17:04:28  s_a_white
+ *  Added timeout to decide if previous key should select previous song or
+ *  restart current song.
+ *
  *  Revision 1.17  2002/06/16 19:44:21  s_a_white
  *  Changing resid filter works again.
  *
@@ -308,19 +312,19 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         {
             m_engCfg.sidEmulation = rs;
             if (!*rs) goto createSidEmu_error;
-        }
 
-        // Setup the emulation
-        rs->create ((m_engine.info ()).maxsids);
-        if (!*rs) goto createSidEmu_error;
-        rs->filter (m_filter.enabled);
-        if (!*rs) goto createSidEmu_error;
-        rs->sampling (m_driver.cfg.frequency);
-        if (!*rs) goto createSidEmu_error;
-        if (m_filter.enabled && m_filter.definition)
-        {   // Setup filter
-            rs->filter (m_filter.definition.provide ());
+            // Setup the emulation
+            rs->create ((m_engine.info ()).maxsids);
             if (!*rs) goto createSidEmu_error;
+            rs->filter (m_filter.enabled);
+            if (!*rs) goto createSidEmu_error;
+            rs->sampling (m_driver.cfg.frequency);
+            if (!*rs) goto createSidEmu_error;
+            if (m_filter.enabled && m_filter.definition)
+            {   // Setup filter
+                rs->filter (m_filter.definition.provide ());
+                if (!*rs) goto createSidEmu_error;
+            }
         }
         break;
     }
@@ -338,13 +342,13 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         {
             m_engCfg.sidEmulation = hs;
             if (!*hs) goto createSidEmu_error;
-        }
 
-        // Setup the emulation
-        hs->create ((m_engine.info ()).maxsids);
-        if (!*hs) goto createSidEmu_error;
-        hs->filter (m_filter.enabled);
-        if (!*hs) goto createSidEmu_error;
+            // Setup the emulation
+            hs->create ((m_engine.info ()).maxsids);
+            if (!*hs) goto createSidEmu_error;
+            hs->filter (m_filter.enabled);
+            if (!*hs) goto createSidEmu_error;
+        }
         break;
     }
 #endif // HAVE_HARDSID_BUILDER
