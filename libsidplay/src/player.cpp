@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.77  2004/05/03 22:47:15  s_a_white
+ *  Change how port handling is dealt with to provide better C64 compatiiblity.
+ *  Add character rom support.
+ *
  *  Revision 1.76  2004/03/20 23:07:45  s_a_white
  *  Don't initialise the lower memory areas as applying the poweron settings does
  *  that and they are optimised to assume all that memory is 0.
@@ -488,6 +492,16 @@ int Player::initialise ()
     m_mileage += time ();
 
     reset ();
+
+    {
+        uint_least32_t page = ((uint_least32_t) m_tuneInfo.loadAddr
+                            + m_tuneInfo.c64dataLen) >> 8;
+        if (page > 0xff)
+        {
+            m_errorString = "SIDPLAYER ERROR: Size of music data exceeds C64 memory.";
+            return -1;
+        }
+    }
 
     if (psidDrvReloc (m_tuneInfo, m_info) < 0)
         return -1;
