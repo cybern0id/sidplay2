@@ -10,7 +10,9 @@ AC_DEFUN(SID2_FIND_LIBRESID,
     AC_SUBST(LIBRESID_LDFLAGS)
 
     if test "$sid2_header" = sid.h; then
-        AC_DEFINE(HAVE_USER_RESID)
+        AC_DEFINE(HAVE_USER_RESID,,
+          [Define this to \#include sid.h instead of resid/resid.h]
+        )
     fi
 
     AC_MSG_CHECKING([for extended resid features])

@@ -16,14 +16,14 @@ AC_DEFUN(SID2_TEST_BUILDER,
         hardsid) sid2_builder=HardSIDBuilder;;
     esac
 
-    MY_TRY_COMPILE($2,"$3 -l$1-builder",
+    MY_TRY_COMPILE($2,[$3 -l$1-builder],
                    [sidplay/builders/$1.h],
                    [$sid2_builder *myBuilder;], sid2_builder_works)
 
     dnl Found builder to define variables to indicate
     dnl it and linker flags
     $4=""
-    if test "$sid2_builder_works" = "YES"; then
+    if test "$sid2_builder_works" = YES; then
         sid2_def="HAVE_`echo $1 | tr [a-z] [A-Z]`_BUILDER"
         AC_DEFINE_UNQUOTED($sid2_def)
         $4="-l$1-builder"
