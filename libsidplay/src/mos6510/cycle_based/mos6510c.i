@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.42  2003/10/29 22:18:04  s_a_white
+ *  IRQs are now only taken in on phase 1 as previously they could be clocked
+ *  in on both phases of the cycle resulting in them sometimes not being
+ *  delayed long enough.
+ *
  *  Revision 1.41  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -214,6 +219,7 @@ void MOS6510::aecSignal (bool state)
     if (state && m_blocked)
     {   // Correct IRQs that appeard before the steal
         event_clock_t stolen = clock - m_stealingClk;
+    printf ("STOLEN: %d, %d\n", clock, stolen);
         interrupts.nmiClk += stolen;
         interrupts.irqClk += stolen;
         // IRQs that appeared during the steal must have
@@ -363,8 +369,9 @@ MOS6510_interruptPending_check:
     {
         // Try to determine if we should be processing the NMI yet
         event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
-        if (cycles > interrupts.delay)
+        if (cycles > MOS6510_INTERRUPT_DELAY)
         {
+            printf ("NMI %d\n", eventContext.getTime (m_extPhase));
             interrupts.pending &= ~iNMI;
             break;
         }
@@ -378,8 +385,11 @@ MOS6510_interruptPending_check:
     {
         // Try to determine if we should be processing the IRQ yet
         event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_extPhase);
-        if (cycles > interrupts.delay)
+        if (cycles > MOS6510_INTERRUPT_DELAY)
+{
+            printf ("IRQ %d\n", eventContext.getTime (m_extPhase));
             break;
+}
 
         // NMI delayed so check for other interrupts
         pending &= ~iIRQ;
@@ -471,7 +481,6 @@ void MOS6510::NextInstr (void)
 // Addressing Modes: All
 void MOS6510::FetchOpcode (void)
 {   // On new instruction all interrupt delays are reset
-    interrupts.delay    = MOS6510_INTERRUPT_DELAY;
     interrupts.irqLatch = false;
 
     instrStartPC  = endian_32lo16 (Register_ProgramCounter++);
@@ -755,7 +764,7 @@ void MOS6510::brk_instr (void)
     if (interrupts.pending & iNMI)
     {
         event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
-        if (cycles > interrupts.delay)
+        if (cycles > MOS6510_INTERRUPT_DELAY)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
@@ -1090,19 +1099,26 @@ void MOS6510::branch_instr (bool condition)
         Register_ProgramCounter += (int8_t) Cycle_Data;
 
         // Handle page boundary crossing
-        if (endian_32hi8 (Register_ProgramCounter) == page)
-        {
+        if (endian_32hi8 (Register_ProgramCounter) != page)
             cycleCount++;
-            interrupts.delay++;
-        }
     }
     else
     {
-        cycleCount += 2;
+        cycleCount += 3;
     }
 #else
     Register_ProgramCounter += (int8_t) Cycle_Data;
 #endif
+}
+
+void MOS6510::branch2_instr ()
+{
+    // This only gets processed when page boundary
+    // is no crossed.  This causes pending interrupts
+    // to be delayed by a cycle
+    interrupts.irqClk++;
+    interrupts.nmiClk++;
+    cycleCount += 2;
 }
 
 void MOS6510::bcc_instr (void)
@@ -1803,6 +1819,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BCCr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bcc_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1811,6 +1828,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BCSr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bcs_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1819,6 +1837,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BEQr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::beq_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1831,6 +1850,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BMIr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bmi_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1839,6 +1859,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BNEr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bne_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1847,6 +1868,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BPLr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bpl_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1868,6 +1890,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BVCr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bvc_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -1876,6 +1899,7 @@ MOS6510::MOS6510 (EventContext *context)
             case BVSr:
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::bvs_instr;
 #ifdef MOS6510_ACCURATE_CYCLES
+                cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::branch2_instr;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
                 cycleCount++; if (pass) procCycle[cycleCount].func = &MOS6510::WasteCycle;
 #endif
@@ -2458,7 +2482,6 @@ void MOS6510::reset (void)
     // Reset Interrupts
     interrupts.pending = false;
     interrupts.irqs    = 0;
-    interrupts.delay   = MOS6510_INTERRUPT_DELAY;
 
     // Internal Stuff
     Initialise ();
