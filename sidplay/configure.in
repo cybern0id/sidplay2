@@ -47,6 +47,8 @@ case "$host" in
     *cygwin*) AC_DEFINE(HAVE_MMSYSTEM)
         audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
         AC_MSG_RESULT(mmsystem)
+        AUDIO_LIB=-lwinmm
+        AC_SUBST(AUDIO_LIB)
         ;;
     *freebsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
