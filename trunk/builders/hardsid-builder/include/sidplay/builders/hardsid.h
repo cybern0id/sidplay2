@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2003/01/23 17:48:17  s_a_white
+ *  Added missed return parameter for init function prototype.
+ *
  *  Revision 1.2  2002/01/30 01:42:08  jpaana
  *  Don't include config.h as it isn't always available and is included elsewhere already
  *
@@ -36,13 +39,15 @@
 class HardSIDBuilder: public sidbuilder
 {
 private:
-    static uint m_instance;
+    static bool m_initialised;
     char   m_errorBuffer[100];
     std::vector<sidemu *> sidobjs;
 
-#ifdef HAVE_MSWINDOWS
-    int init (void);
+#ifdef HAVE_UNIX
+    static uint m_count;
 #endif
+
+    int init (void);
 
 public:
     HardSIDBuilder  (const char * const name);

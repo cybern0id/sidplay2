@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2003/10/18 13:31:58  s_a_white
+ *  Improved hardsid.dll load failure error messages.
+ *
  *  Revision 1.7  2003/06/27 07:07:00  s_a_white
  *  Use new hardsid.dll muting interface.
  *
@@ -59,14 +62,17 @@ typedef BYTE (CALLBACK* HsidDLL1_InitMapper_t) (void);
 HsidDLL2 hsid2 = {0};
 #endif
 
-uint HardSIDBuilder::m_instance = 0;
+bool HardSIDBuilder::m_initialised = false;
+#ifdef HAVE_UNIX
+uint HardSIDBuilder::m_count = 0;
+#endif
 
 HardSIDBuilder::HardSIDBuilder (const char * const name)
 :sidbuilder (name)
 {
     strcpy (m_errorBuffer, "N/A");
 
-    if (m_instance == 0)
+    if (!m_initialised)
     {   // Setup credits
         char *p = HardSID::credit;
         sprintf (p, "HardSID V%s Engine:", VERSION);
@@ -79,19 +85,15 @@ HardSIDBuilder::HardSIDBuilder (const char * const name)
         p += strlen (p) + 1;
         *p = '\0';
 
-#ifdef HAVE_MSWINDOWS
-        // Load Windows HardSID dll
         if (init () < 0)
             return;
-#endif
+        m_initialised = true;
     }
-    m_instance++;
 }
 
 HardSIDBuilder::~HardSIDBuilder (void)
 {   // Remove all are SID emulations
     remove ();
-    m_instance--;
 }
 
 // Create a new sid emulation.  Called by libsidplay2 only
@@ -159,8 +161,11 @@ uint HardSIDBuilder::devices (bool created)
         }
         return count;
     }
-#endif
+#elif defined(HAVE_UNIX)
+    return m_count;
+#else
     return 0;
+#endif
 }
 
 const char *HardSIDBuilder::credits ()
@@ -327,6 +332,47 @@ HardSID_init_error:
     if (dll)
         FreeLibrary (dll);
     return -1;
+}
+
+#elif defined(HAVE_UNIX)
+
+#include <ctype.h>
+#include <dirent.h>
+
+// Find the number of sid devices.  We do not care about
+// stuppid device numbering or drivers not loaded for the
+// available nodes.
+int HardSIDBuilder::init ()
+{
+    DIR    *dir;
+    dirent *entry;
+
+    m_count = 0;
+    dir = opendir("/dev");
+    if (!dir)
+        return -1;
+
+    while ( (entry=readdir(dir)) )
+    {
+        // SID device
+        if (strncmp ("sid", entry->d_name, 3))
+            continue;
+        
+        // if it is truely one of ours then it will be
+        // followed by numerics only
+        const char *p = entry->d_name+3;
+        int index     = 0;
+        while (*p)
+        {
+            if (!isdigit (*p))
+                continue;
+            index = index * 10 + (*p++ - '0');
+        }
+        index++;
+        if (m_count < index)
+            m_count = index;
+    }
+    closedir (dir);
 }
 
 #endif // HAVE_MSWINDOWS

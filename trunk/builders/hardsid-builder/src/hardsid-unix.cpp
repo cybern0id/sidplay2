@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2004/04/29 23:20:01  s_a_white
+ *  Optimisation to polling hardsid delay write to only access the hardsid
+ *  if really necessary.
+ *
  *  Revision 1.11  2003/10/28 00:15:16  s_a_white
  *  Get time with respect to correct clock phase.
  *
@@ -109,10 +113,22 @@ HardSID::HardSID (sidbuilder *builder)
         *m_errorBuffer = '\0';
         sprintf (device, "/dev/sid%u", m_instance);
         m_handle = open (device, O_RDWR);
-        if (!m_handle)
+        if (m_handle < 0)
         {
-            sprintf (m_errorBuffer, "HARDSID ERROR: Require access to HardSID device \"%s\"\n", device);
-            return;
+            if (m_instance == 0)
+            {
+                m_handle = open ("/dev/sid", O_RDWR);
+                if (m_handle < 0)
+                {
+                    sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
+                    return;
+                }
+            }
+            else
+            {
+                sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"%s\"", device);
+                return;
+            }
         }
     }
 
