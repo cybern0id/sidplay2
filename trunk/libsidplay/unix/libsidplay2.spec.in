@@ -9,8 +9,8 @@ Name:           %{name}
 Version:        %{version}
 Release:        %{release}
 Source:         %{name}-%{version}.tar.bz2
-Source1:        resid-0.11.tar.bz2
-Patch:          resid-0.11-mute1.patch.bz2
+Source1:        resid-%{residversion}.tar.bz2
+Patch:          resid-%{residversion}-mute1.patch.bz2
 Copyright:      GPL
 Group:          System/Libraries
 URL:            http://sidplay2.sourceforge.net/
@@ -22,7 +22,7 @@ This is a cycle-based development version of a C64 music playing
 library which requires the ReSID library as the SID emulator
 portion.
 
-A modified version of ReSID is included in this package.
+A modified version of ReSID %{residversion} is included in this package.
 
 %package devel
 Summary:        Development headers and libraries for %{name}%{major}
@@ -66,13 +66,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(-,root,root)
-%dir %{_includedir}
+%{_includedir}/sidplay/*
 %{_libdir}/*.la
 %{_libdir}/*.a
 %{_libdir}/*.so
 
 %changelog
-* Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1
+* Sun Apr 1 2001 Simon White <s_a_white@email.com> @VERSION@-1mdk
 - First spec file.
 
 # end of file
