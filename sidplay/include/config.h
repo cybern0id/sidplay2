@@ -19,13 +19,13 @@
 /* #define WORDS_BIGENDIAN */
 
 /* Define sound driver */
-/* #define HAVE_DIRECTX */
+/*#define HAVE_DIRECTX*/
 #define HAVE_MMSYSTEM
 
 /* Name of package */
 #define PACKAGE "sidplay"
 
 /* Version number of package */
-#define VERSION "2.0.1"
+#define VERSION "2.0.8"
 
 #endif // _config_h_
