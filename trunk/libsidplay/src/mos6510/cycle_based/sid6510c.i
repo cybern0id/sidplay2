@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2002/12/02 22:19:43  s_a_white
+ *  sid_brk fix to prevent it running some of the real brk cycles in old emulation
+ *  modes.
+ *
  *  Revision 1.26  2002/11/25 21:07:34  s_a_white
  *  Allow setting of program counter on reset.
  *
@@ -199,6 +203,8 @@ void SID6510::reset ()
     MOS6510::reset ();
 }
 
+// Send CPU is about to sleep.  Only a reset or
+// interrupt will wake up the processor
 void SID6510::sleep ()
 {   // Simulate a delay for JMPw
     m_delayClk = eventContext.getTime ();
@@ -206,6 +212,7 @@ void SID6510::sleep ()
     procCycle  = delayCycle;
     cycleCount = 0;
     eventContext.cancel (this);
+    envSleep ();
 
     // Check for outstanding interrupts
     if (interrupts.irqs)
@@ -241,11 +248,7 @@ void SID6510::FetchOpcode (void)
         // Simulate sidplay1 frame based execution
         while (!m_sleeping)
             MOS6510::clock ();
-
-        // The CPU is about to sleep.  Since these are old sidplay1
-        // modes it can only be woken with a reset
-        eventContext.cancel (this);
-        envSleep ();
+        sleep ();
         m_framelock = false;
     }
 }
