@@ -67,14 +67,15 @@ static const uint_least16_t parseChunkLen = 80;                     // Enough fo
 SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& dataBuf,
                                              Buffer_sidtt<const uint_least8_t>& sidBuf)
 {
-    uint_least32_t sidBufLen = sidBuf.len();
+    uint_least32_t parseLen = sidBuf.len();
     // Make sure SID buffer pointer is not zero.
     // Check for a minimum file size. If it is smaller, we will not proceed.
-    if (sidBufLen<sidMinFileSize)
+    if (parseLen<sidMinFileSize)
     {
         return LOAD_NOT_MINE;
     }
 
+    // Here use a smart pointer to prevent access violation errors.
     const char* pParseBuf = (const char*)sidBuf.get();
     // First line has to contain the exact identification string.
     if ( SidTuneTools::myStrNcaseCmp( pParseBuf, keyword_id ) == 0 )
@@ -119,13 +120,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
         // fields and then check if all ``required'' ones were found.
         for (;;)
         {
-            // Skip to next line. Leave loop, if none.
-            if (( pParseBuf = SidTuneTools::returnNextLine( pParseBuf )) == 0 )
-            {
-                break;
-            }
-            // And get a second pointer to the following line.
-            const char* pNextLine = SidTuneTools::returnNextLine( pParseBuf );
+            const char* pNextLine = SidTuneTools::returnNextLine( pParseBuf, parseLen );
             uint_least32_t restLen;
             if ( pNextLine != 0 )
             {
@@ -135,7 +130,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
             else
             {
                 // Calculate number of chars between current pos and end of buf.
-                restLen = sidBufLen - (uint_least32_t)(pParseBuf - (char*)sidBuf.get());
+                restLen = parseLen;
             }
 #ifdef HAVE_SSTREAM
             std::string sParse( pParseBuf, restLen );            
@@ -274,6 +269,13 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 else if ( SidTuneTools::myStrNcaseCmp( comp, "BASIC" ) == 0 )
                     info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
             }
+            // Skip to next line. Leave loop, if none.
+            if ( pNextLine == 0 )
+            {
+                break;
+            }
+            parseLen  -= restLen;
+            pParseBuf += restLen;
         }
 
         delete[] pParseChunk;
