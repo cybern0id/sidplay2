@@ -165,15 +165,16 @@ const char _sidtune_txt_chunkError[] = "ERROR: Invalid tooltype information in i
 static const uint_least16_t safeBufferSize = 64;  // for string comparison, stream parsing
 
 
-SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least32_t dataLength,
-                                              const void* infoBuffer, uint_least32_t infoLength)
+SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>& dataBuf,
+                                              Buffer_sidtt<const uint_least8_t>& infoBuf)
 {
+    uint_least32_t infoLength = infoBuf.len();
     // Require a first minimum safety size.
     uint_least32_t minSize = 1+sizeof(struct DiskObject);
     if (infoLength < minSize)
         return( LOAD_NOT_MINE );
 
-    const DiskObject *dobject = (const DiskObject *)infoBuffer;
+    const DiskObject *dobject = (const DiskObject *)infoBuf.get();
 
     // Require Magic_Id in the first two bytes of the file.
     if ( endian_16(dobject->Magic[0],dobject->Magic[1]) != WB_DISKMAGIC )
@@ -190,7 +191,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
     uint i;  // general purpose index variable
 
     // We want to skip a possible Gadget Image item.
-    const char *icon = (const char*)infoBuffer + sizeof(DiskObject);
+    const char *icon = (const char*)infoBuf.get() + sizeof(DiskObject);
 
     if ( (endian_16(dobject->Gadget.Flags[0],dobject->Gadget.Flags[1]) & GFLG_GADGIMAGE) == 0)
     {
@@ -293,7 +294,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
     }
 
     // Here use a smart pointer to prevent access violation errors.
-    SmartPtr_sidtt<const char> spTool((const char*)icon,infoLength-(uint_least32_t)(icon-(const char*)infoBuffer));
+    SmartPtr_sidtt<const char> spTool((const char*)icon,infoLength-(uint_least32_t)(icon-(const char*)infoBuf.get()));
     if ( !spTool )
     {
         info.formatString = _sidtune_txt_corruptError;
@@ -577,5 +578,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(const void* dataBuffer, uint_least
     info.numberOfInfoStrings = 3;
     // We finally accept the input data.
     info.formatString = _sidtune_txt_format;
+    if ( info.musPlayer && !dataBuf.isEmpty() )
+        return MUS_load (dataBuf);
     return LOAD_OK;
 }
