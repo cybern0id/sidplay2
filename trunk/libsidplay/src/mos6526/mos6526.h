@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2004/03/09 20:26:15  s_a_white
+ *  Keep track of timer A/B underflows for the I/O ports.
+ *
  *  Revision 1.14  2004/02/29 14:30:18  s_a_white
  *  Serial port emulation.
  *
@@ -89,6 +92,9 @@ private:
 protected:
     uint8_t regs[0x10];
     bool    cnt_high;
+
+    // Ports
+    uint8_t &pra, &prb, &ddra, &ddrb;
 
     // Timer A
     uint8_t cra, cra_latch, dpa;
@@ -179,16 +185,18 @@ protected:
 
     // Environment Interface
     virtual void interrupt (bool state) = 0;
-    
+    virtual void portA () {}
+    virtual void portB () {}
+
 public:
     // Component Standard Calls
-    void    reset (void);
+    virtual void reset (void);
     uint8_t read  (uint_least8_t addr);
     void    write (uint_least8_t addr, uint8_t data);
     const   char *credits (void) {return credit;}
 
     // @FIXME@ This is not correct!  There should be
-    // muliple schedules running at different rates
+    // muliple schedulers running at different rates
     // that are passed into different function calls.
     // This is the same as have different clock freqs
     // connected to pins on the IC.

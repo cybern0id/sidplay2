@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.49  2004/03/18 20:15:15  s_a_white
+ *  Added sidmapper (so support more the 2 sids).
+ *
  *  Revision 1.48  2004/01/31 17:01:44  s_a_white
  *  Add ability to specify the maximum number of sid writes forming the sid2crc.
  *
@@ -412,6 +415,7 @@ private:
     inline void interruptNMI (void);
     inline void interruptRST (void);
     void signalAEC (bool state) { cpu->aecSignal (state); }
+    void lightpen  () { vic.lightpen (); }
 
     // PSID driver
     int  psidDrvReloc   (SidTuneInfo &tuneInfo, sid2_info_t &info);

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2004/03/20 16:17:29  s_a_white
+ *  Clear all registers at reset.  Fix port B read bug.
+ *
  *  Revision 1.19  2004/03/14 23:07:50  s_a_white
  *  Remove warning in Visual C about precendence order.
  *
@@ -136,7 +139,11 @@ const char *MOS6526::credit =
 
 
 MOS6526::MOS6526 (EventContext *context)
-:idr(0),
+:pra(regs[PRA]),
+ prb(regs[PRB]),
+ ddra(regs[DDRA]),
+ ddrb(regs[DDRB]),
+ idr(0),
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  m_todPeriod(~0), // Dummy
@@ -208,10 +215,10 @@ uint8_t MOS6526::read (uint_least8_t addr)
     switch (addr)
     {
     case PRA: // Simulate a serial port
-        return (regs[PRA] | ~regs[DDRA]);
+        return (pra | ~ddra);
     case PRB:
     {
-        uint8_t data = regs[PRB] | ~regs[DDRB];
+        uint8_t data = prb | ~ddrb;
         // Timers can appear on the port
         if (cra & 0x02)
         {
@@ -257,7 +264,7 @@ uint8_t MOS6526::read (uint_least8_t addr)
         return ret;
     }
 
-    case CRA:  return cra;
+    case CRA: return cra;
     case CRB: return crb;
     default:  return regs[addr];
     }
@@ -297,6 +304,12 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
     switch (addr)
     {
+    case PRA: case DDRA:
+        portA ();
+        break;
+    case PRB: case DDRB:
+        portB ();
+        break;
     case TAL: endian_16lo8 (ta_latch, data); break;
     case TAH:
         endian_16hi8 (ta_latch, data);
@@ -463,7 +476,7 @@ void MOS6526::ta_event (void)
     trigger (INTERRUPT_TA);
     
     // Handle serial port
-    if (regs[CRA] & 0x40)
+    if (cra & 0x40)
     {
         if (sdr_count)
         {

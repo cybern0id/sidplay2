@@ -41,6 +41,7 @@ public:
     virtual void signalAEC    (bool state) = 0;
     virtual uint8_t readMemRamByte (uint_least16_t addr) = 0;
     virtual void sid2crc      (uint8_t data) = 0;
+    virtual void lightpen     () = 0;
 };
 
 #endif // _c64env_h_
