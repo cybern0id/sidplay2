@@ -14,4 +14,7 @@
 /* Define if you have the <strstrea.h> header file.  */
 #define HAVE_STRSTREA_H
 
+/* Define if ``ios::nocreate'' is supported. */
+#define HAVE_IOS_NOCREATE
+
 #endif // _config_h_

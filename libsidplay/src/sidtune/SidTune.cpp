@@ -255,13 +255,20 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
 {
     Buffer_sidtt<uint_least8_t> fileBuf;
     uint_least32_t fileLen = 0;
-    
+
+    // This sucks big time
+    openmode createAtrr = ios::in;
+#ifdef HAVE_IOS_NOCREATE
+    createAtrr |= ios::nocreate;
+#endif
     // Open binary input file stream at end of file.
 #if defined(HAVE_IOS_BIN)
-    ifstream myIn(fileName,ios::in|ios::bin|ios::ate);
+    createAtrr |= ios::bin;
 #else
-    ifstream myIn(fileName,ios::in|ios::binary|ios::ate);
+    createAtrr |= ios::binary;
 #endif
+
+    fstream myIn(fileName,createAtrr);
     // As a replacement for !is_open(), bad() and the NOT-operator don't seem
     // to work on all systems.
 #if defined(DONT_HAVE_IS_OPEN)
