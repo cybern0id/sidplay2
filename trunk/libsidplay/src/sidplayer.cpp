@@ -72,7 +72,6 @@ sidplayer_pr::sidplayer_pr (void)
     _channels      = 1;
 
     // Rev 2.0.4 (saw) - Added
-    _playLength    = 0;
     configure (sid_mono, SIDPLAYER_DEFAULT_SAMPLING_FREQ,
                SIDPLAYER_DEFAULT_PRECISION, false);
     // Rev 1.7 (saw) - Fixed
@@ -141,20 +140,6 @@ int sidplayer_pr::configure (playback_sidt playback, udword_sidt samplingFreq, i
     _scaleBuffer    = (precision / 8);
     _samplingPeriod = _cpuFreq / (double) samplingFreq;
     return 0;
-}
-
-void sidplayer_pr::playLength (udword_sidt seconds)
-{   // If seconds is zero, playback is unlimited or
-    // the proper time if known.
-    _playLength = seconds;
-
-    // Can't effect the clock if it's already playing
-    // Catch it next time
-    if (playerState == _stopped)
-    {
-        _seconds = _playLength;
-        _updateClock   = true;
-    }
 }
 
 // Stops the emulation routine
@@ -271,17 +256,7 @@ sidplayer_pr_play_updateTimer:
     {   // Calculate play time
         _updateClock  = true;
 		_sampleCount -= _samplingFreq;
-        if (_playLength)
-        {   // If seconds is zero we have ended, so reset
-            if (!_seconds)
-			{
-                initialise ();
-				break;
-			}
-            _seconds--;
-        }
-        else
-            _seconds++;
+        _seconds++;
     }
     // Change size from native units to generic units
     return count * _scaleBuffer;
@@ -437,7 +412,6 @@ int sidplayer_pr::initialise ()
     _sampleCount    = 0;
     // Clock speed changing due to loading a new song
     _samplingPeriod = _cpuFreq / (double) _samplingFreq;
-    playLength (_playLength);
 
     // Setup the Initial entry point
     uword_sidt initAddr = tuneInfo.initAddr;
@@ -1026,9 +1000,6 @@ udword_sidt sidplayer::time (void)
 
 bool sidplayer::updateClock (void)
 {   return player->updateClock (); }
-
-void sidplayer::playLength (udword_sidt seconds)
-{   player->playLength (seconds); }
 
 void sidplayer::filter (bool enabled)
 {   player->filter (enabled); }

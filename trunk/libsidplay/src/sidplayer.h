@@ -78,7 +78,6 @@ public:
     // Rev 2.0.4 (saw) - Added new timer functions
     udword_sidt time         (void);
     bool        updateClock  (void);
-    void        playLength   (udword_sidt seconds);
     // Added new filter, model, and clockspeed functions
     void        filter       (bool enabled);
     void        extFilter    (bool enabled);
