@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.75  2004/03/20 22:56:34  s_a_white
+ *  Use correct memory initialisation pattern in real c64 mode.
+ *
  *  Revision 1.74  2004/03/20 16:13:49  s_a_white
  *  Remove sid volume reset to reduce DC clicks, potentially incompatibility
  *  added though.
@@ -905,7 +908,7 @@ void Player::reset (void)
         break;
     case sid2_envR:
     {   // Initialize RAM with powerup pattern
-        for (int i=64; i<0x10000; i+=128)
+        for (int i=0x07c0; i<0x10000; i+=128)
             memset (m_ram+i, 0xff, 64);
         memset (m_rom, 0, 0x10000);
         break;
