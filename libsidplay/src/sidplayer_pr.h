@@ -58,7 +58,7 @@ private:
     // Rev 2.0.3 Added - New Mixer
     udword_sidt   _leftVolume;
     udword_sidt   _rightVolume;
-    bool          _sid2Enabled;
+    bool          _sidEnabled[2];
     bool          _forceDualSids;
     int           _optimiseLevel;
 
