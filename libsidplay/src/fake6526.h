@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2000/12/11 18:52:12  s_a_white
+ *  Conversion to AC99
+ *
  ***************************************************************************/
 
 #ifndef _fake6526_h_
@@ -23,18 +26,17 @@
 
 #include "config.h"
 #include "sidtypes.h"
+#include "sidendian.h"
 #include "sidenv.h"
 
 class fake6526: public C64Environment
 {
 private:
-    uint8_t regs[0x10];
-    uint8_t cra;             // Timer A Control Register
-    uint_least16_t defCount; // On a reset setCount will always go to defCount
-                             // value of -1 means off.
-    uint_least16_t setCount; // The last set count either by reset or programming CIA
-    uint_least16_t _count;   // Current count (reduces to zero)
-
+    uint8_t        regs[0x10];
+    uint8_t        cra;  // Timer A Control Register
+    uint_least16_t ta_latch;
+    uint_least16_t ta;   // Timer A Count (reduces to zero)
+                         // value of -1 means off.
 public:
     bool locked; // Prevent code changing CIA.
 
@@ -54,9 +56,13 @@ public:
 inline void fake6526::clock (void)
 {   // Make sure count is running
     if (!(cra & 0x01)) return;
-    if (!--_count)
+    if (!ta--)
     {
-        _count = setCount;
+        ta = ta_latch;
+        if (cra & 0x08)
+        {   // one shot, stop timer A
+            cra &= (~0x01);
+        }
         envTriggerIRQ ();
     }
 }
