@@ -1,3 +1,12 @@
+Release V1.0.2
+
+* Synced INI file reader with libini-1.1.8.  This allows opening of
+  files in a read only if required.
+* Fixed bug on Windows that prevent creation of sidplay2.ini.
+* Moved filter struct to libsidplay2 for use with the sid builder
+  classes.
+
+
 Changes from V1.0.0
 
 Imported new INI file parser code which fixes various bugs.  The INI
