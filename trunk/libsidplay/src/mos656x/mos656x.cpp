@@ -444,7 +444,7 @@ void MOS656X::lightpen ()
     if (!lp_triggered)
     {   // Latch current coordinates
         lpx = raster_x << 2;
-        lpy = raster_y;
+        lpy = (uint8_t) raster_y & 0xff;
         trigger(MOS656X_INTERRUPT_LP);
     }
 }
