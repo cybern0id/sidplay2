@@ -27,6 +27,6 @@
 
 /* Platform specific declaration to export interfaces for
    shared/dynamic libraries */
-#define SID_API
+#define SID_EXPORT
 
 #endif /* _sidconfig_h_ */

@@ -27,8 +27,8 @@
 #   define SID_HAVE_BAD_COMPILER
 #endif
 
-#ifndef SID_API
-#   define SID_API __declspec(dllimport)
+#ifndef SID_EXPORT
+#   define SID_EXPORT
 #endif
 
 #endif // _sidconfig_h_

@@ -55,7 +55,7 @@ typedef struct
 
 // Private Sidplayer
 class player;
-class SID_API sidplay2
+class SID_EXPORT sidplay2
 {
 private:
     player &sidplayer;
