@@ -142,7 +142,7 @@ int_least32_t ReSID::output (const uint_least8_t bits)
     m_accessClk += cycles;
     if (cycles)
         m_sid.clock (cycles);
-    return m_sid.output (bits); // * m_gain / 100;
+    return m_sid.output (bits) * m_gain / 100;
 }
 
 void ReSID::filter (const bool enable)
