@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/03/01 23:46:37  s_a_white
+ *  Support for sample mode to be selected at runtime.
+ *
  *  Revision 1.6  2001/02/28 18:52:55  s_a_white
  *  Removed initBank* related stuff.
  *
@@ -189,7 +192,6 @@ private:
 
 public:
     player ();
-    virtual ~player ();
 
     int            clockSpeed   (sid2_clock_t clock, bool forced);
     int            configure    (sid2_playback_t mode, uint_least32_t samplingFreq, int precision,
