@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/29 21:55:29  s_a_white
+ *  Display actual environment mode instead of requested one.
+ *
  *  Revision 1.4  2002/01/28 19:40:50  s_a_white
  *  Added TSID support.
  *
@@ -193,21 +196,23 @@ void ConsolePlayer::menu ()
         cerr << " Addresses    : " << hex;
         cerr.setf(ios::uppercase);
         consoleColour (white, false);
-        cerr << "DRIVER=$" << setw(4) << setfill('0') << info.driverAddr;
-        cerr << ", LOAD=$" << setw(4) << setfill('0') << tuneInfo.loadAddr;
-        cerr << "-$"       << setw(4) << setfill('0') << tuneInfo.loadAddr +
-            (tuneInfo.c64dataLen - 1) << endl;
+        cerr << "DRIVER = $" << setw(4) << setfill('0') << info.driverAddr;
+        cerr << "-$"        << setw(4) << setfill('0') << info.driverAddr +
+            (info.driverLength - 1);
+        if (tuneInfo.playAddr == 0xffff)
+            cerr << ", SYS = $" << setw(4) << setfill('0') << tuneInfo.initAddr;
+        else
+            cerr << ", INIT = $" << setw(4) << setfill('0') << tuneInfo.initAddr;
+        cerr << endl;
         consoleTable  (tableMiddle);
         consoleColour (yellow, true);
         cerr << "              : ";
         consoleColour (white, false);
-        if (tuneInfo.playAddr == 0xffff)
-            cerr << "SYS   =$" << setw(4) << setfill('0') << tuneInfo.initAddr;
-        else
-        {
-            cerr << "INIT  =$" << setw(4) << setfill('0') << tuneInfo.initAddr;
-            cerr << ", PLAY=$" << setw(4) << setfill('0') << tuneInfo.playAddr;
-        }
+        cerr << "LOAD   = $" << setw(4) << setfill('0') << tuneInfo.loadAddr;
+        cerr << "-$"         << setw(4) << setfill('0') << tuneInfo.loadAddr +
+            (tuneInfo.c64dataLen - 1);
+        if (tuneInfo.playAddr != 0xffff)
+            cerr << ", PLAY = $" << setw(4) << setfill('0') << tuneInfo.playAddr;
         cerr << dec << endl;
         cerr.unsetf(ios::uppercase);
 
