@@ -76,16 +76,16 @@ RESID_INCLUDES = @RESID_INCLUDES@
 RESID_LDADD = @RESID_LDADD@
 VERSION = @VERSION@
 
-SUBDIRS = mos6510 mos6526 mos656x mos6581 sidtune xsid
+SUBDIRS = c64 mos6510 mos6526 mos656x mos6581 sidtune xsid
 EXTRA_DIST = player.bin
 
 # The library.
 
 lib_LTLIBRARIES = libsidplay2.la
 
-libsidplay2_la_SOURCES = player.cpp player.h mixer.cpp sidplay2.cpp
+libsidplay2_la_SOURCES = event.cpp player.cpp player.h mixer.cpp sidplay2.cpp
 
-libsidplay2_la_LIBADD = ./mos6510/libmos6510.la ./mos6526/libmos6526.la ./mos656x/libmos656x.la ./xsid/libxsid.la ./sidtune/libsidtune.la $(RESID_LDADD) -lresid -lstdc++
+libsidplay2_la_LIBADD = ./c64/libc64.la ./mos6510/libmos6510.la ./mos6526/libmos6526.la ./mos656x/libmos656x.la ./xsid/libxsid.la ./sidtune/libsidtune.la $(RESID_LDADD) -lresid -lstdc++
 
 
 # We substitute the libtool-specific library version in configure.in.
@@ -100,10 +100,10 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libsidplay2_la_DEPENDENCIES =  ./mos6510/libmos6510.la \
+libsidplay2_la_DEPENDENCIES =  ./c64/libc64.la ./mos6510/libmos6510.la \
 ./mos6526/libmos6526.la ./mos656x/libmos656x.la ./xsid/libxsid.la \
 ./sidtune/libsidtune.la
-libsidplay2_la_OBJECTS =  player.lo mixer.lo sidplay2.lo
+libsidplay2_la_OBJECTS =  event.lo player.lo mixer.lo sidplay2.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -121,7 +121,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = gtar
 GZIP_ENV = --best
-DEP_FILES =  .deps/mixer.P .deps/player.P .deps/sidplay2.P
+DEP_FILES =  .deps/event.P .deps/mixer.P .deps/player.P .deps/sidplay2.P
 SOURCES = $(libsidplay2_la_SOURCES)
 OBJECTS = $(libsidplay2_la_OBJECTS)
 
