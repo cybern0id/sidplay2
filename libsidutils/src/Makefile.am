@@ -5,7 +5,7 @@ SUBDIRS = MD5 ini
 
 lib_LTLIBRARIES = libsidutils.la
 
-libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp
+libsidutils_la_SOURCES = SidDatabase.cpp SidFilter.cpp SidTuneMod.cpp SidUsage.h smm0.h
 
 libsidutils_la_LIBADD  = ./MD5/libMD5.la ./ini/libini.la \
 $(LIBSIDPLAY2_LDFLAGS)

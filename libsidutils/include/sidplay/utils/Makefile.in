@@ -129,7 +129,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 sidplayincludedir = $(includedir)/sidplay/utils
 sidplayinclude_HEADERS = SidDatabase.h SidFilter.h SidTuneMod.h \
-libini.h
+SidUsage.h libini.h
 
 subdir = include/sidplay/utils
 mkinstalldirs = $(SHELL) $(top_srcdir)/unix/mkinstalldirs
