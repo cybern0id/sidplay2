@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/05/27 21:18:28  jpaana
+ *  The filter ioctl was reversed
+ *
  *  Revision 1.13  2004/05/05 23:48:01  s_a_white
  *  Detect available sid devices on Unix system.
  *
@@ -154,7 +157,7 @@ void HardSID::reset (uint8_t volume)
     ioctl(m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
     if (m_eventContext != NULL)
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 uint8_t HardSID::read (uint_least8_t addr)
@@ -200,8 +203,12 @@ void HardSID::write (uint_least8_t addr, uint8_t data)
     ::write (m_handle, &packet, sizeof (packet));
 }
 
-void HardSID::voice (uint_least8_t num, uint_least8_t volume,
-                     bool mute)
+void HardSID::volume (uint_least8_t num, uint_least8_t level)
+{
+    // Not yet implemented
+}
+
+void HardSID::mute (uint_least8_t num, bool mute)
 {
     // Only have 3 voices!
     if (num >= voices)
@@ -218,16 +225,13 @@ void HardSID::event (void)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     if (cycles < HARDSID_DELAY_CYCLES)
-    {
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES - cycles,
-                                EVENT_CLOCK_PHI1);
-    }
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES - cycles, m_phase);
     else
     {
         uint delay = (uint) cycles;
         m_accessClk += cycles;
         ioctl(m_handle, HSID_IOCTL_DELAY, delay);
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
 }
 
@@ -247,7 +251,7 @@ bool HardSID::lock(c64env* env)
     {
 	if (!m_locked)
 	    return false;
-        m_eventContext->cancel (this);
+        cancel ();
         m_locked = false;
         m_eventContext = NULL;
     }
@@ -257,7 +261,7 @@ bool HardSID::lock(c64env* env)
 	    return false;
         m_locked = true;
         m_eventContext = &env->context();
-        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
+        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
     return true;
 }
