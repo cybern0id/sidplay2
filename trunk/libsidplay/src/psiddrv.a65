@@ -23,6 +23,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2002/10/02 19:42:59  s_a_white
+ *  RSID support.
+ *
  *  Revision 1.10  2002/09/21 22:32:18  s_a_white
  *  Prevent some of the real c64 only tunes abusing play != 0.  Some busy
  *  looping ones may still get away with it...
@@ -115,28 +118,24 @@ ciainit     stx $dc0d
 doinit      lda #$01
             sta $dc0e
 
-            ; set I/O map and call song init routine
-            lda initiomap
-            sta $01
-
             ; If play address, override bankswitching so
             ; we reach are routine to handle play address
-            lda playvec+1
-            ora playvec
+            lda playiomap
             beq noplay
             lda #<irqjob
             sta $0314
-            jmp random
+
+            ; set I/O map and call song init routine
+noplay      lda initiomap
+            bne setbank
             ; Only release interrupt mask providing
-            ; tunes requirements sufficiently match
-            ; real C64 compatibility.
-noplay      sta playiomap
-            lda $01
-            and #02
-			beq random
-			lda speed
-            beq random
-			cli
+            ; for real C64 tunes (initiomap = 0)
+            ; providing a more realistic environment
+            lda #$37
+            ; Note cli dosen't come into effect
+            ; until after the sta!
+            cli
+setbank     sta $01
 
             ; simulate time before user loads tune
 random      tya
@@ -151,7 +150,7 @@ wait        dex
             ; get song number
 getsong     ldx playnum
             dex
-			txa
+            txa
             ldx #0
             ldy #0
             jsr init
