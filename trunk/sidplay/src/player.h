@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2003/02/20 18:50:45  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.6  2002/01/29 08:11:43  s_a_white
  *  TSID filename fix
  *
@@ -174,8 +177,8 @@ private:
     void consoleRestore (void);
 
     // Command line args
-    bool parseTime      (char *str, uint_least32_t &time);
-    void displayArgs    ();
+    bool parseTime      (const char *str, uint_least32_t &time);
+    void displayArgs    (const char *arg = NULL);
 
     bool createOutput   (OUTPUTS driver, const SidTuneInfo *tuneInfo);
     bool createSidEmu   (SIDEMUS emu);
@@ -190,7 +193,7 @@ public:
     ConsolePlayer (const char * const name);
     virtual ~ConsolePlayer() {;}
 
-    bool           args  (int argc, char *argv[]);
+    bool           args  (int argc, const char *argv[]);
     bool           open  (void);
     void           close (void);
     bool           play  (void);

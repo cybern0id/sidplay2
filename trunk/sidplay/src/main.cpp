@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2003/02/22 09:41:17  s_a_white
+ *  Removed endl, was in wrong location.
+ *
  *  Revision 1.28  2003/02/20 18:50:43  s_a_white
  *  sid2crc support.
  *
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
     g_player = &player;
 
     // Decode the command line args
-    if (!player.args (argc - 1, &argv[1]))
+    if (!player.args (argc - 1, const_cast<const char**>(argv + 1)))
         goto main_error;
 
 main_restart:
