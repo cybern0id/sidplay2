@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.30  2003/01/20 18:37:08  s_a_white
+ *  Stealing update.  Apparently the cpu does a memory read from any non
+ *  write cycle (whether it needs to or not) resulting in those cycles
+ *  being stolen.
+ *
  *  Revision 1.29  2003/01/17 08:44:00  s_a_white
  *  Event scheduler phase support.  Better handling the operation of IRQs
  *  during stolen cycles.  Added inifinitie loop detection support for sidplay1
@@ -417,8 +422,9 @@ void SID6510::triggerIRQ (void)
         MOS6510::triggerIRQ ();
         if (m_sleeping)
         {   // Simulate busy loop
-            m_sleeping = false;
-            eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
+            m_sleeping = !(interrupts.irqRequest || interrupts.pending);
+            if (!m_sleeping)
+                eventContext.schedule (this, 0, EVENT_CLOCK_PHI2);
         }
     }
 }
