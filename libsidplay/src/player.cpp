@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.67  2003/12/15 23:49:38  s_a_white
+ *  Fixup functions using inline and correct mileage calculations.
+ *
  *  Revision 1.66  2003/10/01 22:30:59  s_a_white
  *  Fixed memory accesses to second sid.  Can be accessed by mirroring
  *  addresses that we must convert to the non mirrored address.
@@ -869,15 +872,49 @@ void Player::reset (void)
 
         // Copy in power on settings.  These were created by running
         // the kernel reset routine and storing the usefull values
-        // from $0000-$03ff.  Format is offset, data pairs, where
-        // offset is one less than actually intended.
+        // from $0000-$03ff.  Format is:
+        // -offset byte (bit 7 indicates presence rle byte)
+        // -rle count byte (bit 7 indicates compression used)
+        // data (single byte) or quantity represented by uncompressed count
+        // -all counts and offsets are 1 less than they should be
         //if (m_tuneInfo.compatibility >= SIDTUNE_COMPATIBILITY_R64)
         {
-            uint_least16_t addr = ~0;
-            for (int i = 0; i < sizeof (poweron); i++)
+            uint_least16_t addr = 0;
+            for (int i = 0; i < sizeof (poweron);)
             {
-                addr       += poweron[i++] + 1;
-                m_ram[addr] = poweron[i];
+                uint8_t off   = poweron[i++];
+                uint8_t count = 0;
+                bool compressed = false;
+
+                // Determine data count/compression
+                if (off & 0x80)
+                {   // fixup offset
+                    off  &= 0x7f;
+                    count = poweron[i++];
+                    if (count & 0x80)
+                    {   // fixup count
+                        count &= 0x7f;
+                        compressed = true;
+                    }
+                }
+
+                // Fix count off by ones (see format details)
+                count++;
+                addr += off;
+
+                // Extract compressed data
+                if (compressed)
+                {
+                    uint8_t data = poweron[i++];
+                    while (count-- > 0)
+                        m_ram[addr++] = data;
+                }
+                // Extract uncompressed data
+                else
+                {
+                    while (count-- > 0)
+                        m_ram[addr++] = poweron[i++];
+                }
             }
         }
     }
