@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/11/27 19:10:44  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
 #ifndef _player_h_
@@ -70,11 +73,15 @@ void displayError (const char *arg0, uint num);
 
 
 // Grouped global variables
-class Player: public Event
+class ConsolePlayer: private Event
 {
 private:
+#ifdef HAVE_RESID_BUILDER
     static const char  RESID_ID[];
+#endif
+#ifdef HAVE_HARDSID_BUIDLER
     static const char  HARDSID_ID[];
+#endif
 
     const char* const  m_name; 
     sidplay2           m_engine;
@@ -94,7 +101,7 @@ private:
     struct m_filter_t
     {
         SidFilter      definition;
-	    bool           enabled;
+        bool           enabled;
     } m_filter;
 
     struct m_driver_t
@@ -152,7 +159,8 @@ private:
     void menu           (void);
 
 public:
-    Player (const char * const name);
+    ConsolePlayer (const char * const name);
+    virtual ~ConsolePlayer() {;}
 
     bool args    (int argc, char *argv[]);
     bool open    (void);

@@ -16,14 +16,18 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/11/27 19:10:44  s_a_white
+ *  Initial Release.
+ *
  ***************************************************************************/
 
+#include <ctype.h>
 #include <iostream.h>
 #include "player.h"
 
 
 // Display console menu
-void Player::menu ()
+void ConsolePlayer::menu ()
 {
     const sid2_info_t &info     = m_engine.info ();
     const SidTuneInfo &tuneInfo = *info.tuneInfo;
@@ -251,7 +255,7 @@ void Player::menu ()
 }
 
 // Set colour of text on console
-void Player::consoleColour (player_colour_t colour, bool bold)
+void ConsolePlayer::consoleColour (player_colour_t colour, bool bold)
 {
     if ((m_iniCfg.console ()).ansi)
     {
@@ -277,7 +281,7 @@ void Player::consoleColour (player_colour_t colour, bool bold)
 }
 
 // Display menu outline
-void Player::consoleTable (player_table_t table)
+void ConsolePlayer::consoleTable (player_table_t table)
 {
     const uint tableWidth = 54;
 
@@ -314,7 +318,7 @@ void Player::consoleTable (player_table_t table)
 }
 
 // Restore Ansi Console to defaults
-void Player::consoleRestore ()
+void ConsolePlayer::consoleRestore ()
 {
     if ((m_iniCfg.console ()).ansi)
         cerr << '\x1b' << "[0m";
