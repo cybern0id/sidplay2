@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2003/01/17 08:39:04  s_a_white
+ *  Event scheduler phase support.  Better default handling of keyboard lines.
+ *
  *  Revision 1.10  2002/12/16 22:12:24  s_a_white
  *  Simulate serial input from data port A to prevent kernel lockups.
  *
@@ -104,6 +107,9 @@ void MOS6526::reset (void)
     icr = idr = 0;
     m_accessClk = 0;
     dpa = 0xf0;
+    // Remove outstanding events
+    event_context.cancel (&event_ta);
+    event_context.cancel (&event_tb);
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
