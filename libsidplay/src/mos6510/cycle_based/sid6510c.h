@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2002/02/04 23:53:23  s_a_white
+ *  Improved compatibilty of older sidplay1 modes. Fixed BRK to work like sidplay1
+ *  only when stack is 0xff in real mode for better compatibility with C64.
+ *
  *  Revision 1.9  2001/09/01 11:08:06  s_a_white
  *  Fixes for sidplay1 environment modes.
  *
@@ -57,7 +61,6 @@ private:
     // Sidplay Specials
     bool       m_sleeping;
     sid2_env_t m_mode;
-    void      (MOS6510::*m_brkCycle[3]) (void);
 
 public:
     SID6510 (EventContext *context);
@@ -73,11 +76,8 @@ public:
     void triggerIRQ (void);
 
 private:
-    inline void sid_FetchEffAddrDataByte (void);
-    inline void sid_suppressError        (void);
-
+    inline void sid_illegal (void);
     inline void sid_brk  (void);
-    inline void sid_brk1 (void);
     inline void sid_jmp  (void);
     inline void sid_rts  (void);
     inline void sid_cli  (void);
