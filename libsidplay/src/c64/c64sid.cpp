@@ -35,13 +35,13 @@ c64sid::c64sid (c64env *env)
 
 bool c64sid::filter (const sid_filter_t *filter)
 {
-    fc_point  f0[0x800];
-    fc_point *fc = f0;
-    int       points;
+    fc_point fc[0x800];
+    const    fc_point *f0 = fc;
+    int      points = 0;
 
     if (filter == NULL)
     {   // Select default filter
-        m_sid.fc_default (fc, points);
+        m_sid.fc_default (f0, points);
     }
     else
     {
@@ -71,6 +71,6 @@ bool c64sid::filter (const sid_filter_t *filter)
 
     // function from reSID
     points--;
-    interpolate (fc, fc, fc + points, fc + points, m_sid.fc_plotter (), 1.0);
+    interpolate (f0, f0, f0 + points, f0 + points, m_sid.fc_plotter (), 1.0);
     return true;
 }
