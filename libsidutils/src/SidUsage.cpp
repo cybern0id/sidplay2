@@ -31,13 +31,6 @@ static const char *txt_reading   = "SID Usage: Error reading file";
 static const char *txt_writing   = "SID Usage: Error writing file";
 
 
-// Copy common parts of basic usage to extended usage.
-sid2_usage_t &sid2_usage_t::operator= (const sid_usage_t &usage)
-{
-    *((sid_usage_t *) this) = usage;
-    return *this;
-}
-
 SidUsage::SidUsage ()
 :m_status(false)
 {

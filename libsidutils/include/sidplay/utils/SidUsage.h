@@ -31,7 +31,12 @@ struct sid2_usage_t: public sid_usage_t
     char           md5[SIDTUNE_MD5_LENGTH + 1]; // Tunes MD5 key
     uint_least16_t length;  // usage scan length
 
-    sid2_usage_t& operator=(const sid_usage_t&);
+    // Copy common parts of basic usage to extended usage.
+    sid2_usage_t &sid2_usage_t::operator= (const sid_usage_t &usage)
+    {
+        *((sid_usage_t *) this) = usage;
+        return *this;
+    }
 };
 
 class SID_EXTERN SidUsage
