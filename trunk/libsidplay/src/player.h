@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/02/07 20:56:46  s_a_white
+ *  Samples now delayed until end of simulated frame.
+ *
  *  Revision 1.3  2001/01/23 21:26:28  s_a_white
  *  Only way to load a tune now is by passing in a sidtune object.  This is
  *  required for songlength database support.
@@ -69,7 +72,8 @@ private:
     // User Configuration Settings
     struct   SidTuneInfo tuneInfo;
     SidTune *_tune;
-    uint8_t *ram, *rom;
+    uint8_t *ram, *rom, psidDrv[0x100];
+    bool     usePsidDrv;
 
     sid2_clock_t    _clockSpeed;
     sid2_env_t      _environment;
@@ -126,10 +130,12 @@ private:
         _sampleCount = 0;
     }
 
+    uint8_t readMemByte_player    (uint_least16_t addr, bool useCache);
     uint8_t readMemByte_plain     (uint_least16_t addr, bool useCache);
     uint8_t readMemByte_playsid   (uint_least16_t addr, bool useCache);
     uint8_t readMemByte_sidplaytp (uint_least16_t addr, bool useCache);
     uint8_t readMemByte_sidplaybs (uint_least16_t addr, bool useCache);
+    void    writeMemByte_plain    (uint_least16_t addr, uint8_t data, bool useCache);
     void    writeMemByte_playsid  (uint_least16_t addr, uint8_t data, bool useCache);
     void    writeMemByte_sidplay  (uint_least16_t addr, uint8_t data, bool useCache);
 
@@ -175,8 +181,7 @@ private:
     void stereoOut16MonoIn    (uint_least16_t clock, void *buffer, uint_least32_t &count);
     void stereoOut16StereoIn  (uint_least16_t clock, void *buffer, uint_least32_t &count);
 
-private:
-    friend sidplay2;
+public:
     player ();
     virtual ~player ();
 
@@ -218,19 +223,22 @@ private:
     void sidModel (sid2_model_t model)
     {
         if (_sidModel == model)
-	    return;
+        return;
         _sidModel = model;
         if (_sidModel == SID2_MOS6581)
-	{
+        {
             sid.set_chip_model  (MOS6581);
             sid2.set_chip_model (MOS6581);
         }
         else // if (_sidModel == SID2_MOS8580
-	{
+        {
             sid.set_chip_model  (MOS8580);
             sid2.set_chip_model (MOS8580);
         }
     }
+
+    const char *getErrorString (void)
+    {   return _errorString; }
 };
 
 #endif // _player_h_
