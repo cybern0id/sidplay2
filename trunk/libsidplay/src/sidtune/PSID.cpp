@@ -43,7 +43,17 @@ struct psidHeader            // all values big-endian
     char author[32];        // terminated by a trailing zero
     char copyright[32];        //
     uint_least8_t flags[2];    // only version 0x0002
-    uint_least8_t reserved[4];    // only version 0x0002
+    uint_least8_t relocStart;     // only version 0x0002B
+    uint_least8_t relocPages;     // only version 0x0002B
+    uint_least8_t reserved[2];    // only version 0x0002
+};
+
+enum
+{
+	PSID_MUS     = 1 << 0,
+	PSID_CLOCK   = 1 << 1,
+	PSID_SID8580 = 1 << 2,
+	PSID_SAMPLES = 1 << 3
 };
 
 const char _sidtune_format[] = "PlaySID one-file format (PSID)";
@@ -56,7 +66,6 @@ const int _sidtune_psid_maxStrLen = 31;
 bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 {
     int clock = SIDTUNE_CLOCK_PAL;
-
     // Remove any format description or format error string.
     info.formatString = 0;
 
@@ -93,27 +102,35 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
         info.songs = SIDTUNE_MAX_SONGS;
     }
 
-    info.musPlayer = false;
+    info.musPlayer      = false;
+	info.sidRev8580     = false;
+	info.samples        = false;
+	info.relocPages     = 0;
+	info.relocStartPage = 0;
     if ( endian_big16(pHeader->version) >= 2 )
     {
         uint_least16_t flags = endian_big16(pHeader->flags);
-        if (flags & 1)
+        if (flags & PSID_MUS)
         {
             info.musPlayer = true;
-            flags ^= 2;
+            flags ^= PSID_CLOCK;
         }
 
-        clock = SIDTUNE_CLOCK_PAL;
-        if (flags & 2)
+        if (flags & PSID_CLOCK)
             clock = SIDTUNE_CLOCK_NTSC;
 
-        if (flags & 4)
-            info.sidRevision = SIDTUNE_SID_8580;
+        if (flags & PSID_SID8580)
+            info.sidRev8580 = true;
+
+        if (flags & PSID_SAMPLES)
+            info.samples = true;
+
+		info.relocStartPage = pHeader->relocStart;
+        info.relocPages     = pHeader->relocPages;
     }
 
     // Create the speed/clock setting table.
     convertOldStyleSpeedToTables(endian_big32(pHeader->speed), clock);
-
 
     if ( info.loadAddr == 0 )
     {
@@ -168,19 +185,24 @@ bool SidTune::PSID_fileSupportSave(ofstream& fMyOut, const uint_least8_t* dataBu
 
     uint_least16_t tmpFlags = 0;
     if ( info.clockSpeed == SIDTUNE_CLOCK_NTSC )
-        tmpFlags |= 2;
+        tmpFlags |= PSID_CLOCK;
 
     if ( info.musPlayer )
     {
-        tmpFlags |= 1;
-        tmpFlags ^= 2;
+        tmpFlags |= PSID_MUS;
+        tmpFlags ^= PSID_CLOCK;
     }
 
-    if ( info.sidRevision == SIDTUNE_SID_8580 )
-        tmpFlags |= 4;
+    if ( info.sidRev8580 )
+        tmpFlags |= PSID_SID8580;
+
+    if ( info.samples )
+        tmpFlags |= PSID_SAMPLES;
 
     endian_big16(myHeader.flags,tmpFlags);
-    endian_big32(myHeader.reserved,0);
+    endian_big16(myHeader.reserved,0);
+    myHeader.relocStart = info.relocStartPage;
+    myHeader.relocPages = info.relocPages;
     for ( int i = 0; i < 32; i++ )
     {
         myHeader.name[i] = 0;
