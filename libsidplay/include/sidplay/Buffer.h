@@ -51,7 +51,7 @@ template <class T> class Buffer_sidtt
 	}
 	
 	T* get(void) const  { return buf; }
-	const uint_least32_t len(void) const  { return bufLen; }
+	uint_least32_t len(void) const  { return bufLen; }
 	
 	T* xferPtr(void)  
 	{
@@ -60,7 +60,7 @@ template <class T> class Buffer_sidtt
 		return tmpBuf;
 	}
 
-	const uint_least32_t xferLen(void)  
+	uint_least32_t xferLen(void)  
 	{
 		uint_least32_t tmpBufLen = bufLen;
 		bufLen = 0;
@@ -111,10 +111,10 @@ template <class T> class Buffer_sidtt
 	// for exporting from dll.  Use asserts in debug mode as these
 	// should not be used.
 	Buffer_sidtt(const Buffer_sidtt&) : dummy (0) { assert(0); }
-	Buffer_sidtt& operator=(Buffer_sidtt&)
+	Buffer_sidtt& operator=(Buffer_sidtt& b)
 	{
 		assert(0);
-		return *((Buffer_sidtt *) 0);
+		return b;
 	}
 };
 

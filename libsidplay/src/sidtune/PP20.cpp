@@ -208,7 +208,7 @@ inline void PP20::sequence()
 	}
 }
 
-const udword_ppt PP20::decompress(const void* source, 
+udword_ppt PP20::decompress(const void* source, 
 								  udword_ppt size,
 								  ubyte_ppt** destRef)
 {

@@ -45,9 +45,10 @@ public:
     
     // Standard component interface
     const char *error (void) {return "";}
+    void reset () { sidemu::reset (); }
     void reset (uint8_t volume)
     {
-        XSID::reset  (0);
+        XSID::reset  (volume);
         m_sid->reset (volume);
     }
 
