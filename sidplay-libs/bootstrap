@@ -4,7 +4,11 @@ resid="resid-0.15"
 dirs="libsidplay libsidutils builders/resid-builder builders/hardsid-builder"
 
 cat >builders/Makefile.am <<EOF
-SUBDIRS = resid-builder hardsid-builder
+SUBDIRS = resid-builder
+
+if HARDSID
+SUBDIRS += hardsid-builder
+endif
 EOF
 
 for d in $dirs; do
@@ -18,6 +22,6 @@ done
 echo "Bootstrapping sidplay-libs..."
 test ! -r "resid" && ln -sf "$resid" "resid"
 test ! -r "unix" && ln -sf libsidplay/unix unix
-aclocal
+aclocal --force
 automake --force --add-missing --copy
 autoconf --force
