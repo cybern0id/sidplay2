@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2001/03/22 22:45:20  s_a_white
+ *  Re-ordered initialisations to match defintions.
+ *
  *  Revision 1.10  2001/03/21 23:28:12  s_a_white
  *  Support new component names.
  *
@@ -70,8 +73,10 @@ private:
     static const double VIC_FREQ_NTSC;
 
     static const char  *TXT_PAL_VBI;
+    static const char  *TXT_PAL_VBI_FIXED;
     static const char  *TXT_PAL_CIA;
     static const char  *TXT_NTSC_VBI;
+    static const char  *TXT_NTSC_VBI_FIXED;
     static const char  *TXT_NTSC_CIA;
     static const char  *TXT_NA;
 

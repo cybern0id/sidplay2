@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2001/03/26 21:46:43  s_a_white
+ *  Removed unused #include.
+ *
  *  Revision 1.19  2001/03/25 19:48:13  s_a_white
  *  xsid.reset added.
  *
@@ -91,11 +94,13 @@ const double player::VIC_FREQ_PAL    = 50.0;
 const double player::VIC_FREQ_NTSC   = 60.0;
 
 // These texts are used to override the sidtune settings.
-const char  *player::TXT_PAL_VBI  = "50 Hz VBI (PAL)";
-const char  *player::TXT_PAL_CIA  = "CIA 1 Timer A (PAL)";
-const char  *player::TXT_NTSC_VBI = "60 Hz VBI (NTSC)";
-const char  *player::TXT_NTSC_CIA = "CIA 1 Timer A (NTSC)";
-const char  *player::TXT_NA       = "NA";
+const char  *player::TXT_PAL_VBI        = "50 Hz VBI (PAL)";
+const char  *player::TXT_PAL_VBI_FIXED  = "60 Hz VBI (PAL FIXED)";
+const char  *player::TXT_PAL_CIA        = "CIA 1 Timer A (PAL)";
+const char  *player::TXT_NTSC_VBI       = "60 Hz VBI (NTSC)";
+const char  *player::TXT_NTSC_VBI_FIXED = "50 Hz VBI (NTSC FIXED)";
+const char  *player::TXT_NTSC_CIA       = "CIA 1 Timer A (NTSC)";
+const char  *player::TXT_NA             = "NA";
 
 // Error Strings
 const char  *player::ERR_CONF_WHILST_ACTIVE    = "SIDPLAYER ERROR: Trying to configure player whilst active.";
@@ -180,21 +185,27 @@ int player::clockSpeed (sid2_clock_t clock, bool forced)
             tuneInfo.clockSpeed = SIDTUNE_CLOCK_NTSC;
     }
 
-    // Set clock and select speed description string.
+    if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+        vic.chip (MOS6569);
+    else // if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
+        vic.chip (MOS6567R8);
+
     if (clock == SID2_CLOCK_PAL)
     {
         _cpuFreq = CLOCK_FREQ_PAL;
-        tuneInfo.speedString     = TXT_PAL_VBI;
-        vic.chip (MOS6569);
-        if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
+        tuneInfo.speedString = TXT_PAL_VBI;
+        if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
+            tuneInfo.speedString = TXT_PAL_VBI_FIXED;
+        else if (tuneInfo.songSpeed == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_PAL_CIA;
     }
     else if (clock == SID2_CLOCK_NTSC)
     {
         _cpuFreq = CLOCK_FREQ_NTSC;
-        tuneInfo.speedString     = TXT_NTSC_VBI;
-        vic.chip (MOS6567R8);
-        if (tuneInfo.songSpeed  == SIDTUNE_SPEED_CIA_1A)
+        tuneInfo.speedString = TXT_NTSC_VBI;
+        if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+            tuneInfo.speedString = TXT_NTSC_VBI_FIXED;
+        else if (tuneInfo.songSpeed == SIDTUNE_SPEED_CIA_1A)
             tuneInfo.speedString = TXT_NTSC_CIA;
     }
 
