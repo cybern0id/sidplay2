@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2000/12/12 22:51:01  s_a_white
+ *  Bug Fix #122033.
+ *
  ***************************************************************************/
 
 #include <string.h>
@@ -171,9 +174,6 @@ void channel::sampleInit ()
 
 #ifdef XSID_USE_SID_VOLUME
     changed = true;
-    // Rev 2.0.5 (saw) - Added to track origin
-    samMin  = sample;
-    samMax  = sample;
 #endif
 
 #if XSID_DEBUG > 1
@@ -213,8 +213,6 @@ void channel::sampleClock ()
                 (unsigned long) this, cycles, outputs);
 #endif
 #ifdef XSID_USE_SID_VOLUME
-            // Rev 2.0.5 (saw) - Locate Origin
-            sample  = (samMin + samMax) / 2;
             changed = true;
 #endif
             free ();
@@ -225,15 +223,10 @@ void channel::sampleClock ()
 
     // We have reached the required sample
     // So now we need to extract the right nibble
-    sample     = sampleCalculate ();
+    sample  = sampleCalculate ();
 
 #ifdef XSID_USE_SID_VOLUME
-    // Rev 2.0.5 (saw) - Added to track origin
-    if (sample < samMin)
-        samMin = sample;
-    else if (sample > samMax)
-        samMax = sample;
-    changed    = true;
+    changed = true;
 #endif
 }
 
@@ -268,7 +261,7 @@ int8_t channel::sampleCalculate ()
 #ifndef XSID_USE_SID_VOLUME
     return sampleConvertTable[(tempSample & 0x0f) >> volShift];
 #else
-    return (int8_t) ((tempSample & 0x0f) >> volShift);
+    return (int8_t) ((tempSample & 0x0f) - 0x08) >> volShift;
 #endif
 }
 
@@ -373,24 +366,29 @@ void channel::galwayTonePeriod ()
 
 void channel::silence ()
 {
-#ifndef XSID_USE_SID_VOLUME
     sample = 0;
-#endif
 }
 
+// Use Suppress to delay the samples and start them later
+// Effectivly allows running samples in a frame based mode.
+void XSID::suppress (bool enable)
+{
+    // @FIXME@: Mute Temporary Hack
+    suppressed = enable | muted;
+    if (!suppressed)
+    {   // Get the channels running
+        ch4.checkForInit ();
+        ch5.checkForInit ();
+    }
+}
+
+// By muting samples they will start and play the at the
+// appropriate time but no sound is produced.  Un-muting
+// will cause sound output from the current play position.
 void XSID::mute (bool enable)
 {
-	muted = enable;
-	if (muted)
-	{   // Stop the channels dead
-	  //		ch4.write (0x1d, 0xFD);
-	  //		ch5.write (0x1d, 0xFD);
-	}
-	else
-	{   // Get the channels running again
-		ch4.checkForInit ();
-		ch5.checkForInit ();
-	}
+    // @FIXME@: Mute not properly implemented
+    muted = suppressed = enable;
 }
 
 void XSID::write (uint_least16_t addr, uint8_t data)
@@ -414,15 +412,15 @@ void XSID::write (uint_least16_t addr, uint8_t data)
 
     if (addr == 0x1d)
     {
-        if (muted)
+        if (suppressed)
         {
 #if XSID_DEBUG
-            printf ("XSID: Muted\n");
+            printf ("XSID: Initialise Suppressed\n");
 #endif
-			return;
+            return;
         }
         ch->checkForInit ();
-    }       
+    }
 }
 
 uint8_t XSID::read (uint_least16_t addr)
@@ -456,7 +454,7 @@ int_least32_t XSID::output (uint_least8_t bits)
 #else
 uint8_t XSID::output ()
 {
-    uint8_t sample = 0;
+    int8_t sample = 0;
 #endif // XSID_USE_SID_VOLUME
     sample += ch4.output ();
     sample += ch5.output ();
@@ -464,7 +462,7 @@ uint8_t XSID::output ()
     sample <<= (bits - 8);
 #endif
     // Automatically compensated for by C64 code
-//    return (sample >> 1);
+    //return (sample >> 1);
     return sample;
 }
 
@@ -472,7 +470,7 @@ void XSID::reset ()
 {
     ch4.reset ();
     ch5.reset ();
-    muted = false;
+    suppressed = muted = false;
 }
 
 #ifdef XSID_USE_SID_VOLUME
@@ -480,14 +478,19 @@ void XSID::setSidVolume (bool cached)
 {
     if (ch4.changed || ch5.changed)
     {
-        uint8_t volume = output () & 0x0f;
-        volume |= (envReadMemDataByte (sidVolAddr, true) & 0xf0);
+        uint8_t reg   = envReadMemDataByte (sidVolAddr, true);
+        int8_t volume = reg & 0x0f;
+        if (volume == 0x0f)
+            volume  = 8;
+        reg &= 0xf0;
+        volume += output ();
+        reg    |= (volume & 0x0f);
         ch4.changed = false;
         ch5.changed = false;
 #if XSID_DEBUG > 1
-        printf ("XSID: Writing Sample to SID Volume [0x%02x]\n", volume);
+        printf ("XSID: Writing Sample to SID Volume [0x%02x]\n", reg);
 #endif
-        envWriteMemByte (sidVolAddr, volume, false);
+        envWriteMemByte (sidVolAddr, reg, false);
     }
 }
 #endif
@@ -521,7 +524,7 @@ void XSID::clock (uint_least16_t delta_t)
             envWriteMemByte (sidVolAddr, sidVolume);
         }
         else
-            setSidVolume (true);
+            setSidVolume ();
     }
 #endif
 }

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2000/12/12 22:51:01  s_a_white
+ *  Bug Fix #122033.
+ *
  ***************************************************************************/
 
 /*
@@ -47,6 +50,12 @@ Lastly playing samples through the SIDs volume is not as clean as playing
 them on their own channel.  Playing through the SID will effect the volume
 of the other channels and this will be most noticable at low frequencies.
 These effects are however be present in the oringial SID music.
+
+Some SIDs put values directly into the volume register.  Others play samples
+with respect to the current volume.  We can't for definate know which the author
+has chosen originally.  We must just make a guess based on what the the volume
+is initially at the start of a sample sequence and from the details xSID has been
+programmed with.
 */
 
 #ifndef _xsid_h_
@@ -91,12 +100,6 @@ private:
     uint_least16_t samEndAddr;
     uint_least16_t samRepeatAddr;
     uint_least16_t samPeriod;
-
-#ifdef XSID_USE_SID_VOLUME
-    // Rev 2.0.5 (saw) - Added to locate sample origin
-    uint_least8_t  samMin;
-    uint_least8_t  samMax;
-#endif
 
     // Galway Section
     uint_least8_t  galTones;
@@ -170,6 +173,7 @@ private:
     channel ch4;
     channel ch5;
     bool    muted;
+    bool    suppressed;
     uint_least16_t sidVolAddr;
 
 private:
@@ -177,13 +181,13 @@ private:
 
 public:
     void    reset   (void);
-    void    mute    (bool enable);
-	bool    isMuted (void)
-	{   return muted; }
     uint8_t read    (uint_least16_t addr);
     void    write   (uint_least16_t addr, uint8_t data);
     void    clock   (uint_least16_t delta_t = 1);
     void    setEnvironment (C64Environment *envp);
+    void    mute    (bool enable);
+    bool    isMuted (void) { return muted; }
+    void    suppress (bool enable);
 
 #ifdef XSID_USE_SID_VOLUME
 private:
