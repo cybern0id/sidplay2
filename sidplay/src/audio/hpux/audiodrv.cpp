@@ -3,49 +3,50 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#include "config.h"
-#ifdef HAVE_HPUX
-
 #include "audiodrv.h"
+#ifdef   HAVE_HPUX
 
 #ifdef SID_HAVE_EXCEPTIONS
-#include <new>
+#   include <new>
 #endif
 
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #if defined(HAVE_SYS_AUDIO_H)
-  #include <sys/audio.h>
+#   include <sys/audio.h>
 #else
-  #error Audio driver not supported.
+#   error Audio driver not supported.
 #endif
 
-const char AudioDriver::AUDIODEVICE[] = "/dev/audio";
+const char Audio_HPUX::AUDIODEVICE[] = "/dev/audio";
 
-AudioDriver::AudioDriver()
+Audio_HPUX::Audio_HPUX()
 {
     outOfOrder();
 }
 
-AudioDriver::~AudioDriver()
+Audio_HPUX::~Audio_HPUX()
 {
     close();
 }
 
-void AudioDriver::outOfOrder()
+void Audio_HPUX::outOfOrder()
 {
     // Reset everything.
     _errorString = "None";
     _audiofd     = (-1);
 }
 
-void *AudioDriver::open (AudioConfig& cfg)
+void *Audio_HPUX::open (AudioConfig& cfg)
 {
     // Copy input parameters. May later be replaced with driver defaults.
     _settings = cfg;
@@ -124,7 +125,7 @@ open_error:
     return 0;
 }
 
-void *AudioDriver::reset()
+void *Audio_HPUX::reset()
 {
     // Flush output stream.
     if (_audiofd != (-1))
@@ -134,7 +135,7 @@ void *AudioDriver::reset()
     return NULL;
 }
 
-void AudioDriver::close ()
+void Audio_HPUX::close ()
 {
     if (_audiofd != (-1))
     {
@@ -143,7 +144,7 @@ void AudioDriver::close ()
     }
 }
 
-void *AudioDriver::write ()
+void *Audio_HPUX::write ()
 {
     if (_audiofd != (-1))
     {

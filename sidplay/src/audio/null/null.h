@@ -17,10 +17,20 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#ifndef AUDIO_null_h_
-#define AUDIO_null_h_
+#ifndef audio_null_h_
+#define audio_null_h_
+
+#include "config.h"
+#ifdef   HAVE_HARDSID
+#   ifndef AudioDriver
+#   define AudioDriver Audio_Null
+#   endif
+#endif
 
 #include "../AudioBase.h"
 
@@ -39,4 +49,4 @@ public:  // --------------------------------------------------------- public
     void *write ();
 };
 
-#endif // AUDIO_null_h_
+#endif // audio_null_h_

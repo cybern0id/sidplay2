@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.4  2000/12/24 00:44:25  s_a_white
  *  HAVE_EXCEPTIONS
  *
@@ -29,7 +32,7 @@
 // --------------------------------------------------------------------------
 
 #include "audiodrv.h"
-#ifdef HAVE_OSS
+#ifdef   HAVE_OSS
 
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
@@ -37,31 +40,31 @@
 #endif
 
 #if defined(HAVE_NETBSD)
-const char AudioDriver::AUDIODEVICE[] = "/dev/audio";
+const char Audio_OSS::AUDIODEVICE[] = "/dev/audio";
 #else
-const char AudioDriver::AUDIODEVICE[] = "/dev/dsp";
+const char Audio_OSS::AUDIODEVICE[] = "/dev/dsp";
 #endif
 
-AudioDriver::AudioDriver()
+Audio_OSS::Audio_OSS()
 {
     // Reset everything.
     outOfOrder();
     _swapEndian  = false;
 }
 
-AudioDriver::~AudioDriver ()
+Audio_OSS::~Audio_OSS ()
 {
     close ();
 }
 
-void AudioDriver::outOfOrder ()
+void Audio_OSS::outOfOrder ()
 {
     // Reset everything.
     _errorString = "None";
     _audiofd     = -1;
 }
 
-void *AudioDriver::open (AudioConfig &cfg)
+void *Audio_OSS::open (AudioConfig &cfg)
 {
     int mask, wantedFormat, format;
     int temp;
@@ -242,7 +245,7 @@ return NULL;
 
 // Close an opened audio device, free any allocated buffers and
 // reset any variables that reflect the current state.
-void AudioDriver::close ()
+void Audio_OSS::close ()
 {
     if (_audiofd != (-1))
     {
@@ -252,7 +255,7 @@ void AudioDriver::close ()
     }
 }
 
-void *AudioDriver::write ()
+void *Audio_OSS::write ()
 {
     if (_audiofd == (-1))
     {

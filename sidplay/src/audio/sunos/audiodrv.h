@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.4  2000/12/11 19:08:32  s_a_white
  *  AC99 Update.
  *
@@ -25,16 +28,20 @@
 // SPARCstation specific audio interface.
 // --------------------------------------------------------------------------
 
-#include "config.h"
-#ifdef HAVE_SUNOS
+#ifndef audio_sunos_h_
+#define audio_sunos_h_
 
-#ifndef _audiodrv_h_
-#define _audiodrv_h_
-#define AUDIO_HAVE_DRIVER
+#include "config.h"
+#ifdef   HAVE_SUNOS
+#   ifndef AudioDriver
+#   define AudioDriver Audio_SunOS
+#   endif
+#endif
 
 #include "../AudioBase.h"
 
-class AudioDriver: public AudioBase
+
+class Audio_SunOS: public AudioBase
 {
 private:  // ------------------------------------------------------- private
     static const char AUDIODEVICE[];
@@ -42,8 +49,8 @@ private:  // ------------------------------------------------------- private
     int    _audiofd;
 
 public:  // --------------------------------------------------------- public
-    AudioDriver();
-    ~AudioDriver();
+    Audio_SunOS();
+    ~Audio_SunOS();
 
     void *open (AudioConfig &cfg);
 	
@@ -57,5 +64,5 @@ public:  // --------------------------------------------------------- public
     void *write ();		
 };
 
-#endif // _audiodrv_h_
 #endif // HAVE_SUNOS
+#endif // audio_sunos_h_

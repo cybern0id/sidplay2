@@ -3,18 +3,25 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#include "config.h"
-#ifdef HAVE_HPUX
+#ifndef audio_hpux_h_
+#define audio_hpux_h_
 
-#ifndef _audiodrv_h_
-#define _audiodrv_h_
-#define AUDIO_HAVE_DRIVER
+#include "config.h"
+#ifdef   HAVE_HPUX
+#   ifndef AudioDriver
+#   define AudioDriver Audio_HPUX
+#   endif
+#endif
 
 #include "../AudioBase.h"
 
-class AudioDriver: public AudioBase
+
+class Audio_HPUX: public AudioBase
 {
 private:  // ------------------------------------------------------- private
     static const char AUDIODEVICE[];
@@ -22,8 +29,8 @@ private:  // ------------------------------------------------------- private
     int    _audiofd;
 
 public:  // --------------------------------------------------------- public
-    AudioDriver();
-    ~AudioDriver();
+    Audio_HPUX();
+    ~Audio_HPUX();
 
     void *open (AudioConfig &cfg);
 	
@@ -37,7 +44,5 @@ public:  // --------------------------------------------------------- public
     void *write ();		
 };
 
-#endif // _audiodrv_h_
 #endif // HAVE_HPUX
-
-
+#endif // audio_hpux_h_

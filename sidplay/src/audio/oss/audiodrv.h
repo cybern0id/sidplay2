@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.3  2000/12/11 19:09:12  s_a_white
  *  AC99 Update.
  *
@@ -25,12 +28,15 @@
 // ``Open Sound System (OSS)'' specific audio driver interface.
 // --------------------------------------------------------------------------
 
-#include "config.h"
-#ifdef HAVE_OSS
+#ifndef audio_oss_h_
+#define audio_oss_h_
 
-#ifndef _audiodrv_h_
-#define _audiodrv_h_
-#define AUDIO_HAVE_DRIVER
+#include "config.h"
+#ifdef   HAVE_OSS
+#   ifndef AudioDriver
+#   define AudioDriver Audio_OSS
+#   endif
+#endif
 
 #include <sys/ioctl.h>
 #include <errno.h>
@@ -50,7 +56,8 @@
 
 #include "../AudioBase.h"
 
-class AudioDriver: public AudioBase
+
+class Audio_OSS: public AudioBase
 {	
 private:  // ------------------------------------------------------- private
     static   const char AUDIODEVICE[];
@@ -60,8 +67,8 @@ private:  // ------------------------------------------------------- private
     void outOfOrder ();
 
 public:  // --------------------------------------------------------- public
-    AudioDriver();
-    ~AudioDriver();
+    Audio_OSS();
+    ~Audio_OSS();
 
     void *open  (AudioConfig &cfg);
     void  close ();
@@ -78,5 +85,5 @@ public:  // --------------------------------------------------------- public
     void *write ();
 };
 
-#endif // _audiodrv_h_
 #endif // HAVE_OSS
+#endif // audio_oss_h_

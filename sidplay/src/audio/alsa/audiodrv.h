@@ -3,26 +3,31 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
+#ifndef audio_alsa_h_
+#define audio_alsa_h_
+
 #include "config.h"
-#ifdef HAVE_ALSA
+#ifdef   HAVE_ALSA
+#   ifndef AudioDriver
+#   define AudioDriver Audio_ALSA
+#   endif
+#endif
 
-#ifndef _audiodrv_h_
-#define _audiodrv_h_
-#define AUDIO_HAVE_DRIVER
-
-#include <sys/ioctl.h>
+#include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h>
 #include <unistd.h>
-
+#include <sys/ioctl.h>
 #include <sys/asoundlib.h>
-
 #include "../AudioBase.h"
 
-class AudioDriver: public AudioBase
+
+class Audio_ALSA: public AudioBase
 {	
 private:  // ------------------------------------------------------- private
     snd_pcm_t * _audioHandle;
@@ -30,8 +35,8 @@ private:  // ------------------------------------------------------- private
     void outOfOrder ();
 
 public:  // --------------------------------------------------------- public
-    AudioDriver();
-    ~AudioDriver();
+    Audio_ALSA();
+    ~Audio_ALSA();
 
     void *open  (AudioConfig &cfg);
     void  close ();
@@ -40,5 +45,5 @@ public:  // --------------------------------------------------------- public
     void *write ();
 };
 
-#endif // _audiodrv_h_
 #endif // HAVE_ALSA
+#endif // audio_alsa_h_

@@ -3,37 +3,38 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  ***************************************************************************/
 
-#include "config.h"
-#ifdef HAVE_ALSA
+#include "audiodrv.h"
+#ifdef   HAVE_ALSA
 
 #include <stdio.h>
-#include "audiodrv.h"
-
 #ifdef SID_HAVE_EXCEPTIONS
 #   include <new>
 #endif
 
-AudioDriver::AudioDriver()
+Audio_ALSA::Audio_ALSA()
 {
     // Reset everything.
     outOfOrder();
 }
 
-AudioDriver::~AudioDriver ()
+Audio_ALSA::~Audio_ALSA ()
 {
     close ();
 }
 
-void AudioDriver::outOfOrder ()
+void Audio_ALSA::outOfOrder ()
 {
     // Reset everything.
     _errorString = "None";
     _audioHandle = NULL;
 }
 
-void *AudioDriver::open (AudioConfig &cfg)
+void *Audio_ALSA::open (AudioConfig &cfg)
 {
     AudioConfig tmpCfg;
     int mask, wantedFormat, format;
@@ -148,7 +149,7 @@ return NULL;
 
 // Close an opened audio device, free any allocated buffers and
 // reset any variables that reflect the current state.
-void AudioDriver::close ()
+void Audio_ALSA::close ()
 {
     if (_audioHandle != NULL )
     {
@@ -158,12 +159,12 @@ void AudioDriver::close ()
     }
 }
 
-void *AudioDriver::reset ()
+void *Audio_ALSA::reset ()
 {
     return (void *) _sampleBuffer;   
 }
 
-void *AudioDriver::write ()
+void *Audio_ALSA::write ()
 {
     if (_audioHandle == NULL)
     {
