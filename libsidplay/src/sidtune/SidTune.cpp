@@ -252,9 +252,9 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
     
     // Open binary input file stream at end of file.
 #if defined(HAVE_IOS_BIN)
-    ifstream myIn(fileName,ios::in|ios::bin|ios::ate|ios::nocreate);
+    ifstream myIn(fileName,ios::in|ios::bin|ios::ate);
 #else
-    ifstream myIn(fileName,ios::in|ios::binary|ios::ate|ios::nocreate);
+    ifstream myIn(fileName,ios::in|ios::binary|ios::ate);
 #endif
     // As a replacement for !is_open(), bad() and the NOT-operator don't seem
     // to work on all systems.
@@ -447,9 +447,9 @@ void SidTune::getFromStdIn()
     // We only read as much as fits in the buffer.
     // This way we avoid choking on huge data.
     uint_least32_t i = 0;
-    uint_least8_t datb;
+    char datb;
     while (cin.get(datb) && i<SIDTUNE_MAX_FILELEN)
-        fileBuf[i++] = datb;
+        fileBuf[i++] = (uint_least8_t) datb;
     info.dataFileLen = i;
     getFromBuffer(fileBuf,info.dataFileLen);
     delete[] fileBuf;
@@ -859,7 +859,7 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-        long int createAttr;
+        ios::openmode createAttr;
 #if defined(HAVE_IOS_BIN)
         createAttr = ios::out | ios::bin;
 #else
@@ -868,9 +868,9 @@ bool SidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
         if ( overWriteFlag )
             createAttr |= ios::trunc;
         else
-            createAttr |= ios::noreplace;
+            createAttr |= ios::app;
         ofstream fMyOut( fileName, createAttr );
-        if ( !fMyOut )
+        if ( !fMyOut || fMyOut.tellp()>0 )
         { 
             info.statusString = SidTune::txt_cantCreateFile;
         }
@@ -905,14 +905,13 @@ bool SidTune::saveSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open ASCII output file stream.
-        long int createAttr;
-        createAttr = ios::out;
+        ios::openmode createAttr = ios::out;
         if ( overWriteFlag )
             createAttr |= ios::trunc;
         else
-            createAttr |= ios::noreplace;
+            createAttr |= ios::app;
         ofstream fMyOut( fileName, createAttr );
-        if ( !fMyOut )
+        if ( !fMyOut || fMyOut.tellp()>0 )
         { 
             info.statusString = SidTune::txt_cantCreateFile;
         }
@@ -940,7 +939,7 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
     if ( status )
     {
         // Open binary output file stream.
-        long int createAttr;
+        ios::openmode createAttr;
 #if defined(HAVE_IOS_BIN)
         createAttr = ios::out | ios::bin;
 #else
@@ -949,9 +948,9 @@ bool SidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
       if ( overWriteFlag )
             createAttr |= ios::trunc;
         else
-            createAttr |= ios::noreplace;
+            createAttr |= ios::app;
         ofstream fMyOut( fileName, createAttr );
-        if ( !fMyOut )
+        if ( !fMyOut || fMyOut.tellp()>0 )
         {
             info.statusString = SidTune::txt_cantCreateFile;
         }
