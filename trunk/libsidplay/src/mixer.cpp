@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2001/10/02 18:29:32  s_a_white
+ *  Corrected fixed point maths overflow caused by fastforwarding.
+ *
  *  Revision 1.6  2001/09/17 19:02:38  s_a_white
  *  Now uses fixed point maths for sample output and rtc.
  *
@@ -43,7 +46,7 @@ void Player::mixerReset (void)
 {   // Fixed point 16.16
     m_sampleClock  = m_samplePeriod & 0x0FFFF;
     // Schedule next sample event
-    m_context.schedule (&mixerEvent,
+    (context ()).schedule (&mixerEvent,
         m_samplePeriod >> 24);
 }
 
@@ -57,7 +60,7 @@ void Player::mixer (void)
     m_sampleIndex += (this->*output) (buf);
  
     // Schedule next sample event
-    m_context.schedule (&mixerEvent, cycles);
+    (context ()).schedule (&mixerEvent, cycles);
 
     // Filled buffer
     if (m_sampleIndex >= m_sampleCount)

@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.31  2001/10/18 22:33:40  s_a_white
+ *  Initialisation order fixes.
+ *
  *  Revision 1.30  2001/10/02 18:26:36  s_a_white
  *  Removed ReSID support and updated for new scheduler.
  *
@@ -188,7 +191,7 @@ Player::Player (void)
     m_info.name            = PACKAGE;
     m_info.tuneInfo        = NULL;
     m_info.version         = VERSION;
-    m_info.eventContext    = &m_context;
+    m_info.eventContext    = &context();
     // Number of SIDs support by this library
     m_info.maxsids         = 2;
 
