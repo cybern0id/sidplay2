@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/12/03 19:17:34  s_a_white
+ *  Corrected spelling of BUILDER.
+ *
  *  Revision 1.2  2001/12/01 20:16:23  s_a_white
  *  Player changed to ConsolePlayer.
  *
@@ -280,7 +283,6 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #endif
         if (hs && *hs)
         {
-            m_engCfg.sidSamples   = true;
             m_engCfg.sidEmulation = hs;
             // Setup the emulation
             hs->create ((m_engine.info ()).maxsids);
