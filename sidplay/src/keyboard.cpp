@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2001/07/25 17:10:41  s_a_white
+ *  Added 8/2 to speed up/slow down player.
+ *
  *  Revision 1.3  2001/07/03 17:47:56  s_a_white
  *  Added A_NONE.
  *
@@ -36,7 +39,7 @@
 #   include <sys/time.h>
 #   include <sys/types.h>
 #   include <unistd.h>
-int _getch (void);
+char _getch (void);
 #endif
 
 #define MAX_CMDLEN 10
@@ -185,14 +188,14 @@ int keyboard_decode ()
      * Collect characters in a buffer.
      * Start with the one we have, and get more if we need them.
      */
-    c = _getch();
+    c = (char) _getch();
     if (c == '\0')
         c = '\340'; // 224
     else if (c == ESC)
     {
         cmd[nch++] = c;
         if (_kbhit ())
-            c = _getch ();
+            c = (char) _getch ();
     }
 
     while (c >= 0)
@@ -205,7 +208,7 @@ int keyboard_decode ()
             break;
         if (!_kbhit ())
             break;
-        c = _getch ();
+        c = (char) _getch ();
     }
     return action;
 }
@@ -227,7 +230,7 @@ int _kbhit (void)
     return 0;
 }
 
-int _getch (void)
+char _getch (void)
 {
     char ch = 0;
     int  ret;
