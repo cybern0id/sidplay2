@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2001/09/17 19:07:11  s_a_white
+ *  Sample enconding support added.
+ *
  *  Revision 1.2  2001/07/03 17:54:05  s_a_white
  *  Support for new audio interface for better compatibility.
  *
@@ -75,7 +78,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     if (name == NULL)
         return NULL;
 
-    if (isOpen && !file.fail())
+    if (isOpen && !file)
         close();
    
     byteCount = 0;
@@ -87,7 +90,7 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     _sampleBuffer = new uint_least8_t[bufSize];
 #endif
     if (!_sampleBuffer)
-        return 0;
+        return NULL;
 
     // Fill in header with parameters and expected file size.
     endian_little32(wavHdr.length,sizeof(wavHeader)-8);
@@ -98,31 +101,26 @@ void* WavFile::open(AudioConfig &cfg, const char* name,
     endian_little16(wavHdr.bitsPerSample,bits);
     endian_little32(wavHdr.dataChunkLen,0);
 
+#if defined(WAV_HAVE_IOS_BIN)
+    ios::openmode createAttr = ios::bin;
+#else
+    ios::openmode createAttr = ios::binary;
+#endif
+    createAttr |= ios::out;
+
     if (overWrite)
-    {
-#if defined(WAV_HAVE_IOS_BIN)
-        file.open( name, ios::out|ios::bin|ios::trunc );
-#else
-        file.open( name, ios::out|ios::binary|ios::trunc );
-#endif
-    }
+        file.open( name, createAttr|ios::trunc );
     else
-    {
-#if defined(WAV_HAVE_IOS_BIN)
-        file.open( name, ios::out|ios::bin|ios::noreplace );
-#else
-        file.open( name, ios::out|ios::binary|ios::noreplace );
-#endif
-    }
-    
-    isOpen = !file.fail();  // good->true, bad->false
+        file.open( name, createAttr|ios::app );
+
+    isOpen = !file || file.tellp()>0;  // good->true, bad->false
     _settings = cfg;
     return _sampleBuffer;
 }
 
 void* WavFile::write(unsigned long int bytes)
 {
-    if (isOpen && !file.fail())
+    if (isOpen && !file)
     {
         if (!headerWritten)
         {
@@ -156,7 +154,7 @@ void* WavFile::write(unsigned long int bytes)
 
 void WavFile::close()
 {
-    if (isOpen && !file.fail())
+    if (isOpen && !file)
     {
         endian_little32(wavHdr.length,byteCount+sizeof(wavHeader)-8);
         endian_little32(wavHdr.dataChunkLen,byteCount);
