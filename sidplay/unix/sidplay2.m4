@@ -27,8 +27,10 @@ AC_DEFUN(SID2_TEST_BUILDER,
         sid2_def="HAVE_`echo $1 | tr [a-z] [A-Z]`_BUILDER"
         AC_DEFINE_UNQUOTED($sid2_def)
         $4="-l$1-builder"
+        AC_MSG_RESULT(yes)
+    else
+        AC_MSG_RESULT(no)
     fi
-    AC_MSG_RESULT($sid2_builder_works)
 ])
 
 
@@ -46,6 +48,12 @@ AC_DEFUN(SID2_FIND_BUILDERS,
             where the sid builder libraries are installed],
         [LIBSIDPLAY2_BUILDERS="$withval"]
     )
+
+    AH_TOP([
+/* Define supported builder */
+#undef HAVE_RESID_BUILDER
+#undef HAVE_HARDSID_BUILDER
+    ])
 
     AC_MSG_RESULT($LIBSIDPLAY2_BUILDERS)
     BUILDERS_LDFLAGS=""
