@@ -22,13 +22,13 @@ ac_help="$ac_help
 ac_help="$ac_help
   --disable-libtool-lock  avoid locking (might break parallel builds)"
 ac_help="$ac_help
-  --with-libsidplay2=DIR
-            where the libsidplay2 library is located"
+  --with-sidplay2=DIR
+            where the root of libsidplay2 is installed"
 ac_help="$ac_help
-  --with-libsidplay2-includes=DIR
+  --with-sidplay2-includes=DIR
             where the libsidplay2 includes are located"
 ac_help="$ac_help
-  --with-libsidplay2-library=DIR
+  --with-sidplay2-library=DIR
             where the libsidplay2 library is installed"
 
 # Initialize some variables set by options.
@@ -1855,9 +1855,9 @@ echo "configure:1853: checking for working SIDPlay2 library and headers" >&5
     sid_libsidplay2_includes=NO
     sid_libsidplay2_works=no
 
-    # Check whether --with-libsidplay2 or --without-libsidplay2 was given.
-if test "${with_libsidplay2+set}" = set; then
-  withval="$with_libsidplay2"
+    # Check whether --with-sidplay2 or --without-sidplay2 was given.
+if test "${with_sidplay2+set}" = set; then
+  withval="$with_sidplay2"
   sid_libsidplay2_includes="$withval"
          sid_libsidplay2_library="$withval"
         
@@ -1865,17 +1865,17 @@ if test "${with_libsidplay2+set}" = set; then
 fi
 
 
-    # Check whether --with-libsidplay2-includes or --without-libsidplay2-includes was given.
-if test "${with_libsidplay2_includes+set}" = set; then
-  withval="$with_libsidplay2_includes"
+    # Check whether --with-sidplay2-includes or --without-sidplay2-includes was given.
+if test "${with_sidplay2_includes+set}" = set; then
+  withval="$with_sidplay2_includes"
   sid_libsidplay2_includes="$withval"
     
 fi
 
 
-    # Check whether --with-libsidplay2-library or --without-libsidplay2-library was given.
-if test "${with_libsidplay2_library+set}" = set; then
-  withval="$with_libsidplay2_library"
+    # Check whether --with-sidplay2-library or --without-sidplay2-library was given.
+if test "${with_sidplay2_library+set}" = set; then
+  withval="$with_sidplay2_library"
   sid_libsidplay2_library="$withval"
     
 fi

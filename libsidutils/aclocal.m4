@@ -116,22 +116,22 @@ AC_DEFUN(SID_PATH_LIBSIDPLAY2,
     sid_libsidplay2_includes=NO
     sid_libsidplay2_works=no
 
-    AC_ARG_WITH(libsidplay2,
-        [  --with-libsidplay2=DIR
-            where the libsidplay2 library is located],
+    AC_ARG_WITH(sidplay2,
+        [  --with-sidplay2=DIR
+            where the root of libsidplay2 is installed],
         [sid_libsidplay2_includes="$withval"
          sid_libsidplay2_library="$withval"
         ]
     )
 
-    AC_ARG_WITH(libsidplay2-includes,
-        [  --with-libsidplay2-includes=DIR
+    AC_ARG_WITH(sidplay2-includes,
+        [  --with-sidplay2-includes=DIR
             where the libsidplay2 includes are located],
         [sid_libsidplay2_includes="$withval"]
     )
 
-    AC_ARG_WITH(libsidplay2-library,
-        [  --with-libsidplay2-library=DIR
+    AC_ARG_WITH(sidplay2-library,
+        [  --with-sidplay2-library=DIR
             where the libsidplay2 library is installed],
         [sid_libsidplay2_library="$withval"]
     )
