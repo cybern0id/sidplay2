@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/01/10 19:39:46  s_a_white
+ *  Fixed default to switch to please solaris compiler.
+ *
  *  Revision 1.7  2001/12/11 19:38:13  s_a_white
  *  More GCC3 Fixes.
  *
@@ -509,8 +512,9 @@ void ConsolePlayer::event (void)
     uint_least32_t seconds = m_engine.time() / 10;
     if ( !m_quietLevel )
     {
-        cerr << "\b\b\b\b\b" << setw(2) << setfill('0') << (seconds / 60)
-             << ':' << setw(2) << setfill('0') << (seconds % 60) << flush;
+        cerr << "\b\b\b\b\b" << setw(2) << setfill('0')
+             << ((seconds / 60) % 100) << ':' << setw(2)
+             << setfill('0') << (seconds % 60) << flush;
     }
 
     if (seconds != m_timer.current)
