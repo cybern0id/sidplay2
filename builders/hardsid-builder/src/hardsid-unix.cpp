@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2002/08/14 16:03:54  jpaana
+ *  Fixed to compile with new HardSID::lock method
+ *
  *  Revision 1.7  2002/07/20 08:36:24  s_a_white
  *  Remove unnecessary and pointless conts.
  *
@@ -208,6 +211,8 @@ bool HardSID::lock(c64env* env)
 {
     if( env == NULL )
     {
+	if (!m_locked)
+	    return false;
         m_eventContext->cancel (this);
         m_locked = false;
         m_eventContext = NULL;
