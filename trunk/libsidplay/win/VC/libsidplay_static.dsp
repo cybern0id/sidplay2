@@ -101,6 +101,10 @@ SOURCE=..\..\src\player.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\sidtune\prg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\psiddrv.a65
 # End Source File
 # Begin Source File
