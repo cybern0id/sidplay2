@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2001/09/20 19:32:39  s_a_white
+ *  Support for a null sid emulation to use when a builder create call fails.
+ *
  *  Revision 1.19  2001/09/17 19:02:38  s_a_white
  *  Now uses fixed point maths for sample output and rtc.
  *
@@ -81,11 +84,12 @@
 #ifndef _player_h_
 #define _player_h_
 
+#include <string.h>
+
 #include "config.h"
 #include "sidplay2.h"
 #include "sidenv.h"
 #include "c64env.h"
-#include "c64/c64sid.h"
 #include "c64/c64xsid.h"
 #include "c64/c64cia.h"
 #include "c64/c64vic.h"
@@ -117,19 +121,19 @@ private:
     static const char  *ERR_UNSUPPORTED_PRECISION;
     static const char  *ERR_MEM_ALLOC;
     static const char  *ERR_UNSUPPORTED_MODE;
-    static const char  *ERR_FILTER_DEFINITION;
+    static const char  *ERR_REQUIRES_REAL_C64;
     static const char  *credit[10]; // 10 credits max
 
     static const char  *ERR_PSIDDRV_NO_SPACE; 
     static const char  *ERR_PSIDDRV_RELOC;
+
+    EventScheduler m_scheduler;
 
     //SID6510  cpu(6510, "Main CPU");
     SID6510 sid6510;
     MOS6510 mos6510;
     MOS6510 *cpu;
     // Sid objects to use.
-    c64sid  mos6581_1;
-    c64sid  mos6581_2;
     NullSID nullsid;
     c64xsid xsid;
     c64cia1 cia;
@@ -194,7 +198,6 @@ private:
     } rtc;
 
     // User Configuration Settings
-    sidbuilder   *m_builder;
     SidTuneInfo   m_tuneInfo;
     SidTune      *m_tune;
     uint8_t      *m_ram, *m_rom;
@@ -232,16 +235,12 @@ private:
 private:
     float64_t clockSpeed     (sid2_clock_t clock, bool forced);
     int       environment    (sid2_env_t env);
-    void      extFilter      (uint fc);
     int       initialise     (void);
     void      nextSequence   (void);
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidEmulation   (sidbuilder *builder);
-    void      sidFilter      (bool enable);
-    int       sidFilterDef   (const sid_filter_t *filter);
-    void      sidModel       (sid2_model_t model);
+    int       sidCreate      (sidbuilder *builder, sid2_model_t model);
     void      sidSamples     (bool enable);
 
     uint8_t readMemByte_player    (uint_least16_t addr);
