@@ -9,5 +9,6 @@ PP20.h \
 PP20_Defs.h \
 PSID.cpp \
 SidTune.cpp \
+SidTuneCfg.h \
 SidTuneTools.cpp \
 SidTuneTools.h
