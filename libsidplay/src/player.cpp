@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.69  2004/01/31 17:01:44  s_a_white
+ *  Add ability to specify the maximum number of sid writes forming the sid2crc.
+ *
  *  Revision 1.68  2004/01/30 19:37:14  s_a_white
  *  Support a compressed poweron data image (for use with psid64).
  *
@@ -249,6 +252,15 @@
 #   include <new>
 #endif
 
+#ifndef PACKAGE_NAME
+#   define PACKAGE_NAME NAME
+#endif
+
+#ifndef PACKAGE_VERSION
+#   define PACKAGE_VERSION VERSION
+#endif
+
+
 SIDPLAY2_NAMESPACE_START
 
 static const uint8_t kernal[] = {
@@ -336,9 +348,9 @@ Player::Player (void)
     m_info.channels        = 1;
     m_info.driverAddr      = 0;
     m_info.driverLength    = 0;
-    m_info.name            = PACKAGE;
+    m_info.name            = PACKAGE_NAME;
     m_info.tuneInfo        = NULL;
-    m_info.version         = VERSION;
+    m_info.version         = PACKAGE_VERSION;
     m_info.eventContext    = &context();
     // Number of SIDs support by this library
     m_info.maxsids         = SID2_MAX_SIDS;
@@ -373,7 +385,7 @@ Player::Player (void)
     config (m_cfg);
 
     // Get component credits
-    credit[0] = PACKAGE " V" VERSION " Engine:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
+    credit[0] = PACKAGE_NAME " V" PACKAGE_VERSION " Engine:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
     credit[1] = xsid.credits ();
     credit[2] = "*MOS6510 (CPU) Emulation:\0\tCopyright (C) 2000 Simon White <sidplay2@email.com>\0";
     credit[3] = cia.credits ();
