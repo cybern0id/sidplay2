@@ -39,6 +39,7 @@ class ReSID: public sidemu
 {
 private:
     EventContext *m_context;
+    event_phase_t m_phase;
     class RESID::SID &m_sid;
     event_clock_t m_accessClk;
     int_least32_t m_gain;

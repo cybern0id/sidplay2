@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2003/06/27 07:08:17  s_a_white
+ *  Use new hardsid.dll muting interface.
+ *
  *  Revision 1.5  2002/08/09 18:11:35  s_a_white
  *  Added backwards compatibility support for older hardsid.dll.
  *
@@ -116,6 +119,7 @@ private:
 
     // Generic variables
     EventContext  *m_eventContext;
+    event_phase_t  m_phase;
     event_clock_t  m_accessClk;
     char           m_errorBuffer[100];
 
