@@ -21,7 +21,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../include,../../include/sidplay/builders,../../../../libsidplay/include"
+				AdditionalIncludeDirectories="../../include,../../include/sidplay/builders,../../../../libsidplay/include,../../../../resid"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;HAVE_MSWINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -70,7 +70,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../include,../../include/sidplay/builders,../../../../libsidplay/include"
+				AdditionalIncludeDirectories="../../include,../../include/sidplay/builders,../../../../libsidplay/include,../../../../resid"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;HAVE_MSWINDOWS"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
@@ -116,342 +116,86 @@
 			Name="ReSID 0.15"
 			Filter="">
 			<File
-				RelativePath="..\..\src\resid\envelope.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\envelope.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\envelope.h">
+				RelativePath="..\..\..\..\resid\envelope.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\extfilt.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\extfilt.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\extfilt.h">
+				RelativePath="..\..\..\..\resid\extfilt.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\filter.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\filter.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\filter.h">
+				RelativePath="..\..\..\..\resid\filter.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\pot.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\pot.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\pot.h">
+				RelativePath="..\..\..\..\resid\pot.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\sid.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\sid.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\sid.h">
+				RelativePath="..\..\..\..\resid\sid.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\siddefs.h">
+				RelativePath="..\..\..\..\resid\siddefs.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\spline.h">
+				RelativePath="..\..\..\..\resid\spline.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\version.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\version.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\voice.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\voice.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\voice.h">
+				RelativePath="..\..\..\..\resid\voice.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave.h">
+				RelativePath="..\..\..\..\resid\wave.h">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave6581__ST.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave6581__ST.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave6581_P_T.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave6581_P_T.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave6581_PS_.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave6581_PS_.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave6581_PST.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave6581_PST.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave8580__ST.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave8580__ST.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave8580_P_T.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave8580_P_T.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave8580_PS_.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave8580_PS_.cc">
 			</File>
 			<File
-				RelativePath="..\..\src\resid\wave8580_PST.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""/>
-				</FileConfiguration>
+				RelativePath="..\..\..\..\resid\wave8580_PST.cc">
 			</File>
 		</Filter>
 		<File
-			RelativePath="config.h">
+			RelativePath="..\..\include\config.h">
 		</File>
 		<File
-			RelativePath="..\..\include\config.h">
+			RelativePath="config.h">
 		</File>
 		<File
 			RelativePath="..\..\src\resid-builder.cpp">
