@@ -71,7 +71,9 @@ bool SidTune::MUS_fileSupport(Buffer_sidtt<const uint8_t>& musBuf,
     info.musPlayer = true;
     
     songSpeed[0]  = SIDTUNE_SPEED_CIA_1A;
+#ifdef SIDTUNE_PSID2NG
     clockSpeed[0] = SIDTUNE_CLOCK_ANY;
+#endif
     fileOffset = 2;  // data after load address
 
     if ( !strBuf.isEmpty() )

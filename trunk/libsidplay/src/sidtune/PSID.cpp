@@ -81,7 +81,13 @@ const int _sidtune_psid_maxStrLen = 31;
 
 bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 {
-    int clock = SIDTUNE_CLOCK_UNKNOWN;
+    int clock;
+#ifdef SIDTUNE_PSID2NG
+    clock = SIDTUNE_CLOCK_UNKNOWN;
+#else
+    clock = info.clockSpeed;
+#endif
+
     // Remove any format description or format error string.
     info.formatString = 0;
 
@@ -132,6 +138,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
             info.musPlayer = true;
         }
 
+#ifdef SIDTUNE_PSID2NG
         if (flags & PSID_SAMPLES)
             info.samples = true;
 
@@ -148,6 +155,7 @@ bool SidTune::PSID_fileSupport(const void* buffer, const uint_least32_t bufLen)
 
         info.relocStartPage = pHeader->relocStart;
         info.relocPages     = pHeader->relocPages;
+#endif // SIDTUNE_PSID2NG
     }
 
     // Create the speed/clock setting table.

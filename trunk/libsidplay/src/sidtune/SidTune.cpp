@@ -385,9 +385,14 @@ void SidTune::init()
     info.musPlayer = false;
     info.fixLoad = false;
     info.songSpeed = SIDTUNE_SPEED_VBI;
+#ifdef SIDTUNE_PSID2NG
     info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
-    info.songLength = 0;
     info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
+#else
+    info.clockSpeed = SIDTUNE_CLOCK_PAL;
+    info.sidModel = SIDTUNE_SIDMODEL_6581;
+#endif
+    info.songLength = 0;
     info.relocStartPage = 0;
     info.relocPages = 0;
 
