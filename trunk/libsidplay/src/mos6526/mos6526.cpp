@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2004/05/04 22:40:20  s_a_white
+ *  Fix pulse mode output on the ports to work.
+ *
  *  Revision 1.22  2004/04/23 00:58:22  s_a_white
  *  Reload counter on starting timer, not stopping.
  *
@@ -153,9 +156,9 @@ MOS6526::MOS6526 (EventContext *context)
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  m_todPeriod(~0), // Dummy
- event_ta(this),
- event_tb(this),
- event_tod(this)
+ m_taEvent("CIA Timer A", *this, &MOS6526::ta_event),
+ m_tbEvent("CIA Timer B", *this, &MOS6526::tb_event),
+ m_todEvent("CIA Time of Day", *this, &MOS6526::tod_event)
 {
     reset ();
 }
@@ -191,9 +194,9 @@ void MOS6526::reset (void)
     m_todCycles = 0;
 
     // Remove outstanding events
-    event_context.cancel   (&event_ta);
-    event_context.cancel   (&event_tb);
-    event_context.schedule (&event_tod, 0, m_phase);
+    m_taEvent.cancel ();
+    m_tbEvent.cancel ();
+    m_todEvent.schedule (event_context, 0, m_phase);
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
@@ -390,11 +393,11 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x21) == 0x01)
         {   // Active
-            event_context.schedule (&event_ta, (event_clock_t) ta + 1,
-                                    m_phase);
+            m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
+                                m_phase);
         } else
         {   // Inactive
-            event_context.cancel (&event_ta);
+            m_taEvent.cancel ();
         }
     break;
 
@@ -415,11 +418,11 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x61) == 0x01)
         {   // Active
-            event_context.schedule (&event_tb, (event_clock_t) tb + 1,
-                                    m_phase);
+            m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
+                                m_phase);
         } else
         {   // Inactive
-            event_context.cancel (&event_tb);
+            m_tbEvent.cancel ();
         }
     break;
 
@@ -470,8 +473,8 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        event_context.schedule (&event_ta, (event_clock_t) ta + 1,
-                                m_phase);
+        m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
+                            m_phase);
     }
     trigger (INTERRUPT_TA);
     
@@ -535,8 +538,8 @@ void MOS6526::tb_event (void)
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        event_context.schedule (&event_tb, (event_clock_t) tb + 1,
-                                m_phase);
+        m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
+                            m_phase);
     }
     trigger (INTERRUPT_TB);
 }
@@ -554,7 +557,7 @@ void MOS6526::tod_event(void)
         m_todCycles += (m_todPeriod * 6);    
     
     // Fixed precision 25.7
-    event_context.schedule (&event_tod, m_todCycles >> 7, m_phase);
+    m_todEvent.schedule (event_context, m_todCycles >> 7, m_phase);
     m_todCycles &= 0x7F; // Just keep the decimal part
 
     if (!m_todstopped)

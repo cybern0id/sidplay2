@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.21  2002/09/23 19:42:52  s_a_white
  *  Fixed intel compiler warnings.
  *
@@ -130,31 +133,8 @@ private:
     XSID         &m_xsid;
     friend class XSID;
 
-    class SampleEvent: public Event
-    {
-    private:
-        channel &m_ch;
-        void event (void) { m_ch.sampleClock (); }
-
-    public:
-        SampleEvent (channel *ch)
-        :Event("xSID Sample"),
-         m_ch(*ch) {}
-    } sampleEvent;
-    friend class SampleEvent;
-
-    class GalwayEvent: public Event
-    {
-    private:
-        channel &m_ch;
-        void event (void) { m_ch.galwayClock (); }
-
-    public:
-        GalwayEvent (channel *ch)
-        :Event("xSID Galway"),
-         m_ch(*ch) {}
-    } galwayEvent;
-    friend class GalwayEvent;
+    EventCallback<channel> m_sampleEvent;
+    EventCallback<channel> m_galwayEvent;
 
     uint8_t  reg[0x10];
     enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;

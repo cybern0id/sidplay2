@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2004/04/13 07:39:32  s_a_white
+ *  Add lightpen support.
+ *
  *  Revision 1.15  2004/03/09 20:26:15  s_a_white
  *  Keep track of timer A/B underflows for the I/O ports.
  *
@@ -121,17 +124,9 @@ protected:
     uint8_t m_todclock[4], m_todalarm[4], m_todlatch[4];
     event_clock_t m_todCycles, m_todPeriod;
 
-    class EventTa: public Event
-    {
-    private:
-        MOS6526 &m_cia;
-        void event (void) {m_cia.ta_event ();}
-
-    public:
-        EventTa (MOS6526 *cia)
-            :Event("CIA Timer A"),
-             m_cia(*cia) {}
-    } event_ta;
+    EventCallback<MOS6526> m_taEvent;
+    EventCallback<MOS6526> m_tbEvent;
+    EventCallback<MOS6526> m_todEvent;
 
     /*
     class EventStateMachineA: public Event
@@ -146,34 +141,6 @@ protected:
              m_cia(*cia) {}
     } event_stateMachineA;
 */
-    class EventTb: public Event
-    {
-    private:
-        MOS6526 &m_cia;
-        void event (void) {m_cia.tb_event ();}
-
-    public:
-        EventTb (MOS6526 *cia)
-            :Event("CIA Timer B"),
-             m_cia(*cia) {}
-    } event_tb;
-
-    class EventTod: public Event
-    {
-    private:
-        MOS6526 &m_cia;
-        void event (void) {m_cia.tod_event ();}
-
-    public:
-        EventTod (MOS6526 *cia)
-            :Event("CIA Time of Day"),
-             m_cia(*cia) {}
-    } event_tod;
-
-    friend class EventTa;
-//    friend class EventStateMachineA;
-    friend class EventTb;
-    friend class EventTod;
 
 protected:
     MOS6526 (EventContext *context);

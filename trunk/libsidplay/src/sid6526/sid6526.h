@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2003/10/28 00:22:53  s_a_white
+ *  getTime now returns a time with respect to the clocks desired phase.
+ *
  *  Revision 1.4  2003/02/20 18:55:14  s_a_white
  *  sid2crc support.
  *
@@ -38,7 +41,7 @@
 #include "event.h"
 #include "c64env.h"
 
-class SID6526: public component
+class SID6526: public component, private Event
 {
 private:
 
@@ -56,18 +59,6 @@ private:
     uint_least32_t rnd;
     uint_least16_t m_count;
     bool locked; // Prevent code changing CIA.
-
-    class TaEvent: public Event
-    {
-    private:
-        SID6526 &m_cia;
-        void event (void) {m_cia.event ();}
-
-    public:
-        TaEvent (SID6526 &cia)
-            :Event("CIA Timer A"),
-             m_cia(cia) {}
-    } m_taEvent;
 
 public:
     SID6526 (c64env *env);
