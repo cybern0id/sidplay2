@@ -15,6 +15,10 @@
  *                                                                         *
  ***************************************************************************/
 
+// Microsoft Visual C++ Version Number to work around compiler bug
+// Currently both Visual C++ Versions 5, 6 are broken.
+#define _MSC_VER_BAD_NEW 1200 /* Defines VC6 and below */
+
 //-------------------------------------------------------------------------//
 //-------------------------------------------------------------------------//
 // Status Register Routines                                                //
@@ -2002,8 +2006,7 @@ MOS6510::MOS6510 ()
             {   // Pass 1 - Allocate Memory
                 if (cycleCount)
                 {
-#if defined(_MSC_VER) && (_MSC_VER <= 1100)
-                    // Rev 2.0.3 (saw):  Fixes bug found in Microsoft Visual C++ 5
+#if defined(_MSC_VER) && (_MSC_VER <= _MSC_VER_BAD_NEW)
                     typedef void (MOS6510::*ptr2cycle) (void);
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
@@ -2092,8 +2095,7 @@ MOS6510::MOS6510 ()
             {   // Pass 1 - Allocate Memory
                 if (cycleCount)
                 {
-#if defined(_MSC_VER) && (_MSC_VER <= 1100)
-                    // Rev 2.0.3 (saw):  Fixes bug found in Microsoft Visual C++ 5
+#if defined(_MSC_VER) && (_MSC_VER <= _MSC_VER_BAD_NEW)
                     typedef void (MOS6510::*ptr2cycle) (void);
                     instr->cycle = (ptr2cycle*) new char[sizeof (ptr2cycle) *cycleCount];
 #else
