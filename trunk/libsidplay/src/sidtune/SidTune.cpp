@@ -136,6 +136,11 @@ bool SidTune::load(const char* fileName, const bool separatorIsSlash)
     cleanup();
     init();
     isSlashedFileName = separatorIsSlash;
+#if !defined(SIDTUNE_NO_STDIN_LOADER)
+    if ( strcmp(fileName,"-")==0 )
+        getFromStdIn();
+    else
+#endif
     getFromFiles(fileName);
     return status;
 }
