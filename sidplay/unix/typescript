@@ -1,0 +1,76 @@
+Script started on Sat Nov 18 13:56:51 2000
+[white_s_a@localhost unix]$ exitstartx[2Pexit[Kcd scripts/
+[white_s_a@localhost scripts]$ ls
+[00m[01;32mconfig.guess[00m*  [01;32mconfig.sub[00m*  [01;32minstall-sh[00m*  [01;32mltconfig[00m*  [00mltmain.sh[00m  [01;32mmissing[00m*  [01;32mmkinstalldirs[00m*
+[m[white_s_a@localhost scripts]$ ./missing 
+Try `./missing --help' for more information
+[white_s_a@localhost scripts]$ ./missing --help
+./missing [OPTION]... PROGRAM [ARGUMENT]...
+
+Handle `PROGRAM [ARGUMENT]...' for when PROGRAM is missing, or return an
+error status if there is no known handling for PROGRAM.
+
+Options:
+  -h, --help      display this help and exit
+  -v, --version   output version information and exit
+
+Supported PROGRAM values:
+  aclocal      touch file `aclocal.m4'
+  autoconf     touch file `configure'
+  autoheader   touch file `config.h.in'
+  automake     touch all `Makefile.in' files
+  bison        create `y.tab.[ch]', if possible, from existing .[ch]
+  flex         create `lex.yy.c', if possible, from existing .c
+  lex          create `lex.yy.c', if possible, from existing .c
+  makeinfo     touch the output file
+  yacc         create `y.tab.[ch]', if possible, from existing .[ch]
+[white_s_a@localhost scripts]$ ls
+[00m[01;32mconfig.guess[00m*  [01;32mconfig.sub[00m*  [01;32minstall-sh[00m*  [01;32mltconfig[00m*  [00mltmain.sh[00m  [01;32mmissing[00m*  [01;32mmkinstalldirs[00m*
+[m[white_s_a@localhost scripts]$ cd ..
+[white_s_a@localhost unix]$ cd ..
+[white_s_a@localhost libsidplay]$ ls
+[00m[00mAUTHORS[00m  [00mChangeLog[00m  [00mMakefile.am[00m    [00mMakefile.in[00m  [00mTODO[00m        [00macinclude.bak[00m  [00maclocal.m4[00m  [00mconfigure.in[00m  [01;34msrc[00m/
+[00mCOPYING[00m  [00mINSTALL[00m    [00mMakefile.dist[00m  [00mREADME[00m       [00macconfig.h[00m  [00macinclude.m4[00m   [01;32mconfigure[00m*  [01;34minclude[00m/      [01;34munix[00m/
+[m[white_s_a@localhost libsidplay]$ r  m acc in
+acinclude.bak  acinclude.m4   
+[white_s_a@localhost libsidplay]$ rm acinclude.bak 
+rm: remove `acinclude.bak'? y
+[white_s_a@localhost libsidplay]$ ls
+[00m[00mAUTHORS[00m  [00mChangeLog[00m  [00mMakefile.am[00m    [00mMakefile.in[00m  [00mTODO[00m        [00macinclude.m4[00m  [01;32mconfigure[00m*    [01;34minclude[00m/  [01;34munix[00m/
+[00mCOPYING[00m  [00mINSTALL[00m    [00mMakefile.dist[00m  [00mREADME[00m       [00macconfig.h[00m  [00maclocal.m4[00m    [00mconfigure.in[00m  [01;34msrc[00m/
+[m[white_s_a@localhost libsidplay]$ cat Mak
+Makefile.am    Makefile.dist  Makefile.in    
+[white_s_a@localhost libsidplay]$ cat Makefile.dost   ist
+default: all
+
+dist:
+	@echo "This file is to make it easier for you to create all you need"
+	aclocal
+	autoheader
+# use --include-deps, if you want to release the stuff. Don't use it for
+# yourself
+	automake --include-deps
+	autoconf
+	touch stamp-h.in
+	LIST=`find ./po -name "*.po"`; \
+	for i in $$LIST; do \
+	 file2=`echo $$i | sed -e "s#\.po#\.gmo#"`; \
+	 msgfmt -o $$file2 $$i; \
+	done 
+	rm -f Makefile.dist
+
+all:
+	aclocal
+	autoheader
+	automake
+	autoconf
+
+[white_s_a@localhost libsidplay]$ s ls
+[00m[00mAUTHORS[00m  [00mChangeLog[00m  [00mMakefile.am[00m    [00mMakefile.in[00m  [00mTODO[00m        [00macinclude.m4[00m  [01;32mconfigure[00m*    [01;34minclude[00m/  [01;34munix[00m/
+[00mCOPYING[00m  [00mINSTALL[00m    [00mMakefile.dist[00m  [00mREADME[00m       [00macconfig.h[00m  [00maclocal.m4[00m    [00mconfigure.in[00m  [01;34msrc[00m/
+[m[white_s_a@localhost libsidplay]$ cd ..
+[white_s_a@localhost white_s_a]$ tar -czf libsidpl
+libsidplay                         libsidplay-2.0.3pre5-macos         libsidplay_pristine
+libsidplay-1.36.36                 libsidplay-2.0.3pre5-macos.tar.gz  libsidplay.tgz
+libsidplay-1_36_36.tgz             libsidplay_2.0.5                   libsidplay_tmp
+libsidplay-1.36.39                 libsidplay-2.0.6b1.tgz
