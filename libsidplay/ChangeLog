@@ -1,6 +1,6 @@
 Release Notes 2.1.0:
 
-Changes:
+Added:
 
 Introduction of sidbuilder classes.  These classes can be used to create new sid
 emulations for libsidplay2.  The front end player owns these emulations and passes
@@ -14,11 +14,38 @@ classes use these.  The current implementation is a half measure which sees
 all components being seperated fully from the running environment.  However,
 due to the current design the components are static.  A second version of these
 classes will be released to allow dynamic allocation and linkage.  This actually
-means this project become a generic IC emulation test bed.  Given the right
-component emulations, this project could be a C64, BBC, etc.  Components can be
-effectively wired together, and added at runtime.
+means this project becomes a generic IC emulation test bed which are effectively
+added and wired together at runtime.  Given the right component emulations, this
+project could be a C64, BBC, etc.
 
 Support for exporting credits.
+
+New event scheduler that is used by all components.  The significantly improves
+the speed of the emulation.
+
+Start time and fastforward support.
+
+Support for the PSID 2 proposal B (PSID 2NG).  This allows relocation information
+to be added to the tune such that it can be played on a real C64 (based emulation).
+This is necessary as additional house keeping/contol code must be placed safely
+in C64 ram without it running the risk of being overwritten by the song.
+
+
+Changes:
+
+Code now builds under GCC3.
+
+Supporting and config requirements of the new builder classes required modification
+to libsidplay2's configuration interface.
+
+Sidplay1 specific code moved to seperate components sid6510 and sid6526.  This
+provides the simple cut down versions of the CIA (6526) and a CPU which forgives
+badly written tune code (6510).  These components are only used in the old
+sidplay/playsid modes.
+
+Direct ReSID support removed.  Now supported through extenal sidbuilder class.
+
+Floating point code in critical code parts have been converted to fixed point.
 
 
 Fixes:
@@ -31,6 +58,16 @@ number of cycles.  Results from other C64 environment tests are still being
 worked on (nothing serious).
 
 
+
+Release Notes 2.0.7-5:
+
+Performance fix (corrected player.bin).
+
+
+Release Notes 2.0.7-4:
+
+GCC 2.96 fixes.
+	
 
 Release Notes 2.0.7-3:
 
