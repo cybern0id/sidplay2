@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2002/10/02 19:42:59  s_a_white
+ *  RSID support.
+ *
  *  Revision 1.18  2002/09/12 21:01:32  s_a_white
  *  Added support for simulating the random delay before the user loads a
  *  program on a real C64.
@@ -100,6 +103,12 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
     int startlp = tuneInfo.loadAddr >> 8;
     int endlp   = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
+    if (m_info.environment != sid2_envR)
+    {   // Sidplay1 modes require no psid driver
+        endian_little16 (&m_rom[0xfffc], tuneInfo.initAddr); // RESET
+        return 0;
+    }
+
     // Check for free space in tune
     if (tuneInfo.relocStartPage == PSIDDRV_MAX_PAGE)
         tuneInfo.relocPages = 0;
@@ -117,7 +126,7 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         if ((startrp <= startlp) && (endrp >= endlp))
         {   // New relocation implementation (exclude region)
             // to complement existing method rejected as being
-            // unnecessary.  From tests it most cases this
+            // unnecessary.  From tests in most cases this
             // method increases memory availibility.
             //************************************************
             // Is describing used space so find some free
@@ -152,14 +161,14 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         uint8_t *reloc_driver = psid_driver;
         int      reloc_size   = sizeof (psid_driver);
 
-        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 17))
+        if (!reloc65 (&reloc_driver, &reloc_size, relocAddr - 13))
         {
             m_errorString = ERR_PSIDDRV_RELOC;
             return -1;
         }
 
         // Adjust size to not included initialisation data.
-        reloc_size -= 17;
+        reloc_size -= 13;
         drvAddr   = relocAddr;
         drvLength = (uint_least16_t) reloc_size;
         // Round length to end of page
@@ -168,41 +177,12 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
 
         m_ram[0x310] = JMPw;
         memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[17], reloc_size);
-
-        // Setup hardware vectors
-        switch (m_info.environment)
-        {
-        case sid2_envBS:
-            memcpy (&m_rom[0xfffa], &m_ram[0x0318],   2);
-            memcpy (&m_rom[0xfffc], &reloc_driver[0], 4);
-        case sid2_envTP:
-        case sid2_envPS:
-            memcpy (&m_ram[0xfffa], &m_ram[0x0318],   2);
-            memcpy (&m_ram[0xfffc], &reloc_driver[0], 4);
-            break;
-        case sid2_envR:
-            memcpy (&m_rom[0xfffc], &reloc_driver[0], 2);
-            break;
-        }
-
-        // Support older modes ability to ignore the IRQ
-        // vectors if valid play
-        if ((m_info.environment != sid2_envR) && tuneInfo.playAddr)
-        {   // Get the addr of the sidplay vector
-            uint_least16_t addr = endian_little16(&reloc_driver[13]);
-            // Get the irqjob vector
-            uint_least16_t vec  = endian_little16(&reloc_driver[15]);
-            // Jump directly to irqjob instead of using interrupt
-            // vector at 0x0134
-            m_ram[addr] = JMPw;
-            endian_little16 (&m_ram[addr + 1], vec);
-        }
+        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size);
+        memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
 
         {   // Experimental exit to basic support
             uint_least16_t addr;
-            addr = endian_little16(&reloc_driver[13]) - 2;
-            addr = endian_little16(&m_ram[addr]);
+            addr = endian_little16(&reloc_driver[2]);
             m_rom[0xa7ae] = LDXb;
             m_rom[0xa7af] = 0xff;
             m_rom[0xa7b0] = TXSn;
@@ -213,15 +193,9 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
 
     {   // Setup the Initial entry point
         uint_least16_t playAddr = tuneInfo.playAddr;
-        uint_least16_t addr;
+        uint_least16_t addr = relocAddr;
 
-        // Check to make sure the play address is legal
-        if (playAddr == 0xffff)
-            playAddr  = 0;
-
-        // Tell C64 about song, 1st 3 locations reserved for
-        // contain jmp addr
-        addr = relocAddr;
+        // Tell C64 about song
         m_ram[addr++] = (uint8_t) tuneInfo.currentSong;
         if (tuneInfo.songSpeed == SIDTUNE_SPEED_VBI)
             m_ram[addr] = 0;

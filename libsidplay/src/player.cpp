@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.49  2002/10/20 08:58:36  s_a_white
+ *  Modify IO map so psiddrv can detect special cases.
+ *
  *  Revision 1.48  2002/10/15 18:20:54  s_a_white
  *  Make all addresses from ea31 to ea7d valid IRQ exit points.  This
  *  approximates the functionality of a real C64.
@@ -291,6 +294,34 @@ Player::Player (void)
     credit[3] = cia.credits ();
     credit[4] = vic.credits ();
     credit[5] = NULL;
+}
+
+// Makes the next sequence of notes available.  For sidplay compatibility
+// this function should be called from interrupt event
+void Player::fakeIRQ (void)
+{   // Check to see if the play address has been provided or whether
+    // we should pick it up from an IRQ vector
+    uint_least16_t playAddr = m_tuneInfo.playAddr;
+
+    // We have to reload the new play address
+    if (!playAddr)
+    {
+        if (isKernal)
+        {   // Setup the entry point from hardware IRQ
+            playAddr = endian_little16 (&m_ram[0x0314]);
+        }
+        else
+        {   // Setup the entry point from software IRQ
+            playAddr = endian_little16 (&m_ram[0xFFFF]);
+        }
+    }
+    else
+        evalBankSelect (m_playBank);
+
+    // Setup the entry point and restart the cpu
+    endian_little16 (&m_rom[0xfffc], playAddr);
+    endian_little16 (&m_ram[0xfffc], playAddr);
+    cpu->triggerIRQ ();
 }
 
 int Player::fastForward (uint percent)
@@ -744,10 +775,6 @@ void Player::reset (void)
         m_rom[0xFE45] = 0x18;
         m_rom[0xFE46] = 0x03;
 
-        // hardware vectors
-        endian_little16 (&m_rom[0xfffa], 0xFE43); // NMI
-        endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
-
         {   // (ms) IRQ ($FFFE) comes here and we do JMP ($0314)
             uint8_t prg[] = {PHAn,  TXAn, PHAn, TYAn, PHAn, TSXn,
                              LDAax, 0x04, 0x01, ANDb, 0x10, BEQr,
@@ -765,7 +792,24 @@ void Player::reset (void)
     else // !sid2_envR
     {   // fake VBI-interrupts that do $D019, BMI ...
         m_rom[0x0d019] = 0xff;
+        if (m_info.environment == sid2_envPS)
+        {
+            m_ram[0xff48] = JMPi;
+            endian_little16 (&m_ram[0xff49], 0x0314);
+        }
     }
+
+    // Software vectors
+    endian_little16 (&m_ram[0x0314], 0xEA31); // IRQ
+    endian_little16 (&m_ram[0x0316], 0xFE66); // BRK
+    endian_little16 (&m_ram[0x0318], 0xFE47); // NMI
+    // Hardware vectors
+    if (m_info.environment == sid2_envPS)
+        endian_little16 (&m_rom[0xfffa], 0xFFFA); // NMI
+    else
+        endian_little16 (&m_rom[0xfffa], 0xFE43); // NMI
+    endian_little16 (&m_rom[0xfffc], 0xFCE2); // RESET
+    endian_little16 (&m_rom[0xfffe], 0xFF48); // IRQ
 
     // Will get done later if can't now
     if (m_tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
@@ -799,9 +843,23 @@ void Player::envReset (bool safe)
 
     m_ram[0] = 0x2F;
     // defaults: Basic-ROM on, Kernal-ROM on, I/O on
-    evalBankSelect(0x37);
+    if (m_info.environment != sid2_envR)
+    {
+        uint8_t song = m_tuneInfo.currentSong - 1;
+        uint8_t bank = iomap (m_tuneInfo.initAddr);
+        if (bank == 0)
+            bank = 0x37;
+        evalBankSelect (bank);
+        sid6510.reset  (song, song, song);
+        m_playBank = iomap (m_tuneInfo.playAddr);
+        memcpy (&m_ram[0xfffa], &m_rom[0xfffa], 6);
+    }
+    else
+    {
+        evalBankSelect (0x37);
+        cpu->reset ();
+    }
 
-    cpu->reset ();
     mixerReset ();
     xsid.suppress (true);
 }

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2002/10/02 19:45:23  s_a_white
+ *  RSID support.
+ *
  *  Revision 1.33  2002/09/12 21:01:31  s_a_white
  *  Added support for simulating the random delay before the user loads a
  *  program on a real C64.
@@ -265,6 +268,7 @@ private:
 
     // C64 environment settings
     uint8_t        m_bankReg;
+    uint8_t        m_playBank;
     uint_least16_t m_sidAddress[2];
 
     // temp stuff -------------
@@ -279,6 +283,7 @@ private:
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);
     int       environment    (sid2_env_t env);
+    void      fakeIRQ        (void);
     int       initialise     (void);
     void      nextSequence   (void);
     void      mixer          (void);
@@ -385,7 +390,12 @@ inline void Player::envSleep (void)
 inline void Player::interruptIRQ (bool state)
 {
     if (state)
-        cpu->triggerIRQ ();
+    {
+        if (m_info.environment == sid2_envR)
+            cpu->triggerIRQ ();
+        else
+            fakeIRQ ();
+    }
     else
         cpu->clearIRQ ();
 }

@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2001/08/05 15:46:02  s_a_white
+ *  No longer need to check on which cycle an instruction ends or when to print
+ *  debug information.
+ *
  *  Revision 1.9  2001/07/14 16:48:03  s_a_white
  *  cycleCount and related must roject.Syn
  *
@@ -97,11 +101,13 @@ protected:
     // Interrupts
     struct
     {
-        uint_least16_t pending;
+        uint_least8_t  pending;
         uint_least8_t  irqs;
         event_clock_t  nmiClock;
         event_clock_t  irqClock;
         event_clock_t  delay;
+        bool           irqRequest;
+        bool           irqLatch;
     } interrupts;
 
     uint8_t        Debug_Data;
@@ -120,10 +126,11 @@ protected:
     inline void IRQRequest       (void);
     inline void IRQ1Request      (void);
     inline void IRQ2Request      (void);
-    void        interruptPending (void);
+    bool        interruptPending (void);
 
-    // Declare Instrunction Routines
-    inline void FetchOpcode          (void);
+    // Declare Instruction Routines
+    virtual void FetchOpcode         (void);
+    void        NextInstr            (void);
     inline void FetchDataByte        (void);
     inline void FetchLowAddr         (void);
     inline void FetchLowAddrX        (void);
@@ -171,6 +178,7 @@ protected:
     inline void bit_instr     (void);
     inline void bmi_instr     (void);
     inline void bne_instr     (void);
+    inline void branch_instr  (bool condition);
     inline void bpl_instr     (void);
     inline void brk_instr     (void);
     inline void bvc_instr     (void);
@@ -205,7 +213,6 @@ protected:
     inline void ora_instr     (void);
     inline void pha_instr     (void);
     inline void pla_instr     (void);
-    inline void plp_instr     (void);
     inline void rla_instr     (void);
     inline void rol_instr     (void);
     inline void rola_instr    (void);
