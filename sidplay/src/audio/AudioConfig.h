@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:43  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.3  2000/12/11 19:07:14  s_a_white
  *  AC99 Update.
  *
@@ -25,6 +28,12 @@
 #define _AudioConfig_h_
 
 #include <sidplay/sidtypes.h>
+//typedef SID2::uint uint;
+#define FOREVER SID_FOREVER
+#define SWAP    SID_SWAP
+#ifdef SIDPLAY2_NAMESPACE
+    using namespace SIDPLAY2_NAMESPACE;
+#endif
 
 // Configuration constants.
 enum
