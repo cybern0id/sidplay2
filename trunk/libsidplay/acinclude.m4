@@ -69,14 +69,13 @@ AC_DEFUN(SID_CHECK_IOS_BIN,
 ])
 
 dnl -------------------------------------------------------------------------
-dnl Check whether C++ compiler supports exception-handling
-dnl and in particular the "nothrow allocator".
+dnl Check whether C++ environment provides the "nothrow allocator".
 dnl Will substitute @SID_HAVE_EXCEPTIONS@ if test code compiles.
 dnl -------------------------------------------------------------------------
 
 AC_DEFUN(SID_CHECK_EXCEPTIONS,
 [
-    AC_MSG_CHECKING(whether exception-handling is supported)
+    AC_MSG_CHECKING([whether nothrow allocator is available])
     AC_CACHE_VAL(sid_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
