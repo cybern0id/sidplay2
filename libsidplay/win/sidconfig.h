@@ -33,10 +33,6 @@
 */
 #define SID_HAVE_LOCAL_RESID
 
-/* And lastly specify operating system and sound driver */
-#define HAVE_MSWINDOWS
-#define HAVE_DIRECTX
-
 #ifdef _MSC_VER
     /* Microsoft specific compiler problem */
 #   define SID_HAVE_BAD_COMPILER
