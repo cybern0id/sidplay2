@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.72  2004/03/18 20:22:03  s_a_white
+ *  Added sidmapper (so support more the 2 sids).
+ *
  *  Revision 1.71  2004/02/11 20:59:17  s_a_white
  *  PACKAGE_NAME should be defined from PACKAGE not NAME.
  *
@@ -861,11 +864,15 @@ void Player::reset (void)
     for (i = 0; i < SID2_MAX_SIDS; i++)
     {
         sidemu &s = *sid[i];
+        s.reset (0x0f);
         // Synchronise the waveform generators
+        // (must occur after reset)
         s.write (0x04, 0x08);
         s.write (0x0b, 0x08);
         s.write (0x12, 0x08);
-        s.reset (0x0f);
+        s.write (0x04, 0x00);
+        s.write (0x0b, 0x00);
+        s.write (0x12, 0x00);
     }
 
     if (m_info.environment == sid2_envR)
