@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2001/03/19 23:46:35  s_a_white
+ *  NMI no longer sets I flag.  RTI and store instructions are no longer
+ *  overlapped.
+ *
  *  Revision 1.8  2001/03/09 22:28:51  s_a_white
  *  Speed optimisation update and fix for interrupt flag in PushSR call.
  *
@@ -140,8 +144,7 @@ void MOS6510::triggerIRQ (void)
     interrupts.irqs++;
     if (interrupts.irqs > iIRQSMAX)
     {
-        printf ("MOS6510 Error: An external component is not clearing down it's IRQs.\n");
-        printf ("               Aborting...\n\n");
+        printf ("\nMOS6510 ERROR: An external component is not clearing down it's IRQs.\n\n");
         exit (-1);
     }
 }
