@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2001/12/07 18:22:33  s_a_white
+ *  Player quit fixes.
+ *
  *  Revision 1.24  2001/12/05 22:22:48  s_a_white
  *  Added playerFast flag.
  *
@@ -179,7 +182,7 @@ void sighandler (int signum)
 
 void displayError (const char *arg0, uint num)
 {
-    cerr << arg0 << ": ";
+    cerr << arg0 << endl;
 
     switch (num)
     {
