@@ -31,6 +31,7 @@ class c64cia1: public MOS6526
 {
 private:
     c64env &m_env;
+    uint8_t lp;
 
 protected:
     void interrupt (bool state)
@@ -38,11 +39,25 @@ protected:
         m_env.interruptIRQ (state);
     }
 
+    void portB ()
+    {
+        uint8_t lp = (pra | ~ddrb) & 0x10;
+        if (lp != this->lp)
+            m_env.lightpen();
+        this->lp = lp;
+    }
+
 public:
     c64cia1 (c64env *env)
     :MOS6526(&(env->context ())),
      m_env(*env) {}
     const char *error (void) {return "";}
+
+    void reset ()
+    {
+        lp = 0x10;
+        MOS6526::reset ();
+    }
 };
 
 /* CIA 2 specifics:
