@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2003/07/10 06:52:26  s_a_white
+ *  Fixed two memory reads that should have been data and not code accesses
+ *
  *  Revision 1.38  2003/05/16 18:28:59  s_a_white
  *  Code modifications to allowing compiling on the QNX6 platform.
  *
@@ -308,7 +311,7 @@ void MOS6510::triggerIRQ (void)
 
     if (interrupts.irqs > iIRQSMAX)
     {
-        printf ("\nMOS6510 ERROR: An external component is not clearing down it's IRQs.\n\n");
+        fprintf (m_fdbg, "\nMOS6510 ERROR: An external component is not clearing down it's IRQs.\n\n");
         exit (-1);
     }
 }
@@ -380,20 +383,20 @@ MOS6510_interruptPending_check:
 #ifdef MOS6510_DEBUG
     if (dodump)
     {
-    printf ("****************************************************\n");
+    fprintf (m_fdbg, "****************************************************\n");
     switch (offset)
     {
     case oIRQ:
-        printf (" IRQ Routine\n");
+        fprintf (m_fdbg, " IRQ Routine\n");
     break;
     case oNMI:
-        printf (" NMI Routine\n");
+        fprintf (m_fdbg, " NMI Routine\n");
     break;
     case oRST:
-        printf (" RST Routine\n");
+        fprintf (m_fdbg, " RST Routine\n");
     break;
     }
-    printf ("****************************************************\n");
+    fprintf (m_fdbg, "****************************************************\n");
     }
 #endif
 
@@ -795,7 +798,7 @@ void MOS6510::rti_instr (void)
 {
 #ifdef MOS6510_DEBUG
     if (dodump)
-        printf ("****************************************************\n\n");
+        fprintf (m_fdbg, "****************************************************\n\n");
 #endif
 
     endian_32lo16 (Register_ProgramCounter, Cycle_EffectiveAddress);
@@ -1342,9 +1345,9 @@ void MOS6510::tya_instr (void)
 
 void MOS6510::illegal_instr (void)
 {
-    printf ("\n\nILLEGAL INSTRUCTION, resetting emulation. **************\n");
+    fprintf (m_fdbg, "\n\nILLEGAL INSTRUCTION, resetting emulation. **************\n");
     DumpState ();
-    printf ("********************************************************\n");
+    fprintf (m_fdbg, "********************************************************\n");
     // Perform Environment Reset
     envReset ();
 }
@@ -1517,7 +1520,8 @@ void MOS6510::tas_instr (void)
 //MOS6510::MOS6510 (model_t _model, const char *id)
 MOS6510::MOS6510 (EventContext *context)
 :eventContext(*context),
- Event("CPU")
+ Event("CPU"),
+ m_fdbg(stdout)
 {
     struct ProcessorOperations *instr;
     uint8_t legalMode  = true;
@@ -2463,4 +2467,13 @@ void MOS6510::credits (char *sbuffer)
     sprintf (sbuffer, "%sVersion    : %s\n", sbuffer, MOS6510_VERSION);
     sprintf (sbuffer, "%sReleased   : %s\n", sbuffer, MOS6510_DATE);
     sprintf (sbuffer, "%sEmail      : %s\n", sbuffer, MOS6510_EMAIL);
+}
+
+void MOS6510::debug (bool enable, FILE *out)
+{
+    dodump = enable;
+    if (!(out && enable))
+        m_fdbg = stdout;
+    else
+        m_fdbg = out;
 }
