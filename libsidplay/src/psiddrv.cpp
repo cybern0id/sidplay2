@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2002/11/01 19:11:21  s_a_white
+ *  Export random delay used in song.
+ *
  *  Revision 1.20  2002/11/01 17:36:02  s_a_white
  *  Frame based support for old sidplay1 modes.
  *
@@ -95,7 +98,6 @@ SIDPLAY2_NAMESPACE_START
 
 const char *Player::ERR_PSIDDRV_NO_SPACE  = "ERROR: No space to install psid driver in C64 ram"; 
 const char *Player::ERR_PSIDDRV_RELOC     = "ERROR: Failed whilst relocating psid driver";
-const char *Player::ERR_PSIDDRV_BAD_PAGES = "ERROR: Tune contains bad relocation information";
 
 extern "C" int reloc65(unsigned char** buf, int* fsize, int addr);
 
@@ -123,31 +125,21 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
         psidRelocAddr (tuneInfo, startlp, endlp);
     }
     else
-    {   // Check for reloc information for errors and
-        // relocation mode
+    {   // Check reloc information mode
         int startrp = tuneInfo.relocStartPage;
         int endrp   = startrp + (tuneInfo.relocPages - 1);
+
+        // New relocation implementation (exclude region)
+        // to complement existing method rejected as being
+        // unnecessary.  From tests in most cases this
+        // method increases memory availibility.
+        /*************************************************
         if ((startrp <= startlp) && (endrp >= endlp))
-        {   // New relocation implementation (exclude region)
-            // to complement existing method rejected as being
-            // unnecessary.  From tests in most cases this
-            // method increases memory availibility.
-            //************************************************
-            // Is describing used space so find some free
+        {   // Is describing used space so find some free
             // ram outside this range
-            // psidRelocAddr (tuneInfo, startrp, endrp);
-            m_errorString = ERR_PSIDDRV_BAD_PAGES;
-            return -1;
+            psidRelocAddr (tuneInfo, startrp, endrp);
         }
-        // Check for relocation area partially covering load
-        // image.  This is not currently allowed even though
-        // large unused areas may exist in the image.
-        else if ( ((startlp <= startrp) && (startrp <= endlp)) ||
-                  ((startlp <= endrp)   && (endrp   <= endlp)) )
-        {
-            m_errorString = ERR_PSIDDRV_BAD_PAGES;
-            return -1;
-        }
+        *************************************************/
     }
 
     if (tuneInfo.relocPages < 1)
@@ -181,18 +173,16 @@ int Player::psidDrvInstall (SidTuneInfo &tuneInfo, uint_least16_t &drvAddr,
 
         m_ram[0x310] = JMPw;
         memcpy (&m_ram[0x0311],    &reloc_driver[4], 9);
-        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size);
         memcpy (&m_rom[0xfffc], &reloc_driver[0], 2); /* RESET */
 
         {   // Experimental exit to basic support
             uint_least16_t addr;
             addr = endian_little16(&reloc_driver[2]);
-            m_rom[0xa7ae] = LDXb;
-            m_rom[0xa7af] = 0xff;
-            m_rom[0xa7b0] = TXSn;
-            m_rom[0xa7b1] = JMPw;
-            endian_little16 (&m_rom[0xa7b2], addr);
+            m_rom[0xa7ae] = JMPw;
+            endian_little16 (&m_rom[0xa7af], 0xffe1);
+            endian_little16 (&m_ram[0x0328], addr);
         }
+        memcpy (&m_ram[relocAddr], &reloc_driver[13], reloc_size);
     }
 
     {   // Setup the Initial entry point
