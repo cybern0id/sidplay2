@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2003/02/20 18:50:43  s_a_white
+ *  sid2crc support.
+ *
  *  Revision 1.27  2002/03/11 18:02:56  s_a_white
  *  Display errors like sidplay1.
  *
@@ -146,10 +149,6 @@ main_restart:
         if (!player.play ())
             break;
     }
-
-#ifndef HAVE_MSWINDOWS
-    cerr << endl;
-#endif
 
 #ifdef HAVE_UNIX
     keyboard_disable_raw ();
