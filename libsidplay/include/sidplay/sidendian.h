@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/01/07 16:01:33  s_a_white
+ *  sidendian.h is now installed, therefore endian defines updated.
+ *
  *  Revision 1.4  2000/12/13 17:53:01  s_a_white
  *  Fixes some of the endian calls.
  *

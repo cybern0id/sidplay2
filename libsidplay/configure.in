@@ -98,11 +98,12 @@ AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -Wall"
+CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include -I\$(top_srcdir)/include/sidplay -Wall"
 
 AC_OUTPUT(
 Makefile \
 include/Makefile \
+include/sidplay/Makefile \
 unix/Makefile \
 unix/sidconfig.h \
 src/Makefile \
