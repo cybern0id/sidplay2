@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2003/05/16 18:28:59  s_a_white
+ *  Code modifications to allowing compiling on the QNX6 platform.
+ *
  *  Revision 1.37  2003/02/20 21:12:19  s_a_white
  *  Switching to NMI during BRK now occurs correctly.
  *
@@ -245,7 +248,7 @@ void MOS6510::PopSR (void)
     {
         uint_least16_t addr = Register_StackPointer;
         endian_16hi8 (addr, SP_PAGE);
-        Register_Status = envReadMemByte (addr);
+        Register_Status = envReadMemDataByte (addr);
     }
     Register_Status |= ((1 << SR_NOTUSED) | (1 << SR_BREAK));
     setFlagN (Register_Status);
@@ -1242,7 +1245,7 @@ void MOS6510::pla_instr (void)
     Register_StackPointer++;
     addr = Register_StackPointer;
     endian_16hi8 (addr, SP_PAGE);
-    setFlagsNZ (Register_Accumulator = envReadMemByte (addr));
+    setFlagsNZ (Register_Accumulator = envReadMemDataByte (addr));
 }
 
 void MOS6510::rol_instr (void)
