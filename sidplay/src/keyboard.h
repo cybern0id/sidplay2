@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2001/01/08 16:41:42  s_a_white
+ *  App and Library Seperation
+ *
  *  Revision 1.1  2000/12/12 19:13:15  s_a_white
  *  New keyboard handling routines.
  *
@@ -32,8 +35,11 @@
 #endif
 
 enum
-{   // Standard Commands
-    A_PREFIX = 1,
+{
+    A_NONE = 0,
+
+    // Standard Commands
+    A_PREFIX,
     A_SKIP,
     A_END_LIST,
     A_INVALID,

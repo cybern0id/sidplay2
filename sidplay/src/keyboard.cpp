@@ -174,7 +174,7 @@ int keyboard_decode ()
 {
     char cmd[MAX_CMDLEN+1], c;
     int  nch = 0;
-    int  action;
+    int  action = A_NONE;
 
     /*
      * Collect characters in a buffer.
@@ -190,7 +190,7 @@ int keyboard_decode ()
             c = _getch ();
     }
 
-    for (;;)
+    while (c >= 0)
     {
         cmd[nch++] = c;
         cmd[nch]   = '\0';
@@ -225,7 +225,9 @@ int _kbhit (void)
 int _getch (void)
 {
     char ch = 0;
-    if (read (STDERR_FILENO, &ch, 1) < 0)
+    int  ret;
+    ret = read (STDERR_FILENO, &ch, 1);
+    if (ret <= 0)
         return -1;
     return ch;
 }
@@ -234,6 +236,7 @@ int _getch (void)
 static termios term;
 void keyboard_enable_raw ()
 {
+    // set to non canonical mode, echo off, ignore signals
     struct termios current;
     // save current terminal settings
     tcgetattr (STDERR_FILENO, &current);
