@@ -52,6 +52,8 @@ enum
     ERR_FILE_OPEN
 };
 
+typedef enum {sid_tableStart, sid_tableMiddle, sid_tableSeperator, sid_tableEnd} table_sidt;
+
 // Global variables
 static sidplayer  player;
 static AudioBase *player_audioDrv = NULL;
@@ -65,7 +67,8 @@ static void displaySyntax (char *arg0);
 // Rev 2.0.4 (saw) - Added for better MAC support
 static inline bool generateMusic (AudioConfig &cfg, void *buffer);
 static void sighandler    (int signum);
-static void cleanup (bool fast);
+static void cleanup       (bool fast);
+static void displayTable  (table_sidt table);
 
 int main(int argc, char *argv[])
 {
@@ -79,21 +82,18 @@ int main(int argc, char *argv[])
     udword_sidt   runtime       = 0;
     bool          verboseOutput = false;
     bool          force2SID     = false;
-    int           i             = 1;
     // Rev 1.9 (saw) - Default now obtained from sidplayer.h
     int           optimiseLevel = SIDPLAYER_DEFAULT_OPTIMISATION;
     clock_sidt    clockSpeed    = SID_TUNE_CLOCK;
+    AudioConfig   audioCfg;
+
+	// (ms) Incomplete...
+    // Fastforward/Rewind Patch
+    udword_sidt   starttime     = 0;
 
     // (ms) Opposite of verbose output.
     // 1 = no time display
     player_quietLevel = 0;
-
-	// (ms) Incomplete...
-    // Fastforward/Rewind Patch
-    udword_sidt      starttime     = 0;
-
-    // New...
-    AudioConfig   audioCfg;
 
     audioCfg.frequency = SIDPLAYER_DEFAULT_SAMPLING_FREQ;;
     audioCfg.precision = SIDPLAYER_DEFAULT_PRECISION;
@@ -114,278 +114,280 @@ int main(int argc, char *argv[])
         goto main_error;
     }
 
-    // parse command line arguments
-    while ((i < argc) && (argv[i] != NULL))
-    {
-        int x = 0;
-        if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
-        {
-            x++;
-            switch (argv[i][x++])
-            {
-            case 'f':
-                switch (argv[i][x++])
-                {
-                case '\0':
-                    // User forgot frequency number
-                    x = 0;
-                break;
+    {   // parse command line arguments
+	    int i = 1;
+		while ((i < argc) && (argv[i] != NULL))
+		{
+			int x = 0;
+			if ((argv[i][0] == '-') && (argv[i][1] != '\0'))
+			{
+				x++;
+				switch (argv[i][x++])
+				{
+				case 'f':
+					switch (argv[i][x++])
+					{
+					case '\0':
+						// User forgot frequency number
+						x = 0;
+					break;
 
-                case 'd':
-                    // Override sudTune and enable the second sid
-                    force2SID = true;
-                break;
+					case 'd':
+						// Override sudTune and enable the second sid
+						force2SID = true;
+					break;
 
-                default:
-                    audioCfg.frequency = atoi(argv[i] + x - 1);
-                    // Show that all string was processed
-                    while (argv[i][x] != '\0')
-                        x++;
-                break;
-                }
-            break;
-	
-            // Player Mode (Environment) Options
-            case 'm':
-                switch (argv[i][x++])
-                {
-                case '\0':
-                    playerMode = sid_envPS;
-                    x--;
-                break;
+					default:
+						audioCfg.frequency = atoi(argv[i] + x - 1);
+						// Show that all string was processed
+						while (argv[i][x] != '\0')
+							x++;
+					break;
+					}
+				break;
+		
+				// Player Mode (Environment) Options
+				case 'm':
+					switch (argv[i][x++])
+					{
+					case '\0':
+						playerMode = sid_envPS;
+						x--;
+					break;
 
-                case 't':
-                    playerMode = sid_envTP;
-                break;
+					case 't':
+						playerMode = sid_envTP;
+					break;
 
-                case 'b':
-                    playerMode = sid_envBS;
-                break;
+					case 'b':
+						playerMode = sid_envBS;
+					break;
 
-                default:
-                break;
-                }
-            break;
+					default:
+					break;
+					}
+				break;
 
-            // New/No options
-            case 'n':
-                switch (argv[i][x++])
-                {
-                // External Filter Options
-                case 'e':
-                    if (argv[i][x] == '\0')
-                    {   // Disable filter
-                        player.extFilter (false);
-                        break;
-                    }
-                break;
+				// New/No options
+				case 'n':
+					switch (argv[i][x++])
+					{
+					// External Filter Options
+					case 'e':
+						if (argv[i][x] == '\0')
+						{   // Disable filter
+							player.extFilter (false);
+							break;
+						}
+					break;
 
-                // Filter options
-                case 'f':
-                    if (argv[i][x] == '\0')
-                    {   // Disable filter
-                        player.filter (false);
-                        break;
-                    }
-                break;
+					// Filter options
+					case 'f':
+						if (argv[i][x] == '\0')
+						{   // Disable filter
+							player.filter (false);
+							break;
+						}
+					break;
 
-                // Newer sid (8580)
-                case 's':
-                    if (argv[i][x] == '\0')
-                    {   // Select newer sid
-                        player.sidModel (SID_MOS6581);
-                        break;
-                    }
-                break;
+					// Newer sid (8580)
+					case 's':
+						if (argv[i][x] == '\0')
+						{   // Select newer sid
+							player.sidModel (SID_MOS6581);
+							break;
+						}
+					break;
 
-                default:
-                    x = 0;
-                break;
-                }
-            break;
+					default:
+						x = 0;
+					break;
+					}
+				break;
 
-            case 'o':
-                if (argv[i][x] == '\0')
-                {   // User forgot track number
-                    x = 0;
-                    break;
-                }
+				case 'o':
+					if (argv[i][x] == '\0')
+					{   // User forgot track number
+						x = 0;
+						break;
+					}
 
-                selectedSong = atoi(argv[i] + x);
-                // Show that all string was processed
-                while (argv[i][x] != '\0')
-                    x++;
-            break;
+					selectedSong = atoi(argv[i] + x);
+					// Show that all string was processed
+					while (argv[i][x] != '\0')
+						x++;
+				break;
 
-            case 'O':
-                if (argv[i][x] == '\0')
-                {   // User optimisation level
-                    x = 0;
-                    break;
-                }
+				case 'O':
+					if (argv[i][x] == '\0')
+					{   // User optimisation level
+						x = 0;
+						break;
+					}
 
-                optimiseLevel = atoi(argv[i] + x);
-                // Show that all string was processed
-                while (argv[i][x] != '\0')
-                    x++;
-            break;
+					optimiseLevel = atoi(argv[i] + x);
+					// Show that all string was processed
+					while (argv[i][x] != '\0')
+						x++;
+				break;
 
-            case 'p':
-                if (argv[i][x] == '\0')
-                {
-                    // User forgot precision
-                    x = 0;
-                }
+				case 'p':
+					if (argv[i][x] == '\0')
+					{
+						// User forgot precision
+						x = 0;
+					}
 
-                {
-                    int precision = atoi(argv[i] + x);
-                    if (precision <= 8)
-                        precision = 8;
-                    else if (precision <= 16)
-                        precision = 16;
-                    else
-                        precision = 24;
+					{
+						int precision = atoi(argv[i] + x);
+						if (precision <= 8)
+							precision = 8;
+						else if (precision <= 16)
+							precision = 16;
+						else
+							precision = 24;
 
-                    if (precision > SIDPLAYER_MAX_PRECISION)
-                        precision = SIDPLAYER_MAX_PRECISION;
-                    audioCfg.precision = precision;
+						if (precision > SIDPLAYER_MAX_PRECISION)
+							precision = SIDPLAYER_MAX_PRECISION;
+						audioCfg.precision = precision;
 
-                    // Show that all string was processed
-                    while (argv[i][x] != '\0')
-                        x++;
-                }
-            break;
+						// Show that all string was processed
+						while (argv[i][x] != '\0')
+							x++;
+					}
+				break;
 
-            case 'q':
-                // Later introduce incremental mode.
-                if (argv[i][x] == '\0')
-                    ++player_quietLevel;
-            break;
+				case 'q':
+					// Later introduce incremental mode.
+					if (argv[i][x] == '\0')
+						++player_quietLevel;
+				break;
 
-            // Stereo Options
-            case 's':
-                switch (argv[i][x++])
-                {
-                case '\0':
-     	            // Select Dual SIDS
-                    playback = sid_stereo;
-                    audioCfg.channels = 2; // Stereo
-                    x--;
-                break;
+				// Stereo Options
+				case 's':
+					switch (argv[i][x++])
+					{
+					case '\0':
+     					// Select Dual SIDS
+						playback = sid_stereo;
+						audioCfg.channels = 2; // Stereo
+						x--;
+					break;
 
-                case 'l':
-                    // Left Channel
-                    playback = sid_left;
-                    audioCfg.channels = 1; // Mono
-                break;
+					case 'l':
+						// Left Channel
+						playback = sid_left;
+						audioCfg.channels = 1; // Mono
+					break;
 
-                case 'r':
-                    // Right Channel
-                    playback = sid_right;
-                    audioCfg.channels = 1; // Mono
-                break;
+					case 'r':
+						// Right Channel
+						playback = sid_right;
+						audioCfg.channels = 1; // Mono
+					break;
 
-                default:
-                break;
-                }
-            break;
+					default:
+					break;
+					}
+				break;
 
-            case 't':
-            {
-                char *sep;
-                bool start = false;
-                udword_sidt time;
-                if ((argv[i][x]) == 's')
-		        {
-		            x++;
-		            start = true;
-                }
+				case 't':
+				{
+					char *sep;
+					bool start = false;
+					udword_sidt time;
+					if ((argv[i][x]) == 's')
+					{
+						x++;
+						start = true;
+					}
 
-                sep = strstr (argv[i] + x, ":");
-                if (!sep)
-                {   // User gave seconds
-                    time = atoi (argv[i] + x);
-                }
-                else
-                {   // Read in MM:SS format
-                    *sep = '\0';
-                    int val;
-                    val  = atoi (argv[i] + x);
-                    if (val < 0 || val > 99)
-                        break;
-                    time = (udword_sidt) val * 60;
-                    val  = atoi (sep + 1);
-                    if (val < 0 || val > 59)
-                        break;
-                    time += (udword_sidt) val;
-                }
+					sep = strstr (argv[i] + x, ":");
+					if (!sep)
+					{   // User gave seconds
+						time = atoi (argv[i] + x);
+					}
+					else
+					{   // Read in MM:SS format
+						*sep = '\0';
+						int val;
+						val  = atoi (argv[i] + x);
+						if (val < 0 || val > 99)
+							break;
+						time = (udword_sidt) val * 60;
+						val  = atoi (sep + 1);
+						if (val < 0 || val > 59)
+							break;
+						time += (udword_sidt) val;
+					}
 
-                if (!start)
-                    runtime   = time;
-                else
-		            starttime = time;
+					if (!start)
+						runtime   = time;
+					else
+						starttime = time;
 
-                // Show that complete string was parsed
-                while (argv[i][x] != '\0')
-                    x++;
-            }
-            break;
+					// Show that complete string was parsed
+					while (argv[i][x] != '\0')
+						x++;
+				}
+				break;
 
-            case 'v':
-                switch (argv[i][x++])
-                {
-                case '\0':
-     	            // Select Dual SIDS
-                    verboseOutput = true;
-                    x--;
-                break;
+				case 'v':
+					switch (argv[i][x++])
+					{
+					case '\0':
+     					// Select Dual SIDS
+						verboseOutput = true;
+						x--;
+					break;
 
-                case 'n':
-                    // Select NTSC
-                    clockSpeed = SID_NTSC;
-                break;
+					case 'n':
+						// Select NTSC
+						clockSpeed = SID_NTSC;
+					break;
 
-                case 'p':
-                    // Select NTSC
-                    clockSpeed = SID_PAL;
-                break;
+					case 'p':
+						// Select NTSC
+						clockSpeed = SID_PAL;
+					break;
 
-                default:
-                break;
-                }
-            break;
+					default:
+					break;
+					}
+				break;
 
-            case 'w':
-                wavOutput = true;
-            break;
+				case 'w':
+					wavOutput = true;
+				break;
 
-            default:
-                // Rev 2.0.3 (saw): Added to fix switch bug
-                x = 0;
-            break;
-            }
+				default:
+					// Rev 2.0.3 (saw): Added to fix switch bug
+					x = 0;
+				break;
+				}
 
-            // Make sure all all string was checked
-            if (argv[i][x] != '\0')
-            {
-                displaySyntax (argv[0]);
-                goto main_error;
-            }
-        }
-        else
-        {   // Reading file name
-            if (!sidFile)
-            {
-                sidFile = i;
-            }
-            else
-            {
-                displayError (argv[0], ERR_SYNTAX);
-                goto main_error;
-            }
-        }
-        i++;  // next index
-    }
+				// Make sure all all string was checked
+				if (argv[i][x] != '\0')
+				{
+					displaySyntax (argv[0]);
+					goto main_error;
+				}
+			}
+			else
+			{   // Reading file name
+				if (!sidFile)
+				{
+					sidFile = i;
+				}
+				else
+				{
+					displayError (argv[0], ERR_SYNTAX);
+					goto main_error;
+				}
+			}
+			i++;  // next index
+		}
+	}
 
     if (sidFile == 0)
     {   // Neither file nor stdin.
@@ -434,27 +436,45 @@ int main(int argc, char *argv[])
         goto main_error;
     }
 
+    // Rev 1.12 (saw) Moved to allow modification of wav filename
+	// based on subtune
+    playerInfo_sidt playerInfo;
+    player.getInfo (&playerInfo);
+
     if (wavOutput)
     {
         // Generate a name for the wav file
-        char wavName[0x100];
-        int  length;
-        WavFile *wavFile;
+        WavFile *wavFile = 0;
+        char    *wavName = 0;
+        size_t  length, i;
 
-        strcpy (wavName, argv[sidFile]);
-        length = strlen (wavName);
+		length = strlen (argv[sidFile]);
         i      = length;
-        while (i-- > 0)
+        while (i > 0)
         {
-            if (wavName[i] == '.')
+            if (argv[sidFile][--i] == '.')
                 break;
         }
+        if (!i) i = length;
+        
+		// Rev 1.12 (saw - Create wav filename
+#ifdef SID_HAVE_EXCEPTIONS
+        wavName = new(nothrow) char[i + 10];
+#else
+        wavName = new char[i + 10];
+#endif
+        if (!wavName)
+		{
+            displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
+            goto main_error;
+        }
 
-        if (!i)
-            i = length;
-
-        // Now we have a name
-        strcpy (&wavName[i], ".wav");
+        strcpy (wavName, argv[sidFile]);
+        // Rev 1.12 (saw) - Modified to change wav name based on subtune
+		// Now we have a name
+		if (playerInfo.tuneInfo.songs > 1)
+            sprintf (&wavName[i], "[%u]", (unsigned int) playerInfo.tuneInfo.currentSong);
+        strcat (&wavName[i], ".wav");
         // lets create the wav object
 #ifdef SID_HAVE_EXCEPTIONS
         wavFile = new(nothrow) WavFile;
@@ -464,12 +484,14 @@ int main(int argc, char *argv[])
 
         if (!wavFile)
         {
+			delete wavName;
             displayError (argv[0], ERR_NOT_ENOUGH_MEMORY);
             goto main_error;
         }
 
         player_audioDrv = wavFile;
         nextBuffer = (ubyte_sidt *) wavFile->open (audioCfg, wavName, true);
+        delete wavName;
         if (!nextBuffer)
         {
             cout << argv[0] << " " << wavFile->getErrorString () << endl;
@@ -483,65 +505,89 @@ int main(int argc, char *argv[])
         }
     }
 
-    playerInfo_sidt playerInfo;
-    player.getInfo (&playerInfo);
-
-    cout << "SIDPLAY - Music Player and C64 SID Chip Emulator" << endl;
-    cout << "--------------------------------------------------" << endl;
-    cout.setf (ios::left);
-
-//    if (verboseOutput)
-//        cout << setw(12) << "sidplay" << " : V2.0.0" << endl;
-	
-    cout << setw(12) << playerInfo.name
-         << " : V" << playerInfo.version << endl;
-    cout.setf (ios::internal);
-
+    cout << (char) 12 << '\b'; // New Page
+    displayTable (sid_tableStart);
+    displayTable (sid_tableMiddle);
+    cout << "  SIDPLAY - Music Player and C64 SID Chip Emulator" << endl;
+    displayTable (sid_tableMiddle);
+    cout << setw(24) << "sidplay V2.0.0," << " "
+		 << playerInfo.name << " V" << playerInfo.version << endl;
+    displayTable (sid_tableSeperator);
+ 
     if (verboseOutput)
     {
+        displayTable (sid_tableMiddle);
         cout << "File format  : " << playerInfo.tuneInfo.formatString << endl;
-        cout << "Filenames    : " << playerInfo.tuneInfo.dataFileName << ", ";
-        cout << playerInfo.tuneInfo.infoFileName << endl;
+        displayTable (sid_tableMiddle);
+        cout << "Filename(s)  : " << playerInfo.tuneInfo.dataFileName << endl;
+		// Rev 1.12 (saw).  Visual C++ Fix (Only print second file string if not NULL).
+        if (playerInfo.tuneInfo.dataFileName)
+		{
+            displayTable (sid_tableMiddle);
+            cout << "             : " << playerInfo.tuneInfo.infoFileName << endl;
+		}
+        displayTable (sid_tableMiddle);
         cout << "Condition    : " << playerInfo.tuneInfo.statusString << endl;
 	}
 
+    displayTable (sid_tableMiddle);
     cout << "Setting Song : " << playerInfo.tuneInfo.currentSong
          << " out of "        << playerInfo.tuneInfo.songs
          << " (default = "    << playerInfo.tuneInfo.startSong << ')' << endl;
 
     if (verboseOutput)
+	{
+        displayTable (sid_tableMiddle);
 		cout << "Song speed   : " << playerInfo.tuneInfo.speedString << endl;
+	}
 
+    displayTable (sid_tableMiddle);
     if (runtime)
         cout << "Song Length  : " << setw(2) << setfill('0') << ((runtime / 60) % 100)
 		     << ':' << setw(2) << setfill('0') << (runtime % 60) << endl;
     else
         cout << "Song Length  : UNKNOWN" << endl;
-    cout << "--------------------------------------------------" << endl;
 
+    displayTable (sid_tableSeperator);
     if (playerInfo.tuneInfo.numberOfInfoStrings == 3)
     {
+        displayTable (sid_tableMiddle);
         cout << "Name         : " << playerInfo.tuneInfo.infoString[0] << endl;
+        displayTable (sid_tableMiddle);
         cout << "Author       : " << playerInfo.tuneInfo.infoString[1] << endl;
+        displayTable (sid_tableMiddle);
         cout << "Copyright    : " << playerInfo.tuneInfo.infoString[2] << endl;
     }
     else
     {
         for (int infoi = 0; infoi < playerInfo.tuneInfo.numberOfInfoStrings; infoi++)
+		{
+            displayTable (sid_tableMiddle);
             cout << "Description  : " << playerInfo.tuneInfo.infoString[infoi] << endl;
+		}
     }
-    cout << "--------------------------------------------------" << endl;
 
     if (verboseOutput)
     {
-        cout << "Load address : $" << hex << setw(4) << setfill('0')
-             << playerInfo.tuneInfo.loadAddr << endl;
-        cout << "Init address : $" << hex << setw(4) << setfill('0')
-             << playerInfo.tuneInfo.initAddr << endl;
-        cout << "Play address : $" << hex << setw(4) << setfill('0')
+        displayTable (sid_tableSeperator);
+        displayTable (sid_tableMiddle);
+        cout << "Addresses    : ";
+		cout << "Load=$" << hex << setw(4) << setfill('0')
+             << playerInfo.tuneInfo.loadAddr;
+        cout << ", Init=$";
+		cout << hex << setw(4) << setfill('0')
+             << playerInfo.tuneInfo.initAddr;
+        cout << ", Play=$";
+        cout << hex << setw(4) << setfill('0')
              << playerInfo.tuneInfo.playAddr << dec << endl;
 
-		cout << "SID Filter   : " << ((playerInfo.filter == true) ? "Yes" : "No") << endl;
+        displayTable (sid_tableMiddle);
+		cout << "SID Filters  : ";
+		cout << "Internal=";
+		cout << ((playerInfo.filter == true) ? "Yes" : "No");
+		cout << ", External=";
+		cout << ((playerInfo.extFilter == true) ? "Yes" : "No") << endl;
+        displayTable (sid_tableMiddle);
 		switch (playerInfo.environment)
 		{
 		case sid_envPS:
@@ -557,8 +603,8 @@ int main(int argc, char *argv[])
             cout << "Environment  : Real C64 (Default)" << endl;
         break;
 		}
-        cout << "--------------------------------------------------" << endl;
     }
+    displayTable (sid_tableEnd);
 
     if (!wavOutput)
         cout << "Playing, press ^C to stop..." << flush;
@@ -600,6 +646,8 @@ int main(int argc, char *argv[])
 
     // Clean up
     cleanup (player_fastExit);
+    if (wavOutput && !player_fastExit)
+        cout << (char) 7; // Bell
     return EXIT_SUCCESS;
 
 main_error:
@@ -722,6 +770,7 @@ void displaySyntax (char* arg0)
 //        << "Mail comments, bug reports, or contributions to <sidplay2@email.com>." << endl;
 }
 
+
 void cleanup (bool fast)
 {
     if (player_audioDrv)
@@ -732,4 +781,32 @@ void cleanup (bool fast)
         delete player_audioDrv;
 	}
     cout << endl;
+}
+
+
+void displayTable (table_sidt table)
+{
+	const int tableWidth = 52;
+
+	switch (table)
+	{
+	case sid_tableStart:
+	    cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
+	break;
+
+	case sid_tableMiddle:
+	    cout << setw(tableWidth + 1) << setfill(' ') << "" << "|\r|";
+        return;
+
+	case sid_tableSeperator:
+	    cout << '|' << setw(tableWidth) << setfill ('-') << "" << '|';
+	break;
+
+	case sid_tableEnd:
+	    cout << '+' << setw(tableWidth) << setfill ('-') << "" << '+';
+	break;
+    }
+
+    // Move back to begining of row and skip first char
+	cout << "\n";
 }
