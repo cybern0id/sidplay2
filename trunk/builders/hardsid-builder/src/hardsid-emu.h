@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2005/03/20 22:52:22  s_a_white
+ *  Add MK4 synchronous stream support.
+ *
  *  Revision 1.10  2005/01/12 22:11:11  s_a_white
  *  Updated to support new ioctls so we can find number of installed sid devices.
  *
@@ -56,58 +59,6 @@
 #include <sidplay/event.h>
 #include "config.h"
 
-#ifdef HAVE_MSWINDOWS
-
-#include <windows.h>
-
-#define HSID_VERSION_MIN (WORD) 0x0200
-#define HSID_VERSION_204 (WORD) 0x0204
-#define HSID_VERSION_207 (WORD) 0x0207
-
-//**************************************************************************
-// Version 2 Interface
-typedef void (CALLBACK* HsidDLL2_Delay_t)   (BYTE deviceID, WORD cycles);
-typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
-typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
-typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
-typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
-typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
-typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
-typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
-typedef void (CALLBACK* HsidDLL2_Sync_t)    (BYTE deviceID);
-typedef void (CALLBACK* HsidDLL2_Write_t)   (BYTE deviceID, WORD cycles, BYTE SID_reg, BYTE data);
-typedef WORD (CALLBACK* HsidDLL2_Version_t) (void);
-
-// Version 2.04 Extensions
-typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
-typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
-typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
-
-// Version 2.07 Extensions
-typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
-
-struct HsidDLL2
-{
-    HINSTANCE          Instance;
-    HsidDLL2_Delay_t   Delay;
-    HsidDLL2_Devices_t Devices;
-    HsidDLL2_Filter_t  Filter;
-    HsidDLL2_Flush_t   Flush;
-    HsidDLL2_Lock_t    Lock;
-    HsidDLL2_Unlock_t  Unlock;
-    HsidDLL2_Mute_t    Mute;
-    HsidDLL2_Mute2_t   Mute2;
-    HsidDLL2_MuteAll_t MuteAll;
-    HsidDLL2_Reset_t   Reset;
-    HsidDLL2_Reset2_t  Reset2;
-    HsidDLL2_Read_t    Read;
-    HsidDLL2_Sync_t    Sync;
-    HsidDLL2_Write_t   Write;
-    WORD               Version;
-};
-
-#endif // HAVE_MSWINDOWS
-
 #define HARDSID_VOICES 3
 // Approx 60ms
 #define HARDSID_DELAY_CYCLES 60000
@@ -121,13 +72,7 @@ private:
     friend class HardSIDBuilder;
 
     // HardSID specific data
-#ifdef HAVE_UNIX
     int            m_handle;
-    static int     m_device;
-    static int     m_devices;
-#endif
-
-    static const   uint voices;
     static char    credit[100];
 
     // Generic variables
@@ -141,11 +86,8 @@ private:
     bool           m_locked;
 
 public:
-    HardSID  (sidbuilder *builder, uint id, event_clock_t &accessClk
-#ifdef HAVE_UNIX
-              , int handle
-#endif
-             );
+    HardSID  (sidbuilder *builder, uint id, event_clock_t &accessClk,
+              int handle);
     ~HardSID ();
 
     // Standard component functions
@@ -174,13 +116,12 @@ private:
     void event (void);
 
 public:
-#ifdef HAVE_UNIX
     // Support to obtain number of devices
-    static int  devices ();
+    static int  init    (char *error);
     static int  open    (int &handle, char *error);
-    static void close   (int &handle);
+    static void close   (int handle);
+    static int  devices (char *error);
     static void flush   (int handle);
-#endif
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)

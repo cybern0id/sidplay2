@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2005/03/20 22:52:22  s_a_white
+ *  Add MK4 synchronous stream support.
+ *
  *  Revision 1.18  2005/01/14 16:01:28  s_a_white
  *  If the allocated returns an error it is because the call isn't supported
  *  (as is the case for older drivers), therefore is valid.
@@ -91,11 +94,10 @@
 #include "hardsid-emu.h"
 
 
-#define    HARDSID_SYNC_PROTOCOL(id) (((id) << 24) | (1 << 13))
-char       HardSID::credit[];
-const uint HardSID::voices    = HARDSID_VOICES;
-int        HardSID::m_device  = 0;
-int        HardSID::m_devices = 0;
+#define HARDSID_SYNC_PROTOCOL(id) (((id) << 24) | (1 << 13))
+char    HardSID::credit[];
+static  int hsid_device  = 0;
+static  int hsid_devices = 0;
 
 
 HardSID::HardSID (sidbuilder *builder, uint id, event_clock_t &accessClk,
@@ -116,7 +118,7 @@ HardSID::~HardSID () {;}
 
 void HardSID::reset (uint8_t volume)
 {
-    for (uint i= 0; i < voices; i++)
+    for (uint i= 0; i < HARDSID_VOICES; i++)
         muted[i] = false;
     ioctl (m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
@@ -191,12 +193,12 @@ void HardSID::volume (uint_least8_t num, uint_least8_t level)
 void HardSID::mute (uint_least8_t num, bool mute)
 {
     // Only have 3 voices!
-    if (num >= voices)
+    if (num >= HARDSID_VOICES)
         return;
     muted[num] = mute;
     
     int cmute = 0;
-    for ( uint i = 0; i < voices; i++ )
+    for ( uint i = 0; i < HARDSID_VOICES; i++ )
         cmute |= (muted[i] << i);
     ioctl (m_handle, HSID_IOCTL_MUTE, cmute);
 }
@@ -247,12 +249,17 @@ bool HardSID::lock(c64env* env)
     return true;
 }
 
+int HardSID::init (char *error)
+{
+    return 0;
+}
+
 // Open next available hardsid device.  For the newer drivers
 // we will end up opening the same device multiple times
 int HardSID::open (int &handle, char *error)
 {
     char device[20];
-    int i = m_device;
+    int i = hsid_device;
 
     // New device driver support
     handle = ::open ("/dev/sid", O_RDWR);
@@ -264,8 +271,8 @@ int HardSID::open (int &handle, char *error)
             handle = ::open (device, O_RDWR);
             if (handle >= 0)
                 break;
-            i = (i + 1) % m_devices;
-        } while (i != m_device);
+            i = (i + 1) % hsid_devices;
+        } while (i != hsid_device);
     }
 
     if (handle < 0)
@@ -287,22 +294,19 @@ int HardSID::open (int &handle, char *error)
         sprintf (error, "HARDSID ERROR: No sid available");
         return -1;
     }
-    m_device = i + 1;
+    hsid_device = i + 1;
     return avail;
 }
 
 void HardSID::close (int &m_handle)
 {
     if (m_handle >= 0)
-    {
         ::close (m_handle);
-        m_handle = -1;
-    }
 }
 
 // Return available hardsid devices (in case of old hardsid
 // driver it is a best guess) or -1 on error.
-int HardSID::devices ()
+int HardSID::devices (char *error)
 {
     int count = 0;
 
@@ -328,7 +332,10 @@ int HardSID::devices ()
         dirent *entry;
         dir = opendir("/dev");
         if (!dir)
+        {
+            sprintf (error, "HARDSID ERROR: Unable to access /dev");
             return -1;
+        }
 
         while ( (entry=readdir(dir)) )
         {
@@ -353,9 +360,9 @@ int HardSID::devices ()
         closedir (dir);
     }
 
-    m_devices = count;
-    if (m_device >= m_devices)
-        m_device = 0;
+    hsid_devices = count;
+    if (hsid_device >= hsid_devices)
+        hsid_device = 0;
     return count;
 }
 

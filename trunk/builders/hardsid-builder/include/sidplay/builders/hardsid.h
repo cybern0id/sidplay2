@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2004/05/05 23:47:50  s_a_white
+ *  Detect available sid devices on Unix system.
+ *
  *  Revision 1.3  2003/01/23 17:48:17  s_a_white
  *  Added missed return parameter for init function prototype.
  *
@@ -35,17 +38,15 @@
 #include <vector>
 #include "sidplay/sidbuilder.h"
 
+class HardSIDStream;
 
 class HardSIDBuilder: public sidbuilder
 {
 private:
-    static bool m_initialised;
+    static bool   m_initialised;
+    static uint   m_count;
     char   m_errorBuffer[100];
-    std::vector<sidemu *> sidobjs;
-
-#ifdef HAVE_UNIX
-    static uint m_count;
-#endif
+    std::vector<HardSIDStream *> m_streams;
 
     int init (void);
 

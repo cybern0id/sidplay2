@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2004/06/26 15:35:05  s_a_white
+ *  Switched hardcoded phases to use m_phase variable.
+ *
  *  Revision 1.14  2004/06/26 11:17:28  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *  Merged sidplay2/w volume/mute changes.
@@ -66,41 +69,86 @@
  ***************************************************************************/
 
 #include <stdio.h>
+#include <windows.h>
 #include "config.h"
 #include "hardsid.h"
 #include "hardsid-emu.h"
 
+#define HSID_VERSION_MIN (WORD) 0x0200
+#define HSID_VERSION_204 (WORD) 0x0204
+#define HSID_VERSION_207 (WORD) 0x0207
 
-extern HsidDLL2 hsid2;
-const  uint HardSID::voices = HARDSID_VOICES;
-uint   HardSID::sid = 0;
+//**************************************************************************
+// Version 1 Interface (used calls only)
+typedef BYTE (CALLBACK* HsidDLL1_InitMapper_t) (void);
+
+//**************************************************************************
+// Version 2 Interface
+typedef void (CALLBACK* HsidDLL2_Delay_t)   (BYTE deviceID, WORD cycles);
+typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
+typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
+typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
+typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
+typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
+typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
+typedef void (CALLBACK* HsidDLL2_Sync_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Write_t)   (BYTE deviceID, WORD cycles, BYTE SID_reg, BYTE data);
+typedef WORD (CALLBACK* HsidDLL2_Version_t) (void);
+
+// Version 2.04 Extensions
+typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
+
+// Version 2.07 Extensions
+typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
+
+// Version 2.08 Extensions
+typedef void (CALLBACK* HsidDLL2_EnableCMK3_t) (void);
+
+
+struct HsidDLL2
+{
+    HINSTANCE          Instance;
+    HsidDLL2_Delay_t   Delay;
+    HsidDLL2_Devices_t Devices;
+    HsidDLL2_Filter_t  Filter;
+    HsidDLL2_Flush_t   Flush;
+    HsidDLL2_Lock_t    Lock;
+    HsidDLL2_Unlock_t  Unlock;
+    HsidDLL2_Mute_t    Mute;
+    HsidDLL2_Mute2_t   Mute2;
+    HsidDLL2_MuteAll_t MuteAll;
+    HsidDLL2_Reset_t   Reset;
+    HsidDLL2_Reset2_t  Reset2;
+    HsidDLL2_Read_t    Read;
+    HsidDLL2_Sync_t    Sync;
+    HsidDLL2_Write_t   Write;
+    WORD               Version;
+};
+
+static HsidDLL2 hsid2 = {0};
 char   HardSID::credit[];
+static int hsid_device = 0;
 
 
-HardSID::HardSID (sidbuilder *builder)
+HardSID::HardSID (sidbuilder *builder, uint id, event_clock_t &accessClk,
+                  int handle)
 :sidemu(builder),
  Event("HardSID Delay"),
+ m_handle(handle),
  m_eventContext(NULL),
+ m_accessClk(accessClk),
  m_phase(EVENT_CLOCK_PHI1),
- m_instance(sid++),
- m_status(false),
+ m_id(handle), // for now ignore id (as refers to stream id)
  m_locked(false)
-{   
-    *m_errorBuffer = '\0';
-    if (m_instance >= hsid2.Devices ())
-    {
-        sprintf (m_errorBuffer, "HARDSID WARNING: System dosen't have enough SID chips.");
-        return;
-    }
-
-    m_status = true;
+{
     reset ();
 }
 
-
 HardSID::~HardSID()
 {
-    sid--;
 }
 
 uint8_t HardSID::read (uint_least8_t addr)
@@ -110,11 +158,11 @@ uint8_t HardSID::read (uint_least8_t addr)
 
     while (cycles > 0xFFFF)
     {
-        hsid2.Delay ((BYTE) m_instance, 0xFFFF);
+        hsid2.Delay ((BYTE) m_id, 0xFFFF);
         cycles -= 0xFFFF;
     }
 
-    return hsid2.Read ((BYTE) m_instance, (WORD) cycles,
+    return hsid2.Read ((BYTE) m_id, (WORD) cycles,
                        (BYTE) addr);
 }
 
@@ -125,11 +173,11 @@ void HardSID::write (uint_least8_t addr, uint8_t data)
 
     while (cycles > 0xFFFF)
     {
-        hsid2.Delay ((BYTE) m_instance, 0xFFFF);
+        hsid2.Delay ((BYTE) m_id, 0xFFFF);
         cycles -= 0xFFFF;
     }
 
-    hsid2.Write ((BYTE) m_instance, (WORD) cycles,
+    hsid2.Write ((BYTE) m_id, (WORD) cycles,
                  (BYTE) addr, (BYTE) data);
 }
 
@@ -137,12 +185,12 @@ void HardSID::reset (uint8_t volume)
 {
     m_accessClk = 0;
     // Clear hardsid buffers
-    hsid2.Flush ((BYTE) m_instance);
+    hsid2.Flush ((BYTE) m_id);
     if (hsid2.Version >= HSID_VERSION_204)
-        hsid2.Reset2 ((BYTE) m_instance, volume);
+        hsid2.Reset2 ((BYTE) m_id, volume);
     else
-        hsid2.Reset  ((BYTE) m_instance);
-    hsid2.Sync ((BYTE) m_instance);
+        hsid2.Reset  ((BYTE) m_id);
+    hsid2.Sync ((BYTE) m_id);
 
     if (m_eventContext != NULL)
         schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
@@ -156,9 +204,9 @@ void HardSID::volume (uint_least8_t num, uint_least8_t level)
 void HardSID::mute (uint_least8_t num, bool mute)
 {
     if (hsid2.Version >= HSID_VERSION_207)
-        hsid2.Mute2 ((BYTE) m_instance, (BYTE) num, (BOOL) mute, FALSE);
+        hsid2.Mute2 ((BYTE) m_id, (BYTE) num, (BOOL) mute, FALSE);
     else
-        hsid2.Mute  ((BYTE) m_instance, (BYTE) num, (BOOL) mute);
+        hsid2.Mute  ((BYTE) m_id, (BYTE) num, (BOOL) mute);
 }
 
 // Set execution environment and lock sid to it
@@ -169,7 +217,7 @@ bool HardSID::lock (c64env *env)
         if (!m_locked)
             return false;
         if (hsid2.Version >= HSID_VERSION_204)
-            hsid2.Unlock (m_instance);
+            hsid2.Unlock (m_id);
         m_locked = false;
         cancel ();
         m_eventContext = NULL;
@@ -180,7 +228,7 @@ bool HardSID::lock (c64env *env)
             return false;
         if (hsid2.Version >= HSID_VERSION_204)
         {
-            if (hsid2.Lock (m_instance) == FALSE)
+            if (hsid2.Lock (m_id) == FALSE)
                 return false;
         }
         m_locked = true;
@@ -198,7 +246,7 @@ void HardSID::event (void)
     else
     {
         m_accessClk += cycles;
-        hsid2.Delay ((BYTE) m_instance, (WORD) cycles);
+        hsid2.Delay ((BYTE) m_id, (WORD) cycles);
         schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
     }
 }
@@ -206,10 +254,140 @@ void HardSID::event (void)
 // Disable/Enable SID filter
 void HardSID::filter (bool enable)
 {
-    hsid2.Filter ((BYTE) m_instance, (BOOL) enable);
+    hsid2.Filter ((BYTE) m_id, (BOOL) enable);
 }
 
-void HardSID::flush(void)
+// Load the library and initialise the hardsid
+int HardSID::init (char *error)
 {
-    hsid2.Flush ((BYTE) m_instance);
+    HINSTANCE dll;
+
+    if (hsid2.Instance)
+        return 0;
+
+    dll = LoadLibrary("HARDSID.DLL");
+    if (!dll)
+    {
+        DWORD err = GetLastError();
+		if (err == ERROR_DLL_INIT_FAILED)
+			sprintf (error, "HARDSID ERROR: hardsid.dll init failed!");
+		else
+			sprintf (error, "HARDSID ERROR: hardsid.dll not found!");
+        goto HardSID_init_error;
+    }
+
+    {   // Export Needed Version 1 Interface
+        HsidDLL1_InitMapper_t mapper;
+        mapper = (HsidDLL1_InitMapper_t) GetProcAddress(dll, "InitHardSID_Mapper");
+
+        if (mapper)
+            mapper(); 
+        else
+        {
+            sprintf (error, "HARDSID ERROR: hardsid.dll is corrupt!");
+            goto HardSID_init_error;
+        }
+    }
+
+    {   // Check for the Version 2 interface
+        HsidDLL2_Version_t version;
+        version = (HsidDLL2_Version_t) GetProcAddress(dll, "HardSID_Version");
+        if (!version)
+        {
+            sprintf (error, "HARDSID ERROR: hardsid.dll not V2");
+            goto HardSID_init_error;
+        }
+        hsid2.Version = version ();
+    }
+
+    {
+        WORD version = hsid2.Version;
+        if ((version >> 8) != (HSID_VERSION_MIN >> 8))
+        {
+            sprintf (error, "HARDSID ERROR: hardsid.dll not V%d", HSID_VERSION_MIN >> 8);
+            goto HardSID_init_error;
+        }
+
+        if (version < HSID_VERSION_MIN)
+        {
+            sprintf (error, "HARDSID ERROR: hardsid.dll must be V%02u.%02u or greater",
+                     HSID_VERSION_MIN >> 8, HSID_VERSION_MIN & 0xff);
+            goto HardSID_init_error;
+        }
+    }
+
+    // Export Needed Version 2 Interface
+    hsid2.Delay    = (HsidDLL2_Delay_t)   GetProcAddress(dll, "HardSID_Delay");
+    hsid2.Devices  = (HsidDLL2_Devices_t) GetProcAddress(dll, "HardSID_Devices");
+    hsid2.Filter   = (HsidDLL2_Filter_t)  GetProcAddress(dll, "HardSID_Filter");
+    hsid2.Flush    = (HsidDLL2_Flush_t)   GetProcAddress(dll, "HardSID_Flush");
+    hsid2.MuteAll  = (HsidDLL2_MuteAll_t) GetProcAddress(dll, "HardSID_MuteAll");
+    hsid2.Read     = (HsidDLL2_Read_t)    GetProcAddress(dll, "HardSID_Read");
+    hsid2.Sync     = (HsidDLL2_Sync_t)    GetProcAddress(dll, "HardSID_Sync");
+    hsid2.Write    = (HsidDLL2_Write_t)   GetProcAddress(dll, "HardSID_Write");
+
+    if (hsid2.Version < HSID_VERSION_204)
+        hsid2.Reset  = (HsidDLL2_Reset_t)  GetProcAddress(dll, "HardSID_Reset");
+    else
+    {
+        hsid2.Lock   = (HsidDLL2_Lock_t)   GetProcAddress(dll, "HardSID_Lock");
+        hsid2.Unlock = (HsidDLL2_Unlock_t) GetProcAddress(dll, "HardSID_Unlock");
+        hsid2.Reset2 = (HsidDLL2_Reset2_t) GetProcAddress(dll, "HardSID_Reset2");
+    }
+
+    if (hsid2.Version < HSID_VERSION_207)
+        hsid2.Mute   = (HsidDLL2_Mute_t)   GetProcAddress(dll, "HardSID_Mute");
+    else
+    {
+        hsid2.Mute2  = (HsidDLL2_Mute2_t)  GetProcAddress(dll, "HardSID_Mute2");
+
+        // CMK3 HACK
+        HsidDLL2_EnableCMK3_t cmk3_enable;
+        cmk3_enable = (HsidDLL2_EnableCMK3_t) GetProcAddress(dll, "HardSID_EnableCMK3");
+        if (cmk3_enable)
+            cmk3_enable ();
+    }
+
+    hsid2.Instance = dll;
+    return 0;
+
+HardSID_init_error:
+    if (dll)
+        FreeLibrary (dll);
+    return -1;
+}
+
+// Open next available hardsid device.  For the newer drivers
+// we will end up opening the same device multiple times
+int HardSID::open (int &handle, char *error)
+{
+    if (hsid_device == hsid2.Devices ())
+    {
+        sprintf (error, "HARDSID WARNING: System dosen't have enough SID chips.");
+        return -1;
+    }
+    handle = hsid_device++;
+    return 1;
+}
+
+void HardSID::close (int handle)
+{
+    hsid_device--;
+}
+
+int HardSID::devices (char *error)
+{
+    if (hsid2.Instance)
+    {
+        uint count = hsid2.Devices ();
+        if (count == 0)
+            sprintf (error, "HARDSID ERROR: No devices found (run HardSIDConfig)");
+        return count;
+    }
+    return 0;
+}
+
+void HardSID::flush(int m_handle)
+{
+    hsid2.Flush ((BYTE) m_handle);
 }
