@@ -26,6 +26,12 @@ dnl Initialize libtool.
 AC_LIBTOOL_WIN32_DLL
 CONFIG_LIBTOOL
 
+dnl Setup prefix, why is this not done already?
+sid_prefix=$prefix
+if test "$sid_prefix" = NONE; then
+    sid_prefix="$ac_default_prefix"
+fi
+
 dnl Checks for libraries.
 SID_PATH_LIBSIDPLAY2
 
