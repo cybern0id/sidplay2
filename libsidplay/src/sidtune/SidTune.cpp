@@ -31,7 +31,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string.h>
-#include <limits>
+#include <limits.h>
 
 #if defined(HAVE_IOS_OPENMODE)
     typedef std::ios::openmode openmode;
