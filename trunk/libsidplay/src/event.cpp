@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2003/01/24 19:30:39  s_a_white
+ *  Made code slightly more efficient.  Changes to this code greatly effect
+ *  sidplay2s performance.  Somehow need to speed up the schedule routine.
+ *
  *  Revision 1.9  2003/01/23 17:32:37  s_a_white
  *  Redundent code removal.
  *
@@ -51,7 +55,6 @@
 EventScheduler::EventScheduler (const char * const name)
 :Event(name),
  m_events(0),
-// m_phase(EVENT_CLOCK_PHI1),
  m_timeWarp(this)
 {
     m_next = this;
@@ -63,14 +66,13 @@ EventScheduler::EventScheduler (const char * const name)
 // the event clocks
 void EventScheduler::event ()
 {
-    Event *e     = this;
+    Event *e     = m_next;
     uint   count = m_events;
     m_absClk    += m_clk;
-    while (count--)
-    {   // Reduce all event clocks and clip them
-        // so none go negative
-        e = e->m_next;
+    while (e->m_pending)
+    {
         e->m_clk -= m_clk;
+        e = e->m_next;
     }
     m_clk = 0;
     // Re-schedule the next timeWarp
@@ -79,12 +81,13 @@ void EventScheduler::event ()
 
 void EventScheduler::reset (void)
 {   // Remove all events
-    Event *e     = this;
+    Event *e     = m_next;
     uint   count = m_events;
-    while (count--)
+    m_pending = false;
+    while (e->m_pending)
     {
-        e = e->m_next;
         e->m_pending = false;
+        e = e->m_next;
     }
     m_next = this;
     m_prev = this;
@@ -97,14 +100,14 @@ void EventScheduler::reset (void)
 void EventScheduler::schedule (Event *event, event_clock_t cycles,
                                event_phase_t phase)
 {
-    event_clock_t clk = m_clk + (cycles << 1);
-    clk += (((m_absClk + clk) & 1) ^ phase);
-
     if (!event->m_pending)
-    {   // Now put in the correct place so we don't need to keep
+    {
+        event_clock_t clk = m_clk + (cycles << 1);
+        clk += (((m_absClk + clk) & 1) ^ phase);
+        
+        // Now put in the correct place so we don't need to keep
         // searching the list later.
-        Event *e;
-        e = this;
+        Event *e = m_next;
         uint   count = m_events;
         while (count-- && (e->m_clk <= clk))
             e = e->m_next;
