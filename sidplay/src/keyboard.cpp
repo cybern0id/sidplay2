@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2001/12/07 18:22:57  s_a_white
+ *  Added up/down arrow keys for windows.
+ *
  *  Revision 1.5  2001/11/16 19:29:37  s_a_white
  *  Warning fixes.
  *
@@ -38,6 +41,8 @@
 #ifdef HAVE_UNIX
 // Unix console headers
 #   include <ctype.h>
+// bzero requires memset on some platforms
+#   include <string.h>
 #   include <termios.h>
 #   include <sys/time.h>
 #   include <sys/types.h>
