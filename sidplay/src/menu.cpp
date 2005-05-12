@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2004/02/26 18:19:22  s_a_white
+ *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
+ *
  *  Revision 1.13  2004/02/09 23:42:50  s_a_white
  *  Fixed damaged menu border shown using verbose option.
  *
@@ -311,6 +314,11 @@ void ConsolePlayer::menu ()
             cerr << " Delay        : ";
             consoleColour (white, false);
             cerr << info.powerOnDelay << " (cycles at poweron)" << endl;
+            consoleTable  (tableMiddle);
+            consoleColour (yellow, true);
+            cerr << " MD5          : ";
+            consoleColour (white, false);
+            cerr << m_tune.createMD5() << endl;
         }
     }
     consoleTable (tableEnd);
