@@ -44,8 +44,8 @@ case "$host" in
     *cygwin*) AC_DEFINE(HAVE_MMSYSTEM)
         audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
         AC_MSG_RESULT(mmsystem)
-        AUDIO_LDADD=-lwinmm
-        AC_SUBST(AUDIO_LDADD)
+        AUDIO_LDFLAGS=-lwinmm
+        AC_SUBST(AUDIO_LDFLAGS)
         ;;
     *freebsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
@@ -58,7 +58,7 @@ case "$host" in
     *irix*) AC_DEFINE(HAVE_IRIX)
         audiodrv_libadd="./audio/irix/libirix.a"
         AC_MSG_RESULT(irix)
-        AC_CHECK_LIB(audio, main, [AUDIO_LDADD=-laudio AC_SUBST(AUDIO_LDADD)])
+        AC_CHECK_LIB(audio, main, [AUDIO_LDFLAGS=-laudio AC_SUBST(AUDIO_LDFLAGS)])
         ;;
     *linux*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
@@ -67,12 +67,12 @@ case "$host" in
     *netbsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
         AC_MSG_RESULT(oss)
-        AC_CHECK_LIB(ossaudio, main, [AUDIO_LDADD=-lossaudio AC_SUBST(AUDIO_LDFLAGS)]) 
+        AC_CHECK_LIB(ossaudio, main, [AUDIO_LDFLAGS=-lossaudio AC_SUBST(AUDIO_LDFLAGS)]) 
         ;;
     *qnx*) AC_DEFINE(HAVE_ALSA)
         audiodrv_libadd="./audio/alsa/libalsa.a"
         AC_MSG_RESULT(alsa)
-        AC_CHECK_LIB(asound, main, [AUDIO_LDADD=-lasound AC_SUBST(AUDIO_LDFLAGS)])
+        AC_CHECK_LIB(asound, main, [AUDIO_LDFLAGS=-lasound AC_SUBST(AUDIO_LDFLAGS)])
         ;;
     *sgi*) AC_DEFINE(HAVE_SGI)
         AC_MSG_RESULT(sgi)
@@ -85,12 +85,12 @@ case "$host" in
         audiodrv_libadd="./audio/sunos/libsunos.a"
         AC_MSG_RESULT(sparc)
         ;;
-    *mingw*)
+    *mingw*) AC_DEFINE(HAVE_MMSYSTEM)
         CXXFLAGS="$CXXFLAGS -DHAVE_MINGW"
         audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
         AC_MSG_RESULT(mmsystem)
-        AUDIO_LDADD=-lwinmm
-        AC_SUBST(AUDIO_LDADD)
+        AUDIO_LDFLAGS=-lwinmm
+        AC_SUBST(AUDIO_LDFLAGS)
         ;;
     *) AC_DEFINE(HAVE_WAV_ONLY)
         AC_MSG_RESULT(wav only)
