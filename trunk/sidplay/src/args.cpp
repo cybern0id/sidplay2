@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2004/05/05 23:49:20  s_a_white
+ *  Remove the hardsid option from the args list if not sid devices are available.
+ *
  *  Revision 1.17  2004/03/01 00:16:56  s_a_white
  *  ostream is part of std namespace.
  *
@@ -136,8 +139,13 @@ int ConsolePlayer::args (int argc, const char *argv[])
     }
 
     // default arg options
+#ifdef HAVE_WAV_ONLY
+    m_driver.output = OUT_WAV;
+    m_driver.file   = true;
+#else
     m_driver.output = OUT_SOUNDCARD;
     m_driver.file   = false;
+#endif
     m_driver.sid    = EMU_RESID;
 
     // parse command line arguments

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2001/07/03 17:46:33  s_a_white
+ *  Added A_NONE.
+ *
  *  Revision 1.1  2001/01/08 16:41:42  s_a_white
  *  App and Library Seperation
  *
@@ -26,11 +29,11 @@
 
 #include "config.h"
 
-#ifdef HAVE_MSWINDOWS
+#if defined(HAVE_MSWINDOWS) || defined(HAVE_MINGW)
 #   include <conio.h>
 #endif
 
-#ifdef HAVE_UNIX
+#if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
     int _kbhit (void);
 #endif
 
