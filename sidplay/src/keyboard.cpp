@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2004/02/21 11:24:44  s_a_white
+ *  Don't lockup when the keyboard input stream is not a terminal.
+ *
  *  Revision 1.7  2002/10/17 21:23:39  s_a_white
  *  Added string.h as some platforms have bzero using memset without having
  *  a valid prototype available.
@@ -41,6 +44,11 @@
  ***************************************************************************/
 
 #include "keyboard.h"
+
+#ifdef HAVE_MINGW
+#   undef  HAVE_UNIX
+#   define HAVE_MSWINDOWS
+#endif
 
 #ifdef HAVE_UNIX
 // Unix console headers
@@ -312,4 +320,4 @@ void keyboard_disable_raw ()
     }
 }
 
-#endif // HAVE_LINUX
+#endif // HAVE_UNIX

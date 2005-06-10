@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2004/11/12 20:20:21  s_a_white
+ *  Remove some unnecessary duplicate code.
+ *
  *  Revision 1.32  2004/06/26 15:46:47  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -221,7 +224,9 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
     break;
 
     case OUT_SOUNDCARD:
-#ifdef HAVE_EXCEPTIONS
+#ifdef HAVE_WAV_ONLY
+        m_driver.device = NULL;
+#elif defined(HAVE_EXCEPTIONS)
         m_driver.device = new(std::nothrow) AudioDriver;
 #else
         m_driver.device = new AudioDriver;
@@ -477,8 +482,7 @@ bool ConsolePlayer::open (void)
 
     // Set up the play timer
     m_context = (m_engine.info()).eventContext;
-    m_timer.stop  = 0;
-    m_timer.stop += m_timer.length;
+    m_timer.stop = m_timer.length;
 
     if (m_timer.valid)
     {   // Length relative to start
