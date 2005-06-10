@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.32  2004/02/26 18:19:22  s_a_white
+ *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
+ *
  *  Revision 1.31  2004/02/12 05:58:03  s_a_white
  *  Update argurements and help menu handling.
  *
@@ -154,7 +157,7 @@ main_restart:
         goto main_error;
     }
 
-#ifdef HAVE_UNIX
+#if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
     // Configure terminal to allow direct access to key events
     keyboard_enable_raw ();
 #endif // HAVE_UNIX
@@ -166,7 +169,7 @@ main_restart:
             break;
     }
 
-#ifdef HAVE_UNIX
+#if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
     keyboard_disable_raw ();
 #endif
 
