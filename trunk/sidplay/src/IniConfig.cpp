@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/11/12 20:41:26  s_a_white
+ *  Fix 2 memory leaks reported by Valgrind
+ *
  *  Revision 1.12  2004/02/26 18:17:27  s_a_white
  *  Use ini_readBool for boolean parameters rather than ini_readInt.
  *
@@ -411,7 +414,7 @@ void IniConfig::read ()
         }
     }
 
-#ifdef HAVE_UNIX
+#if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
     sprintf (configPath, "%s/%s", path, DIR_NAME);
     // Make sure the config path exists
     mkdir   (configPath, 0700);
