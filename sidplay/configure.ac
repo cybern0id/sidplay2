@@ -85,6 +85,13 @@ case "$host" in
         audiodrv_libadd="./audio/sunos/libsunos.a"
         AC_MSG_RESULT(sparc)
         ;;
+    *mingw*)
+        CXXFLAGS="$CXXFLAGS -DHAVE_MINGW"
+        audiodrv_libadd="./audio/mmsystem/libmmsystem.a"
+        AC_MSG_RESULT(mmsystem)
+        AUDIO_LDADD=-lwinmm
+        AC_SUBST(AUDIO_LDADD)
+        ;;
     *) AC_DEFINE(HAVE_WAV_ONLY)
         AC_MSG_RESULT(wav only)
         ;;
