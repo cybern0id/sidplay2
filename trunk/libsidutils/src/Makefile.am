@@ -11,7 +11,7 @@ libsidutils_la_LIBADD  = ./MD5/libMD5.la ./ini/libini.la \
 $(LIBSIDPLAY2_LDFLAGS)
 
 # We substitute the libtool-specific library version in configure.in.
-libsidutils_la_LDFLAGS = -version-info $(LIBVERSION)
+libsidutils_la_LDFLAGS = -version-info $(LIBVERSION) -no-undefined
 
 # Remove bad default includes
 DEFAULT_INCLUDES=
