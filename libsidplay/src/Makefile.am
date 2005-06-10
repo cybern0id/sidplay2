@@ -19,7 +19,7 @@ libsidplay2_la_LIBADD  = \
 ./sidtune/libsidtune.la ./sid6526/libsid6526.la
 
 # We substitute the libtool-specific library version in configure.in.
-libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
+libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION) -no-undefined
 
 # Remove bad default includes
 DEFAULT_INCLUDES=
