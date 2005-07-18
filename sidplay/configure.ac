@@ -60,9 +60,18 @@ case "$host" in
         AC_MSG_RESULT(irix)
         AC_CHECK_LIB(audio, main, [AUDIO_LDFLAGS=-laudio AC_SUBST(AUDIO_LDFLAGS)])
         ;;
-    *linux*) AC_DEFINE(HAVE_OSS)
-        audiodrv_libadd="./audio/oss/liboss.a"
-        AC_MSG_RESULT(oss)
+    *linux*)
+        AC_ARG_WITH(oss,[  --with-oss              use OSS library for sound [[default=no]]],[WANT_OSS=$withval],[WANT_OSS=no])
+        if test "$WANT_OSS" = "yes" ; then
+            AC_DEFINE(HAVE_ALSA)
+            audiodrv_libadd="./audio/alsa/libalsa.a"
+            AC_MSG_RESULT(alsa)
+            AC_CHECK_LIB(asound, main, [AUDIO_LDFLAGS=-lasound AC_SUBST(AUDIO_LDFLAGS)])
+        else
+            AC_DEFINE(HAVE_OSS)
+            audiodrv_libadd="./audio/oss/liboss.a"
+            AC_MSG_RESULT(oss)
+        fi
         ;;
     *netbsd*) AC_DEFINE(HAVE_OSS)
         audiodrv_libadd="./audio/oss/liboss.a"
