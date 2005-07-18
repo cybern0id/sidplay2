@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/01/10 19:04:00  s_a_white
+ *  Interface changes for audio drivers.
+ *
  *  Revision 1.4  2001/10/30 23:35:35  s_a_white
  *  Added pause support.
  *
@@ -33,7 +36,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <sys/asoundlib.h>
+#ifdef HAVE_ALSA_ASOUNDLIB_H
+#   include <alsa/asoundlib.h>
+#else
+#   include <sys/asoundlib.h>
+#endif
 #include "../AudioBase.h"
 
 
@@ -41,6 +48,9 @@ class Audio_ALSA: public AudioBase
 {	
 private:  // ------------------------------------------------------- private
     snd_pcm_t * _audioHandle;
+#ifdef HAVE_ALSA_ASOUNDLIB_H
+    int _alsa_to_frames_divisor;
+#endif
 
     void outOfOrder ();
 
