@@ -22,7 +22,7 @@ AC_C_BIGENDIAN
 dnl Checks what version of Unix we have and soundcard support
 AC_CHECK_HEADERS(sys/ioctl.h linux/soundcard.h machine/soundcard.h  \
 soundcard.h sys/audio.h sun/audioio.h sun/dbriio.h sys/audioio.h  \
-audio.h dmedia/audio.h sys/soundcard.h)
+audio.h dmedia/audio.h sys/soundcard.h sys/asoundlib.h alsa/asoundlib.h)
 
 AH_TOP(
 [/* Define supported audio driver */
@@ -61,8 +61,13 @@ case "$host" in
         AC_CHECK_LIB(audio, main, [AUDIO_LDFLAGS=-laudio AC_SUBST(AUDIO_LDFLAGS)])
         ;;
     *linux*)
-        AC_ARG_WITH(oss,[  --with-oss              use OSS library for sound [[default=no]]],[WANT_OSS=$withval],[WANT_OSS=no])
-        if test "$WANT_OSS" = "yes" ; then
+        WANT_OSS=yes
+        if test "$ac_cv_header_sys_asoundlib_h" = "yes" ||
+           test "$ac_cv_header_alsa_asoundlib_h" = "yes"; then
+            WANT_OSS=no
+        fi
+        AC_ARG_WITH(oss,[  --with-oss              use OSS library for sound [[default=$WANT_OSS]]],[WANT_OSS=$withval])
+        if test "$WANT_OSS" = "no"; then
             AC_DEFINE(HAVE_ALSA)
             audiodrv_libadd="./audio/alsa/libalsa.a"
             AC_MSG_RESULT(alsa)
