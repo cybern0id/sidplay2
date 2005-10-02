@@ -17,6 +17,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2005/03/22 19:10:28  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.15  2004/06/26 15:35:05  s_a_white
  *  Switched hardcoded phases to use m_phase variable.
  *
@@ -105,7 +110,7 @@ typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
 typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
 
 // Version 2.08 Extensions
-typedef void (CALLBACK* HsidDLL2_EnableCMK3_t) (void);
+typedef void (CALLBACK* HsidDLL2_OtherHardware_t) (void);
 
 
 struct HsidDLL2
@@ -341,11 +346,11 @@ int HardSID::init (char *error)
     {
         hsid2.Mute2  = (HsidDLL2_Mute2_t)  GetProcAddress(dll, "HardSID_Mute2");
 
-        // CMK3 HACK
-        HsidDLL2_EnableCMK3_t cmk3_enable;
-        cmk3_enable = (HsidDLL2_EnableCMK3_t) GetProcAddress(dll, "HardSID_EnableCMK3");
-        if (cmk3_enable)
-            cmk3_enable ();
+        // Enable non hardsid hardware support
+        HsidDLL2_OtherHardware_t otherHwEnable;
+        otherHwEnable = (HsidDLL2_OtherHardware_t) GetProcAddress(dll, "HardSID_OtherHardware");
+        if (otherHwEnable)
+            otherHwEnable ();
     }
 
     hsid2.Instance = dll;
