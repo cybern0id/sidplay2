@@ -3,6 +3,9 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2005/07/18 19:46:43  s_a_white
+ *  Switch from obsolete alsa interface (patch by shd).
+ *
  *  Revision 1.7  2002/03/04 19:07:48  s_a_white
  *  Fix C++ use of nothrow.
  *
@@ -123,10 +126,13 @@ void *Audio_ALSA::open (AudioConfig &cfg, const char *)
         goto open_error;
     }
 
-    unsigned int rate = tmpCfg.frequency;
-    if (snd_pcm_hw_params_set_rate_near (_audioHandle, hw_params, &rate, 0)) {
-        _errorString = "ERROR: could not set sample rate";
-        goto open_error;
+    {   // Gentoo bug #98769, comment 4
+        unsigned int rate = tmpCfg.frequency;
+        if (snd_pcm_hw_params_set_rate_near (_audioHandle, hw_params, &rate, 0))
+        {
+            _errorString = "ERROR: could not set sample rate";
+            goto open_error;
+        }
     }
 
     _alsa_to_frames_divisor = tmpCfg.channels * tmpCfg.precision / 8;
