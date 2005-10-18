@@ -128,7 +128,7 @@ AC_DEFUN([SID2_FIND_LIBSIDUTILS],
                                SidDatabase *d)
     else
         MY_FIND_LIB_NO_CHECK(sidutils,sidplay/utils/SidDatabase.h)
-        LIBSIDPLAY2_CXXFLAGS="$LIBSIDPLAY2_CXXFLAGS -DHAVE_UNIX"
+        LIBSIDUTILS_CXXFLAGS="$LIBSIDUTILS_CXXFLAGS -DHAVE_UNIX"
     fi
 
     dnl list exported variables here so end up in makefile
