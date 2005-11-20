@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/07/03 22:44:13  s_a_white
+ *  Added endian_16 to convert a 16 bit value to an array of 8s.
+ *
  *  Revision 1.4  2001/05/07 16:27:24  s_a_white
  *  Fix optimisation issues with gcc 2.96.
  *
@@ -138,7 +141,7 @@ inline void endian_16swap8 (uint_least16_t &word)
 // Convert high-byte and low-byte to 16-bit word.
 inline uint_least16_t endian_16 (uint8_t hi, uint8_t lo)
 {
-    uint_least16_t word;
+    uint_least16_t word = 0;
     endian_16lo8 (word, lo);
     endian_16hi8 (word, hi);
     return word;
@@ -162,7 +165,7 @@ inline void endian_16 (uint8_t ptr[2], uint_least16_t word)
 
 inline void endian_16 (char ptr[2], uint_least16_t word)
 {
-	endian_16 ((uint8_t *) ptr, word);
+    endian_16 ((uint8_t *) ptr, word);
 }
 
 // Convert high-byte and low-byte to 16-bit little endian word.
@@ -331,7 +334,7 @@ inline void endian_32swap16 (uint_least32_t &dword)
 // Swap word endian.
 inline void endian_32swap8 (uint_least32_t &dword)
 {
-    uint_least16_t lo, hi;
+    uint_least16_t lo = 0, hi = 0;
     lo = endian_32lo16 (dword);
     hi = endian_32hi16 (dword);
     endian_16swap8 (lo);
@@ -343,8 +346,8 @@ inline void endian_32swap8 (uint_least32_t &dword)
 // Convert high-byte and low-byte to 32-bit word.
 inline uint_least32_t endian_32 (uint8_t hihi, uint8_t hilo, uint8_t hi, uint8_t lo)
 {
-    uint_least32_t dword;
-    uint_least16_t word;
+    uint_least32_t dword = 0;
+    uint_least16_t word  = 0;
     endian_32lo8  (dword, lo);
     endian_32hi8  (dword, hi);
     endian_16lo8  (word,  hilo);
@@ -371,7 +374,7 @@ inline void endian_little32 (uint8_t ptr[4], uint_least32_t dword)
     defined(SID_WORDS_LITTLEENDIAN)
     *((uint_least32_t *) ptr) = dword;
 #else
-    uint_least16_t word;
+    uint_least16_t word = 0;
     ptr[0] = endian_32lo8  (dword);
     ptr[1] = endian_32hi8  (dword);
     word   = endian_32hi16 (dword);
@@ -398,7 +401,7 @@ inline void endian_big32 (uint8_t ptr[4], uint_least32_t dword)
     defined(SID_WORDS_BIGENDIAN)
     *((uint_least32_t *) ptr) = dword;
 #else
-    uint_least16_t word;
+    uint_least16_t word = 0;
     word   = endian_32hi16 (dword);
     ptr[1] = endian_16lo8  (word);
     ptr[0] = endian_16hi8  (word);
