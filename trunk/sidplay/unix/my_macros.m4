@@ -161,7 +161,7 @@ AC_DEFUN([MY_TRY_COMPILE],
 
     CXXFLAGS="$CXXFLAGS $1"
     LDFLAGS="$LDFLAGS $2"
-    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
 
     AC_TRY_LINK(
         [#include <$3>],
