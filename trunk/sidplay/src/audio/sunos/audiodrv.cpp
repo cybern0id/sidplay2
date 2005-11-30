@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2002/03/04 19:07:48  s_a_white
+ *  Fix C++ use of nothrow.
+ *
  *  Revision 1.4  2002/01/10 19:04:01  s_a_white
  *  Interface changes for audio drivers.
  *
@@ -160,17 +163,19 @@ void *Audio_SunOS::open (AudioConfig& cfg, const char *)
     cfg.frequency = myaudio_info.play.sample_rate;
     cfg.channels  = myaudio_info.play.channels;
     cfg.encoding  = AUDIO_SIGNED_PCM;
-    cfg.bufSize   = myaudio_info.play.buffer_size;
     cfg.precision = myaudio_info.play.precision;
+    cfg.bufSize   = info.play.buffer_size;
+    if (!cfg.bufSize) // 500ms (must be less than a second)
+        cfg.bufSize = (cfg.frequency * cfg.precision) / (2 * 8 * cfg.channels);
 
     // Copy input parameters. May later be replaced with driver defaults.
     _settings = cfg;
 
     // Allocate memory same size as buffer
 #ifdef HAVE_EXCEPTIONS
-    _sampleBuffer = new(std::nothrow) int_least8_t[myaudio_info.play.buffer_size];
+    _sampleBuffer = new(std::nothrow) int_least8_t[cfg.bufSize];
 #else
-    _sampleBuffer = new int_least8_t[myaudio_info.play.buffer_size];
+    _sampleBuffer = new int_least8_t[cfg.bufSize];
 #endif
 
     _errorString = "OK";
