@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2004/02/12 05:58:03  s_a_white
+ *  Update argurements and help menu handling.
+ *
  *  Revision 1.9  2004/01/31 17:07:45  s_a_white
  *  Support of specifing max sids writes forming sid2crc and experimental
  *  TSID2 library support.
@@ -96,7 +99,8 @@ typedef enum {/* Define possible output sources */
               /* Hardware */
               OUT_SOUNDCARD,
               /* File creation support */
-              OUT_WAV, OUT_AU, OUT_END} OUTPUTS;
+              OUT_WAV, OUT_AU, OUT_RAW,
+              OUT_END} OUTPUTS;
 
 // Error and status message numbers.
 enum

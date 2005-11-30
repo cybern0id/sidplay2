@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.34  2005/06/10 18:40:16  s_a_white
+ *  Mingw support.
+ *
  *  Revision 1.33  2004/11/12 20:20:21  s_a_white
  *  Remove some unnecessary duplicate code.
  *
@@ -238,6 +241,14 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
         m_driver.device = new(std::nothrow) WavFile;
 #else
         m_driver.device = new WavFile;
+#endif
+    break;
+
+    case OUT_RAW:
+#ifdef HAVE_EXCEPTIONS
+        m_driver.device = new(std::nothrow) RawFile;
+#else
+        m_driver.device = new RawFile;
 #endif
     break;
 

@@ -153,6 +153,7 @@ src/audio/null/Makefile \
 src/audio/oss/Makefile \
 src/audio/sunos/Makefile \
 src/audio/wav/Makefile \
+src/audio/raw/Makefile \
 unix/Makefile \
 unix/sidplay2.spec \
 )
