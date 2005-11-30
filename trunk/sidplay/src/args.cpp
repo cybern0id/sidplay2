@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2005/06/10 18:40:16  s_a_white
+ *  Mingw support.
+ *
  *  Revision 1.18  2004/05/05 23:49:20  s_a_white
  *  Remove the hardsid option from the args list if not sid devices are available.
  *
@@ -366,19 +369,26 @@ int ConsolePlayer::args (int argc, const char *argv[])
                 if (argv[i][2] != '\0')
                     m_outfile = &argv[i][2];
             }
-            else if (strncmp (&argv[i][1], "-wav", 4) == 0)
+            else if (strncmp (&argv[i][1], "-wav=", 5) == 0)
             {
                 m_driver.output = OUT_WAV;
+                m_driver.file   = true;
+                if (argv[i][6] != '\0')
+                    m_outfile = &argv[i][6];
+            }
+            else if (strncmp (&argv[i][1], "-au=", 4) == 0)
+            {
+                m_driver.output = OUT_AU;
                 m_driver.file   = true;
                 if (argv[i][5] != '\0')
                     m_outfile = &argv[i][5];
             }
-            else if (strncmp (&argv[i][1], "-au", 3) == 0)
+            else if (strncmp (&argv[i][1], "-raw=", 5) == 0)
             {
-                m_driver.output = OUT_AU;
+                m_driver.output = OUT_RAW;
                 m_driver.file   = true;
-                if (argv[i][4] != '\0')
-                    m_outfile = &argv[i][4];
+                if (argv[i][6] != '\0')
+                    m_outfile = &argv[i][6];
             }
 
             // Hardware selection
