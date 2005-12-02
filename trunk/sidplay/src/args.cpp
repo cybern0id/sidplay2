@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2005/11/30 22:49:48  s_a_white
+ *  Add raw output support (--raw=<file>)
+ *
  *  Revision 1.19  2005/06/10 18:40:16  s_a_white
  *  Mingw support.
  *
@@ -98,7 +101,7 @@ using std::endl;
 // Convert time from integer
 bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
 {
-    char *sep;
+    const char *sep;
     uint_least32_t _time;
 
     // Check for empty string
@@ -112,9 +115,20 @@ bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
     }
     else
     {   // Read in MM:SS format
-        int val;
-        *sep = '\0';
-        val  = atoi (str);
+        char min[3] = {'\0', '\0', '\0'};
+        int  val;
+
+        if (str[0] == ':')
+            return false;
+        min[0]  = str[0];
+        if (str[1] != ':')
+        {
+            min[1]  = str[1];
+            if (str[2] != ':')
+                return false;
+        }
+
+        val = atoi (min);
         if (val < 0 || val > 99)
             return false;
         _time = (uint_least32_t) val * 60;
