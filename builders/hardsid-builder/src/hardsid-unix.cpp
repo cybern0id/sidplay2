@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2005/03/22 19:17:00  s_a_white
+ *  Small fix based on Windows hardsid build changes.
+ *
  *  Revision 1.20  2005/03/22 19:10:28  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -99,7 +102,8 @@
 #include "hardsid-emu.h"
 
 
-#define HARDSID_SYNC_PROTOCOL(id) (((id) << 24) | (1 << 13))
+#define HARDSID_SYNC_ID(id) ((id) << 24)
+#define HARDSID_SYNC_ID_OPT(id) (HARDSID_SYNC_ID(id) | HSID_SID_ID_PRESENT)
 char    HardSID::credit[];
 static  int hsid_device  = 0;
 static  int hsid_devices = 0;
@@ -152,11 +156,10 @@ uint8_t HardSID::read (uint_least8_t addr)
             ioctl (m_handle, HSID_IOCTL_DELAY, delay);
             cycles &= 0x00ff;
         }
-        packet |= HARDSID_SYNC_PROTOCOL(m_id);
+        packet |= HARDSID_SYNC_ID_OPT(m_id);
     }
 
     packet |= (cycles & 0xffff) << 16;
-    cycles  = 0;
     ioctl (m_handle, HSID_IOCTL_READ, &packet);
     return (uint8_t) (packet & 0xff);
 }
@@ -182,11 +185,10 @@ void HardSID::write (uint_least8_t addr, uint8_t data)
             ioctl (m_handle, HSID_IOCTL_DELAY, delay);
             cycles &= 0x00ff;
         }
-        packet |= HARDSID_SYNC_PROTOCOL(m_id);
+        packet |= HARDSID_SYNC_ID_OPT(m_id);
     }
 
     packet |= ((cycles & 0xffff) << 16) | (data & 0xff);
-    cycles  = 0;
     ::write (m_handle, &packet, sizeof (packet));
 }
 
@@ -205,7 +207,7 @@ void HardSID::mute (uint_least8_t num, bool mute)
     int cmute = 0;
     for ( uint i = 0; i < HARDSID_VOICES; i++ )
         cmute |= (muted[i] << i);
-    ioctl (m_handle, HSID_IOCTL_MUTE, cmute);
+    ioctl (m_handle, HSID_IOCTL_MUTE, HARDSID_SYNC_ID(m_id) | cmute);
 }
 
 void HardSID::event (void)
@@ -227,7 +229,7 @@ void HardSID::event (void)
 
 void HardSID::filter(bool enable)
 {
-    ioctl (m_handle, HSID_IOCTL_NOFILTER, !enable);
+    ioctl (m_handle, HSID_IOCTL_NOFILTER, HARDSID_SYNC_ID(m_id) | !enable);
 }
 
 // (Un)Lock this device to pass the to an external program for
@@ -259,17 +261,24 @@ int HardSID::init (char *error)
     return 0;
 }
 
+bool HardSID::allocate (int handle)
+{
+    if (ioctl (handle, HSID_IOCTL_ALLOCATE) < 0)
+        return false;
+    return true;
+}
+
 // Open next available hardsid device.  For the newer drivers
 // we will end up opening the same device multiple times
 int HardSID::open (int &handle, char *error)
 {
     char device[20];
-    int i = hsid_device;
 
     // New device driver support
     handle = ::open ("/dev/sid", O_RDWR);
     if (handle < 0)
     {   // Old device driver support
+        int i = hsid_device;
         do
         {
             sprintf (device, "/dev/sid%u", i);
@@ -278,6 +287,8 @@ int HardSID::open (int &handle, char *error)
                 break;
             i = (i + 1) % hsid_devices;
         } while (i != hsid_device);
+        if (handle >= 0)
+            hsid_device = i + 1;
     }
 
     if (handle < 0)
@@ -292,14 +303,6 @@ int HardSID::open (int &handle, char *error)
     int avail = ioctl (handle, HSID_IOCTL_ALLOCATED);
     if (avail < 0)
         avail = 1;
-    else if (!avail)
-    {
-        ::close (handle);
-        handle = -1;
-        sprintf (error, "HARDSID ERROR: No sid available");
-        return -1;
-    }
-    hsid_device = i + 1;
     return avail;
 }
 
