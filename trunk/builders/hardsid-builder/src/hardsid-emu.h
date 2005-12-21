@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2005/03/22 19:10:27  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.11  2005/03/20 22:52:22  s_a_white
  *  Add MK4 synchronous stream support.
  *
@@ -117,11 +122,12 @@ private:
 
 public:
     // Support to obtain number of devices
-    static int  init    (char *error);
-    static int  open    (int &handle, char *error);
-    static void close   (int handle);
-    static int  devices (char *error);
-    static void flush   (int handle);
+    static int  init     (char *error);
+    static int  open     (int &handle, char *error);
+    static void close    (int handle);
+    static int  devices  (char *error);
+    static void flush    (int handle);
+    static bool allocate (int handle);
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)

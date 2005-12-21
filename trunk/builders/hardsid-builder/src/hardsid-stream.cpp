@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2005/03/22 19:10:27  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.1  2005/03/20 22:47:39  s_a_white
  *  Added synchronous stream support for MK4 styles hardware.
  *
@@ -50,14 +55,17 @@ HardSIDStream::~HardSIDStream()
 // If sids are already allocated then provide one of those.
 uint HardSIDStream::allocate (uint sids)
 {
-    if ((m_devUsed + sids) > m_devAvail)
-    {   // Try to allocate more sids
-        // @FIXME@
-        sids = m_devAvail - m_devUsed;
-    }
-
     for (uint i = 0; i < sids; i++)
-    {
+    {   // Use up any pre-allocated sids first before allocating more
+        if (m_devUsed >= m_devAvail)
+        {
+            if (!HardSID::allocate (m_handle))
+            {
+                sids = i;
+                break;
+            }
+        }
+
 #   ifdef HAVE_EXCEPTIONS
         HardSID *sid = new(std::nothrow) HardSID(m_builder, m_devUsed + i,
                                                 m_accessClk, m_handle);
