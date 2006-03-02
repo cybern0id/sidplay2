@@ -233,6 +233,12 @@
 			Name="Audio Formats"
 			Filter="">
 			<File
+				RelativePath="..\..\src\audio\raw\RawFile.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\audio\raw\RawFile.h">
+			</File>
+			<File
 				RelativePath="..\..\src\audio\wav\WavFile.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -278,10 +284,10 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="config.h">
+			RelativePath="..\..\include\config.h">
 		</File>
 		<File
-			RelativePath="..\..\include\config.h">
+			RelativePath="config.h">
 		</File>
 		<File
 			RelativePath="..\..\src\IniConfig.cpp">
