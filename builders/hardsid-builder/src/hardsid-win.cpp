@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2005/10/02 07:47:52  s_a_white
+ *  Add official call to enable support for alternative hardware (non hardsid).
+ *
  *  Revision 1.16  2005/03/22 19:10:28  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -82,6 +85,7 @@
 #define HSID_VERSION_MIN (WORD) 0x0200
 #define HSID_VERSION_204 (WORD) 0x0204
 #define HSID_VERSION_207 (WORD) 0x0207
+#define HSID_VERSION_208 (WORD) 0x0208
 
 //**************************************************************************
 // Version 1 Interface (used calls only)
@@ -360,6 +364,11 @@ HardSID_init_error:
     if (dll)
         FreeLibrary (dll);
     return -1;
+}
+
+bool HardSID::allocate (int)
+{
+    return true;
 }
 
 // Open next available hardsid device.  For the newer drivers
