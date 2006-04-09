@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2004/06/26 11:06:52  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.12  2004/05/28 15:45:12  s_a_white
  *  Correct credit email address
  *
@@ -144,7 +147,7 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             cra &= (~0x10);
             ta   = ta_latch;
         }
-        schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
+        schedule (m_eventContext, (event_clock_t) ta + 3, m_phase);
     break;
     default:
     break;
@@ -155,6 +158,6 @@ void SID6526::event (void)
 {   // Timer Modes
     m_accessClk = m_eventContext.getTime (m_phase);
     ta = ta_latch;
-    schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
+    schedule (m_eventContext, (event_clock_t) ta + 3, m_phase);
     m_env.interruptIRQ (true);
 }
