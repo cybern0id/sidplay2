@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2004/06/26 11:09:13  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.23  2004/05/04 22:40:20  s_a_white
  *  Fix pulse mode output on the ports to work.
  *
@@ -393,7 +396,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x21) == 0x01)
         {   // Active
-            m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
+            m_taEvent.schedule (event_context, (event_clock_t) ta + 3,
                                 m_phase);
         } else
         {   // Inactive
@@ -418,7 +421,7 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x61) == 0x01)
         {   // Active
-            m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
+            m_tbEvent.schedule (event_context, (event_clock_t) tb + 3,
                                 m_phase);
         } else
         {   // Inactive
@@ -473,7 +476,7 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
+        m_taEvent.schedule (event_context, (event_clock_t) ta + 3,
                             m_phase);
     }
     trigger (INTERRUPT_TA);
@@ -538,7 +541,7 @@ void MOS6526::tb_event (void)
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
+        m_tbEvent.schedule (event_context, (event_clock_t) tb + 3,
                             m_phase);
     }
     trigger (INTERRUPT_TB);
