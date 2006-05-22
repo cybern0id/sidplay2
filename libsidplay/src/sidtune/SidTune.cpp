@@ -907,14 +907,19 @@ void SidTune::convertOldStyleSpeedToTables(uint_least32_t speed, int clock)
     // The .SID format does the bit-wise/song-wise evaluation of the SPEED
     // value correctly, like it is described in the PlaySID documentation.
 
+
+    // This routine now implements PSIDv2NG compliant speed conversion rather
+    // rather than the original supplied routine from sidplay1.
     int toDo = ((info.songs <= SIDTUNE_MAX_SONGS) ? info.songs : SIDTUNE_MAX_SONGS);
     for (int s = 0; s < toDo; s++)
     {
         clockSpeed[s] = clock;
-        if (( (speed>>(s&31)) & 1 ) == 0 )
-            songSpeed[s] = SIDTUNE_SPEED_VBI;
-        else
+        if (speed & 1)
             songSpeed[s] = SIDTUNE_SPEED_CIA_1A;
+        else
+            songSpeed[s] = SIDTUNE_SPEED_VBI;
+        if (s < 31)
+            speed >>= 1;
     }
 }
 
