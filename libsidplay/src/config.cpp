@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.43  2004/11/12 20:17:22  s_a_white
+ *  Valgrind memory access fixes
+ *
  *  Revision 1.42  2004/06/26 10:58:01  s_a_white
  *  Merged sidplay2/w volume/mute changes.
  *
@@ -676,7 +679,8 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                 sid[i] = &nullsid;
             if ((i == 0) && !*builder)
                 return -1;
-            sid[0]->optimisation (m_cfg.optimisation);
+            sid[i]->optimisation (m_cfg.optimisation);
+            sid[i]->clock ((sid2_clock_t) m_tuneInfo.clockSpeed);
         }
     }
     xsid.emulation (sid[0]);

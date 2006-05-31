@@ -49,6 +49,7 @@ public:
     virtual void          gain    (int_least8_t precent) = 0;
     virtual void          optimisation (uint_least8_t /*level*/) {;}
     sidbuilder           *builder (void) const { return m_builder; }
+    virtual void          clock   (sid2_clock_t /*clk*/) {;}
 };
 
 
