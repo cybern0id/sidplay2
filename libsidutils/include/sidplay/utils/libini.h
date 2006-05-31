@@ -16,6 +16,19 @@
  *                                                                         *
  ***************************************************************************/
 
+/***************************************************************************
+ * To generate a swig wrapper use:
+ *
+ *     swig -<lang> -module <lang>ini -o libini_<lang>.c
+ * e.g:
+ *     swig -tcl -module tclini -o libini_tcl.c
+ *
+ * The resulting c file must be built as a runtime loadable library and
+ * linked against the core ini library.  For importing the code use:
+ *     TCL:  load libtclini
+ *     PERL: use perlini; require perlini;
+ ***************************************************************************/
+
 #ifndef _libini_h_
 #define _libini_h_
 
