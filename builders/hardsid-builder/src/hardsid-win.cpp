@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2006/03/02 23:56:54  s_a_white
+ *  Make code build with new allocate function.  Just returning true will provide
+ *  previous behaviour for Windows.
+ *
  *  Revision 1.17  2005/10/02 07:47:52  s_a_white
  *  Add official call to enable support for alternative hardware (non hardsid).
  *
@@ -116,10 +120,13 @@ typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL m
 // Version 2.08 Extensions
 typedef void (CALLBACK* HsidDLL2_OtherHardware_t) (void);
 
+// Version 2.09 Extensions
+typedef WORD (CALLBACK* HsidDLL2_Clock_t)   (BYTE deviceID, BYTE preset); // 0 = H/W, PAL = 1, NTSC = 2
 
 struct HsidDLL2
 {
     HINSTANCE          Instance;
+    HsidDLL2_Clock_t   Clock;
     HsidDLL2_Delay_t   Delay;
     HsidDLL2_Devices_t Devices;
     HsidDLL2_Filter_t  Filter;
@@ -278,10 +285,10 @@ int HardSID::init (char *error)
     if (!dll)
     {
         DWORD err = GetLastError();
-		if (err == ERROR_DLL_INIT_FAILED)
-			sprintf (error, "HARDSID ERROR: hardsid.dll init failed!");
-		else
-			sprintf (error, "HARDSID ERROR: hardsid.dll not found!");
+        if (err == ERROR_DLL_INIT_FAILED)
+            sprintf (error, "HARDSID ERROR: hardsid.dll init failed!");
+        else
+            sprintf (error, "HARDSID ERROR: hardsid.dll not found!");
         goto HardSID_init_error;
     }
 
@@ -357,6 +364,10 @@ int HardSID::init (char *error)
             otherHwEnable ();
     }
 
+    hsid2.Clock = 0;
+    if (hsid2.Version > HSID_VERSION_208)
+        hsid2.Clock = (HsidDLL2_Clock_t) GetProcAddress(dll, "HardSID_Clock");
+
     hsid2.Instance = dll;
     return 0;
 
@@ -404,4 +415,15 @@ int HardSID::devices (char *error)
 void HardSID::flush(int m_handle)
 {
     hsid2.Flush ((BYTE) m_handle);
+}
+
+void HardSID::clock(sid2_clock_t clk)
+{
+    if (hsid2.Clock)
+    {
+        if (clk == SID2_CLOCK_NTSC)
+            hsid2.Clock ((BYTE) m_id, 2);
+        else
+            hsid2.Clock ((BYTE) m_id, 1);
+    }
 }
