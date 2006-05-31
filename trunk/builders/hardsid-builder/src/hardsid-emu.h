@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2005/12/21 18:25:49  s_a_white
+ *  Allow sids additional sids to be allocated (rather than just live with
+ *  those that are provided on device open).
+ *
  *  Revision 1.12  2005/03/22 19:10:27  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -104,6 +108,7 @@ public:
     const char   *error   (void) {return "";}
 
     // Standard SID functions
+    void          clock   (sid2_clock_t clk);
     int_least32_t output  (uint_least8_t bits);
     void          filter  (bool enable);
     void          model   (sid2_model_t model) {;}
