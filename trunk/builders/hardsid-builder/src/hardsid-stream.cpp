@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2005/12/21 18:25:49  s_a_white
+ *  Allow sids additional sids to be allocated (rather than just live with
+ *  those that are provided on device open).
+ *
  *  Revision 1.2  2005/03/22 19:10:27  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -67,10 +71,10 @@ uint HardSIDStream::allocate (uint sids)
         }
 
 #   ifdef HAVE_EXCEPTIONS
-        HardSID *sid = new(std::nothrow) HardSID(m_builder, m_devUsed + i,
+        HardSID *sid = new(std::nothrow) HardSID(m_builder, m_devUsed + 1,
                                                 m_accessClk, m_handle);
 #   else
-        HardSID *sid = new HardSID(m_builder, m_devUsed + i, m_accessClk, m_handle);
+        HardSID *sid = new HardSID(m_builder, m_devUsed + 1, m_accessClk, m_handle);
 #   endif
         if (!sid)
         {
@@ -79,10 +83,10 @@ uint HardSIDStream::allocate (uint sids)
             sids = i;
             break;
         }
+        m_devUsed++;
         m_sids.push_back(sid);
     }
 
-    m_devUsed += sids;
     return sids;
 }
 
