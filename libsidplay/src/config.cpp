@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.44  2006/05/31 20:38:14  s_a_white
+ *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
+ *
  *  Revision 1.43  2004/11/12 20:17:22  s_a_white
  *  Valgrind memory access fixes
  *
@@ -578,7 +581,7 @@ int Player::environment (sid2_env_t env)
 
 // Integrate SID emulation from the builder class into
 // libsidplay2
-int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
+int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
                        sid2_model_t defaultModel)
 {
     sid[0] = xsid.emulation ();
@@ -600,7 +603,7 @@ int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
     {   // Release old sids
         for (int i = 0; i < SID2_MAX_SIDS; i++)
         {
-            sidbuilder *b;
+            ISidBuilder *b;
             b = sid[i]->builder ();
             if (b)
                 b->unlock (sid[i]);

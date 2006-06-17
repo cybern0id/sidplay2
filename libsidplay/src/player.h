@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.52  2004/06/26 11:02:55  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *  Removed unnecessary cpu emulation.
+ *
  *  Revision 1.51  2004/05/03 22:42:56  s_a_white
  *  Change how port handling is dealt with to provide better C64 compatiiblity.
  *  Add character rom support.
@@ -247,7 +251,7 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    sidemu *sid[SID2_MAX_SIDS];
+    ISidEmulation *sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
     EventCallback<Player> m_mixerEvent;
@@ -309,6 +313,7 @@ private:
     int             m_rand;
     uint_least32_t  m_sid2crc;
     uint_least32_t  m_sid2crcCount;
+    bool            m_sidFirstAccess;
     bool            m_emulateStereo;
 
     // Mixer settings
@@ -353,7 +358,7 @@ private:
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidCreate      (sidbuilder *builder, sid2_model_t model,
+    int       sidCreate      (ISidBuilder *builder, sid2_model_t model,
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();

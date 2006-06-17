@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2004/06/26 11:05:42  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.22  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -105,7 +108,7 @@ programmed with.
 #define _xsid_h_
 
 #include "config.h"
-#include "sidbuilder.h"
+#include "imp/sidbuilder.h"
 #include "event.h"
 
 // XSID configuration settings
@@ -201,7 +204,7 @@ private:
 };
 
 
-class XSID: public sidemu, private Event
+class XSID: public SidEmulation, private Event
 {
     friend class channel;
 
@@ -228,11 +231,14 @@ private:
     virtual uint8_t readMemByte  (uint_least16_t addr) = 0;
     virtual void    writeMemByte (uint8_t data) = 0;
 
+private:
+    // Interface - Later use
+    void ifquery (const InterfaceID &, void **) {;}
+
 public:
     XSID (EventContext *context);
 
-    // Standard calls
-    void    reset () { sidemu::reset (); }
+    // Component
     void    reset (uint8_t);
     uint8_t read  (uint_least8_t) { return 0; }
     void    write (uint_least8_t, uint8_t) { ; }

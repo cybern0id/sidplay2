@@ -20,13 +20,16 @@
 
 #include "sidbuilder.h"
 
-class NullSID: public sidemu
+class NullSID: public SidEmulation
 {
+private:
+    // Interface - Later use
+    void ifquery (const InterfaceID &, void **) {;}
+
 public:
-    NullSID () : sidemu (NULL) {;}
+    NullSID () : SidEmulation (NULL) {;}
 
     // Standard component functions
-    void    reset () { sidemu::reset (); }
     void    reset (uint8_t) { ; }
     uint8_t read  (uint_least8_t) { return 0; }
     void    write (uint_least8_t, uint8_t) { ; }

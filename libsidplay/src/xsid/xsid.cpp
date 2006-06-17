@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2004/06/26 11:42:08  s_a_white
+ *  Make sure all registers get reset.
+ *
  *  Revision 1.25  2004/06/26 11:05:42  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -426,7 +429,7 @@ void channel::silence ()
 
 
 XSID::XSID (EventContext *context)
-:sidemu(NULL),
+:SidEmulation(NULL),
  Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),

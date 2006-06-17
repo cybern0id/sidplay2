@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.82  2004/07/07 20:44:13  s_a_white
+ *  Internally relocated character ROM to 0x4000 as 0xd000 ROM area is writable
+ *  for IO.  This change is hidden from and does not effect C64 programs.
+ *
  *  Revision 1.81  2004/06/26 11:01:55  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *  Merged sidplay2/w volume/mute changes and removed unecessary cpu
@@ -924,7 +928,7 @@ void Player::reset (void)
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
     {
-        sidemu &s = *sid[i];
+        ISidEmulation &s = *sid[i];
         s.reset (0x0f);
         // Synchronise the waveform generators
         // (must occur after reset)

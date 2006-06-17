@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2004/06/26 11:09:13  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.16  2004/04/13 07:39:32  s_a_white
  *  Add lightpen support.
  *
@@ -84,10 +87,10 @@
 #ifndef _mos6526_h_
 #define _mos6526_h_
 
-#include "component.h"
+#include "imp/component.h"
 #include "event.h"
 
-class MOS6526: public component
+class MOS6526: public Component
 {
 private:
     static const char *credit;
@@ -141,6 +144,10 @@ protected:
              m_cia(*cia) {}
     } event_stateMachineA;
 */
+
+private:
+    // Interface - Later use
+    void ifquery (const InterfaceID &, void **) {;}
 
 protected:
     MOS6526 (EventContext *context);
