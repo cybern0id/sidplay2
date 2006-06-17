@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2004/06/26 11:06:52  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.5  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -37,11 +40,11 @@
 #ifndef _sid6526_h_
 #define _sid6526_h_
 
-#include "component.h"
+#include "imp/component.h"
 #include "event.h"
 #include "c64env.h"
 
-class SID6526: public component, private Event
+class SID6526: public Component, private Event
 {
 private:
 
@@ -59,6 +62,10 @@ private:
     uint_least32_t rnd;
     uint_least16_t m_count;
     bool locked; // Prevent code changing CIA.
+
+private:
+    // Interface - Later use
+    void ifquery (const InterfaceID &, void **) {;}
 
 public:
     SID6526 (c64env *env);

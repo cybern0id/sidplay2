@@ -1,8 +1,8 @@
 /***************************************************************************
-                          component.h  -  Standard IC interface functions.
+                          imp_component.h  -  Component Implementation
                              -------------------
-    begin                : Fri Apr 4 2001
-    copyright            : (C) 2001 by Simon White
+    begin                : Sat Jun 6 2006
+    copyright            : (C) 2006 by Simon White
     email                : s_a_white@email.com
  ***************************************************************************/
 
@@ -15,32 +15,28 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _component_h_
-#define _component_h_
+#ifndef _imp_component_h_
+#define _imp_component_h_
 
-#include "sidtypes.h"
+// This file is only to be used be things creating implementations.
+// DO NOT include this file in external code usings these implementations,
+// use interface files instead:
 
-typedef uint_least32_t InterfaceID[4];
-#define IF_QUERY(Interface,Implementation) IID_##Interface, \
-    reinterpret_cast<void**>(static_cast<Interface **>(Implementation))
+#include <sidplay/component.h>
 
-class IInterface
+class Component : virtual public IComponent
 {
+private:
+    int m_refcount;
+
 public:
+    Component () : m_refcount(0) {;}
+    virtual ~Component () {;}
+
     // IInterface
-    virtual void ifadd     () = 0;
+    void ifadd     () { m_refcount++; }
     virtual void ifquery   (const InterfaceID &cid, void **implementation) = 0;
-    virtual void ifrelease () = 0;
+    void ifrelease () { m_refcount--; if (!m_refcount) delete this; }
 };
 
-class IComponent : virtual public IInterface
-{
-public:
-    virtual const   char *credits (void) = 0;
-    virtual const   char *error   (void) = 0;
-    virtual uint8_t read  (uint_least8_t addr) = 0;
-    virtual void    reset (void) = 0;
-    virtual void    write (uint_least8_t addr, uint8_t data) = 0;
-};
-
-#endif // _component_h_
+#endif // _imp_component_h_

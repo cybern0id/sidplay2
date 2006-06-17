@@ -28,7 +28,7 @@ class c64xsid: public XSID
 {
 private:
     c64env        &m_env;
-    sidemu        *m_sid;
+    ISidEmulation *m_sid;
     int_least32_t  m_gain;
 
 private:
@@ -42,14 +42,13 @@ private:
     {   m_sid->write (0x18, data);}
 
 public:
-    c64xsid (c64env *env, sidemu *sid)
+    c64xsid (c64env *env, ISidEmulation *sid)
     :XSID(&env->context ()),
      m_env(*env), m_sid(sid), m_gain(100)
     {;}
-    
+
     // Standard component interface
     const char *error (void) {return "";}
-    void reset () { sidemu::reset (); }
     void reset (uint8_t volume)
     {
         XSID::reset  (volume);
@@ -101,6 +100,6 @@ public:
     }
 
     // Xsid specific
-    void emulation (sidemu *sid) {m_sid = sid;}
-    sidemu *emulation (void) { return m_sid; }
+    void emulation (ISidEmulation *sid) {m_sid = sid;}
+    ISidEmulation *emulation (void) { return m_sid; }
 };

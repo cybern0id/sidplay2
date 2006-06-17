@@ -18,7 +18,7 @@
 #ifndef _mos656x_h_
 #define _mos656x_h_
 
-#include "component.h"
+#include "imp/component.h"
 #include "event.h"
 
 typedef enum
@@ -29,7 +29,7 @@ typedef enum
 } mos656x_model_t;
 
 
-class MOS656X: public component, private Event
+class MOS656X: public Component, private Event
 {
 private:
     static const char *credit;
@@ -51,6 +51,10 @@ protected:
     event_clock_t m_rasterClk;
     EventContext &event_context;
     event_phase_t m_phase;
+
+private:
+    // Interface - Later use
+    void ifquery (const InterfaceID &, void **) {;}
 
 protected:
     MOS656X (EventContext *context);

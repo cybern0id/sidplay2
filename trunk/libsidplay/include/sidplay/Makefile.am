@@ -1,3 +1,4 @@
+SUBDIRS=imp
 EXTRA_DIST=sidconfig.h sidint.h
 
 sidplayincludedir = $(includedir)/sidplay
