@@ -34,6 +34,9 @@ class SidEmulation: virtual public ISidEmulation, public Component
 private:
     ISidBuilder * const m_builder;
 
+private:
+    void reset (void) { reset (0); }
+
 public:
     SidEmulation (ISidBuilder *builder)
     :m_builder (builder) {;}
@@ -45,7 +48,6 @@ public:
     virtual const char *credits (void) = 0;
     virtual const char *error   (void) = 0;
     virtual uint8_t     read    (uint_least8_t addr) = 0;
-    void                reset   (void) { reset (0); }
     virtual void        write   (uint_least8_t addr, uint8_t data) = 0;
 
     // ISidEmulation
