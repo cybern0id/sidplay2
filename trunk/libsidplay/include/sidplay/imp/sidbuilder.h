@@ -25,7 +25,7 @@
 #include <sidplay/sidbuilder.h>
 
 //-------------------------------------------------------------------------
-#include <imp/component.h>
+#include <sidplay/imp/component.h>
 
 // Inherit this class to create a new SID emulations for libsidplay2.
 class SidBuilder;
