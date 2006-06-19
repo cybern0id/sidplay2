@@ -28,18 +28,17 @@
 #include <sidplay/imp/component.h>
 
 // Inherit this class to create a new SID emulations for libsidplay2.
-class SidBuilder;
-template <class TImplementation>
+template <class TImplementation, class TBuilder = ISidBuilder>
 class SidEmulation: public Component<TImplementation>
 {
 private:
-    ISidBuilder * const m_builder;
+    TBuilder * const m_builder;
 
 private:
     void reset (void) { TImplementation::reset (0); }
 
 public:
-    SidEmulation (ISidBuilder *builder)
+    SidEmulation (TBuilder *builder)
     :m_builder (builder) {;}
 
     // ISidEmulation
@@ -49,8 +48,8 @@ public:
     virtual void         optimisation (uint_least8_t level) {;}
 };
 
-
-class SidBuilder
+template <class TImplementation>
+class SidBuilder: public TImplementation
 {
 private:
     const char * const m_name;
