@@ -1,10 +1,8 @@
 /***************************************************************************
-               hardsid.h  -  Hardsid support interface.
-	                     Created from Jarno's original
-		             Sidplay2 patch
+               hardsid.h  -  HardSID Interface
                              -------------------
-    begin                : Fri Dec 15 2000
-    copyright            : (C) 2000-2002 by Simon White
+    begin                : Sat Jun 17 2006
+    copyright            : (C) 2006 by Simon White
     email                : s_a_white@email.com
  ***************************************************************************/
 /***************************************************************************
@@ -17,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2005/03/22 19:10:48  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.4  2004/05/05 23:47:50  s_a_white
  *  Detect available sid devices on Unix system.
  *
@@ -35,38 +38,15 @@
 #ifndef  _hardsid_h_
 #define  _hardsid_h_
 
-#include <vector>
-#include "sidplay/sidbuilder.h"
+#include <sidplay/sidbuilder.h>
 
-class HardSIDStream;
-
-class HardSIDBuilder: public sidbuilder
+class IHardSIDBuilder: virtual public ISidBuilder
 {
-private:
-    static bool   m_initialised;
-    static uint   m_count;
-    char   m_errorBuffer[100];
-    std::vector<HardSIDStream *> m_streams;
-
-    int init (void);
-
 public:
-    HardSIDBuilder  (const char * const name);
-    ~HardSIDBuilder (void);
-    // true will give you the number of used devices.
-    //    return values: 0 none, positive is used sids
-    // false will give you all available sids.
-    //    return values: 0 endless, positive is available sids.
-    // use bool operator to determine error
     uint        devices (bool used);
-    sidemu     *lock    (c64env *env, sid2_model_t model);
-    void        unlock  (sidemu *device);
     void        remove  (void);
-    const char *error   (void) const { return m_errorBuffer; }
-    const char *credits (void);
     void        flush   (void);
     void        filter  (bool enable);
-
     uint        create  (uint sids);
 };
 
