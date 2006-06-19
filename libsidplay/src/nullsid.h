@@ -20,14 +20,14 @@
 
 #include "sidbuilder.h"
 
-class NullSID: public SidEmulation
+class NullSID: public SidEmulation<ISidEmulation>
 {
 private:
     // Interface - Later use
     void ifquery (const InterfaceID &, void **) {;}
 
 public:
-    NullSID () : SidEmulation (NULL) {;}
+    NullSID () : SidEmulation<ISidEmulation>(NULL) {;}
 
     // Standard component functions
     void    reset (uint8_t) { ; }

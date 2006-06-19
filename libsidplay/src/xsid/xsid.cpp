@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.26  2004/06/26 11:42:08  s_a_white
  *  Make sure all registers get reset.
  *
@@ -429,7 +433,7 @@ void channel::silence ()
 
 
 XSID::XSID (EventContext *context)
-:SidEmulation(NULL),
+:SidEmulation<ISidEmulation>(NULL),
  Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),

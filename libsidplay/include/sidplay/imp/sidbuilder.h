@@ -29,39 +29,28 @@
 
 // Inherit this class to create a new SID emulations for libsidplay2.
 class SidBuilder;
-class SidEmulation: virtual public ISidEmulation, public Component
+template <class TImplementation>
+class SidEmulation: public Component<TImplementation>
 {
 private:
     ISidBuilder * const m_builder;
 
 private:
-    void reset (void) { reset (0); }
+    void reset (void) { TImplementation::reset (0); }
 
 public:
     SidEmulation (ISidBuilder *builder)
     :m_builder (builder) {;}
 
-    // IInterface
-    virtual void ifquery   (const InterfaceID &cid, void **implementation) = 0;
-
-    // IComponent
-    virtual const char *credits (void) = 0;
-    virtual const char *error   (void) = 0;
-    virtual uint8_t     read    (uint_least8_t addr) = 0;
-    virtual void        write   (uint_least8_t addr, uint8_t data) = 0;
-
     // ISidEmulation
     ISidBuilder         *builder      (void) const { return m_builder; }
     virtual void         clock        (sid2_clock_t clk) {;}
     virtual void         gain         (int_least8_t precent) {;}
-    virtual void         mute         (uint_least8_t num, bool enable) = 0;
     virtual void         optimisation (uint_least8_t level) {;}
-    virtual void         reset        (uint_least8_t volume) = 0;
-    virtual void         volume       (uint_least8_t num, uint_least8_t level) = 0;
 };
 
 
-class SidBuilder : virtual public ISidBuilder
+class SidBuilder
 {
 private:
     const char * const m_name;
@@ -77,16 +66,11 @@ public:
 
     // IInterface
     virtual void ifadd     () { m_refcount++; }
-    virtual void ifquery   (const InterfaceID &cid, void **implementation) = 0;
     virtual void ifrelease () { m_refcount--; if (!m_refcount) delete this; }
 
     // ISidBuilder (implementations only)
     operator               bool    () const { return m_status; }
-    virtual const char    *credits (void) = 0;
-    virtual const char    *error   (void) const = 0;
-    virtual ISidEmulation *lock    (c64env *env, sid2_model_t model) = 0;
     const char            *name    (void) const { return m_name; }
-    virtual void           unlock  (ISidEmulation *device) = 0;
 };
 
 #endif // _imp_sidbuilder_h_

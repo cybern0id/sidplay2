@@ -23,7 +23,7 @@
 #include "c64env.h"
 
 class ISidBuilder;
-class ISidEmulation: virtual public IComponent
+class ISidEmulation: public IComponent
 {
 public:
     virtual ISidBuilder *builder      (void) const = 0;
@@ -38,7 +38,7 @@ public:
     virtual int_least32_t output  (uint_least8_t bits) = 0;
 };
 
-class ISidBuilder: virtual public IInterface
+class ISidBuilder: public IInterface
 {
 public:
     virtual operator       bool    () const = 0;

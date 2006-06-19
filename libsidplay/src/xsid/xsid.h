@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.23  2004/06/26 11:05:42  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -204,7 +208,7 @@ private:
 };
 
 
-class XSID: public SidEmulation, private Event
+class XSID: public SidEmulation<ISidEmulation>, private Event
 {
     friend class channel;
 
