@@ -29,7 +29,7 @@ typedef enum
 } mos656x_model_t;
 
 
-class MOS656X: public Component, private Event
+class MOS656X: public Component<IComponent>, private Event
 {
 private:
     static const char *credit;

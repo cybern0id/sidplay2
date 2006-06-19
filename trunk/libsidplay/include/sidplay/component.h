@@ -20,7 +20,14 @@
 
 #include "sidtypes.h"
 
-typedef uint_least32_t InterfaceID[4];
+struct InterfaceID
+{
+    uint_least32_t d1; 
+    uint_least16_t d2; 
+    uint_least16_t d3; 
+    uint_least8_t  d4[8];
+};
+
 #define IF_QUERY(Interface,Implementation) IID_##Interface, \
     reinterpret_cast<void**>(static_cast<Interface **>(Implementation))
 
@@ -33,7 +40,7 @@ public:
     virtual void ifrelease () = 0;
 };
 
-class IComponent : virtual public IInterface
+class IComponent : public IInterface
 {
 public:
     virtual const   char *credits (void) = 0;

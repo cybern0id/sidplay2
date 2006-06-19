@@ -24,7 +24,8 @@
 
 #include <sidplay/component.h>
 
-class Component : virtual public IComponent
+template <class TImplementation>
+class Component: public TImplementation
 {
 private:
     int m_refcount;

@@ -17,6 +17,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.6  2004/06/26 11:06:52  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -44,7 +48,7 @@
 #include "event.h"
 #include "c64env.h"
 
-class SID6526: public Component, private Event
+class SID6526: public Component<IComponent>, private Event
 {
 private:
 

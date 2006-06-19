@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.17  2004/06/26 11:09:13  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -90,7 +94,7 @@
 #include "imp/component.h"
 #include "event.h"
 
-class MOS6526: public Component
+class MOS6526: public Component<IComponent>
 {
 private:
     static const char *credit;
