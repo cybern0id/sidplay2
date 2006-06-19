@@ -16,6 +16,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2005/03/22 19:10:26  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.11  2005/03/20 22:52:22  s_a_white
  *  Add MK4 synchronous stream support.
  *
@@ -59,15 +64,24 @@
 #   include <new>
 #endif
 
-#include "hardsid.h"
+#include "hardsid-builder.h"
 #include "hardsid-stream.h"
 
 
 bool HardSIDBuilder::m_initialised = false;
 uint HardSIDBuilder::m_count = 0;
+static const InterfaceID HardSIDBuilderIID = {
+
+
+extern "C" const InterfaceIID &HardSidBuilderIID (const char * const name)
+{
+    if (!strcmp (name, "HardSIDBuilder"))
+        return 
+}
+
 
 HardSIDBuilder::HardSIDBuilder (const char * const name)
-:sidbuilder (name)
+:sidbuilder<IHardSIDBuilder>(name)
 {
     strcpy (m_errorBuffer, "N/A");
 
@@ -186,7 +200,7 @@ void HardSIDBuilder::filter (bool enable)
 }
 
 // Find a free SID of the required type
-sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
+ISidEmulation *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 {
     HardSID *def = NULL;
     int size = m_streams.size ();
@@ -230,7 +244,7 @@ sidemu *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void HardSIDBuilder::unlock (sidemu *device)
+void HardSIDBuilder::unlock (ISidEmulation *device)
 {
     HardSID *sid = (HardSID *) device;
     sid->lock (NULL);
@@ -257,4 +271,12 @@ int HardSIDBuilder::init ()
         return -1;
     m_count = (uint) ret;
     return 0;
+}
+
+void HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+{
+//    if (iid == IID_HardSIDBuilder)
+//        *implementation = this;
+//    else
+//        SidBuilder::ifquery (iid, implementation);
 }

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2006/05/31 20:31:38  s_a_white
+ *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
+ *
  *  Revision 1.13  2005/12/21 18:25:49  s_a_white
  *  Allow sids additional sids to be allocated (rather than just live with
  *  those that are provided on device open).
@@ -64,9 +67,11 @@
 #ifndef _hardsid_emu_h_
 #define _hardsid_emu_h_
 
-#include <sidplay/sidbuilder.h>
+#include <sidplay/imp/sidbuilder.h>
 #include <sidplay/event.h>
 #include "config.h"
+#include "hardsid-builder.h"
+#include "/home/swhite/CVSROOT/hardsid/src/hwsid.h"
 
 #define HARDSID_VOICES 3
 // Approx 60ms
@@ -75,13 +80,15 @@
 /***************************************************************************
  * HardSID SID Specialisation
  ***************************************************************************/
-class HardSID: public sidemu, private Event
+class HardSID: public SidEmulation<ISidEmulation,HardSIDBuilder>,
+               private Event
 {
 private:
     friend class HardSIDBuilder;
 
     // HardSID specific data
-    int            m_handle;
+    hwsid_handle_t m_handle;
+    hwsid_handle_t m_stream;
     static char    credit[100];
 
     // Generic variables
@@ -95,14 +102,14 @@ private:
     bool           m_locked;
 
 public:
-    HardSID  (sidbuilder *builder, uint id, event_clock_t &accessClk,
-              int handle);
+    HardSID  (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
+              hwsid_handle_t handle);
     ~HardSID ();
 
     // Standard component functions
+    void          ifquery (const InterfaceID &cid, void **implementation) {;}
     const char   *credits (void) {return credit;}
-    void          reset   () { sidemu::reset (); }
-    void          reset   (uint8_t volume);
+    void          reset   (uint8_t volume = 0);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
     const char   *error   (void) {return "";}
@@ -128,11 +135,11 @@ private:
 public:
     // Support to obtain number of devices
     static int  init     (char *error);
-    static int  open     (int &handle, char *error);
-    static void close    (int handle);
+    static int  open     (hwsid_handle_t &handle, char *error);
+    static void close    (hwsid_handle_t handle);
     static int  devices  (char *error);
-    static void flush    (int handle);
-    static bool allocate (int handle);
+    static void flush    (hwsid_handle_t handle);
+    static bool allocate (hwsid_handle_t handle);
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)

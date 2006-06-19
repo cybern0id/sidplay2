@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libhardsid-builder.la
 
 libhardsid_builder_la_SOURCES = hardsid-unix.cpp hardsid-stream.cpp \
 hardsid-builder.cpp hardsid-stream.h hardsid-emu.h
-libhardsid_builder_la_LIBADD  =
+libhardsid_builder_la_LIBADD  = -lhwsid
 
 # We substitute the libtool-specific library version in configure.in.
 libhardsid_builder_la_LDFLAGS = -version-info $(LIBVERSION)

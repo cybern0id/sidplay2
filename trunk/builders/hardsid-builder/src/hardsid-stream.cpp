@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2006/05/31 20:28:37  s_a_white
+ *  Checking change laying around in local code.  Not sure why it is needed now.
+ *
  *  Revision 1.3  2005/12/21 18:25:49  s_a_white
  *  Allow sids additional sids to be allocated (rather than just live with
  *  those that are provided on device open).
@@ -32,10 +35,10 @@
 #include "hardsid-stream.h"
 
 
-HardSIDStream::HardSIDStream(sidbuilder *builder)
+HardSIDStream::HardSIDStream(HardSIDBuilder *builder)
 :m_builder(builder),
  m_status(false),
- m_handle(-1),
+ m_handle(0),
  m_devUsed(0),
  m_devAvail(0)
 {
@@ -72,7 +75,7 @@ uint HardSIDStream::allocate (uint sids)
 
 #   ifdef HAVE_EXCEPTIONS
         HardSID *sid = new(std::nothrow) HardSID(m_builder, m_devUsed + 1,
-                                                m_accessClk, m_handle);
+                                                 m_accessClk, m_handle);
 #   else
         HardSID *sid = new HardSID(m_builder, m_devUsed + 1, m_accessClk, m_handle);
 #   endif
