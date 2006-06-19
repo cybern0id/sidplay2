@@ -15,6 +15,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2005/03/22 19:10:28  s_a_white
+ *  Converted windows hardsid code to work with new linux streaming changes.
+ *  Windows itself does not yet support streaming in the drivers for synchronous
+ *  playback to multiple sids (so cannot use MK4 to full potential).
+ *
  *  Revision 1.1  2005/03/20 22:47:39  s_a_white
  *  Added synchronous stream support for MK4 styles hardware.
  *
@@ -31,18 +36,19 @@
 class HardSIDStream
 {
 private:
-    sidbuilder * const m_builder;
-    bool               m_status;
-    int                m_handle;
-    event_clock_t      m_accessClk;
-    char               m_errorBuffer[100];
-    uint               m_devUsed;
-    uint               m_devAvail;
+    HardSIDBuilder * const m_builder;
+    
+    bool           m_status;
+    hwsid_handle_t m_handle;
+    event_clock_t  m_accessClk;
+    char           m_errorBuffer[100];
+    uint           m_devUsed;
+    uint           m_devAvail;
 
     std::vector<HardSID *> m_sids;
 
 public:
-    HardSIDStream  (sidbuilder *builder);
+    HardSIDStream  (HardSIDBuilder *builder);
     ~HardSIDStream ();
 
     HardSID      *lock       (c64env *env, sid2_model_t model = SID2_MODEL_CORRECT);
