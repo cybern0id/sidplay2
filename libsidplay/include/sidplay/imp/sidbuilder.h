@@ -35,7 +35,7 @@ private:
     TBuilder * const m_builder;
 
 private:
-    void reset (void) { TImplementation::reset (0); }
+    void reset (void) { reset (0); }
 
 public:
     SidEmulation (TBuilder *builder)
@@ -46,6 +46,7 @@ public:
     virtual void         clock        (sid2_clock_t clk) {;}
     virtual void         gain         (int_least8_t precent) {;}
     virtual void         optimisation (uint_least8_t level) {;}
+    virtual void         reset        (uint_least8_t volume) = 0;
 };
 
 template <class TImplementation>
