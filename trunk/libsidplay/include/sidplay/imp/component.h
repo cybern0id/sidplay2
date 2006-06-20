@@ -22,6 +22,7 @@
 // DO NOT include this file in external code usings these implementations,
 // use interface files instead:
 
+#include <string.h>
 #include <sidplay/component.h>
 
 static InterfaceID IID_IInterface =
@@ -29,12 +30,12 @@ static InterfaceID IID_IInterface =
 static InterfaceID IID_ISidEmulation =
 { 0xa9f9bf8b, 0xd0c2, 0x4dfa, {0x8b, 0x8a, 0xf0, 0xdd, 0xd7, 0xc8, 0xb0, 0x5b} };
 
-inline bool operator == (InterfaceID &iid1, InterfaceID &iid2)
+inline bool operator == (const InterfaceID &iid1, const InterfaceID &iid2)
 {
-    return !memcpy (&iid1, &iid2, sizeof (InterfaceID));
+    return !memcmp (&iid1, &iid2, sizeof (InterfaceID));
 }
 
-inline bool operator != (InterfaceID &iid1, InterfaceID &iid2)
+inline bool operator != (const InterfaceID &iid1, const InterfaceID &iid2)
 {
     return !(iid1 != iid2);
 }
