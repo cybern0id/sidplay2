@@ -23,6 +23,10 @@
 #include "c64env.h"
 
 class ISidBuilder;
+
+static const InterfaceID IID_ISidEmulation =
+{ 0x82c01032, 0x5d8c, 0x447a, {0x89, 0xfa, 0x05, 0x99, 0x09, 0x90, 0xb7, 0x66} };
+
 class ISidEmulation: public IComponent
 {
 public:
@@ -37,6 +41,9 @@ public:
     // @FIXME@ Export via another interface
     virtual int_least32_t output  (uint_least8_t bits) = 0;
 };
+
+static const InterfaceID IID_ISidBuilder =
+{ 0x1c9ea475, 0xac10, 0x4345, {0x8b, 0x88, 0x3e, 0x48, 0x04, 0xe0, 0xea, 0x38} };
 
 class ISidBuilder: public IInterface
 {
