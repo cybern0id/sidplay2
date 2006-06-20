@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2006/06/19 20:54:10  s_a_white
+ *  Move implementation out, just provide interface (like COM).
+ *
  *  Revision 1.5  2005/03/22 19:10:48  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -39,6 +42,9 @@
 #define  _hardsid_h_
 
 #include <sidplay/sidbuilder.h>
+
+static const InterfaceID IID_IHardSIDBuilder =
+{ 0x92b1592e, 0x7f8e, 0x47ec, {0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1} };
 
 class IHardSIDBuilder: virtual public ISidBuilder
 {
