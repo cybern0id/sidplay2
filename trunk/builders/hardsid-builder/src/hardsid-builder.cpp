@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2006/06/19 20:52:46  s_a_white
+ *  Switch to new interfaces
+ *
  *  Revision 1.12  2005/03/22 19:10:26  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -67,21 +70,11 @@
 #include "hardsid-builder.h"
 #include "hardsid-stream.h"
 
-
 bool HardSIDBuilder::m_initialised = false;
 uint HardSIDBuilder::m_count = 0;
-static const InterfaceID HardSIDBuilderIID = {
-
-
-extern "C" const InterfaceIID &HardSidBuilderIID (const char * const name)
-{
-    if (!strcmp (name, "HardSIDBuilder"))
-        return 
-}
-
 
 HardSIDBuilder::HardSIDBuilder (const char * const name)
-:sidbuilder<IHardSIDBuilder>(name)
+:SidBuilder<IHardSIDBuilder>(name)
 {
     strcpy (m_errorBuffer, "N/A");
 
@@ -273,10 +266,16 @@ int HardSIDBuilder::init ()
     return 0;
 }
 
+// Find the correct interface
 void HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
 {
-//    if (iid == IID_HardSIDBuilder)
-//        *implementation = this;
-//    else
-//        SidBuilder::ifquery (iid, implementation);
+    if (iid == IID_IHardSIDBuilder)
+        *implementation = static_cast<IHardSIDBuilder *>(this);
+    else if (iid == IID_ISidBuilder)
+        *implementation = static_cast<ISidBuilder *>(this);
+    else if (iid == IID_IInterface)
+        *implementation = static_cast<IInterface *>(this);
+    else
+        *implementation = 0;
+    static_cast<IInterface *>(*implementation)->ifadd ();
 }
