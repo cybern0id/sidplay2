@@ -1,8 +1,8 @@
 /***************************************************************************
-                          resid.h  -  ReSid Builder
+                          resid.h  -  ReSid Interface
                              -------------------
-    begin                : Fri Apr 4 2001
-    copyright            : (C) 2001 by Simon White
+    begin                : Wed Jun 21 2006
+    copyright            : (C) 2006 by Simon White
     email                : s_a_white@email.com
  ***************************************************************************/
 
@@ -18,49 +18,20 @@
 #ifndef _resid_h_
 #define _resid_h_
 
-/* Since ReSID is not part of this project we are actually
- * creating a wrapper instead of implementing a SID emulation
- */
-
-#include <vector>
 #include <sidplay/sidbuilder.h>
-#include <sidplay/event.h>
 
+static const InterfaceID IID_IReSIDBuilder =
+{ 0x90a0aa02, 0xf272, 0x435d, {0x8f, 0x6b, 0x71, 0xb4, 0x5a, 0xc2, 0xf9, 0x9f} };
 
-/***************************************************************************
- * ReSID Builder Class
- ***************************************************************************/
-// Create the SID builder object
-class ReSIDBuilder: public sidbuilder
+class IReSIDBuilder: virtual public ISidBuilder
 {
-protected:
-    std::vector<sidemu *> sidobjs;
-
-private:
-    static const char  *ERR_FILTER_DEFINITION;
-    char        m_errorBuffer[100];
-    const char *m_error;
-
 public:
-    ReSIDBuilder  (const char * const name);
-    ~ReSIDBuilder (void);
-    // true will give you the number of used devices.
-    //    return values: 0 none, positive is used sids
-    // false will give you all available sids.
-    //    return values: 0 endless, positive is available sids.
-    // use bool operator to determine error
-    uint        devices (bool used);
-    uint        create  (uint sids);
-    sidemu     *lock    (c64env *env, sid2_model_t model);
-    void        unlock  (sidemu *device);
-    void        remove  (void);
-    const char *error   (void) const { return m_error; }
-    const char *credits (void);
-
-	// Settings that effect all SIDs
-    void filter   (bool enable);
-    void filter   (const sid_filter_t *filter);
-    void sampling (uint_least32_t freq);
+    virtual uint create   (uint sids) = 0;
+    virtual uint devices  (bool used) = 0;
+    virtual void filter   (bool enable) = 0;
+    virtual void filter   (const sid_filter_t *filter) = 0;
+    virtual void remove   (void) = 0;
+    virtual void sampling (uint_least32_t freq) = 0;
 };
 
 #endif // _resid_h_

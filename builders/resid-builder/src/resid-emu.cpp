@@ -28,8 +28,8 @@
 
 char ReSID::m_credit[];
 
-ReSID::ReSID (sidbuilder *builder)
-:sidemu(builder),
+ReSID::ReSID (ReSIDBuilder *builder)
+:SidEmulation<ISidEmulation,ReSIDBuilder>(builder),
  m_context(NULL),
  m_phase(EVENT_CLOCK_PHI1),
 #ifdef HAVE_EXCEPTIONS

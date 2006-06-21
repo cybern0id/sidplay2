@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2002/10/17 18:45:31  s_a_white
+ *  Exit unlock function early once correct sid is found.
+ *
  *  Revision 1.5  2002/03/04 19:06:38  s_a_white
  *  Fix C++ use of nothrow.
  *
@@ -40,14 +43,14 @@
 #   include <new>
 #endif
 
-#include "resid.h"
+#include "resid-builder.h"
 #include "resid-emu.h"
 
 // Error String(s)
 const char *ReSIDBuilder::ERR_FILTER_DEFINITION = "RESID ERROR: Filter definition is not valid (see docs).";
 
 ReSIDBuilder::ReSIDBuilder (const char * const name)
-:sidbuilder (name)
+:SidBuilder<IReSIDBuilder>(name)
 {
     m_error = "N/A";
 }
@@ -60,41 +63,41 @@ ReSIDBuilder::~ReSIDBuilder (void)
 // Create a new sid emulation.  Called by libsidplay2 only
 uint ReSIDBuilder::create (uint sids)
 {
-	uint   count;
+    uint   count;
     ReSID *sid = NULL;
     m_status   = true;
 
     // Check available devices
-	count = devices (false);
-	if (!m_status)
-		goto ReSIDBuilder_create_error;
+    count = devices (false);
+    if (!m_status)
+        goto ReSIDBuilder_create_error;
     if (count && (count < sids))
-		sids = count;
+        sids = count;
 
-	for (count = 0; count < sids; count++)
-	{
+    for (count = 0; count < sids; count++)
+    {
 #   ifdef HAVE_EXCEPTIONS
-	    sid = new(std::nothrow) ReSID(this);
+        sid = new(std::nothrow) ReSID(this);
 #   else
-	    sid = new ReSID(this);
+        sid = new ReSID(this);
 #   endif
 
         // Memory alloc failed?
         if (!sid)
-		{
-			sprintf (m_errorBuffer, "%s ERROR: Unable to create ReSID object", name ());
+        {
+            sprintf (m_errorBuffer, "%s ERROR: Unable to create ReSID object", name ());
             m_error = m_errorBuffer;
-			goto ReSIDBuilder_create_error;
-		}
+            goto ReSIDBuilder_create_error;
+        }
 
-		// SID init failed?
-		if (!*sid)
-		{
-			m_error = sid->error ();
-			goto ReSIDBuilder_create_error;
-		}
-	    sidobjs.push_back (sid);
-	}
+        // SID init failed?
+        if (!*sid)
+        {
+            m_error = sid->error ();
+            goto ReSIDBuilder_create_error;
+        }
+        sidobjs.push_back (sid);
+    }
     return count;
 
 ReSIDBuilder_create_error:
@@ -118,7 +121,7 @@ const char *ReSIDBuilder::credits ()
     {   // Create an emulation to obtain credits
         ReSID sid(this);
         if (!sid)
-		{
+        {
             m_status = false;
             strcpy (m_errorBuffer, sid.error ());
             return 0;
@@ -134,16 +137,16 @@ uint ReSIDBuilder::devices (bool created)
     if (created)
         return sidobjs.size ();
     else // Available devices
-		return 0;
+        return 0;
 }
 
 void ReSIDBuilder::filter (const sid_filter_t *filter)
 {
     int size = sidobjs.size ();
-	m_status = true;
+    m_status = true;
     for (int i = 0; i < size; i++)
-	{
-		ReSID *sid = (ReSID *) sidobjs[i];
+    {
+        ReSID *sid = (ReSID *) sidobjs[i];
         if (!sid->filter (filter))
             goto ReSIDBuilder_sidFilterDef_error;
     }
@@ -157,16 +160,16 @@ ReSIDBuilder_sidFilterDef_error:
 void ReSIDBuilder::filter (bool enable)
 {
     int size = sidobjs.size ();
-	m_status = true;
+    m_status = true;
     for (int i = 0; i < size; i++)
-	{
-		ReSID *sid = (ReSID *) sidobjs[i];
+    {
+        ReSID *sid = (ReSID *) sidobjs[i];
         sid->filter (enable);
     }
 }
 
 // Find a free SID of the required specs
-sidemu *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
+ISidEmulation *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
 {
     int size = sidobjs.size ();
     m_status = true;
@@ -175,10 +178,10 @@ sidemu *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
     {
         ReSID *sid = (ReSID *) sidobjs[i];
         if (sid->lock (env))
-		{
+        {
             sid->model (model);
             return sid;
-		}
+        }
     }
     // Unable to locate free SID
     m_status = false;
@@ -187,7 +190,7 @@ sidemu *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void ReSIDBuilder::unlock (sidemu *device)
+void ReSIDBuilder::unlock (ISidEmulation *device)
 {
     int size = sidobjs.size ();
     // Maek sure this is our SID
@@ -195,10 +198,10 @@ void ReSIDBuilder::unlock (sidemu *device)
     {
         ReSID *sid = (ReSID *) sidobjs[i];
         if (sid == device)
-		{   // Unlock it
+        {   // Unlock it
             sid->lock (NULL);
-			break;
-		}
+            break;
+        }
     }
 }
 
@@ -214,10 +217,10 @@ void ReSIDBuilder::remove ()
 void ReSIDBuilder::sampling (uint_least32_t freq)
 {
     int size = sidobjs.size ();
-	m_status = true;
+    m_status = true;
     for (int i = 0; i < size; i++)
-	{
-		ReSID *sid = (ReSID *) sidobjs[i];
+    {
+        ReSID *sid = (ReSID *) sidobjs[i];
         sid->sampling (freq);
     }
 }
