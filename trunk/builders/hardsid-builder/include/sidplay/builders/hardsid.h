@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2006/06/20 22:25:21  s_a_white
+ *  Add interface IID export.
+ *
  *  Revision 1.6  2006/06/19 20:54:10  s_a_white
  *  Move implementation out, just provide interface (like COM).
  *
@@ -49,11 +52,11 @@ static const InterfaceID IID_IHardSIDBuilder =
 class IHardSIDBuilder: virtual public ISidBuilder
 {
 public:
+    uint        create  (uint sids);
     uint        devices (bool used);
-    void        remove  (void);
     void        flush   (void);
     void        filter  (bool enable);
-    uint        create  (uint sids);
+    void        remove  (void);
 };
 
 #endif // _hardsid_h_
