@@ -34,8 +34,9 @@
 #   define RESID
 #endif
 
+#include "resid-builder.h"
 
-class ReSID: public sidemu
+class ReSID: public SidEmulation<ISidEmulation,ReSIDBuilder>
 {
 private:
     EventContext *m_context;
@@ -50,12 +51,14 @@ private:
     uint_least8_t m_optimisation;
 
 public:
-    ReSID  (sidbuilder *builder);
+    ReSID  (ReSIDBuilder *builder);
     ~ReSID (void);
 
-    // Standard component functions
+     // IInterface - Later
+    void ifquery (const InterfaceID &iid, void **implementation) {;}
+
+   // Standard component functions
     const char   *credits (void) {return m_credit;}
-    void          reset   () { sidemu::reset (); }
     void          reset   (uint8_t volume);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
