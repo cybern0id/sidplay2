@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2006/06/21 19:58:19  s_a_white
+ *  Convert over to COM style interface.
+ *
  *  Revision 1.6  2002/10/17 18:45:31  s_a_white
  *  Exit unlock function early once correct sid is found.
  *
@@ -223,4 +226,18 @@ void ReSIDBuilder::sampling (uint_least32_t freq)
         ReSID *sid = (ReSID *) sidobjs[i];
         sid->sampling (freq);
     }
+}
+
+// Find the correct interface
+void ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+{
+    if (iid == IID_IReSIDBuilder)
+        *implementation = static_cast<IReSIDBuilder *>(this);
+    else if (iid == IID_ISidBuilder)
+        *implementation = static_cast<ISidBuilder *>(this);
+    else if (iid == IID_IInterface)
+        *implementation = static_cast<IInterface *>(this);
+    else
+        *implementation = 0;
+    static_cast<IInterface *>(*implementation)->ifadd ();
 }
