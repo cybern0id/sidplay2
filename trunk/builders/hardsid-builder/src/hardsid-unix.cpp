@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2006/06/19 20:52:46  s_a_white
+ *  Switch to new interfaces
+ *
  *  Revision 1.22  2005/12/21 18:25:49  s_a_white
  *  Allow sids additional sids to be allocated (rather than just live with
  *  those that are provided on device open).
@@ -350,4 +353,12 @@ int HardSID::devices (char *error)
 void HardSID::flush (hwsid_handle_t handle)
 {
   //    ioctl(handle, HSID_IOCTL_FLUSH);
+}
+
+void HardSID::clock(sid2_clock_t /*clk*/)
+{
+//    if (clk == SID2_CLOCK_NTSC)
+//        hsid2.Clock ((BYTE) m_id, 2);
+//    else
+//       hsid2.Clock ((BYTE) m_id, 1);
 }
