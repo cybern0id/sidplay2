@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2005/12/02 19:25:30  s_a_white
+ *  Fix bug reported by Patrick Mauritz in patch 1282585 (modification of
+ *  constant string).
+ *
  *  Revision 1.20  2005/11/30 22:49:48  s_a_white
  *  Add raw output support (--raw=<file>)
  *
@@ -580,9 +584,13 @@ void ConsolePlayer::displayArgs (const char *arg)
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl;
 #ifdef HAVE_HARDSID_BUILDER
     {
-        HardSIDBuilder hs("");
-        if (hs.devices (false))
-            out << " --hardsid    enable hardsid support" << endl;
+        IHardSIDBuilder *hs;
+        if ( HardSIDBuilderCreate ("", IF_QUERY(IHardSIDBuilder, &hs)) )
+        {
+            if (hs->devices (false))
+                out << " --hardsid    enable hardsid support" << endl;
+            hs->ifrelease ();
+        }
     }
 #endif
     out << endl
