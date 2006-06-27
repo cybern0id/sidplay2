@@ -17,6 +17,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2006/06/19 19:14:06  s_a_white
+ *  Get most derived interface to be inherited by the lowest base class.  This
+ *  removes duplicate inheritance of interfaces and the need for virtual
+ *  public inheritance of interfaces.
+ *
  *  Revision 1.7  2006/06/17 14:56:26  s_a_white
  *  Switch parts of the code over to a COM style implementation.  I.e. serperate
  *  interface/implementation
@@ -69,7 +74,7 @@ private:
 
 private:
     // Interface - Later use
-    void ifquery (const InterfaceID &, void **) {;}
+    bool ifquery (const InterfaceID &, void **) { return false; }
 
 public:
     SID6526 (c64env *env);

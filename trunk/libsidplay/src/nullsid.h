@@ -24,7 +24,7 @@ class NullSID: public SidEmulation<ISidEmulation>
 {
 private:
     // Interface - Later use
-    void ifquery (const InterfaceID &, void **) {;}
+    bool ifquery (const InterfaceID &, void **) { return false; }
 
 public:
     NullSID () : SidEmulation<ISidEmulation>(NULL) {;}
