@@ -47,7 +47,6 @@ public:
 
     // IInterface
     void ifadd     () { m_refcount++; }
-    virtual void ifquery   (const InterfaceID &cid, void **implementation) = 0;
     void ifrelease () { m_refcount--; if (!m_refcount) delete this; }
 };
 
