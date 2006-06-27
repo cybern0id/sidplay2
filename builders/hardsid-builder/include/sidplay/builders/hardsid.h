@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2006/06/21 20:02:17  s_a_white
+ *  List functions in alphabetical order.
+ *
  *  Revision 1.7  2006/06/20 22:25:21  s_a_white
  *  Add interface IID export.
  *
@@ -58,5 +61,7 @@ public:
     void        filter  (bool enable);
     void        remove  (void);
 };
+
+extern "C" IInterface *HardSIDBuilderCreate (const char * const name);
 
 #endif // _hardsid_h_
