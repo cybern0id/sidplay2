@@ -34,6 +34,7 @@ public:
     virtual void sampling (uint_least32_t freq) = 0;
 };
 
-extern "C" IInterface *ReSIDBuilderCreate (const char * const name);
+extern "C" bool ReSIDBuilderCreate (const char * const name,
+                                    const InterfaceID &cid, void **implementation);
 
 #endif // _resid_h_

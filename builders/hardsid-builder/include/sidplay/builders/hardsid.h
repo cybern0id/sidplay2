@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2006/06/27 19:17:02  s_a_white
+ *  Export a create call to make a builder (eventually turn code into module)
+ *
  *  Revision 1.8  2006/06/21 20:02:17  s_a_white
  *  List functions in alphabetical order.
  *
@@ -62,6 +65,7 @@ public:
     void        remove  (void);
 };
 
-extern "C" IInterface *HardSIDBuilderCreate (const char * const name);
+extern "C" bool HardSIDBuilderCreate (const char * const name,
+                                      const InterfaceID &cid, void **implementation);
 
 #endif // _hardsid_h_
