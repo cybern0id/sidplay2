@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2006/06/27 19:44:55  s_a_white
+ *  Add return parameter to ifquery.
+ *
  *  Revision 1.9  2006/06/27 19:17:02  s_a_white
  *  Export a create call to make a builder (eventually turn code into module)
  *
@@ -58,11 +61,11 @@ static const InterfaceID IID_IHardSIDBuilder =
 class IHardSIDBuilder: virtual public ISidBuilder
 {
 public:
-    uint        create  (uint sids);
-    uint        devices (bool used);
-    void        flush   (void);
-    void        filter  (bool enable);
-    void        remove  (void);
+    uint create  (uint sids) = 0;
+    uint devices (bool used) = 0;
+    void flush   (void) = 0;
+    void filter  (bool enable) = 0;
+    void remove  (void) = 0;
 };
 
 extern "C" bool HardSIDBuilderCreate (const char * const name,
