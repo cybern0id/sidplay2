@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2006/06/27 19:17:02  s_a_white
+ *  Export a create call to make a builder (eventually turn code into module)
+ *
  *  Revision 1.14  2006/06/20 22:22:26  s_a_white
  *  Fuly support a COM style query interface.
  *
@@ -270,7 +273,7 @@ int HardSIDBuilder::init ()
 }
 
 // Find the correct interface
-void HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+bool HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
 {
     if (iid == IID_IHardSIDBuilder)
         *implementation = static_cast<IHardSIDBuilder *>(this);
@@ -279,24 +282,26 @@ void HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     else if (iid == IID_IInterface)
         *implementation = static_cast<IInterface *>(this);
     else
-    {
-        *implementation = 0;
-        return;
-    }
+        return false;
     static_cast<IInterface *>(*implementation)->ifadd ();
+    return true;
 }
 
 
 // Entry point
-IInterface *HardSIDBuilderCreate (const char * const name)
+bool HardSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+                           void **implementation)
 {
-    IInterface *interface = 0;
 #ifdef HAVE_EXCEPTIONS
     HardSIDBuilder *builder = new(nothrow) HardSIDBuilder(name);
 #else
     HardSIDBuilder *builder = new HardSIDBuilder(name);
 #endif
     if (builder)
-        builder->ifquery (IF_QUERY(IInterface, &interface));
-    return interface;
+    {
+        if (builder->ifquery (cid, implementation))
+            return true;
+        delete builder;
+    }
+    return false;
 }

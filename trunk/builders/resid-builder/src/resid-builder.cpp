@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2006/06/27 19:19:54  s_a_white
+ *  Create entry point for builder creation (eventually this will be a module)
+ *
  *  Revision 1.8  2006/06/21 20:04:06  s_a_white
  *  Add ifquery function
  *
@@ -232,7 +235,7 @@ void ReSIDBuilder::sampling (uint_least32_t freq)
 }
 
 // Find the correct interface
-void ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+bool ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
 {
     if (iid == IID_IReSIDBuilder)
         *implementation = static_cast<IReSIDBuilder *>(this);
@@ -241,24 +244,26 @@ void ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     else if (iid == IID_IInterface)
         *implementation = static_cast<IInterface *>(this);
     else
-    {
-        *implementation = 0;
-        return;
-    }
+        return false;
     static_cast<IInterface *>(*implementation)->ifadd ();
+    return true;
 }
 
 
 // Entry point
-IInterface *ReSIDBuilderCreate (const char * const name)
+bool ReSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+                         void **implementation)
 {
-    IInterface *interface = 0;
 #ifdef HAVE_EXCEPTIONS
-    ReSIDBuilder *builder = new(nothrow) HardSIDBuilder(name);
+    ReSIDBuilder *builder = new(nothrow) ReSIDBuilder(name);
 #else
     ReSIDBuilder *builder = new ReSIDBuilder(name);
 #endif
     if (builder)
-        builder->ifquery (IF_QUERY(IInterface, &interface));
-    return interface;
+    {
+        if (builder->ifquery (cid, implementation))
+            return true;
+        delete builder;
+    }
+    return false;
 }

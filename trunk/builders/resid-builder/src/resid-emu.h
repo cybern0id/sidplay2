@@ -55,7 +55,7 @@ public:
     ~ReSID (void);
 
      // IInterface - Later
-    void ifquery (const InterfaceID &iid, void **implementation) {;}
+    bool ifquery (const InterfaceID &iid, void **implementation) { return false; }
 
    // Standard component functions
     const char   *credits (void) {return m_credit;}

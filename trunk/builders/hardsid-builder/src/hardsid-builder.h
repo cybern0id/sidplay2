@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2006/06/19 20:53:20  s_a_white
+ *  Added, contains builder implementation (moved from hardsid.h)
+ *
  *  Revision 1.5  2005/03/22 19:10:48  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -61,7 +64,7 @@ public:
     ~HardSIDBuilder (void);
 
     // IInterface
-    void ifquery (const InterfaceID &iid, void **implementation);
+    bool ifquery (const InterfaceID &iid, void **implementation);
 
     // true will give you the number of used devices.
     //    return values: 0 none, positive is used sids

@@ -48,7 +48,7 @@ public:
     ~ReSIDBuilder (void);
 
     // IInterface
-    void ifquery (const InterfaceID &iid, void **implementation);
+    bool ifquery (const InterfaceID &iid, void **implementation);
 
     // true will give you the number of used devices.
     //    return values: 0 none, positive is used sids

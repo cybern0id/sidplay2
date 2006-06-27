@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2006/06/19 20:52:46  s_a_white
+ *  Switch to new interfaces
+ *
  *  Revision 1.14  2006/05/31 20:31:38  s_a_white
  *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
  *
@@ -107,7 +110,7 @@ public:
     ~HardSID ();
 
     // Standard component functions
-    void          ifquery (const InterfaceID &cid, void **implementation) {;}
+    bool          ifquery (const InterfaceID &cid, void **implementation) { return false; }
     const char   *credits (void) {return credit;}
     void          reset   (uint8_t volume = 0);
     uint8_t       read    (uint_least8_t addr);
