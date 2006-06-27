@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2006/06/21 20:04:06  s_a_white
+ *  Add ifquery function
+ *
  *  Revision 1.7  2006/06/21 19:58:19  s_a_white
  *  Convert over to COM style interface.
  *
@@ -238,6 +241,24 @@ void ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     else if (iid == IID_IInterface)
         *implementation = static_cast<IInterface *>(this);
     else
+    {
         *implementation = 0;
+        return;
+    }
     static_cast<IInterface *>(*implementation)->ifadd ();
+}
+
+
+// Entry point
+IInterface *ReSIDBuilderCreate (const char * const name)
+{
+    IInterface *interface = 0;
+#ifdef HAVE_EXCEPTIONS
+    ReSIDBuilder *builder = new(nothrow) HardSIDBuilder(name);
+#else
+    ReSIDBuilder *builder = new ReSIDBuilder(name);
+#endif
+    if (builder)
+        builder->ifquery (IF_QUERY(IInterface, &interface));
+    return interface;
 }
