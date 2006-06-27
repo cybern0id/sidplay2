@@ -39,7 +39,7 @@ class IInterface
 public:
     // IInterface
     virtual void ifadd     () = 0;
-    virtual void ifquery   (const InterfaceID &cid, void **implementation) = 0;
+    virtual bool ifquery   (const InterfaceID &cid, void **implementation) = 0;
     virtual void ifrelease () = 0;
 };
 
