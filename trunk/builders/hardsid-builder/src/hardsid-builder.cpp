@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2006/06/20 22:22:26  s_a_white
+ *  Fuly support a COM style query interface.
+ *
  *  Revision 1.13  2006/06/19 20:52:46  s_a_white
  *  Switch to new interfaces
  *
@@ -276,6 +279,24 @@ void HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     else if (iid == IID_IInterface)
         *implementation = static_cast<IInterface *>(this);
     else
+    {
         *implementation = 0;
+        return;
+    }
     static_cast<IInterface *>(*implementation)->ifadd ();
+}
+
+
+// Entry point
+IInterface *HardSIDBuilderCreate (const char * const name)
+{
+    IInterface *interface = 0;
+#ifdef HAVE_EXCEPTIONS
+    HardSIDBuilder *builder = new(nothrow) HardSIDBuilder(name);
+#else
+    HardSIDBuilder *builder = new HardSIDBuilder(name);
+#endif
+    if (builder)
+        builder->ifquery (IF_QUERY(IInterface, &interface));
+    return interface;
 }
