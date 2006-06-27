@@ -54,7 +54,7 @@ protected:
 
 private:
     // Interface - Later use
-    void ifquery (const InterfaceID &, void **) {;}
+    bool ifquery (const InterfaceID &, void **) { return false; }
 
 protected:
     MOS656X (EventContext *context);
