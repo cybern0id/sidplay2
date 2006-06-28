@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.35  2005/11/30 22:49:48  s_a_white
+ *  Add raw output support (--raw=<file>)
+ *
  *  Revision 1.34  2005/06/10 18:40:16  s_a_white
  *  Mingw support.
  *
@@ -215,7 +218,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
     {
         if (m_driver.device != &m_driver.null)
             delete m_driver.device;
-        m_driver.device = NULL;         
+        m_driver.device = NULL;
     }
 
     // Create audio driver
@@ -277,7 +280,7 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
                 break;
         }
         if (!i) i = length;
-    
+
 #ifdef HAVE_EXCEPTIONS
         name = new(std::nothrow) char[i + 10];
 #else
@@ -352,10 +355,10 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     // Remove old driver and emulation
     if (m_engCfg.sidEmulation)
     {
-        sidbuilder *builder   = m_engCfg.sidEmulation;
+        ISidBuilder *builder  = m_engCfg.sidEmulation;
         m_engCfg.sidEmulation = NULL;
         m_engine.config (m_engCfg);
-        delete builder;
+        builder->ifrelease ();
     }
 
     // Now setup the sid emulation
@@ -364,53 +367,56 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #ifdef HAVE_RESID_BUILDER
     case EMU_RESID:
     {
-#ifdef HAVE_EXCEPTIONS
-        ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
-#else
-        ReSIDBuilder *rs = new ReSIDBuilder( RESID_ID );
-#endif
-        if (rs)
+        IReSIDBuilder *rs;
+        if ( ReSIDBuilderCreate ("", IF_QUERY(IReSIDBuilder, &rs)) )
         {
-            m_engCfg.sidEmulation = rs;
-            if (!*rs) goto createSidEmu_error;
+            ISidBuilder *builder = 0;
+            if ( rs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
+                m_engCfg.sidEmulation = builder;
+            if (!*rs) goto EMU_RESID_ERROR;
 
             // Setup the emulation
             rs->create ((m_engine.info ()).maxsids);
-            if (!*rs) goto createSidEmu_error;
+            if (!*rs) goto EMU_RESID_ERROR;
             rs->filter (m_filter.enabled);
-            if (!*rs) goto createSidEmu_error;
+            if (!*rs) goto EMU_RESID_ERROR;
             rs->sampling (m_driver.cfg.frequency);
-            if (!*rs) goto createSidEmu_error;
+            if (!*rs) goto EMU_RESID_ERROR;
             if (m_filter.enabled && m_filter.definition)
             {   // Setup filter
                 rs->filter (m_filter.definition.provide ());
-                if (!*rs) goto createSidEmu_error;
+                if (!*rs) goto EMU_RESID_ERROR;
             }
+            rs->ifrelease ();
         }
         break;
+    EMU_RESID_ERROR:
+        rs->ifrelease ();
+        goto createSidEmu_error;
     }
 #endif // HAVE_RESID_BUILDER
 
 #ifdef HAVE_HARDSID_BUILDER
     case EMU_HARDSID:
     {
-#ifdef HAVE_EXCEPTIONS
-        HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
-#else
-        HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
-#endif
-        if (hs)
+        IHardSIDBuilder *hs;
+        if ( HardSIDBuilderCreate ("", IF_QUERY(IHardSIDBuilder, &hs)) )
         {
-            m_engCfg.sidEmulation = hs;
-            if (!*hs) goto createSidEmu_error;
+            ISidBuilder *builder = 0;
+            if ( hs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
+                m_engCfg.sidEmulation = builder;
+            if (!*hs) goto EMU_HARDSID_ERROR;
 
             // Setup the emulation
             hs->create ((m_engine.info ()).maxsids);
-            if (!*hs) goto createSidEmu_error;
+            if (!*hs) goto EMU_HARDSID_ERROR;
             hs->filter (m_filter.enabled);
-            if (!*hs) goto createSidEmu_error;
+            if (!*hs) goto EMU_HARDSID_ERROR;
         }
         break;
+    EMU_HARDSID_ERROR:
+        hs->ifrelease ();
+        goto createSidEmu_error;
     }
 #endif // HAVE_HARDSID_BUILDER
 
@@ -433,7 +439,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 
 createSidEmu_error:
     displayError (m_engCfg.sidEmulation->error ());
-    delete m_engCfg.sidEmulation;
+    (m_engCfg.sidEmulation)->ifrelease ();
     m_engCfg.sidEmulation = NULL;
     return false;
 }
@@ -451,7 +457,7 @@ bool ConsolePlayer::open (void)
             m_driver.selected->reset ();
         m_state = playerStopped;
     }
-    
+
     // Select the required song
     m_track.selected = m_tune.selectSong (m_track.selected);
     if (m_engine.load (&m_tune) < 0)
@@ -548,17 +554,16 @@ void ConsolePlayer::close ()
 
 // Flush any hardware sid fifos so all music is played
 void ConsolePlayer::emuflush ()
-{
-    switch (m_driver.sid)
-    {
+{   // Eventually need an interface to flush all hardware
+    // seperate to a specific interface
 #ifdef HAVE_HARDSID_BUILDER
-    case EMU_HARDSID:
-        ((HardSIDBuilder *)m_engCfg.sidEmulation)->flush ();
-        break;
-#endif // HAVE_HARDSID_BUILDER
-    default:
-        break;
+    IHardSIDBuilder *hs;
+    if ( (m_engCfg.sidEmulation)->ifquery (IF_QUERY(IHardSIDBuilder, &hs)) )
+    {
+        hs->flush ();
+        hs->ifrelease ();
     }
+#endif // HAVE_HARDSID_BUILDER
 }
 
 
@@ -687,9 +692,9 @@ void ConsolePlayer::event (void)
             }
             if (m_track.loop)
                 m_state = playerRestart;
-        }            
+        }
     }
-    
+
     // Units in C64 clock cycles
     schedule (*m_context, 900000, EVENT_CLOCK_PHI1);
 }
