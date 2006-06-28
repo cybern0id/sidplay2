@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2006/05/31 20:31:39  s_a_white
+ *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
+ *
  *  Revision 1.18  2006/03/02 23:56:54  s_a_white
  *  Make code build with new allocate function.  Just returning true will provide
  *  previous behaviour for Windows.
@@ -148,10 +151,9 @@ static HsidDLL2 hsid2 = {0};
 char   HardSID::credit[];
 static int hsid_device = 0;
 
-
-HardSID::HardSID (sidbuilder *builder, uint id, event_clock_t &accessClk,
-                  int handle)
-:sidemu(builder),
+HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
+                  hwsid_handle_t handle)
+:SidEmulation<ISidEmulation,HardSIDBuilder>(builder),
  Event("HardSID Delay"),
  m_handle(handle),
  m_eventContext(NULL),
@@ -377,14 +379,14 @@ HardSID_init_error:
     return -1;
 }
 
-bool HardSID::allocate (int)
+bool HardSID::allocate (hwsid_handle_t)
 {
     return true;
 }
 
 // Open next available hardsid device.  For the newer drivers
 // we will end up opening the same device multiple times
-int HardSID::open (int &handle, char *error)
+int HardSID::open (hwsid_handle_t &handle, char *error)
 {
     if (hsid_device == hsid2.Devices ())
     {
@@ -395,7 +397,7 @@ int HardSID::open (int &handle, char *error)
     return 1;
 }
 
-void HardSID::close (int handle)
+void HardSID::close (hwsid_handle_t)
 {
     hsid_device--;
 }
@@ -412,9 +414,9 @@ int HardSID::devices (char *error)
     return 0;
 }
 
-void HardSID::flush(int m_handle)
+void HardSID::flush(hwsid_handle_t handle)
 {
-    hsid2.Flush ((BYTE) m_handle);
+    hsid2.Flush ((BYTE) handle);
 }
 
 void HardSID::clock(sid2_clock_t clk)
