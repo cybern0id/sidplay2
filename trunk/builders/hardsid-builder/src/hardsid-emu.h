@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2006/06/27 19:44:55  s_a_white
+ *  Add return parameter to ifquery.
+ *
  *  Revision 1.15  2006/06/19 20:52:46  s_a_white
  *  Switch to new interfaces
  *
@@ -74,7 +77,12 @@
 #include <sidplay/event.h>
 #include "config.h"
 #include "hardsid-builder.h"
+
+#ifdef HAVE_WINDOWS
+typedef int hwsid_handle_t;
+#else
 #include "/home/swhite/CVSROOT/hardsid/src/hwsid.h"
+#endif
 
 #define HARDSID_VOICES 3
 // Approx 60ms
