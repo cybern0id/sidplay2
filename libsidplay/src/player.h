@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.53  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.52  2004/06/26 11:02:55  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *  Removed unnecessary cpu emulation.
@@ -322,12 +326,6 @@ private:
     uint_least32_t m_sampleCount;
     uint_least32_t m_sampleIndex;
     char          *m_sampleBuffer;
-
-    // RTC clock - Based of mixer sample period
-    // to make sure time is right when we ask
-    // for n samples
-    event_clock_t  m_rtcClock;
-    event_clock_t  m_rtcPeriod;
 
     // C64 environment settings
     struct
