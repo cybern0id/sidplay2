@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.45  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.44  2006/05/31 20:38:14  s_a_white
  *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
  *
@@ -304,9 +308,18 @@ int Player::config (const sid2_config_t &cfg)
     {   // Try Spliting channels across 2 sids
         if (m_emulateStereo)
         {   // Mute Voices
-            sid[0]->mute (0, true);
-            sid[0]->mute (2, true);
-            sid[1]->mute (1, true);
+            ISidMixer *mixer;
+            if (sid[0]->ifquery (IF_QUERY (ISidMixer, &mixer)))
+            {
+                mixer->mute (0, true);
+                mixer->mute (2, true);
+                mixer->ifrelease ();
+            }
+            if (sid[1]->ifquery (IF_QUERY (ISidMixer, &mixer)))
+            {
+                mixer->mute (1, true);
+                mixer->ifrelease ();
+            }
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
             //    m_rightVolume *= 2;
@@ -703,7 +716,14 @@ void Player::sidSamples (bool enable)
     xsid.gain (-100 - gain);
     sid[0] = xsid.emulation ();
     for (int i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i]->gain (gain);
+    {
+        ISidMixer *mixer;
+        if (sid[0]->ifquery (IF_QUERY (ISidMixer, &mixer)))
+        {
+            mixer->gain (gain);
+            mixer->ifrelease ();
+        }
+    }
     sid[0] = &xsid;
 }
 

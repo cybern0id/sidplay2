@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2006/06/19 20:52:46  s_a_white
+ *  Switch to new interfaces
+ *
  *  Revision 1.4  2006/05/31 20:28:37  s_a_white
  *  Checking change laying around in local code.  Not sure why it is needed now.
  *
@@ -54,7 +57,7 @@ HardSIDStream::~HardSIDStream()
 {
     int size = m_sids.size ();
     for (int i = 0; i < size; i++)
-        delete m_sids[i];
+        m_sids[i]->ifrelease ();
     HardSID::close (m_handle);
 }
 
@@ -86,6 +89,11 @@ uint HardSIDStream::allocate (uint sids)
             sids = i;
             break;
         }
+
+        // Use if interface reference counting to delete object
+        ISidEmulation *emulation;
+        sid->ifquery (IF_QUERY (ISidEmulation, &emulation));
+
         m_devUsed++;
         m_sids.push_back(sid);
     }

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2006/06/27 19:35:28  s_a_white
+ *  Changed ifquery return type.
+ *
  *  Revision 1.25  2006/06/19 19:14:06  s_a_white
  *  Get most derived interface to be inherited by the lowest base class.  This
  *  removes duplicate inheritance of interfaces and the need for virtual
@@ -261,8 +264,7 @@ public:
     bool    isMuted  (void) { return muted; }
     void    suppress (bool enable);
 
-    void    sidSamples (bool enable)
-    {   _sidSamples = enable; }
+    void    sidSamples (bool enable) { _sidSamples = enable; }
     // Return whether we care it was changed.
     bool storeSidData0x18 (uint8_t data);
 };

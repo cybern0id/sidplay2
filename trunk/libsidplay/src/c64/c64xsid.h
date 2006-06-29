@@ -24,11 +24,12 @@
 #include "sidbuilder.h"
 #include "../xsid/xsid.h"
 
-class c64xsid: public XSID
+class c64xsid: public XSID, SidMixer<ISidMixer>
 {
 private:
     c64env        &m_env;
     ISidEmulation *m_sid;
+    ISidMixer     *m_mixer;
     int_least32_t  m_gain;
 
 private:
@@ -44,8 +45,13 @@ private:
 public:
     c64xsid (c64env *env, ISidEmulation *sid)
     :XSID(&env->context ()),
-     m_env(*env), m_sid(sid), m_gain(100)
-    {;}
+     SidMixer<ISidMixer>(static_cast<ISidEmulation *>(this)),
+     m_env(*env), m_sid(0), m_mixer(0), m_gain(100)
+    {
+        emulation (sid);
+    }
+
+    ~c64xsid () { emulation (0); }
 
     // Standard component interface
     const char *error (void) {return "";}
@@ -73,19 +79,22 @@ public:
 
     // Standard SID interface
     int_least32_t output (uint_least8_t bits)
-    {   return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100); }
+    {
+        return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100);
+    }
 
     void volume (uint_least8_t num, uint_least8_t vol)
     {
-        m_sid->volume (num, vol);
+        if (m_mixer)
+            m_mixer->volume (num, vol);
     }
 
     void mute (uint_least8_t num, bool mute)
     {
         if (num == 3)
             XSID::mute  (mute);
-        else
-            m_sid->mute (num, mute);
+        else if (m_mixer)
+            m_mixer->mute (num, mute);
     }
 
     void mute (bool mute) { XSID::mute (mute); }
@@ -100,6 +109,15 @@ public:
     }
 
     // Xsid specific
-    void emulation (ISidEmulation *sid) {m_sid = sid;}
+    void emulation (ISidEmulation *sid)
+    {
+        if (m_mixer)
+            m_mixer->ifrelease ();
+        m_mixer = 0;
+        if (sid)
+            sid->ifquery (IF_QUERY (ISidMixer, &m_mixer));
+        m_sid = sid;
+    }
+
     ISidEmulation *emulation (void) { return m_sid; }
 };

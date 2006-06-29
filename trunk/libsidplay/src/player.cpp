@@ -15,6 +15,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.83  2006/06/17 14:56:26  s_a_white
+ *  Switch parts of the code over to a COM style implementation.  I.e. serperate
+ *  interface/implementation
+ *
  *  Revision 1.82  2004/07/07 20:44:13  s_a_white
  *  Internally relocated character ROM to 0x4000 as 0xd000 ROM area is writable
  *  for IO.  This change is hidden from and does not effect C64 programs.
@@ -387,13 +391,13 @@ Player::Player (void)
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
         sid[i] = &nullsid;
-	}
+    }
     xsid.emulation(sid[0]);
     sid[0] = &xsid;
     // Setup sid mapping table
     {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
         m_sidmapper[i] = 0;
-	}
+    }
 
     // Setup exported info
     m_info.credits         = credit;
@@ -560,9 +564,14 @@ int Player::load (SidTune *tune)
 
     for (int i = 0; i < SID2_MAX_SIDS; i++)
     {
-        uint_least8_t v = 3;
-        while (v--)
-            sid[i]->mute (v, false);
+        ISidMixer *mixer;
+        if (sid[i]->ifquery (IF_QUERY (ISidMixer, &mixer)))
+        {
+            uint_least8_t v = 3;
+            while (v--)
+                mixer->mute (v, false);
+            mixer->ifrelease ();
+        }
     }
 
     {   // Must re-configure on fly for stereo support!

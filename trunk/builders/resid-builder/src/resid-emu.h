@@ -36,7 +36,8 @@
 
 #include "resid-builder.h"
 
-class ReSID: public SidEmulation<ISidEmulation,ReSIDBuilder>
+class ReSID: public SidEmulation<ISidEmulation,ReSIDBuilder>,
+             public SidMixer<ISidMixer>
 {
 private:
     EventContext *m_context;
@@ -54,8 +55,10 @@ public:
     ReSID  (ReSIDBuilder *builder);
     ~ReSID (void);
 
-     // IInterface - Later
-    bool ifquery (const InterfaceID &iid, void **implementation) { return false; }
+    // IInterface
+    void ifadd     () { SidEmulation<ISidEmulation,ReSIDBuilder>::ifadd(); }
+    bool ifquery   (const InterfaceID &cid, void **implementation);
+    void ifrelease () { SidEmulation<ISidEmulation,ReSIDBuilder>::ifrelease (); }
 
    // Standard component functions
     const char   *credits (void) {return m_credit;}

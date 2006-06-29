@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2006/06/28 08:01:12  s_a_white
+ *  Provide dummy definition for hwsid_handle_t to get code building.
+ *
  *  Revision 1.16  2006/06/27 19:44:55  s_a_white
  *  Add return parameter to ifquery.
  *
@@ -78,7 +81,7 @@
 #include "config.h"
 #include "hardsid-builder.h"
 
-#ifdef HAVE_WINDOWS
+#ifdef HAVE_MSWINDOWS
 typedef int hwsid_handle_t;
 #else
 #include "/home/swhite/CVSROOT/hardsid/src/hwsid.h"
@@ -92,7 +95,7 @@ typedef int hwsid_handle_t;
  * HardSID SID Specialisation
  ***************************************************************************/
 class HardSID: public SidEmulation<ISidEmulation,HardSIDBuilder>,
-               private Event
+               public SidMixer<ISidMixer>, private Event
 {
 private:
     friend class HardSIDBuilder;
@@ -117,8 +120,12 @@ public:
               hwsid_handle_t handle);
     ~HardSID ();
 
+    // IInterface
+    void ifadd     () { SidEmulation<ISidEmulation,HardSIDBuilder>::ifadd(); }
+    bool ifquery   (const InterfaceID &cid, void **implementation);
+    void ifrelease () { SidEmulation<ISidEmulation,HardSIDBuilder>::ifrelease (); }
+
     // Standard component functions
-    bool          ifquery (const InterfaceID &cid, void **implementation) { return false; }
     const char   *credits (void) {return credit;}
     void          reset   (uint8_t volume = 0);
     uint8_t       read    (uint_least8_t addr);
