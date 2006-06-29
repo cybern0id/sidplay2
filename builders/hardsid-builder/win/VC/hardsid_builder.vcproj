@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="hardsid_builder"
+	ProjectGUID="{2F4D1BCB-3073-4553-BB51-72050E272C0E}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -136,6 +137,9 @@
 					AdditionalIncludeDirectories=""
 					PreprocessorDefinitions=""/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\src\hardsid-builder.h">
 		</File>
 		<File
 			RelativePath="..\..\src\hardsid-emu.h">

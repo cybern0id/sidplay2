@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="resid_builder"
+	ProjectGUID="{87671A11-8237-4DA3-A18B-FFC830C3654E}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -215,6 +216,9 @@
 					AdditionalIncludeDirectories=""
 					PreprocessorDefinitions=""/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\src\resid-builder.h">
 		</File>
 		<File
 			RelativePath="..\..\src\resid-emu.h">
