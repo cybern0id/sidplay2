@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libsidplay"
+	ProjectGUID="{EAE4B524-4789-4436-842B-3E4319827EB4}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -508,6 +509,9 @@
 				RelativePath="..\..\include\sidplay\c64env.h">
 			</File>
 			<File
+				RelativePath="..\..\include\sidplay\imp\component.h">
+			</File>
+			<File
 				RelativePath="..\..\include\sidplay\component.h">
 			</File>
 			<File
@@ -521,6 +525,9 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidbuilder.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\imp\sidbuilder.h">
 			</File>
 			<File
 				RelativePath="sidconfig.h">
