@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2006/06/29 19:12:18  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.20  2006/06/28 07:59:49  s_a_white
  *  Switch to new COM style interface.
  *
@@ -432,19 +435,4 @@ void HardSID::clock(sid2_clock_t clk)
         else
             hsid2.Clock ((BYTE) m_id, 1);
     }
-}
-
-// Find the correct interface
-bool HardSID::ifquery (const InterfaceID &iid, void **implementation)
-{
-    if (iid == IID_ISidEmulation)
-        *implementation = static_cast<ISidEmulation *>(this);
-    else if (iid == IID_ISidMixer)
-        *implementation = static_cast<ISidMixer *>(this);
-    else if (iid == IID_IInterface)
-        *implementation = static_cast<ISidEmulation *>(this);
-    else
-        return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
-    return true;
 }
