@@ -23,7 +23,7 @@
 static const InterfaceID IID_IReSIDBuilder =
 { 0x90a0aa02, 0xf272, 0x435d, {0x8f, 0x6b, 0x71, 0xb4, 0x5a, 0xc2, 0xf9, 0x9f} };
 
-class IReSIDBuilder: virtual public ISidBuilder
+class IReSIDBuilder: public ISidBuilder
 {
 public:
     virtual uint create   (uint sids) = 0;
