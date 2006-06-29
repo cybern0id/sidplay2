@@ -114,10 +114,10 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="config.h">
+			RelativePath="..\..\include\config.h">
 		</File>
 		<File
-			RelativePath="..\..\include\config.h">
+			RelativePath="config.h">
 		</File>
 		<File
 			RelativePath="..\..\src\hardsid-builder.cpp">
@@ -140,6 +140,9 @@
 		</File>
 		<File
 			RelativePath="..\..\src\hardsid-builder.h">
+		</File>
+		<File
+			RelativePath="..\..\src\hardsid-emu.cpp">
 		</File>
 		<File
 			RelativePath="..\..\src\hardsid-emu.h">
