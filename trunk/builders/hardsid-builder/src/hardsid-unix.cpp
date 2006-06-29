@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2006/06/27 21:54:47  s_a_white
+ *  Add missing clock function.
+ *
  *  Revision 1.23  2006/06/19 20:52:46  s_a_white
  *  Switch to new interfaces
  *
@@ -108,6 +111,7 @@ static  int hsid_devices = 0;
 HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
 :SidEmulation<ISidEmulation,HardSIDBuilder>(builder),
+ SidMixer<ISidMixer>(static_cast<ISidEmulation*>(this)),
  Event("HardSID Delay"),
  m_stream(handle),
  m_eventContext(NULL),
