@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2006/06/27 19:44:55  s_a_white
+ *  Add return parameter to ifquery.
+ *
  *  Revision 1.15  2006/06/27 19:17:02  s_a_white
  *  Export a create call to make a builder (eventually turn code into module)
  *
@@ -278,12 +281,12 @@ bool HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     if (iid == IID_IHardSIDBuilder)
         *implementation = static_cast<IHardSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
-        *implementation = static_cast<ISidBuilder *>(this);
+        *implementation = static_cast<IHardSIDBuilder *>(this);
     else if (iid == IID_IInterface)
-        *implementation = static_cast<IInterface *>(this);
+        *implementation = static_cast<IHardSIDBuilder *>(this);
     else
         return false;
-    static_cast<IInterface *>(*implementation)->ifadd ();
+    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }
 

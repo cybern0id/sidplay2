@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.10  2006/06/27 19:44:36  s_a_white
+ *  Add return parameter to ifquery.
+ *
  *  Revision 1.9  2006/06/27 19:19:54  s_a_white
  *  Create entry point for builder creation (eventually this will be a module)
  *
@@ -105,6 +108,11 @@ uint ReSIDBuilder::create (uint sids)
             m_error = sid->error ();
             goto ReSIDBuilder_create_error;
         }
+
+        // Use if interface reference counting to delete object
+        ISidEmulation *emulation;
+        sid->ifquery (IF_QUERY (ISidEmulation, &emulation));
+
         sidobjs.push_back (sid);
     }
     return count;
@@ -219,7 +227,7 @@ void ReSIDBuilder::remove ()
 {
     int size = sidobjs.size ();
     for (int i = 0; i < size; i++)
-        delete sidobjs[i];
+        sidobjs[i]->ifrelease ();
     sidobjs.clear();
 }
 
@@ -240,12 +248,12 @@ bool ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
     if (iid == IID_IReSIDBuilder)
         *implementation = static_cast<IReSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
-        *implementation = static_cast<ISidBuilder *>(this);
+        *implementation = static_cast<IReSIDBuilder *>(this);
     else if (iid == IID_IInterface)
-        *implementation = static_cast<IInterface *>(this);
+        *implementation = static_cast<IReSIDBuilder *>(this);
     else
         return false;
-    static_cast<IInterface *>(*implementation)->ifadd ();
+    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }
 

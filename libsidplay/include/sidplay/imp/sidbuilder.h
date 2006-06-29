@@ -50,6 +50,23 @@ public:
 };
 
 template <class TImplementation>
+class SidMixer: public TImplementation
+{
+private:
+    IInterface * const m_iinterface;
+
+public:
+    SidMixer (IInterface *iinterface) : m_iinterface(iinterface) { ; }
+
+private:
+    // IInterface
+    void ifadd     () { m_iinterface->ifadd (); }
+    bool ifquery   (const InterfaceID &cid, void **implementation)
+                   { return m_iinterface->ifquery (cid, implementation); }
+    void ifrelease () { m_iinterface->ifrelease (); }
+};
+
+template <class TImplementation>
 class SidBuilder: public TImplementation
 {
 private:

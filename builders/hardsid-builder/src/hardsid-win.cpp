@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2006/06/28 07:59:49  s_a_white
+ *  Switch to new COM style interface.
+ *
  *  Revision 1.19  2006/05/31 20:31:39  s_a_white
  *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
  *
@@ -154,6 +157,7 @@ static int hsid_device = 0;
 HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
 :SidEmulation<ISidEmulation,HardSIDBuilder>(builder),
+ SidMixer<ISidMixer>(static_cast<ISidEmulation*>(this)),
  Event("HardSID Delay"),
  m_handle(handle),
  m_eventContext(NULL),
@@ -428,4 +432,19 @@ void HardSID::clock(sid2_clock_t clk)
         else
             hsid2.Clock ((BYTE) m_id, 1);
     }
+}
+
+// Find the correct interface
+bool HardSID::ifquery (const InterfaceID &iid, void **implementation)
+{
+    if (iid == IID_ISidEmulation)
+        *implementation = static_cast<ISidEmulation *>(this);
+    else if (iid == IID_ISidMixer)
+        *implementation = static_cast<ISidMixer *>(this);
+    else if (iid == IID_IInterface)
+        *implementation = static_cast<ISidEmulation *>(this);
+    else
+        return false;
+    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
+    return true;
 }
