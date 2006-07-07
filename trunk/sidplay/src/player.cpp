@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.36  2006/06/28 07:42:00  s_a_white
+ *  Switch builders use to COM object use.
+ *
  *  Revision 1.35  2005/11/30 22:49:48  s_a_white
  *  Add raw output support (--raw=<file>)
  *
@@ -710,6 +713,10 @@ void ConsolePlayer::displayError (const char *error)
 void ConsolePlayer::decodeKeys ()
 {
     int action;
+
+    // All keys useless when saving to files
+    if (m_driver.output != OUT_SOUNDCARD)
+        return;
 
     do
     {
