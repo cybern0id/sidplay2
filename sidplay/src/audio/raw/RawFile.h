@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2005/11/30 22:54:20  s_a_white
+ *  Add raw output support (--raw=<file>)
+ *
  *
  ***************************************************************************/
 
@@ -35,8 +38,8 @@ class RawFile: public AudioBase
 private:
     unsigned long int byteCount;
 
+    std::ostream *out;
     std::fstream file;
-    bool isOpen;         // whether file has been opened
 
 public:
 
@@ -64,17 +67,17 @@ public:
     // Rev 1.3 (saw) - Changed, see AudioBase.h
     void *reset ()
     {
-        if (isOpen)
+        if (out)
             return _sampleBuffer;
         return NULL;
     }
 
     // Stream state.
-    bool fail() const { return (file.fail() != 0); }
-    bool bad()  const { return (file.bad()  != 0); }
+    bool fail() const { return !out || out->fail(); }
+    bool bad()  const { return !out || out->bad();  }
 
-    operator bool()  const { return (file.good() != 0); }
-    bool operator!() const { return (file.fail() != 0); }
+    operator bool()  const { return out && out->good(); }
+    bool operator!() const { return fail (); }
 };
 
 #endif /* WAVE_FILE_HEADER_H */
