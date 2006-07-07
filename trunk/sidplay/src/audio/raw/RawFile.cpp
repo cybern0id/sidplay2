@@ -18,6 +18,9 @@
  */
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2005/11/30 22:54:20  s_a_white
+ *  Add raw output support (--raw=<file>)
+ *
  ***************************************************************************/
 
 #include <stdlib.h>
@@ -37,7 +40,7 @@
 
 RawFile::RawFile()
 {
-    isOpen = false;
+    out = 0;
 }
 
 void* RawFile::open(AudioConfig &cfg, const char* name,
@@ -63,8 +66,7 @@ void* RawFile::open(AudioConfig &cfg, const char* name,
     if (name == NULL)
         return NULL;
 
-    if (isOpen && !file.fail())
-        close();
+    close();
    
     byteCount = 0;
 
@@ -77,40 +79,47 @@ void* RawFile::open(AudioConfig &cfg, const char* name,
     if (!_sampleBuffer)
         return NULL;
 
-    openmode createAttr = std::ios::out;
+    if ((name[0] == '-') && (name[1] == '\0'))
+        out = &std::cout;
+    else
+    {
+        openmode createAttr = std::ios::out;
 #if defined(WAV_HAVE_IOS_BIN)
-    createAttr |= std::ios::bin;
+        createAttr |= std::ios::bin;
 #else
-    createAttr |= std::ios::binary;
+        createAttr |= std::ios::binary;
 #endif
 
-    if (overWrite)
-        file.open( name, createAttr|std::ios::trunc );
-    else
-        file.open( name, createAttr|std::ios::app );
+        if (overWrite)
+            file.open( name, createAttr|std::ios::trunc );
+        else
+            file.open( name, createAttr|std::ios::app );
 
-    isOpen = !(file.fail() || file.tellp());
+        out = &file;
+    }
+
     _settings = cfg;
     return _sampleBuffer;
 }
 
 void* RawFile::write()
 {
-    if (isOpen && !file.fail())
+    if (out && !out->fail())
     {
         unsigned long int bytes = _settings.bufSize;
         byteCount += bytes;
-        file.write((char*)_sampleBuffer,bytes);
+        out->write((char*)_sampleBuffer,bytes);
     }
     return _sampleBuffer;
 }
 
 void RawFile::close()
 {
-    if (isOpen && !file.fail())
+    if (out)
     {
-        file.close();
-        isOpen = false;
+        if (out != &std::cout)
+            file.close();
+        out = 0;
         delete [] (int_least8_t *) _sampleBuffer;
     }
 }
