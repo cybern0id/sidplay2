@@ -224,7 +224,7 @@
 			RelativePath="..\..\src\resid-emu.h">
 		</File>
 		<File
-			RelativePath="..\..\src\resid.cpp">
+			RelativePath="..\..\src\resid-emu.cpp">
 			<FileConfiguration
 				Name="Release|Win32">
 				<Tool
