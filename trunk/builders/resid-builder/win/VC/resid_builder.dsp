@@ -202,7 +202,7 @@ SOURCE=..\..\src\resid-emu.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\resid.cpp
+SOURCE=..\..\src\resid-emu.cpp
 # End Source File
 # Begin Source File
 
