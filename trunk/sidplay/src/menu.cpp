@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2005/05/12 07:01:44  s_a_white
+ *  Add MD5 key to display at verbose level 2.
+ *
  *  Revision 1.14  2004/02/26 18:19:22  s_a_white
  *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
  *
@@ -82,7 +85,7 @@ void ConsolePlayer::menu ()
     const sid2_info_t &info     = m_engine.info ();
     const SidTuneInfo &tuneInfo = *info.tuneInfo;
 
-    if (m_quietLevel > 1)
+    if (m_verboseLevel < -1)
         return;
 
     // cerr << (char) 12 << '\f'; // New Page
@@ -144,7 +147,7 @@ void ConsolePlayer::menu ()
         consoleTable (tableSeperator);
     }
 
-    if (m_verboseLevel)
+    if (m_verboseLevel > 0)
     {
         consoleTable  (tableMiddle);
         consoleColour (green, true);
@@ -207,7 +210,7 @@ void ConsolePlayer::menu ()
         cerr << " [LOOPING]";
     cerr << endl;
 
-    if (m_verboseLevel)
+    if (m_verboseLevel > 0)
     {
         consoleTable  (tableMiddle);
         consoleColour (green, true);
@@ -234,7 +237,7 @@ void ConsolePlayer::menu ()
     }
     cerr << endl;
 
-    if (m_verboseLevel)
+    if (m_verboseLevel > 0)
     {
         consoleTable  (tableSeperator);
         consoleTable  (tableMiddle);
@@ -348,7 +351,7 @@ void ConsolePlayer::menu ()
 
     // Get all the text to the screen so music playback
     // is not disturbed.
-    if ( !m_quietLevel )
+    if (m_verboseLevel >= 0)
         cerr << "00:00";
     cerr << flush;
 }
