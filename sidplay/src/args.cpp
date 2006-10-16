@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2006/06/27 20:14:55  s_a_white
+ *  Switch to new COM style builder classes.
+ *
  *  Revision 1.21  2005/12/02 19:25:30  s_a_white
  *  Fix bug reported by Patrick Mauritz in patch 1282585 (modification of
  *  constant string).
@@ -309,14 +312,6 @@ int ConsolePlayer::args (int argc, const char *argv[])
                 }
             }
 
-            else if (argv[i][1] == 'q')
-            {
-                if (argv[i][2] == '\0')
-                    m_quietLevel = 1;
-                else
-                    m_quietLevel = atoi(&argv[i][2]);
-            }
-
             // Stereo Options
             else if (strcmp (&argv[i][1], "sl") == 0)
             {   // Left Channel
@@ -577,12 +572,13 @@ void ConsolePlayer::displayArgs (const char *arg)
 
         << " -t<num>      set play length in [m:]s format (0 is endless)" << endl
 
-        << " -<v|q>       verbose or quiet (no time display) output" << endl
+        << " -v[num]      verbose output (positive more, negative quieter)" << endl
         << " -v[p|n][f]   set VIC PAL/NTSC clock speed (default: defined by song)" << endl
         << "              Use 'f' to force the clock by preventing speed fixing" << endl
 
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl;
 #ifdef HAVE_HARDSID_BUILDER
+/*
     {
         IHardSIDBuilder *hs;
         if ( HardSIDBuilderCreate ("", IF_QUERY(IHardSIDBuilder, &hs)) )
@@ -592,6 +588,7 @@ void ConsolePlayer::displayArgs (const char *arg)
             hs->ifrelease ();
         }
     }
+*/
 #endif
     out << endl
         // Changed to new homepage address

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.33  2005/06/10 19:12:51  s_a_white
+ *  MingW support added.
+ *
  *  Revision 1.32  2004/02/26 18:19:22  s_a_white
  *  Updates for VC7 (use real libstdc++ headers instead of draft ones).
  *
@@ -159,7 +162,8 @@ main_restart:
 
 #if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
     // Configure terminal to allow direct access to key events
-    keyboard_enable_raw ();
+    if (player.verbose () > -2)
+        keyboard_enable_raw ();
 #endif // HAVE_UNIX
 
     // Play loop
@@ -170,7 +174,8 @@ main_restart:
     }
 
 #if defined(HAVE_UNIX) && !defined(HAVE_MINGW)
-    keyboard_disable_raw ();
+    if (player.verbose () > -2)
+        keyboard_disable_raw ();
 #endif
 
     // Restore default signal error handlers
