@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.37  2006/07/07 18:44:09  s_a_white
+ *  Display keys for non soundcard output sources.
+ *
  *  Revision 1.36  2006/06/28 07:42:00  s_a_white
  *  Switch builders use to COM object use.
  *
@@ -163,7 +166,6 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_state(playerStopped),
  m_outfile(NULL),
  m_context(NULL),
- m_quietLevel(0),
  m_verboseLevel(0),
  m_crc(0),
  m_cpudebug(false)
@@ -190,17 +192,17 @@ ConsolePlayer::ConsolePlayer (const char * const name)
         IniConfig::emulation_section emulation = m_iniCfg.emulation();
 
         // INI Configuration Settings
-        m_engCfg.clockForced  = emulation.clockForced;
-        m_engCfg.clockSpeed   = emulation.clockSpeed;
-        m_engCfg.clockDefault = SID2_CLOCK_PAL;
-        m_engCfg.frequency    = audio.frequency;
-        m_engCfg.optimisation = emulation.optimiseLevel;
-        m_engCfg.playback     = audio.playback;
-        m_engCfg.precision    = audio.precision;
-        m_engCfg.sidModel     = emulation.sidModel;
-        m_engCfg.sidDefault   = SID2_MOS6581;
-        m_engCfg.sidSamples   = emulation.sidSamples;
-        m_filter.enabled      = emulation.filter;
+        m_engCfg.clockForced    = emulation.clockForced;
+        m_engCfg.clockSpeed     = emulation.clockSpeed;
+        m_engCfg.clockDefault   = SID2_CLOCK_PAL;
+        m_engCfg.frequency      = audio.frequency;
+        m_engCfg.optimisation   = emulation.optimiseLevel;
+        m_engCfg.playback       = audio.playback;
+        m_engCfg.precision      = audio.precision;
+        m_engCfg.sidModel       = emulation.sidModel;
+        m_engCfg.sidDefault     = SID2_MOS6581;
+        m_engCfg.sidSamples     = emulation.sidSamples;
+        m_filter.enabled        = emulation.filter;
     }
 
     createOutput (OUT_NULL, NULL);
@@ -454,7 +456,7 @@ bool ConsolePlayer::open (void)
 
     if ((m_state & ~playerFast) == playerRestart)
     {
-        if (m_quietLevel < 2)
+        if (m_verboseLevel > -2)
             cerr << endl;
         if (m_state & playerFast)
             m_driver.selected->reset ();
@@ -544,7 +546,7 @@ void ConsolePlayer::close ()
     m_engine.load   (NULL);
     m_engine.config (m_engCfg);
 
-    if (m_quietLevel < 2)
+    if (m_verboseLevel > -2)
     {   // Correctly leave ansi mode and get prompt to
         // end up in a suitable location
         if ((m_iniCfg.console ()).ansi)
@@ -601,11 +603,11 @@ bool ConsolePlayer::play ()
         // Check for a keypress (approx 250ms rate, but really depends
         // on music buffer sizes).  Don't do this for high quiet levels
         // as chances are we are under remote control.
-        if ((m_quietLevel < 2) && _kbhit ())
+        if ((m_verboseLevel > -2) && _kbhit ())
             decodeKeys ();
         return true;
     default:
-        if (m_quietLevel < 2)
+        if (m_verboseLevel > -2)
             cerr << endl;
         if (m_crc)
         {
@@ -653,7 +655,7 @@ void ConsolePlayer::stop ()
 void ConsolePlayer::event (void)
 {
     uint_least32_t seconds = m_engine.time() / m_engine.timebase();
-    if ( !m_quietLevel )
+    if (m_verboseLevel >= 0)
     {
         cerr << "\b\b\b\b\b" << std::setw(2) << std::setfill('0')
              << ((seconds / 60) % 100) << ':' << std::setw(2)
