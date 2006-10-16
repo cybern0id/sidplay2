@@ -3,6 +3,10 @@
 // --------------------------------------------------------------------------
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.9  2005/10/17 08:30:55  s_a_white
+ *  Gentoo bug #98769.  goto open_error crosses initialization of
+ *  `unsigned int rate'
+ *
  *  Revision 1.8  2005/07/18 19:46:43  s_a_white
  *  Switch from obsolete alsa interface (patch by shd).
  *
@@ -34,6 +38,7 @@
 #include "audiodrv.h"
 #ifdef   HAVE_ALSA
 
+#include <errno.h>
 #include <stdio.h>
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
@@ -290,7 +295,8 @@ void *Audio_ALSA::write ()
     }
 
 #ifdef HAVE_ALSA_ASOUNDLIB_H
-    snd_pcm_writei (_audioHandle, _sampleBuffer, _settings.bufSize / _alsa_to_frames_divisor);
+    if (snd_pcm_writei  (_audioHandle, _sampleBuffer, _settings.bufSize / _alsa_to_frames_divisor) == -EPIPE)
+        snd_pcm_prepare (_audioHandle); // Underrun
 #else // Obsolete interface
     snd_pcm_plugin_write (_audioHandle, _sampleBuffer, _settings.bufSize);
 #endif
