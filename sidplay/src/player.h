@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2005/11/30 22:49:48  s_a_white
+ *  Add raw output support (--raw=<file>)
+ *
  *  Revision 1.10  2004/02/12 05:58:03  s_a_white
  *  Update argurements and help menu handling.
  *
@@ -141,8 +144,7 @@ private:
     SidDatabase        m_database;
 
     // Display parameters
-    uint_least8_t      m_quietLevel;
-    uint_least8_t      m_verboseLevel;
+    int_least8_t       m_verboseLevel;
 
     uint_least32_t     m_crc;
     bool               m_cpudebug;
@@ -212,12 +214,13 @@ public:
     ConsolePlayer (const char * const name);
     virtual ~ConsolePlayer() {;}
 
-    int            args  (int argc, const char *argv[]);
-    bool           open  (void);
-    void           close (void);
-    bool           play  (void);
-    void           stop  (void);
-    player_state_t state (void) { return m_state; }
+    int            args    (int argc, const char *argv[]);
+    bool           open    (void);
+    void           close   (void);
+    bool           play    (void);
+    void           stop    (void);
+    player_state_t state   (void) { return m_state; }
+    int_least8_t   verbose (void) { return m_verboseLevel; }
 };
 
 #endif // _player_h_
