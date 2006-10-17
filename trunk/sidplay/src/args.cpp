@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2006/10/16 21:44:42  s_a_white
+ *  Merge verbose and quiet levels.  Prevent quiet level (verbose -2) accessing
+ *  the keyboard in anyway (for background operation).
+ *
  *  Revision 1.22  2006/06/27 20:14:55  s_a_white
  *  Switch to new COM style builder classes.
  *
@@ -155,6 +159,16 @@ int ConsolePlayer::args (int argc, const char *argv[])
     int  infile = 0;
     int  i      = 0;
     bool err    = false;
+
+    enum
+    {
+        PRINT_NONE    = 0,
+        PRINT_TITLE   = 1,
+        PRINT_AUTHOR  = 2,
+        PRINT_RELEASE = 3,
+        PRINT_CLOCK   = 4,
+        PRINT_MODEL   = 5
+    } print = PRINT_NONE;
 
     if (argc == 0) // at least one argument required
     {
@@ -428,6 +442,18 @@ int ConsolePlayer::args (int argc, const char *argv[])
                 m_cpudebug = true;
             }
 
+// Print options
+            else if (strcmp (&argv[i][1], "-print-title") == 0)
+                print = PRINT_TITLE;
+            else if (strcmp (&argv[i][1], "-print-author") == 0)
+                print = PRINT_AUTHOR;
+            else if (strcmp (&argv[i][1], "-print-release") == 0)
+                print = PRINT_RELEASE;
+            else if (strcmp (&argv[i][1], "-print-clock") == 0)
+                print = PRINT_CLOCK;
+            else if (strcmp (&argv[i][1], "-print-model") == 0)
+                print = PRINT_MODEL;
+
             else
             {
                 err = true;
@@ -460,6 +486,40 @@ int ConsolePlayer::args (int argc, const char *argv[])
         return -1;
     }
 
+    // Select the desired track
+    m_track.first    = m_tune.selectSong (m_track.first);
+    m_track.selected = m_track.first;
+
+    if (print != PRINT_NONE)
+    {
+        const SidTuneInfo &tuneInfo = m_tune.getInfo ();
+        if (!tuneInfo.musPlayer && (tuneInfo.numberOfInfoStrings == 3))
+        {
+            if (print == PRINT_TITLE)
+                cout << tuneInfo.infoString[0];
+            if (print == PRINT_AUTHOR)
+                cout << tuneInfo.infoString[1];
+            if (print == PRINT_RELEASE)
+                cout << tuneInfo.infoString[2];
+        }
+        if (print == PRINT_CLOCK)
+        {
+            if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_PAL)
+                cout << "PAL";
+            else if (tuneInfo.clockSpeed == SIDTUNE_CLOCK_NTSC)
+                cout << "NTSC";
+        }
+        if (print == PRINT_MODEL)
+        {
+            if (tuneInfo.sidModel == SIDTUNE_SIDMODEL_6581)
+                cout << "6581";
+            else if (tuneInfo.sidModel == SIDTUNE_SIDMODEL_8580)
+                cout << "8580";
+        }
+        cout << std::flush; // cerr << endl can overtake
+        return 0;
+    }
+
     // If filename specified we can only convert one song
     if (m_outfile != NULL)
         m_track.single = true;
@@ -476,9 +536,6 @@ int ConsolePlayer::args (int argc, const char *argv[])
         return -1;
     }
     
-    // Select the desired track
-    m_track.first    = m_tune.selectSong (m_track.first);
-    m_track.selected = m_track.first;
     if (m_track.single)
         m_track.songs = 1;
 
