@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2006/10/16 21:44:42  s_a_white
+ *  Merge verbose and quiet levels.  Prevent quiet level (verbose -2) accessing
+ *  the keyboard in anyway (for background operation).
+ *
  *  Revision 1.15  2005/05/12 07:01:44  s_a_white
  *  Add MD5 key to display at verbose level 2.
  *
@@ -326,33 +330,37 @@ void ConsolePlayer::menu ()
     }
     consoleTable (tableEnd);
 
-/*
-    cerr << "Credits:\n";
-    const char **p;
-    const char  *credit;
-    p = m_engine.credits ();
-    while (*p)
+    if (m_verboseLevel > 2)
     {
-        credit = *p;
-        while (*credit)
+        cerr << "\nCredits:\n\n";
+        const char **p;
+        const char  *credit;
+        p = m_engine.info().credits;
+        while (*p)
         {
-            cerr << credit << endl;
-            credit += strlen (credit) + 1;
+            credit = *p;
+            while (*credit)
+            {
+                cerr << credit << endl;
+                credit += strlen (credit) + 1;
+            }
+            cerr << endl;
+            p++;
         }
-        cerr << endl;
-        p++;
     }
-*/
 
-    if (m_driver.file)
-        cerr << "Creating audio file, please wait...";
-    else
-        cerr << "Playing, press ^C to stop...";
-
-    // Get all the text to the screen so music playback
-    // is not disturbed.
     if (m_verboseLevel >= 0)
+    {
+        if (m_driver.file)
+            cerr << "Creating audio file, please wait...";
+        else
+            cerr << "Playing, press ^C to stop...";
+
+        // Get all the text to the screen so music playback
+        // is not disturbed.
         cerr << "00:00";
+    }
+
     cerr << flush;
 }
 
