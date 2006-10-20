@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2006/10/20 16:16:28  s_a_white
+ *  Better compatibility with old code.
+ *
  *  Revision 1.17  2006/06/29 19:12:18  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -281,7 +284,7 @@ int HardSIDBuilderImpl::init ()
 // Find the correct interface
 bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_IHardSIDBuilder)
+    if (iid == IID_HardSIDBuilder)
         *implementation = static_cast<HardSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
         *implementation = static_cast<HardSIDBuilder *>(this);
