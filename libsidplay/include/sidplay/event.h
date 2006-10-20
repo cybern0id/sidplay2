@@ -78,6 +78,8 @@ class EventContext
 
 protected:
     virtual void cancel   (Event &event) = 0;
+
+public: // Remake this public for backwards compatibility
     virtual void schedule (Event &event, event_clock_t cycles, event_phase_t phase) = 0;
 
 public:
