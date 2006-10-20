@@ -142,6 +142,14 @@ CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include \$(LIBLTDL_CXXFLAGS) \
 ACLOCAL_AMFLAGS="-I unix"
 AC_SUBST(ACLOCAL_AMFLAGS)
 
+dnl Compatibility test new/old code.  Look for COM
+MY_TRY_COMPILE($CXXFLAGS,$LDFLAGS],
+               [sidplay/component.h],
+               [IInterface *i;], sid_com)
+if test "$sid2_com" = YES; then
+    AC_DEFINE(HAVE_SID2_COM,,"Define to 1 for COM libsidplay2 interface")
+fi
+
 AC_OUTPUT(
 Makefile \
 doc/Makefile \
