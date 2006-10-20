@@ -135,20 +135,20 @@ SID2_FIND_LIBSIDUTILS
 # Find sid builder emulations
 SID2_FIND_BUILDERS
 
+dnl Compatibility test new/old code.  Look for COM
+MY_TRY_COMPILE($LIBSIDPLAY2_CXXFLAGS,$LIBSIDPLAY_LDFLAGS,
+               [sidplay/component.h],
+               [IInterface *i;],sid2_com)
+if test "$sid2_com" = YES; then
+    AC_DEFINE(HAVE_SID2_COM,,[Define to 1 for COM libsidplay2 interface])
+fi
+
 dnl Add absolute directory for header files
 CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include \$(LIBLTDL_CXXFLAGS) \
 \$(LIBSIDPLAY2_CXXFLAGS) \$(LIBSIDUTILS_CXXFLAGS)"
 
 ACLOCAL_AMFLAGS="-I unix"
 AC_SUBST(ACLOCAL_AMFLAGS)
-
-dnl Compatibility test new/old code.  Look for COM
-MY_TRY_COMPILE($CXXFLAGS,$LDFLAGS],
-               [sidplay/component.h],
-               [IInterface *i;], sid_com)
-if test "$sid2_com" = YES; then
-    AC_DEFINE(HAVE_SID2_COM,,"Define to 1 for COM libsidplay2 interface")
-fi
 
 AC_OUTPUT(
 Makefile \
