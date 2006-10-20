@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2006/06/27 19:44:55  s_a_white
+ *  Add return parameter to ifquery.
+ *
  *  Revision 1.1  2006/06/19 20:53:20  s_a_white
  *  Added, contains builder implementation (moved from hardsid.h)
  *
@@ -49,7 +52,7 @@
 
 class HardSIDStream;
 
-class HardSIDBuilder: public SidBuilder<IHardSIDBuilder>
+class HardSIDBuilderImpl: public SidBuilder<HardSIDBuilder>
 {
 private:
     static bool   m_initialised;
@@ -60,8 +63,8 @@ private:
     int init (void);
 
 public:
-    HardSIDBuilder  (const char * const name);
-    ~HardSIDBuilder (void);
+    HardSIDBuilderImpl  (const char * const name);
+    ~HardSIDBuilderImpl (void);
 
     // IInterface
     bool ifquery (const InterfaceID &iid, void **implementation);

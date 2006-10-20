@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2006/06/29 19:12:18  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.17  2006/06/28 08:01:12  s_a_white
  *  Provide dummy definition for hwsid_handle_t to get code building.
  *
@@ -98,7 +101,7 @@ class HardSID: public SidEmulation<ISidEmulation,HardSIDBuilder>,
                public SidMixer<ISidMixer>, private Event
 {
 private:
-    friend class HardSIDBuilder;
+    friend class HardSIDBuilderImpl;
 
     // HardSID specific data
     hwsid_handle_t m_handle;
