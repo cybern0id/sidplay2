@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2006/10/20 16:29:32  s_a_white
+ *  Build fix
+ *
  *  Revision 1.12  2006/10/20 16:23:21  s_a_white
  *  Improve compatibility with old code.
  *
@@ -265,7 +268,7 @@ bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool ReSIDBuilderImplCreate (const char * const name, const InterfaceID &cid,
+bool ReSIDBuilderCreate (const char * const name, const InterfaceID &cid,
                          void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
