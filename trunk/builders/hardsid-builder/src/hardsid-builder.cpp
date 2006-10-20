@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2006/06/29 19:12:18  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.16  2006/06/27 19:44:55  s_a_white
  *  Add return parameter to ifquery.
  *
@@ -79,11 +82,11 @@
 #include "hardsid-builder.h"
 #include "hardsid-stream.h"
 
-bool HardSIDBuilder::m_initialised = false;
-uint HardSIDBuilder::m_count = 0;
+bool HardSIDBuilderImpl::m_initialised = false;
+uint HardSIDBuilderImpl::m_count = 0;
 
-HardSIDBuilder::HardSIDBuilder (const char * const name)
-:SidBuilder<IHardSIDBuilder>(name)
+HardSIDBuilderImpl::HardSIDBuilderImpl (const char * const name)
+:SidBuilder<HardSIDBuilder>(name)
 {
     strcpy (m_errorBuffer, "N/A");
 
@@ -106,13 +109,13 @@ HardSIDBuilder::HardSIDBuilder (const char * const name)
     }
 }
 
-HardSIDBuilder::~HardSIDBuilder (void)
+HardSIDBuilderImpl::~HardSIDBuilderImpl (void)
 {   // Remove all are SID emulations
     remove ();
 }
 
 // Create a new sid emulation.  Called by libsidplay2 only
-uint HardSIDBuilder::create (uint sids)
+uint HardSIDBuilderImpl::create (uint sids)
 {
     uint count;
     m_status = true;
@@ -120,7 +123,7 @@ uint HardSIDBuilder::create (uint sids)
     // Check available devices
     count = devices (false);
     if (!m_status)
-        goto HardSIDBuilder_create_error;
+        goto HardSIDBuilderImpl_create_error;
     if (count && (count < sids))
         sids = count;
 
@@ -145,7 +148,7 @@ uint HardSIDBuilder::create (uint sids)
         if (!stream)
         {
             sprintf (m_errorBuffer, "%s ERROR: Unable to create HardSID stream", name ());
-            goto HardSIDBuilder_create_error;
+            goto HardSIDBuilderImpl_create_error;
         }
 
         // stream init or sid alloc failed?
@@ -153,19 +156,19 @@ uint HardSIDBuilder::create (uint sids)
         {
             strcpy (m_errorBuffer, stream->error ());
             delete stream;
-            goto HardSIDBuilder_create_error;
+            goto HardSIDBuilderImpl_create_error;
         }
         m_streams.push_back (stream);
     }
     return count;
 
-HardSIDBuilder_create_error:
+HardSIDBuilderImpl_create_error:
     m_status = false;
     return count;
 }
 
 // Return the available devices or the used (created) devices.
-uint HardSIDBuilder::devices (bool created)
+uint HardSIDBuilderImpl::devices (bool created)
 {
     m_status = true;
     if (created)
@@ -180,20 +183,20 @@ uint HardSIDBuilder::devices (bool created)
     return m_count;
 }
 
-const char *HardSIDBuilder::credits ()
+const char *HardSIDBuilderImpl::credits ()
 {
     m_status = true;
     return HardSID::credit;
 }
 
-void HardSIDBuilder::flush(void)
+void HardSIDBuilderImpl::flush(void)
 {
     int size = m_streams.size ();
     for (int i = 0; i < size; i++)
         m_streams[i]->flush ();
 }
 
-void HardSIDBuilder::filter (bool enable)
+void HardSIDBuilderImpl::filter (bool enable)
 {
     int size = m_streams.size ();
     m_status = true;
@@ -202,7 +205,7 @@ void HardSIDBuilder::filter (bool enable)
 }
 
 // Find a free SID of the required type
-ISidEmulation *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
+ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 {
     HardSID *def = NULL;
     int size = m_streams.size ();
@@ -246,14 +249,14 @@ ISidEmulation *HardSIDBuilder::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void HardSIDBuilder::unlock (ISidEmulation *device)
+void HardSIDBuilderImpl::unlock (ISidEmulation *device)
 {
     HardSID *sid = (HardSID *) device;
     sid->lock (NULL);
 }
 
 // Remove all SID emulations.
-void HardSIDBuilder::remove ()
+void HardSIDBuilderImpl::remove ()
 {
     int size = m_streams.size ();
     for (int i = 0; i < size; i++)
@@ -264,7 +267,7 @@ void HardSIDBuilder::remove ()
 // Find the number of sid devices.  We do not care about
 // stuppid device numbering or drivers not loaded for the
 // available nodes.
-int HardSIDBuilder::init ()
+int HardSIDBuilderImpl::init ()
 {
     if (HardSID::init (m_errorBuffer))
         return -1;
@@ -276,14 +279,14 @@ int HardSIDBuilder::init ()
 }
 
 // Find the correct interface
-bool HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
     if (iid == IID_IHardSIDBuilder)
-        *implementation = static_cast<IHardSIDBuilder *>(this);
+        *implementation = static_cast<HardSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
-        *implementation = static_cast<IHardSIDBuilder *>(this);
+        *implementation = static_cast<HardSIDBuilder *>(this);
     else if (iid == IID_IInterface)
-        *implementation = static_cast<IHardSIDBuilder *>(this);
+        *implementation = static_cast<HardSIDBuilder *>(this);
     else
         return false;
     reinterpret_cast<IInterface *>(*implementation)->ifadd ();
@@ -292,13 +295,13 @@ bool HardSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool HardSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+bool HardSIDBuilderImplCreate (const char * const name, const InterfaceID &cid,
                            void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
-    HardSIDBuilder *builder = new(nothrow) HardSIDBuilder(name);
+    HardSIDBuilderImpl *builder = new(nothrow) HardSIDBuilderImpl(name);
 #else
-    HardSIDBuilder *builder = new HardSIDBuilder(name);
+    HardSIDBuilderImpl *builder = new HardSIDBuilderImpl(name);
 #endif
     if (builder)
     {
