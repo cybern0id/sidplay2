@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.38  2006/10/16 21:50:45  s_a_white
+ *  Merge verbose and quiet levels.
+ *
  *  Revision 1.37  2006/07/07 18:44:09  s_a_white
  *  Display keys for non soundcard output sources.
  *
@@ -372,8 +375,8 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #ifdef HAVE_RESID_BUILDER
     case EMU_RESID:
     {
-        IReSIDBuilder *rs;
-        if ( ReSIDBuilderCreate ("", IF_QUERY(IReSIDBuilder, &rs)) )
+        ReSIDBuilder *rs;
+        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs)) )
         {
             ISidBuilder *builder = 0;
             if ( rs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
@@ -404,8 +407,8 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #ifdef HAVE_HARDSID_BUILDER
     case EMU_HARDSID:
     {
-        IHardSIDBuilder *hs;
-        if ( HardSIDBuilderCreate ("", IF_QUERY(IHardSIDBuilder, &hs)) )
+        HardSIDBuilder *hs;
+        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs)) )
         {
             ISidBuilder *builder = 0;
             if ( hs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
@@ -562,8 +565,8 @@ void ConsolePlayer::emuflush ()
 {   // Eventually need an interface to flush all hardware
     // seperate to a specific interface
 #ifdef HAVE_HARDSID_BUILDER
-    IHardSIDBuilder *hs;
-    if ( (m_engCfg.sidEmulation)->ifquery (IF_QUERY(IHardSIDBuilder, &hs)) )
+    HardSIDBuilder *hs;
+    if ( (m_engCfg.sidEmulation)->ifquery (IF_QUERY(HardSIDBuilder, &hs)) )
     {
         hs->flush ();
         hs->ifrelease ();
