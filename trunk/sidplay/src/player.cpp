@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2006/10/20 16:27:12  s_a_white
+ *  Begin improving compatibility with old libraries
+ *
  *  Revision 1.38  2006/10/16 21:50:45  s_a_white
  *  Merge verbose and quiet levels.
  *
@@ -152,6 +155,7 @@ using std::endl;
 // Previous song select timeout (3 secs)
 #define SID2_PREV_SONG_TIMEOUT 4
 
+// Depreciated
 #ifdef HAVE_RESID_BUILDER
 #   include <sidplay/builders/resid.h>
 const char ConsolePlayer::RESID_ID[]   = "ReSID";
@@ -160,6 +164,7 @@ const char ConsolePlayer::RESID_ID[]   = "ReSID";
 #   include <sidplay/builders/hardsid.h>
 const char ConsolePlayer::HARDSID_ID[] = "HardSID";
 #endif
+
 
 
 ConsolePlayer::ConsolePlayer (const char * const name)
@@ -363,10 +368,20 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     // Remove old driver and emulation
     if (m_engCfg.sidEmulation)
     {
-        ISidBuilder *builder  = m_engCfg.sidEmulation;
-        m_engCfg.sidEmulation = NULL;
+#ifdef HAVE_SID2_COM
+        ISidBuilder
+#else // Depreciared interface
+        sidbuilder
+#endif
+        *builder = m_engCfg.sidEmulation;
+        m_engCfg.sidEmulation = 0;
         m_engine.config (m_engCfg);
+#ifdef HAVE_SID2_COM
         builder->ifrelease ();
+#else // Depreciared interface
+        delete builder;
+#endif
+
     }
 
     // Now setup the sid emulation
@@ -376,11 +391,22 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_RESID:
     {
         ReSIDBuilder *rs;
+#ifdef HAVE_SID2_COM
         if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs)) )
         {
             ISidBuilder *builder = 0;
-            if ( rs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
-                m_engCfg.sidEmulation = builder;
+            rs->ifquery (IF_QUERY(ISidBuilder, &builder));
+            m_engCfg.sidEmulation = builder;
+#else // Depreciated interface
+#   ifdef HAVE_EXCEPTIONS
+        rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
+#   else
+        rs = new ReSIDBuilder( RESID_ID );
+#   endif
+        if (rs)
+        {
+            m_engCfg.sidEmulation = rs;
+#endif // HAVE_SID2_COM
             if (!*rs) goto EMU_RESID_ERROR;
 
             // Setup the emulation
@@ -395,11 +421,15 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
                 rs->filter (m_filter.definition.provide ());
                 if (!*rs) goto EMU_RESID_ERROR;
             }
+#ifdef HAVE_SID2_COM
             rs->ifrelease ();
+#endif
         }
         break;
     EMU_RESID_ERROR:
+#ifdef HAVE_SID2_COM
         rs->ifrelease ();
+#endif
         goto createSidEmu_error;
     }
 #endif // HAVE_RESID_BUILDER
@@ -408,11 +438,22 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_HARDSID:
     {
         HardSIDBuilder *hs;
+#ifdef HAVE_SID2_COM
         if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs)) )
         {
             ISidBuilder *builder = 0;
-            if ( hs->ifquery (IF_QUERY(ISidBuilder, &builder)) )
-                m_engCfg.sidEmulation = builder;
+            hs->ifquery (IF_QUERY(ISidBuilder, &builder));
+            m_engCfg.sidEmulation = builder;
+#else // Depreciated interface
+#   ifdef HAVE_EXCEPTIONS
+        hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
+#   else
+        hs = new HardSIDBuilder( HARDSID_ID );
+#   endif
+        if (hs)
+        {
+            m_engCfg.sidEmulation = hs;
+#endif // HAVE_SID2_COM
             if (!*hs) goto EMU_HARDSID_ERROR;
 
             // Setup the emulation
@@ -420,10 +461,15 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
             if (!*hs) goto EMU_HARDSID_ERROR;
             hs->filter (m_filter.enabled);
             if (!*hs) goto EMU_HARDSID_ERROR;
+#ifdef HAVE_SID2_COM
+            hs->ifrelease ();
+#endif
         }
         break;
     EMU_HARDSID_ERROR:
+#ifdef HAVE_SID2_COM
         hs->ifrelease ();
+#endif
         goto createSidEmu_error;
     }
 #endif // HAVE_HARDSID_BUILDER
@@ -447,8 +493,12 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 
 createSidEmu_error:
     displayError (m_engCfg.sidEmulation->error ());
+#ifdef HAVE_SID2_COM
     (m_engCfg.sidEmulation)->ifrelease ();
-    m_engCfg.sidEmulation = NULL;
+#else // Depreciated Interface
+    delete m_engCfg.sidEmulation;
+#endif
+    m_engCfg.sidEmulation = 0;
     return false;
 }
 
@@ -564,14 +614,27 @@ void ConsolePlayer::close ()
 void ConsolePlayer::emuflush ()
 {   // Eventually need an interface to flush all hardware
     // seperate to a specific interface
-#ifdef HAVE_HARDSID_BUILDER
+#ifdef HSID_SID2_COM
+#   ifdef HAVE_HARDSID_BUILDER
     HardSIDBuilder *hs;
     if ( (m_engCfg.sidEmulation)->ifquery (IF_QUERY(HardSIDBuilder, &hs)) )
     {
         hs->flush ();
         hs->ifrelease ();
     }
-#endif // HAVE_HARDSID_BUILDER
+#   endif // HAVE_HARDSID_BUILDER
+#else // Depreciated Interface
+    switch (m_driver.sid)
+    {
+#   ifdef HAVE_HARDSID_BUILDER
+    case EMU_HARDSID:
+        ((HardSIDBuilder *)m_engCfg.sidEmulation)->flush ();
+        break;
+#   endif // HAVE_HARDSID_BUILDER
+    default:
+        break;
+    }
+#endif // HSID_SID2_COM
 }
 
 
@@ -704,7 +767,7 @@ void ConsolePlayer::event (void)
     }
 
     // Units in C64 clock cycles
-    schedule (*m_context, 900000, EVENT_CLOCK_PHI1);
+    m_context->schedule (this, 900000, EVENT_CLOCK_PHI1);
 }
 
 
