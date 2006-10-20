@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2006/10/20 16:28:50  s_a_white
+ *  Build fix
+ *
  *  Revision 1.18  2006/10/20 16:16:28  s_a_white
  *  Better compatibility with old code.
  *
@@ -298,7 +301,7 @@ bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool HardSIDBuilderImplCreate (const char * const name, const InterfaceID &cid,
+bool HardSIDBuilderCreate (const char * const name, const InterfaceID &cid,
                            void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
