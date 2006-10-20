@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.11  2006/06/29 19:12:46  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.10  2006/06/27 19:44:36  s_a_white
  *  Add return parameter to ifquery.
  *
@@ -59,21 +62,21 @@
 #include "resid-emu.h"
 
 // Error String(s)
-const char *ReSIDBuilder::ERR_FILTER_DEFINITION = "RESID ERROR: Filter definition is not valid (see docs).";
+const char *ReSIDBuilderImpl::ERR_FILTER_DEFINITION = "RESID ERROR: Filter definition is not valid (see docs).";
 
-ReSIDBuilder::ReSIDBuilder (const char * const name)
-:SidBuilder<IReSIDBuilder>(name)
+ReSIDBuilderImpl::ReSIDBuilderImpl (const char * const name)
+:SidBuilder<ReSIDBuilder>(name)
 {
     m_error = "N/A";
 }
 
-ReSIDBuilder::~ReSIDBuilder (void)
+ReSIDBuilderImpl::~ReSIDBuilderImpl (void)
 {   // Remove all are SID emulations
     remove ();
 }
 
 // Create a new sid emulation.  Called by libsidplay2 only
-uint ReSIDBuilder::create (uint sids)
+uint ReSIDBuilderImpl::create (uint sids)
 {
     uint   count;
     ReSID *sid = NULL;
@@ -82,7 +85,7 @@ uint ReSIDBuilder::create (uint sids)
     // Check available devices
     count = devices (false);
     if (!m_status)
-        goto ReSIDBuilder_create_error;
+        goto ReSIDBuilderImpl_create_error;
     if (count && (count < sids))
         sids = count;
 
@@ -99,14 +102,14 @@ uint ReSIDBuilder::create (uint sids)
         {
             sprintf (m_errorBuffer, "%s ERROR: Unable to create ReSID object", name ());
             m_error = m_errorBuffer;
-            goto ReSIDBuilder_create_error;
+            goto ReSIDBuilderImpl_create_error;
         }
 
         // SID init failed?
         if (!*sid)
         {
             m_error = sid->error ();
-            goto ReSIDBuilder_create_error;
+            goto ReSIDBuilderImpl_create_error;
         }
 
         // Use if interface reference counting to delete object
@@ -117,14 +120,14 @@ uint ReSIDBuilder::create (uint sids)
     }
     return count;
 
-ReSIDBuilder_create_error:
+ReSIDBuilderImpl_create_error:
     m_status = false;
     if (sid)
         delete sid;
     return count;
 }
 
-const char *ReSIDBuilder::credits ()
+const char *ReSIDBuilderImpl::credits ()
 {
     m_status = true;
 
@@ -148,7 +151,7 @@ const char *ReSIDBuilder::credits ()
 }
 
 
-uint ReSIDBuilder::devices (bool created)
+uint ReSIDBuilderImpl::devices (bool created)
 {
     m_status = true;
     if (created)
@@ -157,7 +160,7 @@ uint ReSIDBuilder::devices (bool created)
         return 0;
 }
 
-void ReSIDBuilder::filter (const sid_filter_t *filter)
+void ReSIDBuilderImpl::filter (const sid_filter_t *filter)
 {
     int size = sidobjs.size ();
     m_status = true;
@@ -165,16 +168,16 @@ void ReSIDBuilder::filter (const sid_filter_t *filter)
     {
         ReSID *sid = (ReSID *) sidobjs[i];
         if (!sid->filter (filter))
-            goto ReSIDBuilder_sidFilterDef_error;
+            goto ReSIDBuilderImpl_sidFilterDef_error;
     }
 return;
 
-ReSIDBuilder_sidFilterDef_error:
+ReSIDBuilderImpl_sidFilterDef_error:
     m_error  = ERR_FILTER_DEFINITION;
     m_status = false;
 }
 
-void ReSIDBuilder::filter (bool enable)
+void ReSIDBuilderImpl::filter (bool enable)
 {
     int size = sidobjs.size ();
     m_status = true;
@@ -186,7 +189,7 @@ void ReSIDBuilder::filter (bool enable)
 }
 
 // Find a free SID of the required specs
-ISidEmulation *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
+ISidEmulation *ReSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 {
     int size = sidobjs.size ();
     m_status = true;
@@ -207,7 +210,7 @@ ISidEmulation *ReSIDBuilder::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void ReSIDBuilder::unlock (ISidEmulation *device)
+void ReSIDBuilderImpl::unlock (ISidEmulation *device)
 {
     int size = sidobjs.size ();
     // Maek sure this is our SID
@@ -223,7 +226,7 @@ void ReSIDBuilder::unlock (ISidEmulation *device)
 }
 
 // Remove all SID emulations.
-void ReSIDBuilder::remove ()
+void ReSIDBuilderImpl::remove ()
 {
     int size = sidobjs.size ();
     for (int i = 0; i < size; i++)
@@ -231,7 +234,7 @@ void ReSIDBuilder::remove ()
     sidobjs.clear();
 }
 
-void ReSIDBuilder::sampling (uint_least32_t freq)
+void ReSIDBuilderImpl::sampling (uint_least32_t freq)
 {
     int size = sidobjs.size ();
     m_status = true;
@@ -243,14 +246,14 @@ void ReSIDBuilder::sampling (uint_least32_t freq)
 }
 
 // Find the correct interface
-bool ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
+bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
     if (iid == IID_IReSIDBuilder)
-        *implementation = static_cast<IReSIDBuilder *>(this);
+        *implementation = static_cast<ReSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
-        *implementation = static_cast<IReSIDBuilder *>(this);
+        *implementation = static_cast<ReSIDBuilder *>(this);
     else if (iid == IID_IInterface)
-        *implementation = static_cast<IReSIDBuilder *>(this);
+        *implementation = static_cast<ReSIDBuilder *>(this);
     else
         return false;
     reinterpret_cast<IInterface *>(*implementation)->ifadd ();
@@ -259,13 +262,13 @@ bool ReSIDBuilder::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool ReSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+bool ReSIDBuilderImplCreate (const char * const name, const InterfaceID &cid,
                          void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
-    ReSIDBuilder *builder = new(nothrow) ReSIDBuilder(name);
+    ReSIDBuilderImpl *builder = new(nothrow) ReSIDBuilderImpl(name);
 #else
-    ReSIDBuilder *builder = new ReSIDBuilder(name);
+    ReSIDBuilderImpl *builder = new ReSIDBuilderImpl(name);
 #endif
     if (builder)
     {

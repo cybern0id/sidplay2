@@ -33,7 +33,7 @@ class ReSID;
  * ReSID Builder Class
  ***************************************************************************/
 // Create the SID builder object
-class ReSIDBuilder: public SidBuilder<IReSIDBuilder>
+class ReSIDBuilderImpl: public SidBuilder<ReSIDBuilder>
 {
 protected:
     std::vector<ReSID *> sidobjs;
@@ -44,8 +44,8 @@ private:
     const char *m_error;
 
 public:
-    ReSIDBuilder  (const char * const name);
-    ~ReSIDBuilder (void);
+    ReSIDBuilderImpl  (const char * const name);
+    ~ReSIDBuilderImpl (void);
 
     // IInterface
     bool ifquery (const InterfaceID &iid, void **implementation);
