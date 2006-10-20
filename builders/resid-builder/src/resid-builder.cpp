@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2006/10/20 16:23:21  s_a_white
+ *  Improve compatibility with old code.
+ *
  *  Revision 1.11  2006/06/29 19:12:46  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -248,7 +251,7 @@ void ReSIDBuilderImpl::sampling (uint_least32_t freq)
 // Find the correct interface
 bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_IReSIDBuilder)
+    if (iid == IID_ReSIDBuilder)
         *implementation = static_cast<ReSIDBuilder *>(this);
     else if (iid == IID_ISidBuilder)
         *implementation = static_cast<ReSIDBuilder *>(this);
