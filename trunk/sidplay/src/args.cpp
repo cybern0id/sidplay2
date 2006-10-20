@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2006/10/17 22:23:34  s_a_white
+ *  Add some support for print options (feature request #1109764)
+ *
  *  Revision 1.23  2006/10/16 21:44:42  s_a_white
  *  Merge verbose and quiet levels.  Prevent quiet level (verbose -2) accessing
  *  the keyboard in anyway (for background operation).
@@ -635,18 +638,26 @@ void ConsolePlayer::displayArgs (const char *arg)
 
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl;
 #ifdef HAVE_HARDSID_BUILDER
-/*
     {
-        IHardSIDBuilder *hs;
-        if ( HardSIDBuilderCreate ("", IF_QUERY(IHardSIDBuilder, &hs)) )
+        HardSIDBuilder *hs;
+#ifdef HAVE_SID2_COM
+        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs)) )
+#else // Depreciated Interface
+#   ifdef HAVE_EXCEPTIONS
+        hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
+#   else
+        hs = new HardSIDBuilder( HARDSID_ID );
+#   endif
+#endif // HAVE_SID2_COM
         {
             if (hs->devices (false))
                 out << " --hardsid    enable hardsid support" << endl;
+#ifdef HAVE_SID2_COM
             hs->ifrelease ();
+#endif
         }
     }
-*/
-#endif
+#endif // HAVE_HARDSID_BUILDER
     out << endl
         // Changed to new homepage address
         << "Home Page: http://sidplay2.sourceforge.net/" << endl;
