@@ -44,7 +44,7 @@ private:
     const char *m_error;
 
 public:
-    ReSIDBuilderImpl  (const char * const name);
+    ReSIDBuilderImpl  (const char * name);
     ~ReSIDBuilderImpl (void);
 
     // IInterface
