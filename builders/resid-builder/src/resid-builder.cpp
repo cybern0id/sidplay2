@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2006/10/20 16:30:41  s_a_white
+ *  Linker fix
+ *
  *  Revision 1.13  2006/10/20 16:29:32  s_a_white
  *  Build fix
  *
@@ -70,7 +73,7 @@
 // Error String(s)
 const char *ReSIDBuilderImpl::ERR_FILTER_DEFINITION = "RESID ERROR: Filter definition is not valid (see docs).";
 
-ReSIDBuilderImpl::ReSIDBuilderImpl (const char * const name)
+ReSIDBuilderImpl::ReSIDBuilderImpl (const char * name)
 :SidBuilder<ReSIDBuilder>(name)
 {
     m_error = "N/A";
@@ -119,8 +122,7 @@ uint ReSIDBuilderImpl::create (uint sids)
         }
 
         // Use if interface reference counting to delete object
-        ISidEmulation *emulation;
-        sid->ifquery (IF_QUERY (ISidEmulation, &emulation));
+        if_cast<ISidEmulation>(sid);
 
         sidobjs.push_back (sid);
     }
@@ -254,11 +256,11 @@ void ReSIDBuilderImpl::sampling (uint_least32_t freq)
 // Find the correct interface
 bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_ReSIDBuilder)
+    if (iid == ReSIDBuilder::iid())
         *implementation = static_cast<ReSIDBuilder *>(this);
-    else if (iid == IID_ISidBuilder)
+    else if (iid == ISidBuilder::iid())
         *implementation = static_cast<ReSIDBuilder *>(this);
-    else if (iid == IID_IInterface)
+    else if (iid == IInterface::iid())
         *implementation = static_cast<ReSIDBuilder *>(this);
     else
         return false;
@@ -268,7 +270,7 @@ bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool ReSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+bool ReSIDBuilderCreate (const char * const name, const InterfaceID &iid,
                          void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
@@ -278,7 +280,7 @@ bool ReSIDBuilderCreate (const char * const name, const InterfaceID &cid,
 #endif
     if (builder)
     {
-        if (builder->ifquery (cid, implementation))
+        if (builder->ifquery (iid, implementation))
             return true;
         delete builder;
     }

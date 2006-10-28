@@ -29,8 +29,8 @@
 char ReSID::m_credit[];
 
 ReSID::ReSID (ReSIDBuilder *builder)
-:SidEmulation<ISidEmulation,ReSIDBuilder>(builder),
- SidMixer<ISidMixer>(static_cast<ISidEmulation*>(this)),
+:SidEmulation<ISidEmulation,ReSIDBuilder>("ReSID", builder),
+ SidMixer<ISidMixer>("ReSIDMixer", static_cast<ISidEmulation*>(this)),
  m_context(NULL),
  m_phase(EVENT_CLOCK_PHI1),
 #ifdef HAVE_EXCEPTIONS
@@ -248,11 +248,11 @@ void ReSID::optimisation (uint_least8_t level)
 // Find the correct interface
 bool ReSID::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_ISidEmulation)
+    if (iid == ISidEmulation::iid())
         *implementation = static_cast<ISidEmulation *>(this);
-    else if (iid == IID_ISidMixer)
+    else if (iid == ISidMixer::iid())
         *implementation = static_cast<ISidMixer *>(this);
-    else if (iid == IID_IInterface)
+    else if (iid == IInterface::iid())
         *implementation = static_cast<ISidEmulation *>(this);
     else
         return false;
