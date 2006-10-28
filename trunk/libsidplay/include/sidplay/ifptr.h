@@ -55,8 +55,11 @@ public:
 
     T *operator -> () { assert (m_interface); return m_interface; }
     operator T *&  () { return m_interface; }
+    operator T **  () { return &m_interface; }
+    operator bool  () { return m_interface != 0; }
+    T &operator *  () { assert (m_interface); return *m_interface; }
 
-    T *operator =  (T *_interface) { return (m_interface = _interface); }
+    T  *operator = (T *_interface) { return (m_interface = _interface); }
 };
 
 #endif // _ifptr_h_
