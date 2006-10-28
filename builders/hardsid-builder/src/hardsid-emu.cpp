@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.1  2006/06/29 19:36:33  s_a_white
+ *  Add emulation file for common things between platforms.
+ *
  ***************************************************************************/
 
 #include "hardsid-emu.h"
@@ -23,11 +26,11 @@
 // Find the correct interface
 bool HardSID::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_ISidEmulation)
+    if (iid == ISidEmulation::iid())
         *implementation = static_cast<ISidEmulation *>(this);
-    else if (iid == IID_ISidMixer)
+    else if (iid == ISidMixer::iid())
         *implementation = static_cast<ISidMixer *>(this);
-    else if (iid == IID_IInterface)
+    else if (iid == IInterface::iid())
         *implementation = static_cast<ISidEmulation *>(this);
     else
         return false;

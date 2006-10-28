@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2006/10/20 16:31:11  s_a_white
+ *  Linker fix
+ *
  *  Revision 1.19  2006/10/20 16:28:50  s_a_white
  *  Build fix
  *
@@ -91,7 +94,7 @@
 bool HardSIDBuilderImpl::m_initialised = false;
 uint HardSIDBuilderImpl::m_count = 0;
 
-HardSIDBuilderImpl::HardSIDBuilderImpl (const char * const name)
+HardSIDBuilderImpl::HardSIDBuilderImpl (const char * name)
 :SidBuilder<HardSIDBuilder>(name)
 {
     strcpy (m_errorBuffer, "N/A");
@@ -287,11 +290,11 @@ int HardSIDBuilderImpl::init ()
 // Find the correct interface
 bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 {
-    if (iid == IID_HardSIDBuilder)
+    if (iid == HardSIDBuilder::iid())
         *implementation = static_cast<HardSIDBuilder *>(this);
-    else if (iid == IID_ISidBuilder)
+    else if (iid == ISidBuilder::iid())
         *implementation = static_cast<HardSIDBuilder *>(this);
-    else if (iid == IID_IInterface)
+    else if (iid == IInterface::iid())
         *implementation = static_cast<HardSIDBuilder *>(this);
     else
         return false;
@@ -301,7 +304,7 @@ bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-bool HardSIDBuilderCreate (const char * const name, const InterfaceID &cid,
+bool HardSIDBuilderCreate (const char * name, const InterfaceID &iid,
                            void **implementation)
 {
 #ifdef HAVE_EXCEPTIONS
@@ -311,7 +314,7 @@ bool HardSIDBuilderCreate (const char * const name, const InterfaceID &cid,
 #endif
     if (builder)
     {
-        if (builder->ifquery (cid, implementation))
+        if (builder->ifquery (iid, implementation))
             return true;
         delete builder;
     }

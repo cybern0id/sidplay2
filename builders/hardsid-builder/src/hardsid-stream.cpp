@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2006/06/29 19:12:18  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.5  2006/06/19 20:52:46  s_a_white
  *  Switch to new interfaces
  *
@@ -91,8 +94,7 @@ uint HardSIDStream::allocate (uint sids)
         }
 
         // Use if interface reference counting to delete object
-        ISidEmulation *emulation;
-        sid->ifquery (IF_QUERY (ISidEmulation, &emulation));
+        if_cast<ISidEmulation>(sid);
 
         m_devUsed++;
         m_sids.push_back(sid);
