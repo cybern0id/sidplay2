@@ -66,7 +66,7 @@ inline IInterface::~IInterface () { ; }
 // Query an interface (new method)
 // The one and only real function.  Do not modify or add new
 // non virtual functions.  You will break binary compatibility
-template<class T> inline T *if_cast (IInterface *unknown)
+template<class T, class U> inline T *if_cast (U *unknown)
 {
     T *implementation = 0;
     unknown->ifquery (T::iid(), reinterpret_cast<void**>(&implementation));
