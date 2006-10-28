@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2006/04/09 16:50:49  s_a_white
+ *  Confirmed timer re-programming overhead is 2 cycles.
+ *
  *  Revision 1.24  2004/06/26 11:09:13  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -151,7 +154,8 @@ const char *MOS6526::credit =
 
 
 MOS6526::MOS6526 (EventContext *context)
-:pra(regs[PRA]),
+:Component<IComponent>("MOS6526"),
+ pra(regs[PRA]),
  prb(regs[PRB]),
  ddra(regs[DDRA]),
  ddrb(regs[DDRB]),

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2006/04/09 16:51:47  s_a_white
+ *  Confirmed timer re-programming overhead is 2 cycles.
+ *
  *  Revision 1.13  2004/06/26 11:06:52  s_a_white
  *  Changes to support new calling convention for event scheduler.
  *
@@ -69,7 +72,8 @@ const char * const SID6526::credit =
 };
 
 SID6526::SID6526 (c64env *env)
-:Event("CIA Timer A"),
+:Component<IComponent>("SID6526"),
+ Event("CIA Timer A"),
  m_env(*env),
  m_eventContext(m_env.context ()),
  m_phase(EVENT_CLOCK_PHI1),

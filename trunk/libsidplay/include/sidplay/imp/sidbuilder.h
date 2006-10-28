@@ -38,8 +38,8 @@ private:
     void reset (void) { reset (0); }
 
 public:
-    SidEmulation (TBuilder *builder)
-    :m_builder (builder) {;}
+    SidEmulation (const char *name, TBuilder *builder)
+    :Component<TImplementation>(name), m_builder (builder) {;}
 
     // ISidEmulation
     ISidBuilder         *builder      (void) const { return m_builder; }
@@ -50,44 +50,38 @@ public:
 };
 
 template <class TImplementation>
-class SidMixer: public TImplementation
+class SidMixer: public ICoInterface<TImplementation>
 {
 private:
     IInterface * const m_iinterface;
 
 public:
-    SidMixer (IInterface *iinterface) : m_iinterface(iinterface) { ; }
+    SidMixer (const char *name, IInterface *iinterface)
+    :ICoInterface<TImplementation>(name), m_iinterface(iinterface) { ; }
 
 private:
     // IInterface
-    void ifadd     () { m_iinterface->ifadd (); }
-    bool ifquery   (const InterfaceID &cid, void **implementation)
-                   { return m_iinterface->ifquery (cid, implementation); }
-    void ifrelease () { m_iinterface->ifrelease (); }
+    void _ifadd     () { m_iinterface->ifadd (); }
+    bool ifquery    (const InterfaceID &cid, void **implementation)
+                    { return m_iinterface->ifquery (cid, implementation); }
+    void _ifrelease () { m_iinterface->ifrelease (); }
 };
 
 template <class TImplementation>
-class SidBuilder: public TImplementation
+class SidBuilder: public ICoInterface<TImplementation>
 {
-private:
-    const char * const m_name;
-    int m_refcount;
-
 protected:
     bool m_status;
 
 public:
     // Determine current state of object (true = okay, false = error).
-    SidBuilder(const char * const name)
-        : m_name(name), m_refcount(0), m_status (true) {;}
+    SidBuilder(const char * name) : m_status (true) {;}
 
     // IInterface
-    virtual void ifadd     () { m_refcount++; }
-    virtual void ifrelease () { m_refcount--; if (!m_refcount) delete this; }
+    void _ifrelease () { if (!this->_ifrefcount()) delete this; }
 
     // ISidBuilder (implementations only)
-    operator               bool    () const { return m_status; }
-    const char            *name    (void) const { return m_name; }
+    operator bool   () const { return m_status; }
 };
 
 #endif // _imp_sidbuilder_h_

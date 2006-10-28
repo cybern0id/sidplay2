@@ -17,6 +17,11 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2006/06/19 19:14:06  s_a_white
+ *  Get most derived interface to be inherited by the lowest base class.  This
+ *  removes duplicate inheritance of interfaces and the need for virtual
+ *  public inheritance of interfaces.
+ *
  *  Revision 1.27  2006/06/17 14:56:26  s_a_white
  *  Switch parts of the code over to a COM style implementation.  I.e. serperate
  *  interface/implementation
@@ -117,7 +122,7 @@ const char *XSID::credit =
 };
 
 
-channel::channel (const char * const name, EventContext *context, XSID *xsid)
+channel::channel (const char * name, EventContext *context, XSID *xsid)
 :m_name(name),
  m_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
@@ -433,7 +438,7 @@ void channel::silence ()
 
 
 XSID::XSID (EventContext *context)
-:SidEmulation<ISidEmulation>(NULL),
+:SidEmulation<ISidEmulation>("XSID", NULL),
  Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),
