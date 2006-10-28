@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.41  2006/10/28 10:12:18  s_a_white
+ *  Update to new COM style interface.
+ *
  *  Revision 1.40  2006/10/20 17:31:33  s_a_white
  *  Code now source backwards compatible with old sidplay libs
  *
@@ -599,12 +602,9 @@ void ConsolePlayer::emuflush ()
     // seperate to a specific interface
 #ifdef HSID_SID2_COM
 #   ifdef HAVE_HARDSID_BUILDER
-    HardSIDBuilder *hs;
-    if ( (m_engCfg.sidEmulation)->ifquery (IF_QUERY(HardSIDBuilder, &hs)) )
-    {
+    IfPtr<HardSIDBuilder> hs(m_engCfg.sidEmulation);
+    if (hs)
         hs->flush ();
-        hs->ifrelease ();
-    }
 #   endif // HAVE_HARDSID_BUILDER
 #else // Depreciated Interface
     switch (m_driver.sid)
