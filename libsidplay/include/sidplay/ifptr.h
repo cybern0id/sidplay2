@@ -1,7 +1,7 @@
 /***************************************************************************
-                          imp_component.h  -  Component Implementation
+                          ifptr.h  -  Interface helper class.
                              -------------------
-    begin                : Sat Jun 6 2006
+    begin                : Fri Oct 27 2006
     copyright            : (C) 2006 by Simon White
     email                : s_a_white@email.com
  ***************************************************************************/
@@ -15,28 +15,48 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _imp_component_h_
-#define _imp_component_h_
+#ifndef _ifptr_h_
+#define _ifptr_h_
 
-// This file is only to be used be things creating implementations.
-// DO NOT include this file in external code usings these implementations,
-// use interface files instead:
+#include "iinterface.h"
 
-#include <string.h>
-#include <sidplay/component.h>
-
-//-------------------------------------------------------------------------
-#include <sidplay/imp/iinterface.h>
-
-template <class TImplementation>
-class Component: public ICoInterface<TImplementation>
+// An interface ptr class to automatically
+// handle querying and releasing of the interface.
+template<class T>
+class IfPtr
 {
-public:
-    Component (const char *name) : ICoInterface<TImplementation>(name) {;}
-    virtual ~Component () {;}
+private:
+    T * m_interface;
 
-    // IInterface
-    void _ifrelease () { if (!this->_ifrefcount()) delete this; }
+public:
+    IfPtr ()
+    :m_interface(0)
+    {
+        ;
+    }
+
+    IfPtr (IInterface &unknown)
+    :m_interface(if_cast<T>(&unknown))
+    {
+        ;
+    }
+
+    IfPtr (IInterface *unknown)
+    :m_interface(if_cast<T>(unknown))
+    {
+        ;
+    }
+
+    ~IfPtr ()
+    {
+        if (m_interface)
+            m_interface->ifrelease ();
+    }
+
+    T *operator -> () { assert (m_interface); return m_interface; }
+    operator T *&  () { return m_interface; }
+
+    T *operator =  (T *_interface) { return (m_interface = _interface); }
 };
 
-#endif // _imp_component_h_
+#endif // _ifptr_h_

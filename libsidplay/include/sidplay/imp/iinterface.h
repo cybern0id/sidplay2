@@ -15,28 +15,46 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _imp_component_h_
-#define _imp_component_h_
+#ifndef _imp_ifbase_h_
+#define _imp_ifbase_h_
 
 // This file is only to be used be things creating implementations.
 // DO NOT include this file in external code usings these implementations,
 // use interface files instead:
 
 #include <string.h>
-#include <sidplay/component.h>
+#include <sidplay/iinterface.h>
 
-//-------------------------------------------------------------------------
-#include <sidplay/imp/iinterface.h>
+inline bool operator == (const InterfaceID &iid1, const InterfaceID &iid2)
+{
+    return !memcmp (&iid1, &iid2, sizeof (InterfaceID));
+}
+
+inline bool operator != (const InterfaceID &iid1, const InterfaceID &iid2)
+{
+    return !(iid1 != iid2);
+}
 
 template <class TImplementation>
-class Component: public ICoInterface<TImplementation>
+class ICoInterface: public TImplementation
 {
-public:
-    Component (const char *name) : ICoInterface<TImplementation>(name) {;}
-    virtual ~Component () {;}
+private:
+    const char * const m_name;
+    unsigned int m_refcount;
 
-    // IInterface
-    void _ifrelease () { if (!this->_ifrefcount()) delete this; }
+protected:
+    virtual void _ifadd      () { ; }
+    unsigned int _ifrefcount () const { return m_refcount; }
+    virtual void _ifrelease  () { ; }
+
+public:
+    ICoInterface (const char *name) : m_name(name), m_refcount(0) { ; }
+    virtual ~ICoInterface () { ; }
+
+    void  ifadd     () { m_refcount++; _ifadd (); }
+    void  ifrelease () { m_refcount--; _ifrelease (); }
+
+    const char *name () const { return m_name; }
 };
 
-#endif // _imp_component_h_
+#endif // _imp_ifbase_h_

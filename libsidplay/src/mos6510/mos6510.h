@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.6  2004/05/24 23:11:10  s_a_white
+ *  Fixed email addresses displayed to end user.
+ *
  *  Revision 1.5  2001/07/14 16:47:21  s_a_white
  *  Sync with sidbuilder class project.
  *
@@ -31,7 +34,6 @@
 #define _mos6510_h_
 
 #include "config.h"
-#include "component.h"
 #include "sidenv.h"
 #include "event.h"
 

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2006/06/29 19:20:26  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.26  2006/06/27 19:35:28  s_a_white
  *  Changed ifquery return type.
  *
@@ -212,7 +215,7 @@ private:
     inline void   galwayTonePeriod (void);
 
     // Used to indicate if channel is running
-    operator bool()  const { return (active); }
+    operator bool() const { return (active); }
 };
 
 

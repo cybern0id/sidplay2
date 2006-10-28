@@ -27,7 +27,7 @@ private:
     bool ifquery (const InterfaceID &, void **) { return false; }
 
 public:
-    NullSID () : SidEmulation<ISidEmulation>(NULL) {;}
+    NullSID () : SidEmulation<ISidEmulation>("NullSID", NULL) {;}
 
     // Standard component functions
     void    reset (uint8_t) { ; }

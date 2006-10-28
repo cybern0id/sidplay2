@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.84  2006/06/29 19:19:53  s_a_white
+ *  Seperate mixer interface from emulation interface.
+ *
  *  Revision 1.83  2006/06/17 14:56:26  s_a_white
  *  Switch parts of the code over to a COM style implementation.  I.e. serperate
  *  interface/implementation
@@ -564,13 +567,12 @@ int Player::load (SidTune *tune)
 
     for (int i = 0; i < SID2_MAX_SIDS; i++)
     {
-        ISidMixer *mixer;
-        if (sid[i]->ifquery (IF_QUERY (ISidMixer, &mixer)))
+        IfPtr<ISidMixer> mixer(sid[1]);
+        if (mixer)
         {
             uint_least8_t v = 3;
             while (v--)
                 mixer->mute (v, false);
-            mixer->ifrelease ();
         }
     }
 
