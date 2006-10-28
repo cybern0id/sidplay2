@@ -75,7 +75,8 @@ protected:
 
 public:
     // Determine current state of object (true = okay, false = error).
-    SidBuilder(const char * name) : m_status (true) {;}
+    SidBuilder(const char * name)
+    : ICoInterface<TImplementation>(name), m_status (true) {;}
 
     // IInterface
     void _ifrelease () { if (!this->_ifrefcount()) delete this; }
