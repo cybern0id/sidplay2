@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.40  2006/10/20 17:31:33  s_a_white
+ *  Code now source backwards compatible with old sidplay libs
+ *
  *  Revision 1.39  2006/10/20 16:27:12  s_a_white
  *  Begin improving compatibility with old libraries
  *
@@ -390,87 +393,67 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #ifdef HAVE_RESID_BUILDER
     case EMU_RESID:
     {
-        ReSIDBuilder *rs;
 #ifdef HAVE_SID2_COM
-        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs)) )
+        IfPtr<ReSIDBuilder> rs;
+        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, rs)) )
         {
-            ISidBuilder *builder = 0;
-            rs->ifquery (IF_QUERY(ISidBuilder, &builder));
-            m_engCfg.sidEmulation = builder;
+            m_engCfg.sidEmulation = if_cast<ISidBuilder>(rs);
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
-        rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
+        ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
 #   else
-        rs = new ReSIDBuilder( RESID_ID );
+        ReSIDBuilder *rs = new ReSIDBuilder( RESID_ID );
 #   endif
         if (rs)
         {
             m_engCfg.sidEmulation = rs;
 #endif // HAVE_SID2_COM
-            if (!*rs) goto EMU_RESID_ERROR;
+            if (!*rs) goto createSidEmu_error;
 
             // Setup the emulation
             rs->create ((m_engine.info ()).maxsids);
-            if (!*rs) goto EMU_RESID_ERROR;
+            if (!*rs) goto createSidEmu_error;
             rs->filter (m_filter.enabled);
-            if (!*rs) goto EMU_RESID_ERROR;
+            if (!*rs) goto createSidEmu_error;
             rs->sampling (m_driver.cfg.frequency);
-            if (!*rs) goto EMU_RESID_ERROR;
+            if (!*rs) goto createSidEmu_error;
             if (m_filter.enabled && m_filter.definition)
             {   // Setup filter
                 rs->filter (m_filter.definition.provide ());
-                if (!*rs) goto EMU_RESID_ERROR;
+                if (!*rs) goto createSidEmu_error;
             }
-#ifdef HAVE_SID2_COM
-            rs->ifrelease ();
-#endif
         }
         break;
-    EMU_RESID_ERROR:
-#ifdef HAVE_SID2_COM
-        rs->ifrelease ();
-#endif
-        goto createSidEmu_error;
     }
 #endif // HAVE_RESID_BUILDER
 
 #ifdef HAVE_HARDSID_BUILDER
     case EMU_HARDSID:
     {
-        HardSIDBuilder *hs;
 #ifdef HAVE_SID2_COM
-        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs)) )
+        IfPtr<HardSIDBuilder> hs;
+        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, hs)) )
         {
-            ISidBuilder *builder = 0;
-            hs->ifquery (IF_QUERY(ISidBuilder, &builder));
-            m_engCfg.sidEmulation = builder;
+            m_engCfg.sidEmulation = if_cast<ISidBuilder>(hs);
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
-        hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
+        HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
 #   else
-        hs = new HardSIDBuilder( HARDSID_ID );
+        HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
 #   endif
         if (hs)
         {
             m_engCfg.sidEmulation = hs;
 #endif // HAVE_SID2_COM
-            if (!*hs) goto EMU_HARDSID_ERROR;
+            if (!*hs) goto createSidEmu_error;
 
             // Setup the emulation
             hs->create ((m_engine.info ()).maxsids);
-            if (!*hs) goto EMU_HARDSID_ERROR;
+            if (!*hs) goto createSidEmu_error;
             hs->filter (m_filter.enabled);
-            if (!*hs) goto EMU_HARDSID_ERROR;
-#ifdef HAVE_SID2_COM
-            hs->ifrelease ();
-#endif
+            if (!*hs) goto createSidEmu_error;
         }
         break;
-    EMU_HARDSID_ERROR:
-#ifdef HAVE_SID2_COM
-        hs->ifrelease ();
-#endif
-        goto createSidEmu_error;
     }
 #endif // HAVE_HARDSID_BUILDER
 

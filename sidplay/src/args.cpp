@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.25  2006/10/20 17:36:52  s_a_white
+ *  Source now source compatible with old sidplay-libs
+ *
  *  Revision 1.24  2006/10/17 22:23:34  s_a_white
  *  Add some support for print options (feature request #1109764)
  *
@@ -639,23 +642,24 @@ void ConsolePlayer::displayArgs (const char *arg)
         << " -w[name]     create wav file (default: <datafile>[n].wav)" << endl;
 #ifdef HAVE_HARDSID_BUILDER
     {
-        HardSIDBuilder *hs;
 #ifdef HAVE_SID2_COM
-        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs)) )
+        IfPtr<HardSIDBuilder> hs;
+        HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, hs));
 #else // Depreciated Interface
 #   ifdef HAVE_EXCEPTIONS
-        hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
+        HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
 #   else
-        hs = new HardSIDBuilder( HARDSID_ID );
+        HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
 #   endif
 #endif // HAVE_SID2_COM
+        if (hs)
         {
             if (hs->devices (false))
                 out << " --hardsid    enable hardsid support" << endl;
-#ifdef HAVE_SID2_COM
-            hs->ifrelease ();
+#ifndef HAVE_SID2_COM
+            delete hs;
 #endif
-        }
+	}
     }
 #endif // HAVE_HARDSID_BUILDER
     out << endl
