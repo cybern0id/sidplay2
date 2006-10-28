@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2006/10/20 16:27:59  s_a_white
+ *  Build fix
+ *
  *  Revision 1.14  2006/10/20 16:16:28  s_a_white
  *  Better compatibility with old code.
  *
@@ -67,12 +70,13 @@
 
 #include <sidplay/sidbuilder.h>
 
-static const InterfaceID IID_HardSIDBuilder =
-{ 0x92b1592e, 0x7f8e, 0x47ec, {0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1} };
-
 class HardSIDBuilder: public ISidBuilder
 {
 public:
+    static const InterfaceID &iid () {
+        return IID<0x92b1592e, 0x7f8e, 0x47ec, 0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1>();
+    }
+
     virtual uint create  (uint sids) = 0;
     virtual uint devices (bool used) = 0;
     virtual void flush   (void) = 0;
@@ -80,7 +84,7 @@ public:
     virtual void remove  (void) = 0;
 };
 
-extern "C" bool HardSIDBuilderCreate (const char * const name,
-                                      const InterfaceID &cid, void **implementation);
+extern "C" bool HardSIDBuilderCreate (const char * name,
+                                      const InterfaceID &iid, void **implementation);
 
 #endif // _hardsid_h_
