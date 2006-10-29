@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2006/10/28 10:12:18  s_a_white
+ *  Update to new COM style interface.
+ *
  *  Revision 1.25  2006/10/20 17:36:52  s_a_white
  *  Source now source compatible with old sidplay-libs
  *
@@ -382,6 +385,14 @@ int ConsolePlayer::args (int argc, const char *argv[])
                     m_verboseLevel = 1;
                 else
                     m_verboseLevel = atoi(&argv[i][2]);
+            }
+            // Depreciated
+            else if (argv[i][1] == 'q')
+            {
+                if (argv[i][2] == '\0')
+                    m_verboseLevel = -1;
+                else
+                    m_verboseLevel = -atoi(&argv[i][2]);
             }
             else if (strncmp (&argv[i][1], "-crc", 4) == 0)
             {
