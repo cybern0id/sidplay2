@@ -4,7 +4,7 @@ AC_CONFIG_AUX_DIR(unix)
 AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
-AM_INIT_AUTOMAKE(sidplay,2.0.9)
+AM_INIT_AUTOMAKE(sidplay,2.0.10)
 
 AC_CANONICAL_HOST
 
