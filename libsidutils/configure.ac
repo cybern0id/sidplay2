@@ -5,8 +5,8 @@ AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=4
-LIBAGE=0
+LIBREV=5
+LIBAGE=1
 AM_INIT_AUTOMAKE(libsidutils,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
 LIBVERSION=$LIBCUR:$LIBREV:$LIBAGE
