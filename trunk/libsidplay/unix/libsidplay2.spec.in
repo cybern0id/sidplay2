@@ -4,8 +4,8 @@
 %define version  @VERSION@
 %define frelease 1
 %define release  %{frelease}
-%define resid    0.13
-%define residbld 1.0.0
+%define resid    0.16
+%define residbld 1.0.1
 %define builders %{_libdir}/sidplay/builders
 
 Summary:        A Commodore 64 music player and SID chip emulator library.
@@ -15,7 +15,7 @@ Release:        %{release}
 Source:         %{oname}-%{version}-%{frelease}.tar.bz2
 Source1:        resid-%{resid}.tar.bz2
 Source2:        resid-builder-%{residbld}-1.tar.bz2
-Patch:          resid-%{resid}-p1.patch.bz2
+Patch:          resid-%{resid}-p2.patch.bz2
 Copyright:      GPL
 Group:          System/Libraries
 URL:            http://sidplay2.sourceforge.net/
