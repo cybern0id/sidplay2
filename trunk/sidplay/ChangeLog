@@ -1,3 +1,11 @@
+Release Notes 2.0.10:
+
+The -q switch is depreciated.  Use -v with a negative number instead
+(-q1 is equivalent to -v-1).
+
+Support for new ALSA interface and COM style builder classes.
+
+
 Release Notes 2.0.9:
 
 Merged Windows code based adding new command line flags for debuging.
