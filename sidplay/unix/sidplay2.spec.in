@@ -17,7 +17,7 @@ Group:          Applications/Multimedia
 URL:            http://sidplay2.sourceforge.net/
 BuildRoot:      %{_tmppath}/%{name}-buildroot
 Prefix:         %{_prefix}
-Requires:       libsidplay >= %{libsidplay2} libsidutils >= %{libsidutils}
+Requires:       libsidplay2 >= %{libsidplay2} libsidutils >= %{libsidutils}
 BuildRequires:  libsidplay2-devel >= %{libsidplay2} libsidutils-devel >= %{libsidutils}
 
 %description
