@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.12  2006/10/16 21:45:55  s_a_white
+ *  Merge verbose and quiet levels.
+ *
  *  Revision 1.11  2005/11/30 22:49:48  s_a_white
  *  Add raw output support (--raw=<file>)
  *
@@ -131,8 +134,13 @@ private:
     TSID               m_tsid;
 #endif
 
-    const char* const  m_name; 
-    sidplay2           m_engine;
+    const char* const  m_name;
+#ifdef HAVE_SID2_COM
+    IfPtr<sidplay2>    m_engine;
+#else
+    sidplay2           m_theEngine; // Do not use
+    sidplay2 * const   m_engine;    // Use me
+#endif
     sid2_config_t      m_engCfg;
     SidTuneMod         m_tune;
     player_state_t     m_state;

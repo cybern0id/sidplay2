@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.42  2006/10/28 10:14:15  s_a_white
+ *  Convert one last missed case
+ *
  *  Revision 1.41  2006/10/28 10:12:18  s_a_white
  *  Update to new COM style interface.
  *
@@ -176,6 +179,9 @@ const char ConsolePlayer::HARDSID_ID[] = "HardSID";
 ConsolePlayer::ConsolePlayer (const char * const name)
 :Event("External Timer\n"),
  m_name(name),
+#ifndef HAVE_SID2_COM
+ m_engine(&m_theEngine),
+#endif
  m_tune(0),
  m_state(playerStopped),
  m_outfile(NULL),
@@ -197,9 +203,13 @@ ConsolePlayer::ConsolePlayer (const char * const name)
     m_speed.current  = 1;
     m_speed.max      = 32;
 
+#ifdef HAVE_SID2_COM
+    m_engine = if_cast<sidplay2>(sidplay2::create ());
+#endif
+
     // Read default configuration
     m_iniCfg.read ();
-    m_engCfg = m_engine.config ();
+    m_engCfg = m_engine->config ();
 
     {   // Load ini settings
         IniConfig::audio_section     audio     = m_iniCfg.audio();
@@ -381,7 +391,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #endif
         *builder = m_engCfg.sidEmulation;
         m_engCfg.sidEmulation = 0;
-        m_engine.config (m_engCfg);
+        m_engine->config (m_engCfg);
 #ifdef HAVE_SID2_COM
         builder->ifrelease ();
 #else // Depreciared interface
@@ -398,7 +408,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     {
 #ifdef HAVE_SID2_COM
         IfPtr<ReSIDBuilder> rs;
-        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, rs)) )
+        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs.p)) )
         {
             m_engCfg.sidEmulation = if_cast<ISidBuilder>(rs);
 #else // Depreciated interface
@@ -414,7 +424,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
             if (!*rs) goto createSidEmu_error;
 
             // Setup the emulation
-            rs->create ((m_engine.info ()).maxsids);
+            rs->create ((m_engine->info ()).maxsids);
             if (!*rs) goto createSidEmu_error;
             rs->filter (m_filter.enabled);
             if (!*rs) goto createSidEmu_error;
@@ -435,7 +445,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     {
 #ifdef HAVE_SID2_COM
         IfPtr<HardSIDBuilder> hs;
-        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, hs)) )
+        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs.p)) )
         {
             m_engCfg.sidEmulation = if_cast<ISidBuilder>(hs);
 #else // Depreciated interface
@@ -451,7 +461,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
             if (!*hs) goto createSidEmu_error;
 
             // Setup the emulation
-            hs->create ((m_engine.info ()).maxsids);
+            hs->create ((m_engine->info ()).maxsids);
             if (!*hs) goto createSidEmu_error;
             hs->filter (m_filter.enabled);
             if (!*hs) goto createSidEmu_error;
@@ -504,14 +514,14 @@ bool ConsolePlayer::open (void)
 
     // Select the required song
     m_track.selected = m_tune.selectSong (m_track.selected);
-    if (m_engine.load (&m_tune) < 0)
+    if (m_engine->load (&m_tune) < 0)
     {
-        displayError (m_engine.error ());
+        displayError (m_engine->error ());
         return false;
     }
 
     // Get tune details
-    tuneInfo = (m_engine.info ()).tuneInfo;
+    tuneInfo = (m_engine->info ()).tuneInfo;
     if (!m_track.single)
         m_track.songs = tuneInfo->songs;
     if (!createOutput (m_driver.output, tuneInfo))
@@ -520,9 +530,9 @@ bool ConsolePlayer::open (void)
         return false;
 
     // Configure engine with settings
-    if (m_engine.config (m_engCfg) < 0)
+    if (m_engine->config (m_engCfg) < 0)
     {   // Config failed
-        displayError (m_engine.error ());
+        displayError (m_engine->error ());
         return false;
     }
 
@@ -530,7 +540,7 @@ bool ConsolePlayer::open (void)
     // forwarding to the start position
     m_driver.selected = &m_driver.null;
     m_speed.current   = m_speed.max;
-    m_engine.fastForward (100 * m_speed.current);
+    m_engine->fastForward (100 * m_speed.current);
 
     // As yet we don't have a required songlength
     // so try the songlength database
@@ -542,7 +552,7 @@ bool ConsolePlayer::open (void)
     }
 
     // Set up the play timer
-    m_context = (m_engine.info()).eventContext;
+    m_context = (m_engine->info()).eventContext;
     m_timer.stop = m_timer.length;
 
     if (m_timer.valid)
@@ -569,7 +579,7 @@ bool ConsolePlayer::open (void)
 
 void ConsolePlayer::close ()
 {
-    m_engine.stop   ();
+    m_engine->stop   ();
     if (m_state == playerExit)
     {   // Natural finish
         emuflush ();
@@ -580,10 +590,10 @@ void ConsolePlayer::close ()
         m_driver.selected->reset ();
 
     // Shutdown drivers, etc
-    createOutput    (OUT_NULL, NULL);
-    createSidEmu    (EMU_NONE);
-    m_engine.load   (NULL);
-    m_engine.config (m_engCfg);
+    createOutput     (OUT_NULL, NULL);
+    createSidEmu     (EMU_NONE);
+    m_engine->load   (NULL);
+    m_engine->config (m_engCfg);
 
     if (m_verboseLevel > -2)
     {   // Correctly leave ansi mode and get prompt to
@@ -631,10 +641,10 @@ bool ConsolePlayer::play ()
     {
         // Fill buffer
         uint_least32_t ret;
-        ret = m_engine.play (buffer, length);
+        ret = m_engine->play (buffer, length);
         if (ret < length)
         {
-            if (m_engine.state () != sid2_stopped)
+            if (m_engine->state () != sid2_stopped)
             {
                 m_state = playerError;
                 return false;
@@ -660,13 +670,13 @@ bool ConsolePlayer::play ()
             cerr << endl;
         if (m_crc)
         {
-            const SidTuneInfo *tuneInfo = (m_engine.info ()).tuneInfo;
+            const SidTuneInfo *tuneInfo = (m_engine->info ()).tuneInfo;
             cout << std::setw(8) << std::setfill('0') << std::hex
-                 << (m_engine.info ()).sid2crc << " : " << std::dec
+                 << (m_engine->info ()).sid2crc << " : " << std::dec
                  << m_filename << " - song " << tuneInfo->currentSong
                  << "/" << tuneInfo->songs << endl;
         }
-        m_engine.stop ();
+        m_engine->stop ();
 #if HAVE_TSID == 1
         if (m_tsid)
         {
@@ -696,14 +706,14 @@ bool ConsolePlayer::play ()
 void ConsolePlayer::stop ()
 {
     m_state = playerStopped;
-    m_engine.stop ();
+    m_engine->stop ();
 }
 
 
 // External Timer Event
 void ConsolePlayer::event (void)
 {
-    uint_least32_t seconds = m_engine.time() / m_engine.timebase();
+    uint_least32_t seconds = m_engine->time() / m_engine->timebase();
     if (m_verboseLevel >= 0)
     {
         cerr << "\b\b\b\b\b" << std::setw(2) << std::setfill('0')
@@ -716,7 +726,7 @@ void ConsolePlayer::event (void)
         m_timer.current = seconds;
 
         // Handle exiting on crc completion
-        if (m_crc && (m_crc == (m_engine.info ()).sid2crcCount))
+        if (m_crc && (m_crc == (m_engine->info ()).sid2crcCount))
             m_timer.stop = seconds;
 
         if (seconds == m_timer.start)
@@ -724,9 +734,9 @@ void ConsolePlayer::event (void)
             m_driver.selected = m_driver.device;
             memset (m_driver.selected->buffer (), 0, m_driver.cfg.bufSize);
             m_speed.current = 1;
-            m_engine.fastForward (100);
+            m_engine->fastForward (100);
             if (m_cpudebug)
-                m_engine.debug (true, NULL);
+                m_engine->debug (true, NULL);
         }
         else if (m_timer.stop && (seconds == m_timer.stop))
         {
@@ -792,7 +802,7 @@ void ConsolePlayer::decodeKeys ()
             if (!m_track.single)
             {   // Only select previous song if less than timeout
                 // else restart current song
-                if ((m_engine.time() / m_engine.timebase()) < SID2_PREV_SONG_TIMEOUT)
+                if ((m_engine->time() / m_engine->timebase()) < SID2_PREV_SONG_TIMEOUT)
                 {
                     m_track.selected--;
                     if (m_track.selected < 1)
@@ -805,12 +815,12 @@ void ConsolePlayer::decodeKeys ()
             m_speed.current *= 2;
             if (m_speed.current > m_speed.max)
                 m_speed.current = m_speed.max;
-            m_engine.fastForward (100 * m_speed.current);
+            m_engine->fastForward (100 * m_speed.current);
         break;
 
         case A_DOWN_ARROW:
             m_speed.current = 1;
-            m_engine.fastForward (100);
+            m_engine->fastForward (100);
         break;
 
         case A_HOME:

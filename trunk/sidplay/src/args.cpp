@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2006/10/29 23:05:58  s_a_white
+ *  Add -q for compatibily (is marked depreciated, remove later).
+ *
  *  Revision 1.26  2006/10/28 10:12:18  s_a_white
  *  Update to new COM style interface.
  *
@@ -601,9 +604,9 @@ int ConsolePlayer::args (int argc, const char *argv[])
 #endif
 
     // Configure engine with settings
-    if (m_engine.config (m_engCfg) < 0)
+    if (m_engine->config (m_engCfg) < 0)
     {   // Config failed
-        displayError (m_engine.error ());
+        displayError (m_engine->error ());
         return -1;
     }
     return 1;
@@ -655,7 +658,7 @@ void ConsolePlayer::displayArgs (const char *arg)
     {
 #ifdef HAVE_SID2_COM
         IfPtr<HardSIDBuilder> hs;
-        HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, hs));
+        HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs.p));
 #else // Depreciated Interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );

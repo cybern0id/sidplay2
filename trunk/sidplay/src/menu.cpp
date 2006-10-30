@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2006/10/17 21:36:58  s_a_white
+ *  Restore credit printing on verbose level 3.
+ *
  *  Revision 1.16  2006/10/16 21:44:42  s_a_white
  *  Merge verbose and quiet levels.  Prevent quiet level (verbose -2) accessing
  *  the keyboard in anyway (for background operation).
@@ -86,7 +89,7 @@ using std::setfill;
 // Display console menu
 void ConsolePlayer::menu ()
 {
-    const sid2_info_t &info     = m_engine.info ();
+    const sid2_info_t &info     = m_engine->info ();
     const SidTuneInfo &tuneInfo = *info.tuneInfo;
 
     if (m_verboseLevel < -1)
@@ -335,7 +338,7 @@ void ConsolePlayer::menu ()
         cerr << "\nCredits:\n\n";
         const char **p;
         const char  *credit;
-        p = m_engine.info().credits;
+        p = m_engine->info().credits;
         while (*p)
         {
             credit = *p;
