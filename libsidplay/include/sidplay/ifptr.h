@@ -25,41 +25,39 @@
 template<class T>
 class IfPtr
 {
-private:
-    T * m_interface;
-
 public:
+    T *p;
+
     IfPtr ()
-    :m_interface(0)
+    :p(0)
     {
         ;
     }
 
     IfPtr (IInterface &unknown)
-    :m_interface(if_cast<T>(&unknown))
+    :p(if_cast<T>(&unknown))
     {
         ;
     }
 
     IfPtr (IInterface *unknown)
-    :m_interface(if_cast<T>(unknown))
+    :p(if_cast<T>(unknown))
     {
         ;
     }
 
     ~IfPtr ()
     {
-        if (m_interface)
-            m_interface->ifrelease ();
+        if (p)
+            p->ifrelease ();
     }
 
-    T *operator -> () { assert (m_interface); return m_interface; }
-    operator T *&  () { return m_interface; }
-    operator T **  () { return &m_interface; }
-    operator bool  () { return m_interface != 0; }
-    T &operator *  () { assert (m_interface); return *m_interface; }
+    T *operator -> () { assert (p); return p; }
+    operator bool  () { return p != 0; }
+    T &operator *  () { assert (p); return *p; }
 
-    T  *operator = (T *_interface) { return (m_interface = _interface); }
+    T   *operator =  (T *_interface) { return (p =  _interface); }
+    bool operator == (T *_interface) { return (p == _interface); }
 };
 
 #endif // _ifptr_h_
