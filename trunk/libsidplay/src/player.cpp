@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.85  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.84  2006/06/29 19:19:53  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -314,6 +317,17 @@
 #endif
 
 
+// Static Creat function
+IInterface *sidplay2::create ()
+{
+#ifdef HAVE_EXCEPTIONS
+    return new(std::nothrow) SIDPLAY2_NAMESPACE::Player;
+#else
+    return new SIDPLAY2_NAMESPACE::Player;
+#endif
+}
+
+
 SIDPLAY2_NAMESPACE_START
 
 static const uint8_t kernal[] = {
@@ -362,7 +376,8 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:c64env  (&m_scheduler),
+:ICoInterface<sidplay2>("SIDPlay 2"),
+ c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
  xsid    (this, &nullsid),
@@ -387,7 +402,7 @@ Player::Player (void)
 {
     srand ((uint) ::time(NULL));
     m_rand = (uint_least32_t) rand ();
-    
+
     // Set the ICs to use this environment
     cpu.setEnvironment (this);
 
@@ -772,7 +787,7 @@ uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
         }
     }
 }
-        
+
 uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
 {
     if (addr < 0xA000)
@@ -1257,6 +1272,19 @@ void Player::sid2crc (uint8_t data)
         m_sid2crc = (m_sid2crc >> 8) ^ crc32Table[(m_sid2crc & 0xFF) ^ data];
         m_info.sid2crc = m_sid2crc ^ 0xffffffff;
     }
+}
+
+bool Player::ifquery (const InterfaceID &iid, void **implementation)
+{
+    if (iid == sidplay2::iid())
+        *implementation = static_cast<sidplay2 *>(this);
+    else if (iid == IInterface::iid())
+        *implementation = static_cast<sidplay2 *>(this);
+    else
+        return false;
+    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
+    return true;
+
 }
 
 SIDPLAY2_NAMESPACE_STOP

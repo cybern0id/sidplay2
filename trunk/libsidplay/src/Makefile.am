@@ -10,7 +10,7 @@ lib_LTLIBRARIES = libsidplay2.la
 libsidplay2_la_SOURCES = config.cpp event.cpp \
 player.cpp player.h \
 psiddrv.cpp mixer.cpp \
-reloc65.c sidplay2.cpp \
+reloc65.c \
 nullsid.h psiddrv.a65
 
 libsidplay2_la_LIBADD  = \

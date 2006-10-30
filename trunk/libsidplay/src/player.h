@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.54  2006/06/29 19:25:13  s_a_white
+ *  Remove unused variable.
+ *
  *  Revision 1.53  2006/06/17 14:56:26  s_a_white
  *  Switch parts of the code over to a COM style implementation.  I.e. serperate
  *  interface/implementation
@@ -214,9 +217,13 @@
 #define  SID2_TIME_BASE 10
 #define  SID2_MAPPER_SIZE 32
 
+#include "imp/iinterface.h"
+#include "sidplay2.h"
+
 SIDPLAY2_NAMESPACE_START
 
-class Player: private C64Environment, c64env
+class Player: public ICoInterface<sidplay2>, private C64Environment,
+              private c64env
 {
 private:
     static const double CLOCK_FREQ_NTSC;
@@ -297,7 +304,7 @@ private:
         {   // Fixed point 25.7
             m_period = (event_clock_t) (period / 10.0 * (float64_t) (1 << 7));
             reset ();
-        }   
+        }
     } rtc;
 
     // User Configuration Settings
@@ -347,6 +354,9 @@ private:
     // ------------------------
 
 private:
+    // IInterface
+    void _ifrelease () { if (!_ifrefcount()) delete this; }
+
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);
     int       environment    (sid2_env_t env);
@@ -435,10 +445,16 @@ public:
     Player ();
     ~Player ();
 
+    // IInterface
+    bool ifquery (const InterfaceID &iid, void **implementation);
+
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }
 
     int            config       (const sid2_config_t &cfg);
+    void           debug        (bool enable, FILE *out)
+                                { cpu.debug (enable, out); }
+    const char    *error        (void) const { return m_errorString; }
     int            fastForward  (uint percent);
     int            load         (SidTune *tune);
     uint_least32_t mileage      (void) const { return m_mileage + time(); }
@@ -447,9 +463,7 @@ public:
     sid2_player_t  state        (void) const { return m_playerState; }
     void           stop         (void);
     uint_least32_t time         (void) const {return rtc.getTime (); }
-    void           debug        (bool enable, FILE *out)
-                                { cpu.debug (enable, out); }
-    const char    *error        (void) const { return m_errorString; }
+    uint_least32_t timebase     (void) const { return SID2_TIME_BASE; }
 };
 
 
