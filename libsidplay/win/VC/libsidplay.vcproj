@@ -487,10 +487,10 @@
 				RelativePath="..\..\src\c64\c64xsid.h">
 			</File>
 			<File
-				RelativePath="..\..\include\config.h">
+				RelativePath="config.h">
 			</File>
 			<File
-				RelativePath="config.h">
+				RelativePath="..\..\include\config.h">
 			</File>
 			<File
 				RelativePath="..\..\src\nullsid.h">
@@ -509,13 +509,22 @@
 				RelativePath="..\..\include\sidplay\c64env.h">
 			</File>
 			<File
-				RelativePath="..\..\include\sidplay\imp\component.h">
-			</File>
-			<File
 				RelativePath="..\..\include\sidplay\component.h">
 			</File>
 			<File
+				RelativePath="..\..\include\sidplay\imp\component.h">
+			</File>
+			<File
 				RelativePath="..\..\include\sidplay\event.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\ifptr.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\iinterface.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\imp\iinterface.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sid2gui.h">
@@ -666,25 +675,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\reloc65.c">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;DLL_EXPORT;HAVE_MSWINDOWS;$(NoInherit)"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DLL_EXPORT;HAVE_MSWINDOWS;$(NoInherit)"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\src\sidplay2.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
