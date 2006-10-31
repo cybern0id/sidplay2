@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libsidutils"
+	ProjectGUID="{5AC95DE1-93E9-4DEA-8ABC-2D001E943AF5}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -142,10 +143,10 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\include\config.h">
+			RelativePath="config.h">
 		</File>
 		<File
-			RelativePath="config.h">
+			RelativePath="..\..\include\config.h">
 		</File>
 		<File
 			RelativePath="..\..\src\ini\headings.h">
