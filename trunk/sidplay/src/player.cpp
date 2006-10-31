@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.43  2006/10/30 19:32:06  s_a_white
+ *  Switch sidplay2 class to iinterface.
+ *
  *  Revision 1.42  2006/10/28 10:14:15  s_a_white
  *  Convert one last missed case
  *
@@ -410,7 +413,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         IfPtr<ReSIDBuilder> rs;
         if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs.p)) )
         {
-            m_engCfg.sidEmulation = if_cast<ISidBuilder>(rs);
+            m_engCfg.sidEmulation = if_cast<ISidBuilder>(rs.p);
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
@@ -447,7 +450,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         IfPtr<HardSIDBuilder> hs;
         if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs.p)) )
         {
-            m_engCfg.sidEmulation = if_cast<ISidBuilder>(hs);
+            m_engCfg.sidEmulation = if_cast<ISidBuilder>(hs.p);
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
