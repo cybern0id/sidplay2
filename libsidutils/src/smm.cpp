@@ -621,7 +621,7 @@ bool Body_extended_flags::recall (FILE *file, int &count, int &extension, uint_l
         // Get to usefull data
         if (offset)
         {
-            if (offset > length)
+            if ((uint_least32_t) offset > length)
                 return false;
             if (fseek (file, (long) offset, SEEK_CUR) < 0)
                 return false;
