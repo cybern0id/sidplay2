@@ -28,10 +28,10 @@ class sidplay2: public IInterface
 {
 public:
     static const InterfaceID &iid () {
-        return IID<0x25ef79eb, 0x8de6, 0x4076, 0x9c, 0x6b, 0xa9, 0xf9, 0x57, 0x0f, 0x3a, 0x4b>();
+        return SID2IID<0x25ef79eb, 0x8de6, 0x4076, 0x9c, 0x6b, 0xa9, 0xf9, 0x57, 0x0f, 0x3a, 0x4b>();
     }
 
-    static IInterface *create ();
+    static SID_EXTERN IInterface *create ();
 
     virtual const sid2_config_t &config (void) const = 0;
     virtual const sid2_info_t   &info   (void) const = 0;
