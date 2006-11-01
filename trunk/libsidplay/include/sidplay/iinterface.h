@@ -68,9 +68,13 @@ inline IInterface::~IInterface () { ; }
 // non virtual functions.  You will break binary compatibility
 template<class T, class U> inline T *if_cast (U *unknown)
 {
-    T *implementation = 0;
-    unknown->ifquery (IF_QUERY(T, &implementation));
-    return implementation;
+    if (unknown)
+    {
+        T *implementation = 0;
+        unknown->ifquery (IF_QUERY(T, &implementation));
+        return implementation;
+    }
+    return 0;
 }
 
 #endif // _ifbase_h_
