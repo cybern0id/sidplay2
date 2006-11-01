@@ -24,7 +24,7 @@ class ReSIDBuilder: public ISidBuilder
 {
 public:
     static const InterfaceID &iid () {
-        return IID<0x90a0aa02, 0xf272, 0x435d, 0x8f, 0x6b, 0x71, 0xb4, 0x5a, 0xc2, 0xf9, 0x9f>();
+        return SID2IID<0x90a0aa02, 0xf272, 0x435d, 0x8f, 0x6b, 0x71, 0xb4, 0x5a, 0xc2, 0xf9, 0x9f>();
     }
 
     virtual uint create   (uint sids) = 0;
@@ -34,6 +34,9 @@ public:
     virtual void remove   (void) = 0;
     virtual void sampling (uint_least32_t freq) = 0;
 };
+
+// Future interface name
+typedef ReSIDBuilder IReSIDBuilder;
 
 extern "C" bool ReSIDBuilderCreate (const char * name,
                                     const InterfaceID &iid, void **implementation);

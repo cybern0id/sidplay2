@@ -52,4 +52,7 @@ public:
     virtual uint_least32_t mileage  (void) const = 0;
 };
 
+// Future interface name
+typedef sidplay2 ISidplay2;
+
 #endif // _sidplay2_h_

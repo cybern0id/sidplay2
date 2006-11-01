@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2006/10/28 09:16:30  s_a_white
+ *  Update to new COM style interface
+ *
  *  Revision 1.15  2006/10/20 16:27:59  s_a_white
  *  Build fix
  *
@@ -74,7 +77,7 @@ class HardSIDBuilder: public ISidBuilder
 {
 public:
     static const InterfaceID &iid () {
-        return IID<0x92b1592e, 0x7f8e, 0x47ec, 0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1>();
+        return SID2IID<0x92b1592e, 0x7f8e, 0x47ec, 0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1>();
     }
 
     virtual uint create  (uint sids) = 0;
@@ -83,6 +86,9 @@ public:
     virtual void filter  (bool enable) = 0;
     virtual void remove  (void) = 0;
 };
+
+// Future interface name
+typedef HardSIDBuilder IHardSIDBuilder;
 
 extern "C" bool HardSIDBuilderCreate (const char * name,
                                       const InterfaceID &iid, void **implementation);
