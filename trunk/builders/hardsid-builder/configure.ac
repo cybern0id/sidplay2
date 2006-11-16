@@ -19,12 +19,15 @@ AC_PROG_CC
 AC_PROG_CXX
 
 dnl Initialize libtool.
-AC_DISABLE_STATIC
+AC_DISABLE_SHARED
 AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 
 dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
+
+dnl Compiler tests
+AC_CHECK_VISIBILITY
 
 dnl Check for nothrow allocator.
 MY_CHECK_EXCEPTIONS
@@ -42,7 +45,8 @@ test "$libdir" = '${exec_prefix}/lib' && libdir="$LIBSIDPLAY2_BUILDERS"
 AC_MSG_RESULT([${libdir}])
 
 dnl Add absolute directory for header files
-CXXFLAGS="$CXXFLAGS -I\$(top_srcdir)/include \
+CXXFLAGS="$CXXFLAGS $VISIBILITY_CFLAGS \
+-I\$(top_srcdir)/include \
 -I\$(top_srcdir)/include/sidplay/builders \
 \$(LIBSIDPLAY2_CXXFLAGS)"
 
