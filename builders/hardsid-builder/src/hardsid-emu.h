@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.19  2006/10/20 16:16:29  s_a_white
  *  Better compatibility with old code.
  *
@@ -126,7 +129,7 @@ public:
               hwsid_handle_t handle);
     ~HardSID ();
 
-    IInterface *aggregate () { return static_cast<ISidEmulation*>(this)->aggregate (); }
+    IInterface *aggregate () { return SidEmulation<ISidEmulation,HardSIDBuilder>::aggregate (); }
 
     // IInterface
     bool ifquery   (const InterfaceID &cid, void **implementation);
