@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.49  2007/01/27 11:14:21  s_a_white
+ *  Must export interfaces correctly via ifquery now.
+ *
  *  Revision 1.48  2007/01/27 10:22:44  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -319,12 +322,14 @@ int Player::config (const sid2_config_t &cfg)
         if (m_emulateStereo)
         {   // Mute Voices
             IfLazyPtr<ISidMixer> mixer;
-            if ( (mixer = sid[0]) )
+            mixer = sid[0];
+            if (mixer)
             {
                 mixer->mute (0, true);
                 mixer->mute (2, true);
             }
-            if ( (mixer = sid[1]) )
+            mixer = sid[1];
+            if (mixer)
                 mixer->mute (1, true);
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
@@ -616,8 +621,10 @@ int Player::sidCreate (IfLazyPtr<ISidBuilder> &builder, sid2_model_t userModel,
     }
     ****************************************/
 
-    // Make xsid forget it's emulation
-    xsid.emulation (IfPtr<ISidEmulation>(nullsid.aggregate()));
+    {   // Make xsid forget it's emulation
+        IfPtr<ISidEmulation> none(nullsid.aggregate());
+        xsid.emulation (none);
+    }
 
     {   // Release old sids
         for (int i = 0; i < SID2_MAX_SIDS; i++)
