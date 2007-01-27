@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.46  2007/01/27 11:16:17  s_a_white
+ *  Unfortunate confusion between SidBuilder and SidEmulation in cfg variable.  We
+ *  are passing in a builder not emulation, so update the queried interface.
+ *
  *  Revision 1.45  2007/01/27 10:20:49  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -423,19 +427,19 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         {
             m_engCfg.sidEmulation = rs;
 #endif // HAVE_SID2_COM
-            if (!(rs->operator bool())) goto createSidEmu_error;
+            if (!(*rs)) goto createSidEmu_error;
 
             // Setup the emulation
             rs->create ((m_engine->info ()).maxsids);
-            if (!(rs->operator bool())) goto createSidEmu_error;
+            if (!(*rs)) goto createSidEmu_error;
             rs->filter (m_filter.enabled);
-            if (!(rs->operator bool())) goto createSidEmu_error;
+            if (!(*rs)) goto createSidEmu_error;
             rs->sampling (m_driver.cfg.frequency);
-            if (!(rs->operator bool())) goto createSidEmu_error;
+            if (!(*rs)) goto createSidEmu_error;
             if (m_filter.enabled && m_filter.definition)
             {   // Setup filter
                 rs->filter (m_filter.definition.provide ());
-                if (!(rs->operator bool())) goto createSidEmu_error;
+                if (!(*rs)) goto createSidEmu_error;
             }
         }
         break;
@@ -462,13 +466,13 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         {
             m_engCfg.sidEmulation = hs;
 #endif // HAVE_SID2_COM
-            if (!(hs->operator bool())) goto createSidEmu_error;
+            if (!(*hs)) goto createSidEmu_error;
 
             // Setup the emulation
             hs->create ((m_engine->info ()).maxsids);
-            if (!(hs->operator bool())) goto createSidEmu_error;
+            if (!(*hs)) goto createSidEmu_error;
             hs->filter (m_filter.enabled);
-            if (!(hs->operator bool())) goto createSidEmu_error;
+            if (!(*hs)) goto createSidEmu_error;
         }
         break;
     }
