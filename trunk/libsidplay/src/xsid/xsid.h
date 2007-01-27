@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.27  2006/06/29 19:20:26  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -246,9 +249,8 @@ private:
     virtual uint8_t readMemByte  (uint_least16_t addr) = 0;
     virtual void    writeMemByte (uint8_t data) = 0;
 
-private:
-    // Interface - Later use
-    bool ifquery (const InterfaceID &, void **) { return false; }
+protected:
+    virtual bool ifquery (const InterfaceID &, void **);
 
 public:
     XSID (EventContext *context);

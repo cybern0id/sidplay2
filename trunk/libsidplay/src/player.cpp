@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.87  2007/01/27 10:22:44  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.86  2006/10/30 19:30:36  s_a_white
  *  Switch sidplay2/player to use iinterface
  *
@@ -383,7 +386,7 @@ Player::Player (void)
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
- xsid    (this, IfPtr<ISidEmulation>(nullsid)),
+ xsid    (this, IfPtr<ISidEmulation>(nullsid.aggregate())),
  cia     (this),
  cia2    (this),
  sid6526 (this),
@@ -411,7 +414,7 @@ Player::Player (void)
 
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i] = &nullsid;
+        sid[i] = nullsid.aggregate ();
     }
     xsid.emulation(sid[0]);
     sid[0] = xsid.aggregate ();

@@ -20,14 +20,29 @@
 
 #include "sidbuilder.h"
 
-class NullSID: public SidEmulation<ISidEmulation>
+class NullSID: public SidEmulation<ISidEmulation>,
+               public ICoAggregate<ISidMixer>
 {
 private:
-    // Interface - Later use
-    bool ifquery (const InterfaceID &, void **) { return false; }
+    bool ifquery (const InterfaceID &iid, void **implementation)
+    {
+        if (iid == ISidEmulation::iid())
+            *implementation = static_cast<ISidEmulation *>(this);
+        else if (iid == ISidMixer::iid())
+            *implementation = static_cast<ISidMixer *>(this);
+        else if (iid == IInterface::iid())
+            *implementation = static_cast<ISidEmulation *>(this);
+        else
+            return false;
+        return true;
+    }
 
 public:
-    NullSID () : SidEmulation<ISidEmulation>("NullSID", NULL) {;}
+    NullSID ()
+    :SidEmulation<ISidEmulation>("NullSID", NULL),
+     ICoAggregate<ISidMixer>(*aggregate()) {;}
+
+    IInterface *aggregate () { return SidEmulation<ISidEmulation>::aggregate (); }
 
     // Standard component functions
     void    reset (uint8_t) { ; }

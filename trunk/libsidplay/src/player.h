@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.56  2007/01/27 10:22:44  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.55  2006/10/30 19:30:36  s_a_white
  *  Switch sidplay2/player to use iinterface
  *
@@ -265,7 +268,6 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    IfLazyPtr<ISidBuilder>   builder;
     IfLazyPtr<ISidEmulation> sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
@@ -370,7 +372,7 @@ private:
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidCreate      (ISidBuilder *builder, sid2_model_t model,
+    int       sidCreate      (IfLazyPtr<ISidBuilder> &builder, sid2_model_t model,
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();

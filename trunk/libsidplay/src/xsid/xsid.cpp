@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.28  2006/06/19 19:14:06  s_a_white
  *  Get most derived interface to be inherited by the lowest base class.  This
  *  removes duplicate inheritance of interfaces and the need for virtual
@@ -631,4 +634,16 @@ bool XSID::storeSidData0x18 (uint8_t data)
     }
     writeMemByte (sidData0x18);
     return false;
+}
+
+// COM emulation
+bool XSID::ifquery (const InterfaceID &iid, void **implementation)
+{
+    if (iid == ISidEmulation::iid())
+        *implementation = static_cast<ISidEmulation *>(this);
+    else if (iid == IInterface::iid())
+        *implementation = static_cast<ISidEmulation *>(this);
+    else
+        return false;
+    return true;
 }
