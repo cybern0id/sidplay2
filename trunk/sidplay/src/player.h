@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.14  2007/01/27 10:20:49  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.13  2006/10/30 19:32:06  s_a_white
  *  Switch sidplay2 class to iinterface.
  *
@@ -140,11 +143,11 @@ private:
     const char* const  m_name;
 #ifdef HAVE_SID2_COM
     IfPtr<sidplay2>    m_engine;
-    IfLazyPtr<IInterface> m_sidEmulation;
+    IfLazyPtr<IInterface> m_sidBuilder;
 #else
     sidplay2           m_theEngine; // Do not use
     sidplay2 * const   m_engine;    // Use me
-    sidbuilder        *m_sidEmulation;
+    sidbuilder        *m_sidBuilder;
 #endif
     sid2_config_t      m_engCfg;
     SidTuneMod         m_tune;
