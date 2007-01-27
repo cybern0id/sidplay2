@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.48  2007/01/27 10:22:44  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.47  2006/10/28 08:39:55  s_a_white
  *  New, easier to use, COM style interface.
  *
@@ -229,9 +232,10 @@ int Player::config (const sid2_config_t &cfg)
 
         // SID emulation setup (must be performed before the
         // environment setup call)
-        if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
+        IfLazyPtr<ISidBuilder> builder(cfg.sidEmulation);
+        if (sidCreate (builder, cfg.sidModel, cfg.sidDefault) < 0)
         {
-            m_errorString      = cfg.sidEmulation->error ();
+            m_errorString      = builder->error ();
             m_cfg.sidEmulation = NULL;
             goto Player_configure_restore;
         }
@@ -296,7 +300,7 @@ int Player::config (const sid2_config_t &cfg)
         m_info.channels++;
         // Enough sids are available to perform
         // stereo spliting
-        if (monosid && (sid[1] != IfPtr<ISidEmulation>(nullsid)))
+        if (monosid && (sid[1]->aggregate() != nullsid.aggregate()))
             m_emulateStereo = cfg.emulateStereo;
     }
 
@@ -596,7 +600,7 @@ int Player::environment (sid2_env_t env)
 
 // Integrate SID emulation from the builder class into
 // libsidplay2
-int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
+int Player::sidCreate (IfLazyPtr<ISidBuilder> &builder, sid2_model_t userModel,
                        sid2_model_t defaultModel)
 {
     sid[0] = xsid.emulation ();
@@ -613,7 +617,7 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
     ****************************************/
 
     // Make xsid forget it's emulation
-    xsid.emulation (IfPtr<ISidEmulation>(nullsid));
+    xsid.emulation (IfPtr<ISidEmulation>(nullsid.aggregate()));
 
     {   // Release old sids
         for (int i = 0; i < SID2_MAX_SIDS; i++)
@@ -628,7 +632,7 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
     if (!builder)
     {   // No sid
         for (int i = 0; i < SID2_MAX_SIDS; i++)
-            sid[i] = &nullsid;
+            sid[i] = nullsid.aggregate ();
     }
     else
     {   // Detect the Correct SID model
@@ -694,8 +698,8 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
         {   // Get first SID emulation
             sid[i] = builder->lock (this, userModel);
             if (!sid[i])
-                sid[i] = &nullsid;
-            if ((i == 0) && !*builder)
+                sid[i] = nullsid.aggregate ();
+            if ((i == 0) && !builder)
                 return -1;
             sid[i]->optimisation (m_cfg.optimisation);
             sid[i]->clock ((sid2_clock_t) m_tuneInfo.clockSpeed);

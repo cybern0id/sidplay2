@@ -33,14 +33,24 @@ private:
     int_least32_t            m_gain;
 
 private:
-    uint8_t readMemByte  (uint_least16_t addr)
+    uint8_t readMemByte (uint_least16_t addr)
     {
         uint8_t data = m_env.readMemRamByte (addr);
         m_env.sid2crc (data);
         return data;
     }
-    void    writeMemByte (uint8_t data)
-    {   m_sid->write (0x18, data);}
+
+    void writeMemByte (uint8_t data) { m_sid->write (0x18, data); }
+
+    bool ifquery (const InterfaceID &iid, void **implementation)
+    {
+        if (iid == ISidMixer::iid())
+        {
+            *implementation = static_cast<ISidMixer *>(this);
+            return true;
+        }
+        return XSID::ifquery (iid, implementation);
+    }
 
 public:
     c64xsid (c64env *env, IfPtr<ISidEmulation> &sid)
