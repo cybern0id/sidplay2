@@ -37,7 +37,7 @@
 #include "resid-builder.h"
 
 class ReSID: public SidEmulation<ISidEmulation,ReSIDBuilder>,
-             public SidMixer<ISidMixer>
+             public ICoAggregate<ISidMixer>
 {
 private:
     EventContext *m_context;
@@ -55,10 +55,10 @@ public:
     ReSID  (ReSIDBuilder *builder);
     ~ReSID (void);
 
+    IInterface *aggregate () { return static_cast<ISidEmulation*>(this)->aggregate (); }
+
     // IInterface
-    void ifadd     () { SidEmulation<ISidEmulation,ReSIDBuilder>::ifadd(); }
-    bool ifquery   (const InterfaceID &cid, void **implementation);
-    void ifrelease () { SidEmulation<ISidEmulation,ReSIDBuilder>::ifrelease (); }
+    bool ifquery (const InterfaceID &iid, void **implementation);
 
    // Standard component functions
     const char   *credits (void) {return m_credit;}

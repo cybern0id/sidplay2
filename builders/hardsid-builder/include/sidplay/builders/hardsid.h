@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2006/11/01 21:26:47  s_a_white
+ *  Future compatibility name added
+ *
  *  Revision 1.16  2006/10/28 09:16:30  s_a_white
  *  Update to new COM style interface
  *
@@ -90,7 +93,6 @@ public:
 // Future interface name
 typedef HardSIDBuilder IHardSIDBuilder;
 
-extern "C" bool HardSIDBuilderCreate (const char * name,
-                                      const InterfaceID &iid, void **implementation);
+extern "C" IInterface *HardSIDBuilderCreate (const char * name);
 
 #endif // _hardsid_h_

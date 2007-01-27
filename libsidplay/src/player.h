@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.55  2006/10/30 19:30:36  s_a_white
+ *  Switch sidplay2/player to use iinterface
+ *
  *  Revision 1.54  2006/06/29 19:25:13  s_a_white
  *  Remove unused variable.
  *
@@ -262,7 +265,8 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    ISidEmulation *sid[SID2_MAX_SIDS];
+    IfLazyPtr<ISidBuilder>   builder;
+    IfLazyPtr<ISidEmulation> sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
     EventCallback<Player> m_mixerEvent;
@@ -355,7 +359,7 @@ private:
 
 private:
     // IInterface
-    void _ifrelease () { if (!_ifrefcount()) delete this; }
+    void _ifdestroy () { delete this; }
 
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);

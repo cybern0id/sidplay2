@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.47  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.46  2006/06/29 19:18:17  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -293,7 +296,7 @@ int Player::config (const sid2_config_t &cfg)
         m_info.channels++;
         // Enough sids are available to perform
         // stereo spliting
-        if (monosid && (sid[1] != &nullsid))
+        if (monosid && (sid[1] != IfPtr<ISidEmulation>(nullsid)))
             m_emulateStereo = cfg.emulateStereo;
     }
 
@@ -311,18 +314,14 @@ int Player::config (const sid2_config_t &cfg)
     {   // Try Spliting channels across 2 sids
         if (m_emulateStereo)
         {   // Mute Voices
-            ISidMixer *mixer;
-            if ( (mixer = if_cast<ISidMixer>(sid[0])) )
+            IfLazyPtr<ISidMixer> mixer;
+            if ( (mixer = sid[0]) )
             {
                 mixer->mute (0, true);
                 mixer->mute (2, true);
-                mixer->ifrelease ();
             }
-            if ( (mixer = if_cast<ISidMixer>(sid[1])) )
-            {
+            if ( (mixer = sid[1]) )
                 mixer->mute (1, true);
-                mixer->ifrelease ();
-            }
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
             //    m_rightVolume *= 2;
@@ -614,7 +613,7 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
     ****************************************/
 
     // Make xsid forget it's emulation
-    xsid.emulation (&nullsid);
+    xsid.emulation (IfPtr<ISidEmulation>(nullsid));
 
     {   // Release old sids
         for (int i = 0; i < SID2_MAX_SIDS; i++)
@@ -622,7 +621,7 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
             ISidBuilder *b;
             b = sid[i]->builder ();
             if (b)
-                b->unlock (sid[i]);
+                b->unlock (&sid[i]);
         }
     }
 
@@ -703,7 +702,7 @@ int Player::sidCreate (ISidBuilder *builder, sid2_model_t userModel,
         }
     }
     xsid.emulation (sid[0]);
-    sid[0] = &xsid;
+    sid[0] = xsid.aggregate ();
     return 0;
 }
 
@@ -724,7 +723,7 @@ void Player::sidSamples (bool enable)
         if (mixer)
             mixer->gain (gain);
     }
-    sid[0] = &xsid;
+    sid[0] = xsid.aggregate ();
 }
 
 SIDPLAY2_NAMESPACE_STOP

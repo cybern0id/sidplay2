@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.2  2006/10/28 09:16:06  s_a_white
+ *  Update to new style COM interface
+ *
  *  Revision 1.1  2006/06/29 19:36:33  s_a_white
  *  Add emulation file for common things between platforms.
  *
@@ -34,6 +37,5 @@ bool HardSID::ifquery (const InterfaceID &iid, void **implementation)
         *implementation = static_cast<ISidEmulation *>(this);
     else
         return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }

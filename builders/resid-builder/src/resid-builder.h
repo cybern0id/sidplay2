@@ -55,13 +55,13 @@ public:
     // false will give you all available sids.
     //    return values: 0 endless, positive is available sids.
     // use bool operator to determine error
-    uint           devices (bool used);
-    uint           create  (uint sids);
-    ISidEmulation *lock    (c64env *env, sid2_model_t model);
-    void           unlock  (ISidEmulation *device);
-    void           remove  (void);
-    const char    *error   (void) const { return m_error; }
-    const char    *credits (void);
+    uint        devices (bool used);
+    uint        create  (uint sids);
+    IInterface *lock    (c64env *env, sid2_model_t model);
+    void        unlock  (IInterface *device);
+    void        remove  (void);
+    const char *error   (void) const { return m_error; }
+    const char *credits (void);
 
     // Settings that effect all SIDs
     void filter   (bool enable);

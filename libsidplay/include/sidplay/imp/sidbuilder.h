@@ -50,24 +50,6 @@ public:
 };
 
 template <class TImplementation>
-class SidMixer: public ICoInterface<TImplementation>
-{
-private:
-    IInterface * const m_iinterface;
-
-public:
-    SidMixer (const char *name, IInterface *iinterface)
-    :ICoInterface<TImplementation>(name), m_iinterface(iinterface) { ; }
-
-private:
-    // IInterface
-    void _ifadd     () { m_iinterface->ifadd (); }
-    bool ifquery    (const InterfaceID &cid, void **implementation)
-                    { return m_iinterface->ifquery (cid, implementation); }
-    void _ifrelease () { m_iinterface->ifrelease (); }
-};
-
-template <class TImplementation>
 class SidBuilder: public ICoInterface<TImplementation>
 {
 protected:
@@ -79,7 +61,7 @@ public:
     : ICoInterface<TImplementation>(name), m_status (true) {;}
 
     // IInterface
-    void _ifrelease () { if (!this->_ifrefcount()) delete this; }
+    void _ifdestroy () { delete this; }
 
     // ISidBuilder (implementations only)
     operator bool   () const { return m_status; }

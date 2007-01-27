@@ -24,13 +24,13 @@
 #include "sidbuilder.h"
 #include "../xsid/xsid.h"
 
-class c64xsid: public XSID, SidMixer<ISidMixer>
+class c64xsid: public XSID, ICoAggregate<ISidMixer>
 {
 private:
-    c64env        &m_env;
-    ISidEmulation *m_sid;
-    ISidMixer     *m_mixer;
-    int_least32_t  m_gain;
+    c64env                  &m_env;
+    IfLazyPtr<ISidEmulation> m_sid;
+    IfLazyPtr<ISidMixer>     m_mixer;
+    int_least32_t            m_gain;
 
 private:
     uint8_t readMemByte  (uint_least16_t addr)
@@ -43,15 +43,15 @@ private:
     {   m_sid->write (0x18, data);}
 
 public:
-    c64xsid (c64env *env, ISidEmulation *sid)
+    c64xsid (c64env *env, IfPtr<ISidEmulation> &sid)
     :XSID(&env->context ()),
-     SidMixer<ISidMixer>("c64xsid", static_cast<ISidEmulation *>(this)),
+     ICoAggregate<ISidMixer>(*aggregate()),
      m_env(*env), m_sid(0), m_mixer(0), m_gain(100)
     {
         emulation (sid);
     }
 
-    ~c64xsid () { emulation (0); }
+    IInterface *aggregate () { return XSID::aggregate (); }
 
     // Standard component interface
     const char *error (void) {return "";}
@@ -109,15 +109,11 @@ public:
     }
 
     // Xsid specific
-    void emulation (ISidEmulation *sid)
+    void emulation (IfPtr<ISidEmulation> &sid)
     {
-        if (m_mixer)
-            m_mixer->ifrelease ();
-        m_mixer = 0;
-        if (sid)
-            m_mixer = if_cast<ISidMixer>(sid);
-        m_sid = sid;
+        m_mixer = sid;
+        m_sid   = sid;
     }
 
-    ISidEmulation *emulation (void) { return m_sid; }
+    IInterface *emulation (void) { return &m_sid; }
 };

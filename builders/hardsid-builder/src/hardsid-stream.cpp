@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.7  2006/10/28 09:16:06  s_a_white
+ *  Update to new style COM interface
+ *
  *  Revision 1.6  2006/06/29 19:12:18  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -60,7 +63,7 @@ HardSIDStream::~HardSIDStream()
 {
     int size = m_sids.size ();
     for (int i = 0; i < size; i++)
-        m_sids[i]->ifrelease ();
+        delete m_sids[i];
     HardSID::close (m_handle);
 }
 
@@ -92,9 +95,6 @@ uint HardSIDStream::allocate (uint sids)
             sids = i;
             break;
         }
-
-        // Use if interface reference counting to delete object
-        if_cast<ISidEmulation>(sid);
 
         m_devUsed++;
         m_sids.push_back(sid);
