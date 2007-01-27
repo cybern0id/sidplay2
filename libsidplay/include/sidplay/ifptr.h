@@ -46,6 +46,9 @@ public:
     const char *name () const { return m_unknown->name (); }
 
     T *operator ->       () const { assert (m_unknown); return m_if; }
+    // This operator is for compatibility only to make it easy to call operators.  Do not
+    // pass the pointer around!
+    const T &operator *  () const { assert (m_unknown); return *m_if; }
     //afUnknown* operator &() const { return m_unknown; }
     //operator afUnknown  &() const { assert (m_unknown); return *m_unknown; }
     operator bool        () const { return m_unknown != 0; }
