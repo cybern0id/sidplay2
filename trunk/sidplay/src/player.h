@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.13  2006/10/30 19:32:06  s_a_white
+ *  Switch sidplay2 class to iinterface.
+ *
  *  Revision 1.12  2006/10/16 21:45:55  s_a_white
  *  Merge verbose and quiet levels.
  *
@@ -137,9 +140,11 @@ private:
     const char* const  m_name;
 #ifdef HAVE_SID2_COM
     IfPtr<sidplay2>    m_engine;
+    IfLazyPtr<IInterface> m_sidEmulation;
 #else
     sidplay2           m_theEngine; // Do not use
     sidplay2 * const   m_engine;    // Use me
+    sidbuilder        *m_sidEmulation;
 #endif
     sid2_config_t      m_engCfg;
     SidTuneMod         m_tune;

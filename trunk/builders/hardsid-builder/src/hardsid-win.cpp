@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2006/10/28 09:16:06  s_a_white
+ *  Update to new style COM interface
+ *
  *  Revision 1.22  2006/06/29 19:36:56  s_a_white
  *  Move interface handling to common emulation file.
  *
@@ -163,7 +166,7 @@ static int hsid_device = 0;
 HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
 :SidEmulation<ISidEmulation,HardSIDBuilder>("HardSID", builder),
- SidMixer<ISidMixer>("HardSIDMixer", static_cast<ISidEmulation*>(this)),
+ ICoAggregate<ISidMixer>(*aggregate()),
  Event("HardSID Delay"),
  m_handle(handle),
  m_eventContext(NULL),

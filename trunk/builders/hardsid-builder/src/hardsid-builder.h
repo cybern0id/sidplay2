@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2006/10/20 16:16:29  s_a_white
+ *  Better compatibility with old code.
+ *
  *  Revision 1.2  2006/06/27 19:44:55  s_a_white
  *  Add return parameter to ifquery.
  *
@@ -74,16 +77,16 @@ public:
     // false will give you all available sids.
     //    return values: 0 endless, positive is available sids.
     // use bool operator to determine error
-    uint           devices (bool used);
-    ISidEmulation *lock    (c64env *env, sid2_model_t model);
-    void           unlock  (ISidEmulation *device);
-    void           remove  (void);
-    const char    *error   (void) const { return m_errorBuffer; }
-    const char    *credits (void);
-    void           flush   (void);
-    void           filter  (bool enable);
+    uint        devices (bool used);
+    IInterface *lock    (c64env *env, sid2_model_t model);
+    void        unlock  (IInterface *device);
+    void        remove  (void);
+    const char *error   (void) const { return m_errorBuffer; }
+    const char *credits (void);
+    void        flush   (void);
+    void        filter  (bool enable);
 
-    uint           create  (uint sids);
+    uint        create  (uint sids);
 };
 
 #endif // _hardsid_builder_h_

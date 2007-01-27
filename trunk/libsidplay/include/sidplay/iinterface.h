@@ -18,6 +18,7 @@
 #ifndef _ifbase_h_
 #define _ifbase_h_
 
+#include <string.h>
 #include "sidtypes.h"
 
 struct InterfaceID
@@ -39,42 +40,40 @@ static const InterfaceID &SID2IID ()
     return iid;
 };
 
+inline bool operator == (const InterfaceID &iid1, const InterfaceID &iid2)
+{
+    return !memcmp (&iid1, &iid2, sizeof (InterfaceID));
+}
+
+inline bool operator != (const InterfaceID &iid1, const InterfaceID &iid2)
+{
+    return !(iid1 != iid2);
+}
+
 class IInterface
 {
+private:
+    template<class T> friend class IfPtr;
+    template<class TImplementation> friend class ICoAggregate;
+
 protected:
     virtual ~IInterface () = 0;
 
-public:
     static const InterfaceID &iid () {
         return SID2IID<0xd615830b, 0xef6a, 0x453d, 0xa2, 0xb6, 0x85, 0x28, 0x82, 0x96, 0x3f, 0x04>();
     }
 
     // IInterface
-    virtual void ifadd     () = 0;
-    virtual bool ifquery   (const InterfaceID &iid, void **implementation) = 0;
-    virtual void ifrelease () = 0;
+    virtual unsigned int ifadd     () = 0;
+    virtual bool         ifquery   (const InterfaceID &iid, void **implementation) = 0;
+    virtual unsigned int ifrelease () = 0;
 
-    virtual const char *name () const = 0;
+public:
+    virtual IInterface        *aggregate ()  = 0;
+    virtual const InterfaceID &ifid      () const = 0;
+    virtual const char        *name      () const = 0;
 };
 
 inline IInterface::~IInterface () { ; }
-
-// Query an interface (old method)
-#define IF_QUERY(Interface,Implementation) Interface::iid(), \
-    reinterpret_cast<void**>(static_cast<Interface**>(Implementation))
-
-// Query an interface (new method)
-// The one and only real function.  Do not modify or add new
-// non virtual functions.  You will break binary compatibility
-template<class T, class U> inline T *if_cast (U *unknown)
-{
-    if (unknown)
-    {
-        T *implementation = 0;
-        unknown->ifquery (IF_QUERY(T, &implementation));
-        return implementation;
-    }
-    return 0;
-}
 
 #endif // _ifbase_h_

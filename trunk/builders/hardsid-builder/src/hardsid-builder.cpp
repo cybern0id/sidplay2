@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2006/10/28 09:16:06  s_a_white
+ *  Update to new style COM interface
+ *
  *  Revision 1.20  2006/10/20 16:31:11  s_a_white
  *  Linker fix
  *
@@ -214,7 +217,7 @@ void HardSIDBuilderImpl::filter (bool enable)
 }
 
 // Find a free SID of the required type
-ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
+IInterface *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 {
     HardSID *def = NULL;
     int size = m_streams.size ();
@@ -226,7 +229,7 @@ ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
         HardSIDStream *stream = m_streams[i];
         HardSID *sid = stream->lock (env, model);
         if (sid)
-            return sid;
+            return sid->aggregate ();
     }
 
     // See if we can reallocate a sid to the correct model
@@ -237,7 +240,7 @@ ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
         if (sid)
         {
             if (stream->reallocate (sid, model))
-                return sid;
+                return sid->aggregate ();
             sid->lock (NULL);
             if (!def)
                 def = sid;
@@ -248,7 +251,7 @@ ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
     if (def)
     {
         def->lock (env);
-        return def;
+        return def->aggregate ();
     }
 
     // Unable to locate free SID
@@ -258,9 +261,9 @@ ISidEmulation *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void HardSIDBuilderImpl::unlock (ISidEmulation *device)
+void HardSIDBuilderImpl::unlock (IInterface *device)
 {
-    HardSID *sid = (HardSID *) device;
+    HardSID *sid = reinterpret_cast<HardSID*>(device->aggregate ()); // @FIXME@
     sid->lock (NULL);
 }
 
@@ -298,14 +301,12 @@ bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
         *implementation = static_cast<HardSIDBuilder *>(this);
     else
         return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }
 
 
 // Entry point
-bool HardSIDBuilderCreate (const char * name, const InterfaceID &iid,
-                           void **implementation)
+IInterface *HardSIDBuilderCreate (const char * name)
 {
 #ifdef HAVE_EXCEPTIONS
     HardSIDBuilderImpl *builder = new(nothrow) HardSIDBuilderImpl(name);
@@ -313,10 +314,6 @@ bool HardSIDBuilderCreate (const char * name, const InterfaceID &iid,
     HardSIDBuilderImpl *builder = new HardSIDBuilderImpl(name);
 #endif
     if (builder)
-    {
-        if (builder->ifquery (iid, implementation))
-            return true;
-        delete builder;
-    }
-    return false;
+        return builder->aggregate ();
+    return 0;
 }

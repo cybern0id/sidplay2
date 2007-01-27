@@ -59,12 +59,12 @@ public:
         return SID2IID<0x1c9ea475, 0xac10, 0x4345, 0x8b, 0x88, 0x3e, 0x48, 0x04, 0xe0, 0xea, 0x38>();
     }
 
-    virtual operator       bool     () const = 0;
-    virtual const char    *credits  (void) = 0;
-    virtual const char    *error    (void) const = 0;
-    virtual ISidEmulation *lock     (c64env *env, sid2_model_t model) = 0;
-    virtual const char    *name     (void) const = 0;
-    virtual void           unlock   (ISidEmulation *device) = 0;
+    virtual operator    bool     () const = 0;
+    virtual const char *credits  (void) = 0;
+    virtual const char *error    (void) const = 0;
+    virtual IInterface *lock     (c64env *env, sid2_model_t model) = 0;
+    virtual const char *name     (void) const = 0;
+    virtual void        unlock   (IInterface *device) = 0;
 };
 
 #endif // _sidbuilder_h_

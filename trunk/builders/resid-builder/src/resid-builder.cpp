@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2006/10/28 09:09:16  s_a_white
+ *  Update to newer COM style interface
+ *
  *  Revision 1.14  2006/10/20 16:30:41  s_a_white
  *  Linker fix
  *
@@ -121,9 +124,6 @@ uint ReSIDBuilderImpl::create (uint sids)
             goto ReSIDBuilderImpl_create_error;
         }
 
-        // Use if interface reference counting to delete object
-        if_cast<ISidEmulation>(sid);
-
         sidobjs.push_back (sid);
     }
     return count;
@@ -142,7 +142,7 @@ const char *ReSIDBuilderImpl::credits ()
     // Available devices
     if (sidobjs.size ())
     {
-        ReSID *sid = (ReSID *) sidobjs[0];
+        ReSID *sid = sidobjs[0];
         return sid->credits ();
     }
 
@@ -174,7 +174,7 @@ void ReSIDBuilderImpl::filter (const sid_filter_t *filter)
     m_status = true;
     for (int i = 0; i < size; i++)
     {
-        ReSID *sid = (ReSID *) sidobjs[i];
+        ReSID *sid = sidobjs[i];
         if (!sid->filter (filter))
             goto ReSIDBuilderImpl_sidFilterDef_error;
     }
@@ -191,24 +191,24 @@ void ReSIDBuilderImpl::filter (bool enable)
     m_status = true;
     for (int i = 0; i < size; i++)
     {
-        ReSID *sid = (ReSID *) sidobjs[i];
+        ReSID *sid = sidobjs[i];
         sid->filter (enable);
     }
 }
 
 // Find a free SID of the required specs
-ISidEmulation *ReSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
+IInterface *ReSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 {
     int size = sidobjs.size ();
     m_status = true;
 
     for (int i = 0; i < size; i++)
     {
-        ReSID *sid = (ReSID *) sidobjs[i];
+        ReSID *sid = sidobjs[i];
         if (sid->lock (env))
         {
             sid->model (model);
-            return sid;
+            return sid->aggregate ();
         }
     }
     // Unable to locate free SID
@@ -218,15 +218,16 @@ ISidEmulation *ReSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
 }
 
 // Allow something to use this SID
-void ReSIDBuilderImpl::unlock (ISidEmulation *device)
+void ReSIDBuilderImpl::unlock (IInterface *device)
 {
+    IInterface *emulation = device->aggregate ();
     int size = sidobjs.size ();
     // Maek sure this is our SID
     for (int i = 0; i < size; i++)
     {
-        ReSID *sid = (ReSID *) sidobjs[i];
-        if (sid == device)
+        if (sidobjs[i]->aggregate() == emulation)
         {   // Unlock it
+            ReSID *sid = sidobjs[i];
             sid->lock (NULL);
             break;
         }
@@ -236,9 +237,6 @@ void ReSIDBuilderImpl::unlock (ISidEmulation *device)
 // Remove all SID emulations.
 void ReSIDBuilderImpl::remove ()
 {
-    int size = sidobjs.size ();
-    for (int i = 0; i < size; i++)
-        sidobjs[i]->ifrelease ();
     sidobjs.clear();
 }
 
@@ -248,7 +246,7 @@ void ReSIDBuilderImpl::sampling (uint_least32_t freq)
     m_status = true;
     for (int i = 0; i < size; i++)
     {
-        ReSID *sid = (ReSID *) sidobjs[i];
+        ReSID *sid = sidobjs[i];
         sid->sampling (freq);
     }
 }
@@ -264,14 +262,12 @@ bool ReSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
         *implementation = static_cast<ReSIDBuilder *>(this);
     else
         return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }
 
 
 // Entry point
-bool ReSIDBuilderCreate (const char * const name, const InterfaceID &iid,
-                         void **implementation)
+IInterface *ReSIDBuilderCreate (const char * const name)
 {
 #ifdef HAVE_EXCEPTIONS
     ReSIDBuilderImpl *builder = new(nothrow) ReSIDBuilderImpl(name);
@@ -279,10 +275,6 @@ bool ReSIDBuilderCreate (const char * const name, const InterfaceID &iid,
     ReSIDBuilderImpl *builder = new ReSIDBuilderImpl(name);
 #endif
     if (builder)
-    {
-        if (builder->ifquery (iid, implementation))
-            return true;
-        delete builder;
-    }
-    return false;
+        return builder->aggregate ();
+    return 0;
 }

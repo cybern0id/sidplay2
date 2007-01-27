@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.44  2006/10/31 19:52:00  s_a_white
+ *  Auto type on if_cast didn't work with ifPtr (made copy).  We cannot pass by
+ *  reference, so pass the internal pointer.
+ *
  *  Revision 1.43  2006/10/30 19:32:06  s_a_white
  *  Switch sidplay2 class to iinterface.
  *
@@ -182,8 +186,11 @@ const char ConsolePlayer::HARDSID_ID[] = "HardSID";
 ConsolePlayer::ConsolePlayer (const char * const name)
 :Event("External Timer\n"),
  m_name(name),
-#ifndef HAVE_SID2_COM
+#ifdef HAVE_SID2_COM
+ m_engine(sidplay2::create ()),
+#else
  m_engine(&m_theEngine),
+ m_sidEmulation(0),
 #endif
  m_tune(0),
  m_state(playerStopped),
@@ -205,10 +212,6 @@ ConsolePlayer::ConsolePlayer (const char * const name)
     m_track.single   = false;
     m_speed.current  = 1;
     m_speed.max      = 32;
-
-#ifdef HAVE_SID2_COM
-    m_engine = if_cast<sidplay2>(sidplay2::create ());
-#endif
 
     // Read default configuration
     m_iniCfg.read ();
@@ -384,23 +387,14 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 // Create the sid emulation
 bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 {
-    // Remove old driver and emulation
-    if (m_engCfg.sidEmulation)
-    {
-#ifdef HAVE_SID2_COM
-        ISidBuilder
-#else // Depreciared interface
-        sidbuilder
-#endif
-        *builder = m_engCfg.sidEmulation;
+    if (m_sidEmulation)
+    {   // Remove old driver and emulation
         m_engCfg.sidEmulation = 0;
         m_engine->config (m_engCfg);
-#ifdef HAVE_SID2_COM
-        builder->ifrelease ();
-#else // Depreciared interface
-        delete builder;
+#ifndef HAVE_SID2_COM // Depreciared interface
+        delete m_sidEmulation;
 #endif
-
+        m_sidEmulation = 0;
     }
 
     // Now setup the sid emulation
@@ -410,33 +404,35 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_RESID:
     {
 #ifdef HAVE_SID2_COM
-        IfPtr<ReSIDBuilder> rs;
-        if ( ReSIDBuilderCreate ("", IF_QUERY(ReSIDBuilder, &rs.p)) )
+        m_sidEmulation = ReSIDBuilderCreate ("");
+        IfLazyPtr<ReSIDBuilder> rs(m_sidEmulation);
+        if (rs)
         {
-            m_engCfg.sidEmulation = if_cast<ISidBuilder>(rs.p);
+            m_engCfg.sidEmulation = rs->aggregate ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
 #   else
         ReSIDBuilder *rs = new ReSIDBuilder( RESID_ID );
 #   endif
+        m_sidEmulation = rs;
         if (rs)
         {
             m_engCfg.sidEmulation = rs;
 #endif // HAVE_SID2_COM
-            if (!*rs) goto createSidEmu_error;
+            if (!(rs->operator bool())) goto createSidEmu_error;
 
             // Setup the emulation
             rs->create ((m_engine->info ()).maxsids);
-            if (!*rs) goto createSidEmu_error;
+            if (!(rs->operator bool())) goto createSidEmu_error;
             rs->filter (m_filter.enabled);
-            if (!*rs) goto createSidEmu_error;
+            if (!(rs->operator bool())) goto createSidEmu_error;
             rs->sampling (m_driver.cfg.frequency);
-            if (!*rs) goto createSidEmu_error;
+            if (!(rs->operator bool())) goto createSidEmu_error;
             if (m_filter.enabled && m_filter.definition)
             {   // Setup filter
                 rs->filter (m_filter.definition.provide ());
-                if (!*rs) goto createSidEmu_error;
+                if (!(rs->operator bool())) goto createSidEmu_error;
             }
         }
         break;
@@ -447,27 +443,29 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_HARDSID:
     {
 #ifdef HAVE_SID2_COM
-        IfPtr<HardSIDBuilder> hs;
-        if ( HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs.p)) )
+        m_sidEmulation = HardSIDBuilderCreate ("");
+        IfLazyPtr<HardSIDBuilder> hs(m_sidEmulation);
+        if (hs)
         {
-            m_engCfg.sidEmulation = if_cast<ISidBuilder>(hs.p);
+            m_engCfg.sidEmulation = hs->aggregate ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
 #   else
         HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
 #   endif
+        m_sidEmulation = hs;
         if (hs)
         {
             m_engCfg.sidEmulation = hs;
 #endif // HAVE_SID2_COM
-            if (!*hs) goto createSidEmu_error;
+            if (!(hs->operator bool())) goto createSidEmu_error;
 
             // Setup the emulation
             hs->create ((m_engine->info ()).maxsids);
-            if (!*hs) goto createSidEmu_error;
+            if (!(hs->operator bool())) goto createSidEmu_error;
             hs->filter (m_filter.enabled);
-            if (!*hs) goto createSidEmu_error;
+            if (!(hs->operator bool())) goto createSidEmu_error;
         }
         break;
     }
@@ -480,7 +478,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         break;
     }
 
-    if (!m_engCfg.sidEmulation)
+    if (!m_sidEmulation)
     {
         if (emu > EMU_DEFAULT)
         {   // No sid emulation?
@@ -491,10 +489,10 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     return true;
 
 createSidEmu_error:
-    displayError (m_engCfg.sidEmulation->error ());
 #ifdef HAVE_SID2_COM
-    (m_engCfg.sidEmulation)->ifrelease ();
+    displayError (IfPtr<ISidEmulation>(m_sidEmulation)->error ());
 #else // Depreciated Interface
+    displayError (m_sidEmulation->error ());
     delete m_engCfg.sidEmulation;
 #endif
     m_engCfg.sidEmulation = 0;

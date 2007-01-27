@@ -25,16 +25,6 @@
 #include <string.h>
 #include <sidplay/iinterface.h>
 
-inline bool operator == (const InterfaceID &iid1, const InterfaceID &iid2)
-{
-    return !memcmp (&iid1, &iid2, sizeof (InterfaceID));
-}
-
-inline bool operator != (const InterfaceID &iid1, const InterfaceID &iid2)
-{
-    return !(iid1 != iid2);
-}
-
 template <class TImplementation>
 class ICoInterface: public TImplementation
 {
@@ -42,19 +32,43 @@ private:
     const char * const m_name;
     unsigned int m_refcount;
 
-protected:
-    virtual void _ifadd      () { ; }
-    unsigned int _ifrefcount () const { return m_refcount; }
-    virtual void _ifrelease  () { ; }
-
 public:
     ICoInterface (const char *name) : m_name(name), m_refcount(0) { ; }
     virtual ~ICoInterface () { ; }
 
-    void  ifadd     () { m_refcount++; _ifadd (); }
-    void  ifrelease () { m_refcount--; _ifrelease (); }
-
+    virtual const InterfaceID &ifid () const { return TImplementation::iid(); 
+} 
+    IInterface *aggregate () { return this; }
     const char *name () const { return m_name; }
+
+protected:
+    virtual void _ifdestroy () { ; }
+
+private:
+    unsigned int ifadd     () { return ++m_refcount; }
+    unsigned int ifrelease () { if (!--m_refcount) _ifdestroy (); return m_refcount; }
+};
+
+template <class TImplementation>
+class ICoAggregate: public TImplementation
+{
+private:
+    IInterface &m_unknown;
+
+public:
+    ICoAggregate (IInterface &unknown)
+        : m_unknown(unknown) { ; }
+
+private:
+    const InterfaceID &ifid () const { return m_unknown.ifid (); }
+
+    IInterface *aggregate ()  { return m_unknown.aggregate (); }
+    const char *name () const { return m_unknown.name (); }
+
+    unsigned int ifadd     () { return m_unknown.ifadd (); }
+    bool         ifquery   (const InterfaceID &iid, void **implementation)
+                              { return m_unknown.ifquery (iid, implementation); }
+    unsigned int ifrelease () { return m_unknown.ifrelease (); }
 };
 
 #endif // _imp_ifbase_h_

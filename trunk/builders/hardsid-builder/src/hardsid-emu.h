@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2006/10/20 16:16:29  s_a_white
+ *  Better compatibility with old code.
+ *
  *  Revision 1.18  2006/06/29 19:12:18  s_a_white
  *  Seperate mixer interface from emulation interface.
  *
@@ -98,7 +101,7 @@ typedef int hwsid_handle_t;
  * HardSID SID Specialisation
  ***************************************************************************/
 class HardSID: public SidEmulation<ISidEmulation,HardSIDBuilder>,
-               public SidMixer<ISidMixer>, private Event
+               public ICoAggregate<ISidMixer>, private Event
 {
 private:
     friend class HardSIDBuilderImpl;
@@ -123,10 +126,10 @@ public:
               hwsid_handle_t handle);
     ~HardSID ();
 
+    IInterface *aggregate () { return static_cast<ISidEmulation*>(this)->aggregate (); }
+
     // IInterface
-    void ifadd     () { SidEmulation<ISidEmulation,HardSIDBuilder>::ifadd(); }
     bool ifquery   (const InterfaceID &cid, void **implementation);
-    void ifrelease () { SidEmulation<ISidEmulation,HardSIDBuilder>::ifrelease (); }
 
     // Standard component functions
     const char   *credits (void) {return credit;}

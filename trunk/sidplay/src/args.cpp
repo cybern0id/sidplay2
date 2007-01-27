@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.28  2006/10/30 19:32:06  s_a_white
+ *  Switch sidplay2 class to iinterface.
+ *
  *  Revision 1.27  2006/10/29 23:05:58  s_a_white
  *  Add -q for compatibily (is marked depreciated, remove later).
  *
@@ -657,8 +660,8 @@ void ConsolePlayer::displayArgs (const char *arg)
 #ifdef HAVE_HARDSID_BUILDER
     {
 #ifdef HAVE_SID2_COM
-        IfPtr<HardSIDBuilder> hs;
-        HardSIDBuilderCreate ("", IF_QUERY(HardSIDBuilder, &hs.p));
+        IfPtr<IInterface> unknown (HardSIDBuilderCreate (""));
+        IfLazyPtr<HardSIDBuilder> hs = unknown;
 #else // Depreciated Interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );

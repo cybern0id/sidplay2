@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.86  2006/10/30 19:30:36  s_a_white
+ *  Switch sidplay2/player to use iinterface
+ *
  *  Revision 1.85  2006/10/28 08:39:55  s_a_white
  *  New, easier to use, COM style interface.
  *
@@ -380,7 +383,7 @@ Player::Player (void)
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
- xsid    (this, &nullsid),
+ xsid    (this, IfPtr<ISidEmulation>(nullsid)),
  cia     (this),
  cia2    (this),
  sid6526 (this),
@@ -411,7 +414,7 @@ Player::Player (void)
         sid[i] = &nullsid;
     }
     xsid.emulation(sid[0]);
-    sid[0] = &xsid;
+    sid[0] = xsid.aggregate ();
     // Setup sid mapping table
     {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
         m_sidmapper[i] = 0;
@@ -954,16 +957,16 @@ void Player::reset (void)
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
     {
-        ISidEmulation &s = *sid[i];
-        s.reset (0x0f);
+        IfPtr<ISidEmulation> s(sid[i]);
+        s->reset (0x0f);
         // Synchronise the waveform generators
         // (must occur after reset)
-        s.write (0x04, 0x08);
-        s.write (0x0b, 0x08);
-        s.write (0x12, 0x08);
-        s.write (0x04, 0x00);
-        s.write (0x0b, 0x00);
-        s.write (0x12, 0x00);
+        s->write (0x04, 0x08);
+        s->write (0x0b, 0x08);
+        s->write (0x12, 0x08);
+        s->write (0x04, 0x00);
+        s->write (0x0b, 0x00);
+        s->write (0x12, 0x00);
     }
 
     if (m_info.environment == sid2_envR)
@@ -1282,7 +1285,6 @@ bool Player::ifquery (const InterfaceID &iid, void **implementation)
         *implementation = static_cast<sidplay2 *>(this);
     else
         return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 
 }

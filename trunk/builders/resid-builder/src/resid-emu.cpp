@@ -30,7 +30,7 @@ char ReSID::m_credit[];
 
 ReSID::ReSID (ReSIDBuilder *builder)
 :SidEmulation<ISidEmulation,ReSIDBuilder>("ReSID", builder),
- SidMixer<ISidMixer>("ReSIDMixer", static_cast<ISidEmulation*>(this)),
+ ICoAggregate<ISidMixer>(*aggregate()),
  m_context(NULL),
  m_phase(EVENT_CLOCK_PHI1),
 #ifdef HAVE_EXCEPTIONS
@@ -256,6 +256,5 @@ bool ReSID::ifquery (const InterfaceID &iid, void **implementation)
         *implementation = static_cast<ISidEmulation *>(this);
     else
         return false;
-    reinterpret_cast<IInterface *>(*implementation)->ifadd ();
     return true;
 }

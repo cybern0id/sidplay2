@@ -38,7 +38,6 @@ public:
 // Future interface name
 typedef ReSIDBuilder IReSIDBuilder;
 
-extern "C" bool ReSIDBuilderCreate (const char * name,
-                                    const InterfaceID &iid, void **implementation);
+extern "C" IInterface *ReSIDBuilderCreate (const char * name);
 
 #endif // _resid_h_
