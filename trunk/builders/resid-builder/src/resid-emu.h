@@ -55,7 +55,7 @@ public:
     ReSID  (ReSIDBuilder *builder);
     ~ReSID (void);
 
-    IInterface *aggregate () { return static_cast<ISidEmulation*>(this)->aggregate (); }
+    IInterface *aggregate () { return SidEmulation<ISidEmulation,ReSIDBuilder>::aggregate (); }
 
     // IInterface
     bool ifquery (const InterfaceID &iid, void **implementation);
