@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.88  2007/01/27 11:14:21  s_a_white
+ *  Must export interfaces correctly via ifquery now.
+ *
  *  Revision 1.87  2007/01/27 10:22:44  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -386,7 +389,7 @@ Player::Player (void)
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
- xsid    (this, IfPtr<ISidEmulation>(nullsid.aggregate())),
+ xsid    (this),
  cia     (this),
  cia2    (this),
  sid6526 (this),

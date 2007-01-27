@@ -126,9 +126,16 @@ protected: // For lazy initialisation
         return unknown;
     }
 
-    const IInterface *operator = (const IInterface &unknown)
+    const IInterface &operator = (const IInterface &unknown)
     {
-        return (*this = &unknown);
+        *this = &unknown;
+        return unknown;
+    }
+
+    const IfPtr<T>& operator= (const IfPtr<T> &unknown)
+    {
+         *this = &unknown;
+         return unknown;
     }
 };
 

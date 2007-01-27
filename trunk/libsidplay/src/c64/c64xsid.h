@@ -53,12 +53,12 @@ private:
     }
 
 public:
-    c64xsid (c64env *env, IfPtr<ISidEmulation> &sid)
+    c64xsid (c64env *env)
     :XSID(&env->context ()),
      ICoAggregate<ISidMixer>(*aggregate()),
      m_env(*env), m_sid(0), m_mixer(0), m_gain(100)
     {
-        emulation (sid);
+        ;
     }
 
     IInterface *aggregate () { return XSID::aggregate (); }
