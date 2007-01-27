@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.21  2006/10/28 09:16:06  s_a_white
  *  Update to new style COM interface
  *
@@ -129,6 +132,9 @@ HardSIDBuilderImpl::~HardSIDBuilderImpl (void)
 // Create a new sid emulation.  Called by libsidplay2 only
 uint HardSIDBuilderImpl::create (uint sids)
 {
+    if (!m_initialised)
+        goto HardSIDBuilderImpl_create_error;
+
     uint count;
     m_status = true;
 
@@ -182,16 +188,18 @@ HardSIDBuilderImpl_create_error:
 // Return the available devices or the used (created) devices.
 uint HardSIDBuilderImpl::devices (bool created)
 {
-    m_status = true;
-    if (created)
+    if (m_initialised)
     {
-        uint count = 0;
-        int  size  = m_streams.size ();
-        for (int i = 0; i < size; i++)
-            count += m_streams[i]->allocated ();
-        return count;
+        m_status = true;
+        if (created)
+        {
+            uint count = 0;
+            int  size  = m_streams.size ();
+            for (int i = 0; i < size; i++)
+                count += m_streams[i]->allocated ();
+            return count;
+        }
     }
-
     return m_count;
 }
 
