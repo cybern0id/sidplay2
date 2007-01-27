@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.45  2007/01/27 10:20:49  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.44  2006/10/31 19:52:00  s_a_white
  *  Auto type on if_cast didn't work with ifPtr (made copy).  We cannot pass by
  *  reference, so pass the internal pointer.
@@ -190,7 +193,7 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_engine(sidplay2::create ()),
 #else
  m_engine(&m_theEngine),
- m_sidEmulation(0),
+ m_sidBuilder(0),
 #endif
  m_tune(0),
  m_state(playerStopped),
@@ -387,14 +390,14 @@ bool ConsolePlayer::createOutput (OUTPUTS driver, const SidTuneInfo *tuneInfo)
 // Create the sid emulation
 bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 {
-    if (m_sidEmulation)
+    if (m_sidBuilder)
     {   // Remove old driver and emulation
         m_engCfg.sidEmulation = 0;
         m_engine->config (m_engCfg);
 #ifndef HAVE_SID2_COM // Depreciared interface
-        delete m_sidEmulation;
+        delete m_sidBuilder;
 #endif
-        m_sidEmulation = 0;
+        m_sidBuilder = 0;
     }
 
     // Now setup the sid emulation
@@ -404,8 +407,8 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_RESID:
     {
 #ifdef HAVE_SID2_COM
-        m_sidEmulation = ReSIDBuilderCreate ("");
-        IfLazyPtr<ReSIDBuilder> rs(m_sidEmulation);
+        m_sidBuilder = ReSIDBuilderCreate ("");
+        IfLazyPtr<ReSIDBuilder> rs(m_sidBuilder);
         if (rs)
         {
             m_engCfg.sidEmulation = rs->aggregate ();
@@ -415,7 +418,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #   else
         ReSIDBuilder *rs = new ReSIDBuilder( RESID_ID );
 #   endif
-        m_sidEmulation = rs;
+        m_sidBuilder = rs;
         if (rs)
         {
             m_engCfg.sidEmulation = rs;
@@ -443,8 +446,8 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     case EMU_HARDSID:
     {
 #ifdef HAVE_SID2_COM
-        m_sidEmulation = HardSIDBuilderCreate ("");
-        IfLazyPtr<HardSIDBuilder> hs(m_sidEmulation);
+        m_sidBuilder = HardSIDBuilderCreate ("");
+        IfLazyPtr<HardSIDBuilder> hs(m_sidBuilder);
         if (hs)
         {
             m_engCfg.sidEmulation = hs->aggregate ();
@@ -454,7 +457,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 #   else
         HardSIDBuilder *hs = new HardSIDBuilder( HARDSID_ID );
 #   endif
-        m_sidEmulation = hs;
+        m_sidBuilder = hs;
         if (hs)
         {
             m_engCfg.sidEmulation = hs;
@@ -478,7 +481,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         break;
     }
 
-    if (!m_sidEmulation)
+    if (!m_sidBuilder)
     {
         if (emu > EMU_DEFAULT)
         {   // No sid emulation?
@@ -490,9 +493,9 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 
 createSidEmu_error:
 #ifdef HAVE_SID2_COM
-    displayError (IfPtr<ISidEmulation>(m_sidEmulation)->error ());
+    displayError (IfPtr<ISidBuilder>(m_sidBuilder)->error ());
 #else // Depreciated Interface
-    displayError (m_sidEmulation->error ());
+    displayError (m_sidBuilder->error ());
     delete m_engCfg.sidEmulation;
 #endif
     m_engCfg.sidEmulation = 0;
