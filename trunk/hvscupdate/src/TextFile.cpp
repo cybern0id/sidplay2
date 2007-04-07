@@ -269,10 +269,12 @@ bool TextFile::createParseCopy()
 {
     int di = 0;
     for ( int i = 0; i < lineLen; i++ )
-    {
+    {   // The code here uses extended ASCII characters > 127.
+        // If char is signed these all appear as negative numbers to
+        // isspace, which is illegal.
         char c = lineBuf[i];
         parseBuf[di] = c;
-        if ( !isspace(c) )
+        if ( !isspace((unsigned char)c) )
         {
 			di++;
         }
