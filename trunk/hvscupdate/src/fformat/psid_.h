@@ -24,6 +24,8 @@ extern HVSCVER HVSCversion_found;
 //     version = 2 only
 //     play, load and speed reserved 0
 //     psidspecific flag reserved 0
+//     init cannot be under ROMS/IO
+//     load cannot be less than 0x0801 (start of basic)
 
 struct psidHeader
 {

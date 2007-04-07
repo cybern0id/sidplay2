@@ -158,24 +158,27 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	}
 
 	if ( info.initAddr == 0 )
-	{
-		// Could find init address
-		if ( info.initAddr == 0 )
-			info.initAddr = info.loadAddr;
+		info.initAddr = info.loadAddr;
 
-		if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
+	if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
+	{
+		// Check tune is loadable on a real C64
+		if ( info.loadAddr < 0x0801 )
 		{
-			// Check valid init address
-			switch (info.initAddr >> 12)
-			{
-			case 0x0F:
-			case 0x0E:
-			case 0x0D:
-			case 0x0B:
-			case 0x0A:
-				info.formatString = _sidtune_invalid;
-				return false;
+			info.formatString = _sidtune_invalid;
+			return false;
 		}
+
+		// Check valid init address
+		switch (info.initAddr >> 12)
+		{
+		case 0x0F:
+		case 0x0E:
+		case 0x0D:
+		case 0x0B:
+		case 0x0A:
+			info.formatString = _sidtune_invalid;
+			return false;
 		}
 	}
 
