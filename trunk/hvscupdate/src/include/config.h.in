@@ -60,14 +60,14 @@
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
-/* Define if you have the <fstream.h> header file.  */
-#undef HAVE_FSTREAM_H
+/* Define if you have the <fstream> header file.  */
+#undef HAVE_FSTREAM
 
-/* Define if you have the <iomanip.h> header file.  */
-#undef HAVE_IOMANIP_H
+/* Define if you have the <iomanip> header file.  */
+#undef HAVE_IOMANIP
 
-/* Define if you have the <iostream.h> header file.  */
-#undef HAVE_IOSTREAM_H
+/* Define if you have the <iostream> header file.  */
+#undef HAVE_IOSTREAM
 
 /* Define if you have the <limits.h> header file.  */
 #undef HAVE_LIMITS_H
@@ -75,8 +75,14 @@
 /* Define if you have the <ndir.h> header file.  */
 #undef HAVE_NDIR_H
 
+/* Define if you have the <sstream> header file.  */
+#undef HAVE_SSTREAM
+
 /* Define if you have the <strstrea.h> header file.  */
 #undef HAVE_STRSTREA_H
+
+/* Define if you have the <strstream> header file.  */
+#undef HAVE_STRSTREAM
 
 /* Define if you have the <strstream.h> header file.  */
 #undef HAVE_STRSTREAM_H

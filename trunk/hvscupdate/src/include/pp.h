@@ -6,7 +6,14 @@
 #define PP_H
 
 
-#include <fstream.h>
+#include "config.h"
+
+#if defined(HAVE_FSTREAM)
+  #include <fstream>
+  using std::ifstream;
+#else
+  #include <fstream.h>
+#endif
 #include "mytypes.h"
 
 extern bool depp(ifstream& inputFile, ubyte** destBufRef);
