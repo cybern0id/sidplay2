@@ -6,14 +6,21 @@
 #define fformat_h
 
 
+#include "config.h"
 #include "compconf.h"
 #include "mytypes.h"
 
 #include <string.h>
-#if defined(HAVE_STRSTREA_H)
+#if defined(HAVE_SSTREAM)
+  #include <sstream>
+  using std::istringstream;
+#elif defined(HAVE_STRSTREA_H)
   #include <strstrea.h>
-#else
+#elif defined(HAVE_STRSTREAM_H)
   #include <strstream.h>
+#else
+  #include <strstream>
+  using std::istrstream;
 #endif
 
 #if defined(HAVE_STRCASECMP)
@@ -48,18 +55,30 @@ extern char* fileExtOfPath(char* s);
 
 // Parse input string stream. Read and convert a hexa-decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
+#if defined(HAVE_SSTREAM)
+extern udword readHex(istringstream& parseStream);
+#else
 extern udword readHex(istrstream& parseStream);
+#endif
 
 // Parse input string stream. Read and convert a decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
+#if defined(HAVE_SSTREAM)
+extern udword readDec(istringstream& parseStream);
+#else
 extern udword readDec(istrstream& parseStream);
+#endif
 
 // Search terminated string for next newline sequence.
 // Skip it and return pointer to start of next line.
 extern const char* returnNextLine(const char* pBuffer);
 
 // Skip any characters in an input string stream up to '='.
+#if defined(HAVE_SSTREAM)
+extern void skipToEqu(istringstream& parseStream);
+#else
 extern void skipToEqu(istrstream& parseStream);
+#endif
 
 // Start at first character behind '=' and copy rest of string.
 extern void copyStringValueToEOL(const char* pSourceStr, char* pDestStr, int destMaxLen);

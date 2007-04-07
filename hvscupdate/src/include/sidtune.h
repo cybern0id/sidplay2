@@ -10,7 +10,14 @@
 #define SIDTUNE_H
 
 
-#include <fstream.h>
+#include "config.h"
+
+#if defined(HAVE_FSTREAM)
+  #include <fstream>
+  using std::ofstream;
+#else
+  #include <fstream.h>
+#endif
 #include "mytypes.h"
 
 const uint classMaxSongs = 256;   // also file format limit

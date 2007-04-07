@@ -1,3 +1,22 @@
+#include "config.h"
+#include "compconf.h"
+
+#include <ctype.h>
+#if defined(HAVE_FSTREAM)
+  #include <fstream>
+  using std::ifstream;
+#else
+  #include <fstream.h>
+#endif
+#if defined(HAVE_IOMANIP)
+  #include <iomanip>
+  using std::ios;
+#else
+  #include <iomanip.h>
+#endif
+#include <string.h>
+
+#include "fformat.h"  // strnicmp stuff
 #include "TextFile.h"
 
 TextFile::TextFile(const char* fileName) : maxLineLen(2048)

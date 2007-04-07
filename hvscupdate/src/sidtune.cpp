@@ -4,8 +4,14 @@
 // Information on usage of this class in "include/sidtune.h".
 //
 
-#include <iostream.h>
-#include <iomanip.h>
+#include "config.h"
+
+#if defined(HAVE_IOMANIP)
+  #include <iomanip>
+  using std::ios;
+#else
+  #include <iomanip.h>
+#endif
 #include <string.h>
 #include <limits.h>
 

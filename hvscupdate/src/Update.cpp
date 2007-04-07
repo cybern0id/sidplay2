@@ -3,6 +3,7 @@
 //
 // Copyright (C) 1998,1999 HVSC administrators.
 
+#include "config.h"
 #include "compconf.h"
 
 #if defined(HAVE_AMIGAOS)
@@ -16,9 +17,27 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
-#include <fstream.h>
-#include <iostream.h>
-#include <iomanip.h>
+#if defined(HAVE_FSTREAM)
+  #include <fstream>
+  using std::ifstream;
+#else
+  #include <fstream.h>
+#endif
+#if defined(HAVE_IOMANIP)
+  #include <iomanip>
+  using std::ios;
+#else
+  #include <iomanip.h>
+#endif
+#if defined(HAVE_IOSTREAM)
+  #include <iostream>
+  using std::cout;
+  using std::cin;
+  using std::cerr;
+  using std::endl;
+#else
+  #include <iostream.h>
+#endif
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,8 +62,8 @@
 #include "sidtune.h"
 #include "hvscver.h"
 
-static const char versionString[] = "2.8.2";
-static const char HVSCcontactEmail[] = "Jan Diabelez Arnt Harries <nmioaon@get2net.dk>";
+static const char versionString[] = "2.8.3";
+static const char HVSCcontactEmail[] = "Stephan Schmid <hvsc@c64.org>";
 
 HVSCVER HVSCversion_found;
 

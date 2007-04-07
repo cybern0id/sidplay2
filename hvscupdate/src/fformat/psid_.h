@@ -5,10 +5,14 @@
 #ifndef PSID__H
 #define PSID__H
 
+#include <config.h>
 
-#include <fstream.h>
-#include <iostream.h>
-#include <iomanip.h>
+#if defined(HAVE_FSTREAM)
+  #include <fstream>
+  using std::ofstream;
+#else
+  #include <fstream.h>
+#endif
 #include <string.h>
 
 #include "mytypes.h"
