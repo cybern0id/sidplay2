@@ -169,10 +169,14 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	else if ( info.initAddr == 0 )
 		info.initAddr = info.loadAddr;
 
-	if ( checkRelocInfo() == false )
+
+	if (hvscvercmp(HVSCversion_found,HVSCVersion_v2NGCompatible)>=0)
 	{
-		info.formatString = _sidtune_reloc;
-		return false;
+		if ( checkRelocInfo() == false )
+		{
+			info.formatString = _sidtune_reloc;
+			return false;
+		}
 	}
 
 	// Copy info strings, so they will not get lost.
