@@ -39,9 +39,10 @@ const int SIDTUNE_SIDMODEL_6581 = 1;
 const int SIDTUNE_SIDMODEL_8580 = 2;
 const int SIDTUNE_SIDMODEL_ANY = SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580;
 
-const int SIDTUNE_COMPATIBILITY_C64  = 0x00; // File is C64 compatible
-const int SIDTUNE_COMPATIBILITY_PSID = 0x01; // File is PSID specific
-const int SIDTUNE_COMPATIBILITY_R64  = 0x02; // File is Real C64 only
+const int SIDTUNE_COMPATIBILITY_C64   = 0x00; // File is C64 compatible
+const int SIDTUNE_COMPATIBILITY_PSID  = 0x01; // File is PSID specific
+const int SIDTUNE_COMPATIBILITY_R64   = 0x02; // File is Real C64 only
+const int SIDTUNE_COMPATIBILITY_BASIC = 0x03; // File requires C64 Basic
 
 
 // An instance of this structure is used to transport values to
@@ -241,7 +242,7 @@ class sidTune
 	// Check SidTuneInfo fields for all real c64 only formats
 	bool checkRealC64Info(udword speed);
 	// Check the init address is legal for real C64 only tunes
-	bool checkRealC64Init(void);
+	bool checkCompatibility(void);
 	// Check for valid relocation information
 	bool checkRelocInfo(void);
 

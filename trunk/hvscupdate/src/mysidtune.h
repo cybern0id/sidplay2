@@ -145,13 +145,8 @@ class mySidTune : public sidTune
                     info.initAddr = (uword) strtoul(newInfoString[0], NULL, 16);
                     info.playAddr = (uword) strtoul(newInfoString[0]+index+1, NULL, 16);
                     // Not modifiable!
-                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
-                    {
-                        if (checkRealC64Init() == false)
-                            return false;
-                        if (info.playAddr != 0)
-                            return false;
-                    }
+                    if (checkCompatibility() == false)
+                        return false;
                     break;
                 }
                 else
@@ -218,14 +213,12 @@ class mySidTune : public sidTune
                     ; // Do nothing - this field is not to be changed.
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 0) {
-                    // Not supported by RSID files
-                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+                    if ( info.compatibility != SIDTUNE_COMPATIBILITY_PSID )
                         return false;
                     info.compatibility = SIDTUNE_COMPATIBILITY_C64;
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 1) {
-                    // Not supported by RSID files
-                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+                    if (info.compatibility != SIDTUNE_COMPATIBILITY_C64)
                         return false;
                     info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
                 }
