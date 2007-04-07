@@ -870,3 +870,75 @@ bool sidTune::checkRealC64Info (udword speed)
 		return false;
 	return true;
 }
+
+bool sidTune::checkRealC64Init (void)
+{
+	if (info.initAddr == 0)
+		info.initAddr = info.loadAddr;
+
+	// Check valid init address
+	switch (info.initAddr >> 12)
+	{
+	case 0x0F:
+	case 0x0E:
+	case 0x0D:
+	case 0x0B:
+	case 0x0A:
+		return false;
+	default:
+		if ( (info.initAddr < info.loadAddr) ||
+                     (info.initAddr > (info.loadAddr + info.c64dataLen - 1)) )
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool sidTune::checkRelocInfo (void)
+{
+	ubyte startp, endp;
+
+	// Fix relocation information
+	if (info.relocStartPage == 0xFF)
+	{
+		info.relocPages = 0;
+		return true;
+	}
+	else if (info.relocPages == 0)
+	{
+		info.relocStartPage = 0;
+		return true;
+	}
+
+	// Calculate start/end page
+	startp = info.relocStartPage;
+	endp   = (startp + info.relocPages - 1) & 0xff;
+	if (endp < startp)
+		return false;
+
+	{	// Check against load range
+		ubyte startlp, endlp;
+		startlp = (ubyte) (info.loadAddr >> 8);
+		endlp   = startlp;
+		endlp  += (ubyte) ((info.c64dataLen - 1) >> 8);
+
+		if ( ((startp <= startlp) && (endp >= startlp)) ||
+		     ((startp <= endlp)   && (endp >= endlp)) )
+		{
+			return false;
+		}
+	}
+
+	// Check that the relocation information does not use the following
+	// memory areas: 0x0000-0x03FF, 0xA000-0xBFFF and 0xD000-0xFFFF
+	if ((startp < 0x04)
+	    || ((0xa0 <= startp) && (startp <= 0xbf))
+	    || (startp >= 0xd0)
+	    || ((0xa0 <= endp) && (endp <= 0xbf))
+	    || (endp >= 0xd0))
+	{
+		return false;
+	}
+	return true;
+}

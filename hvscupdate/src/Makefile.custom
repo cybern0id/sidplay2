@@ -25,11 +25,11 @@ srcdirs = . include fformat
 
 sources = fformat/fformat_.cpp fformat/psid_.cpp fformat/pp_.cpp \
 		PathCreator.cpp PathSplitter.cpp TextFile.cpp sidtune.cpp \
-        FileExists.cpp Update.cpp
+        FileExists.cpp Update.cpp hvscver.cpp
 
 srcobjs = fformat/fformat_.o fformat/psid_.o fformat/pp_.o \
 		PathCreator.o PathSplitter.o TextFile.o sidtune.o \
-        FileExists.o Update.o
+        FileExists.o Update.o hvscver.o
 
 .EXPORT_ALL_VARIABLES:
 

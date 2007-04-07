@@ -15,6 +15,7 @@ static const char _sidtune_unknown_psid[] = "Unsupported PSID version";
 static const char _sidtune_unknown_rsid[] = "Unsupported RSID version";
 static const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
 static const char _sidtune_invalid[] = "ERROR: File contains invalid data";
+static const char _sidtune_reloc[] = "ERROR: File contains bad reloc data";
 
 const int _sidtune_psid_maxStrLen = 31;
 
@@ -125,17 +126,6 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 #endif // SIDTUNE_PSID2NG
 	}
 
-	{	// Limit check end page to make sure it's legal
-		int startp, endp;
-		startp = info.relocStartPage;
-		endp   = startp + (info.relocPages - 1);
-		if (endp > 0xff)
-		{
-			endp = 0xff;
-			info.relocPages = (ubyte) (endp - startp + 1);
-		}
-	}
-
 	// Check reserved fields to force real c64 compliance
 	if (compatibility == SIDTUNE_COMPATIBILITY_R64)
 	{
@@ -157,29 +147,32 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 		fileOffset += 2;
 	}
 
-	if ( info.initAddr == 0 )
-		info.initAddr = info.loadAddr;
+	// Obtain C64 data length now file header is fully
+	// extracted
+	info.c64dataLen = bufLen - fileOffset;
 
 	if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
 	{
 		// Check tune is loadable on a real C64
-		if ( info.loadAddr < 0x0801 )
+		if ( info.loadAddr < 0x07e8 )
 		{
 			info.formatString = _sidtune_invalid;
 			return false;
 		}
 
-		// Check valid init address
-		switch (info.initAddr >> 12)
+		if (checkRealC64Init() == false)
 		{
-		case 0x0F:
-		case 0x0E:
-		case 0x0D:
-		case 0x0B:
-		case 0x0A:
 			info.formatString = _sidtune_invalid;
 			return false;
 		}
+	}
+	else if ( info.initAddr == 0 )
+		info.initAddr = info.loadAddr;
+
+	if ( checkRelocInfo() == false )
+	{
+		info.formatString = _sidtune_reloc;
+		return false;
 	}
 
 	// Copy info strings, so they will not get lost.
@@ -245,11 +238,6 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 	}
 	else
 	{
-		// Fix relocation information
-		if (info.relocStartPage == 0xFF)
-			info.relocPages = 0;
-		else if (info.relocPages == 0)
-			info.relocStartPage  = 0;
 		myHeader.relocStartPage[0] = info.relocStartPage;
 		myHeader.relocPages[0] = info.relocPages;
 	}
