@@ -43,7 +43,7 @@
 #include "sidtune.h"
 #include "hvscver.h"
 
-static const char versionString[] = "2.8.0";
+static const char versionString[] = "2.8.1";
 static const char HVSCcontactEmail[] = "Warren Pilkington <hvscadmin@wazzaw.freeuk.com>";
 
 HVSCVER HVSCversion_found;
