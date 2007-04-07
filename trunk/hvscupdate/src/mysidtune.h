@@ -96,11 +96,11 @@ class mySidTune : public sidTune
 
          case SONGS:  //SONGS string must have a comma!
             {
-                int string_len = strlen(newInfoString[0]);
+                size_t string_len = strlen(newInfoString[0]);
 
                 // Terminate string at the comma
                 // example, with SONGS=3,2 the string is "3"
-                int index;
+                size_t index;
                 for (index = 0; newInfoString[0][index]; index++)
                 {
                     if (',' == newInfoString[0][index])
@@ -123,11 +123,11 @@ class mySidTune : public sidTune
 
          case INITPLAY:  // INITPLAY string must have a comma!
             {
-                int string_len = strlen(newInfoString[0]);
+                size_t string_len = strlen(newInfoString[0]);
 
                 // Terminate string at the comma
                 // example, with INITPLAY=1000,1003 the string is "1000"
-                int index;
+                size_t index;
                 for (index = 0; newInfoString[0][index]; index++)
                 {
                     if (',' == newInfoString[0][index])
@@ -142,11 +142,11 @@ class mySidTune : public sidTune
                 {
                     // The strings are in hex. Note that in RSID mode certain
                     // values of init are illegal.  This is not checked here
-                    info.initAddr = strtoul(newInfoString[0], NULL, 16);
-                    info.playAddr = strtoul(newInfoString[0]+index+1, NULL, 16);
+                    info.initAddr = (uword) strtoul(newInfoString[0], NULL, 16);
+                    info.playAddr = (uword) strtoul(newInfoString[0]+index+1, NULL, 16);
                     // Not modifiable!
                     if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
-		    {
+                    {
                         if (checkRealC64Init() == false)
                             return false;
                         if (info.playAddr != 0)
@@ -160,11 +160,11 @@ class mySidTune : public sidTune
 
          case FREEPAGES:  //FREEPAGES string must have a comma!
             {
-                int string_len = strlen(newInfoString[0]);
+                size_t string_len = strlen(newInfoString[0]);
 
                 // Terminate string at the comma
                 // example, with FREEPAGES=20,03 the string is "20"
-                int index;
+                size_t index;
                 for (index = 0; newInfoString[0][index]; index++)
                 {
                     if (',' == newInfoString[0][index])
@@ -177,8 +177,8 @@ class mySidTune : public sidTune
                 // If a comma found, continue...else fail
                 if (string_len >= index-1)
                 {
-                    info.relocStartPage = strtoul(newInfoString[0], NULL, 16);
-                    info.relocPages = strtoul(newInfoString[0]+index+1, NULL, 16);
+                    info.relocStartPage = (ubyte) strtoul(newInfoString[0], NULL, 16);
+                    info.relocPages     = (ubyte) strtoul(newInfoString[0]+index+1, NULL, 16);
                     if (checkRelocInfo() == false)
 		        return false;
                     break;

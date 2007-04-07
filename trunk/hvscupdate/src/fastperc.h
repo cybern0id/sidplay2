@@ -19,7 +19,7 @@ class fastPercent
 	
     void init(int max, bool inChokeCheck = false)
     {
-        onePercent = nextPercentMark = max/100.0;
+        onePercent = nextPercentMark = max/(float)100.0;
         percent = prevPercent = 0;
         chokeCheck = inChokeCheck;
 	};
