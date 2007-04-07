@@ -45,7 +45,12 @@
 #include <fcntl.h>
 
 #if defined(HAVE_MSWINDOWS)
-#include <dir.h>
+#   if defined(_MSC_VER)
+#   include <windows.h>
+#   include <direct.h>
+#   else
+#   include <dir.h>
+#   endif
 #endif
 
 #if defined(HAVE_LINUX) || defined(HAVE_UNIX) || defined(HAVE_BEOS)
@@ -62,7 +67,7 @@
 #include "sidtune.h"
 #include "hvscver.h"
 
-static const char versionString[] = "2.8.3";
+static const char versionString[] = "2.8.4";
 static const char HVSCcontactEmail[] = "Stephan Schmid <hvsc@c64.org>";
 
 HVSCVER HVSCversion_found;
@@ -105,7 +110,8 @@ static const char UPDATE_DIR[] = "update";
 //
 // HVSC 2.0-post (long file names)
 static const char LONG_DOCUMENTS_DIR[] = "DOCUMENTS";
-static const char LONG_HUBBARD_ROB_DIR[] = "Hubbard_Rob";
+static const char LONG_HUBBARD_ROB_DIR_PRE46[] = "Hubbard_Rob";
+static const char LONG_HUBBARD_ROB_DIR[] = "MUSICIANS/H/Hubbard_Rob";
 //
 // HVSC 1.x (short file names, MS-DOS 8.3 style)
 static const char SHORT_DOCUMENTS_DIR[] = "DOCUMNTS";
@@ -258,14 +264,12 @@ int main(int, char* argv[])
     {
         foundDocumentsDir = true;
         DOCUMENTS_DIR = LONG_DOCUMENTS_DIR;
-        HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR;
     }
     else if (ALLOW_PRE_UPDATE7 &&
              getHVSCpath(documentsPath,SHORT_DOCUMENTS_DIR))
     {
         foundDocumentsDir = HVSCversion.isHVSC1X = true;
         DOCUMENTS_DIR = SHORT_DOCUMENTS_DIR;
-        HUBBARD_ROB_DIR = SHORT_HUBBARD_ROB_DIR;
     }
 
     cout
@@ -366,28 +370,6 @@ int main(int, char* argv[])
     }
 
     // ----------------------------------------------------------------------
-    // Extra HVSC structure sanity check.
-    // Search for Hubbard directory.
-
-    PathCreator hubbardPath;
-    if (!getHVSCpath(hubbardPath,HUBBARD_ROB_DIR))
-    {
-        cerr
-            << "Rob Hubbard directory not detected!" << endl
-            << "Perhaps you did not follow the directions stated at the start of this "
-            << "program?" << endl
-            << "The update directory must reside directly in the HVSC directory." << endl
-            << "Errors will likely occur if you continue (unless you deleted the ``"
-            << HUBBARD_ROB_DIR << "'' directory and this update does not depend on it)." << endl
-            << "Do you wish to continue? (y/n) : " << flush;
-        cin >> cContinue;
-        cout << endl;
-        // Exit if character is anything but 'y' or 'Y'.
-        if (tolower(cContinue) != 'y')
-            appExit(0);
-    }
-
-    // ----------------------------------------------------------------------
 
     PathCreator errorsFileName;
     PathCreator updateFileName, updateFileNameCat;
@@ -417,6 +399,34 @@ int main(int, char* argv[])
                 << "Error: No HVSC update script file ``UpdateXY.hvs'' found." << endl;
             appExit(-1);
         }
+    }
+
+    // ----------------------------------------------------------------------
+    // Extra HVSC structure sanity check.
+    // Search for Hubbard directory.
+    if (updateNum > 46)
+        HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR;
+    else if (updateNum > 7)
+        HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR_PRE46;
+    else
+        HUBBARD_ROB_DIR = SHORT_HUBBARD_ROB_DIR;
+
+    PathCreator hubbardPath;
+    if (!getHVSCpath(hubbardPath,HUBBARD_ROB_DIR))
+    {
+        cerr
+            << "Rob Hubbard directory not detected!" << endl
+            << "Perhaps you did not follow the directions stated at the start of this "
+            << "program?" << endl
+            << "The update directory must reside directly in the HVSC directory." << endl
+            << "Errors will likely occur if you continue (unless you deleted the ``"
+            << HUBBARD_ROB_DIR << "'' directory and this update does not depend on it)." << endl
+            << "Do you wish to continue? (y/n) : " << flush;
+        cin >> cContinue;
+        cout << endl;
+        // Exit if character is anything but 'y' or 'Y'.
+        if (tolower(cContinue) != 'y')
+            appExit(0);
     }
 
     // Count number of lines in file.
@@ -1119,7 +1129,7 @@ int main(int, char* argv[])
 bool getHVSCpath(PathCreator& outPath, const char *path)
 {
     outPath.empty();
-    int pathLen = strlen(path);
+    size_t pathLen = strlen(path);
     if (pathLen == 0)
         return false;
 
