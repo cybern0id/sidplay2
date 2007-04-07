@@ -13,7 +13,7 @@
 #include "fformat.h"
 #include "myendian.h"
 #include "pp.h"
-
+#include "FileExists.h"
 
 const char text_songNumberExceed[] = "WARNING: Selected song number was too high";
 const char text_emptyFile[] = "ERROR: File is empty";
@@ -284,9 +284,9 @@ udword sidTune::loadFile(const char* fileName, ubyte** bufferRef)
 	status = false;
 	// Open binary input file stream at end of file.
 #if defined(HAVE_IOS_BIN)
-	ifstream myIn( fileName, ios::in|ios::bin|ios::nocreate );
+	ifstream myIn( fileName, ios::in|ios::bin );
 #else
-	ifstream myIn( fileName, ios::in|ios::binary|ios::nocreate );
+	ifstream myIn( fileName, ios::in|ios::binary );
 #endif
     myIn.seekg(0,ios::end);  // explicit ios::ate
 	// As a replacement for !is_open(), bad() and the NOT-operator don't seem
@@ -341,12 +341,12 @@ udword sidTune::loadFile(const char* fileName, ubyte** bufferRef)
 			udword restFileLen = fileLen;
 			while ( restFileLen > INT_MAX )
 			{
-				myIn.read( (ubyte*)*bufferRef + (fileLen - restFileLen), INT_MAX );
+				myIn.read( (char*)*bufferRef + (fileLen - restFileLen), INT_MAX );
 				restFileLen -= INT_MAX;
 			}
 			if ( restFileLen > 0 )
 			{
-				myIn.read( (ubyte*)*bufferRef + (fileLen - restFileLen), restFileLen );
+				myIn.read( (char*)*bufferRef + (fileLen - restFileLen), restFileLen );
 			}
 			if ( myIn.bad() )
 			{
@@ -463,15 +463,15 @@ void sidTune::safeConstructor()
 	info.loadAddr = ( info.initAddr = ( info.playAddr = 0 ));
 	info.songs = ( info.startSong = ( info.currentSong = 0 ));
 	info.musPlayer = false;
-	info.playSID = false;
-	info.video = SIDTUNE_VIDEO_UNKNOWN;
-	info.SIDchip = SIDTUNE_SIDCHIP_UNKNOWN;
+	info.psidSpecific = false;
+	info.clock = SIDTUNE_CLOCK_UNKNOWN;
+	info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
 	info.fixLoad = false;
 	info.songSpeed = SIDTUNE_SPEED_VBI;
 	info.clockSpeed = SIDTUNE_CLOCK_PAL;
 	info.lengthInSeconds = 0;
-	info.startPage = 0;
-	info.pageLength = 0;
+	info.relocStartPage = 0;
+	info.relocPages = 0;
 	
 	for ( uint si = 0; si < classMaxSongs; si++ )
 	{
@@ -751,11 +751,11 @@ bool sidTune::saveToOpenFile( ofstream& toFile, const ubyte* buffer, udword bufL
 	udword lenToWrite = bufLen;
 	while ( lenToWrite > INT_MAX )
 	{
-		toFile.write( buffer + (bufLen - lenToWrite), INT_MAX );
+		toFile.write( (char*)buffer + (bufLen - lenToWrite), INT_MAX );
 		lenToWrite -= INT_MAX;
 	}
 	if ( lenToWrite > 0 )
-		toFile.write( buffer + (bufLen - lenToWrite), lenToWrite );
+		toFile.write( (char*)buffer + (bufLen - lenToWrite), lenToWrite );
 	if ( toFile.bad() )
 	{
 		info.statusString = text_fileIoError;
@@ -775,18 +775,19 @@ bool sidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
 	// This prevents saving from a bad object.
 	if ( status )
 	{
+		ofstream fMyOut;
+        if ( !overWriteFlag && fileExists( fileName ) )
+        {
+			info.statusString = text_cantCreateFile;
+            return success;
+        }
 		// Open binary output file stream.
-		long int createAttr;
+        else
 #if defined(HAVE_IOS_BIN)
-		createAttr = ios::out | ios::bin;
+            fMyOut.open( fileName, ios::out|ios::bin|ios::trunc );
 #else
-		createAttr = ios::out | ios::binary;
+            fMyOut.open( fileName, ios::out|ios::binary|ios::trunc );
 #endif
-		if ( overWriteFlag )
-			createAttr |= ios::trunc;
-		else
-			createAttr |= ios::noreplace;
-		ofstream fMyOut( fileName, createAttr );
 		if ( !fMyOut )
 		{ 
 			info.statusString = text_cantCreateFile;
@@ -797,7 +798,7 @@ bool sidTune::saveC64dataFile( const char* fileName, bool overWriteFlag )
 			ubyte saveAddr[2];
 			saveAddr[0] = info.loadAddr & 255;
 			saveAddr[1] = info.loadAddr >> 8;
-			fMyOut.write( saveAddr, 2 );
+			fMyOut.write( (char*)saveAddr, 2 );
 			// Data starts at: bufferaddr + fileOffset
 			// Data length: info.dataFileLen - fileOffset
 			if ( !saveToOpenFile( fMyOut, cachePtr + fileOffset, info.dataFileLen - fileOffset ) )
@@ -829,18 +830,19 @@ bool sidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
 	// This prevents saving from a bad object.
 	if ( status )
 	{
+		ofstream fMyOut;
+        if ( !overWriteFlag && fileExists( fileName ) )
+        {
+			info.statusString = text_cantCreateFile;
+            return success;
+        }
 		// Open binary output file stream.
-		long int createAttr;
-#if defined(HAVE_IOS_BIN)
-		createAttr = ios::out | ios::bin;
+        else
+#if defined(SID_HAVE_IOS_BIN)
+            fMyOut.open( fileName, ios::out|ios::bin|ios::trunc );
 #else
-		createAttr = ios::out | ios::binary;
+            fMyOut.open( fileName, ios::out|ios::binary|ios::trunc );
 #endif
-	  if ( overWriteFlag )
-			createAttr |= ios::trunc;
-		else
-			createAttr |= ios::noreplace;
-		ofstream fMyOut( fileName, createAttr );
 		if ( !fMyOut )
 		{
 			info.statusString = text_cantCreateFile;

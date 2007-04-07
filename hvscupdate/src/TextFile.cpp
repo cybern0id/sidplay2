@@ -35,9 +35,9 @@ bool TextFile::open(const char* fileName)
 	// Make it binary because of compatibility to text files from any
 	// known operating system.
 #if defined(HAVE_IOS_BIN)
-	inFile = new ifstream(fileName,ios::in|ios::bin|ios::nocreate);
+	inFile = new ifstream(fileName,ios::in|ios::bin);
 #else
-	inFile = new ifstream(fileName,ios::in|ios::binary|ios::nocreate);
+	inFile = new ifstream(fileName,ios::in|ios::binary);
 #endif
 #if defined(HAVE_SEEKG_OFFSET)
 	leftToLoad = (inFileLen = (inFile->seekg(0,ios::end)).offset());

@@ -33,6 +33,7 @@
 #include <unistd.h>
 #endif
 
+#include "FileExists.h"
 #include "TextFile.h"
 #include "PathCreator.h"
 #include "PathSplitter.h"
@@ -40,11 +41,18 @@
 #include "max.h"
 #include "fformat.h"
 #include "sidtune.h"
+#include "hvscver.h"
 
-static const char versionString[] = "2.7.0";
+static const char versionString[] = "2.7.1";
 static const char HVSCcontactEmail[] = "Warren Pilkington <hvscadmin@wazzaw.freeuk.com>";
 
+HVSCVER HVSCversion_found;
+
+#if defined(HAVE_AMIGAOS)
+static const bool ALLOW_PRE_UPDATE7 = true;
+#else
 static const bool ALLOW_PRE_UPDATE7 = false;
+#endif
 static const bool FINDPATH_DEBUG = false;
 
 // Platform-specific.
@@ -93,7 +101,7 @@ static const char* HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR;
 static const int fileCopyBufLen = 16*1024;
 static char* fileCopyBuffer;  // via new[]
 
-static const int maxUpdateNum = 99;   // uh, oh...
+static const int maxUpdateNum = 1000;   // Should be plenty...
 static const int maxSidInfoLen = 31;  // not including terminator
 
 // Leave TITLE, AUTHOR, COPYRIGHT in exact order as enumerated below.
@@ -101,7 +109,7 @@ static const char* keywords[] =
 {
     "TITLE", "AUTHOR", "COPYRIGHT", "SPEED", "SONGS",
     "CREDITS", "DELETE", "MOVE", "REPLACE", "MKDIR", "FIXLOAD",
-    "INITPLAY", "MUSPLAYER", "PLAYSID", "VIDEO", "SIDCHIP",
+    "INITPLAY", "MUSPLAYER", "PLAYSID", "CLOCK", "SIDMODEL",
     "FREEPAGES", "FLAGS",
     NULL
 };
@@ -109,7 +117,7 @@ enum mode_type
 {
     TITLE=0, AUTHOR=1, COPYRIGHT=2, SPEED, SONGS,
     CREDITS, DELETEMODE, MOVE, REPLACE, MKDIRMODE, FIXLOAD,
-    INITPLAY, MUSPLAYER, PLAYSID, VIDEO, SIDCHIP,
+    INITPLAY, MUSPLAYER, PLAYSID, CLOCK, SIDMODEL,
     FREEPAGES, FLAGS,
     NO_MODE
 };
@@ -135,19 +143,6 @@ void logError(ofstream& errorFile,
 bool myMkDir(const char* dirName);
 
 bool isDir(const char* fileName);
-
-// Some math stuff.
-
-// Equal floating-point numbers may not differ this much.
-static const float equalRange = 0.005;
-
-inline float myAbs(float a)
-{
-    if (a<0.0)
-        return -a;
-    else
-        return a;
-}
 
 // --------------------------------------------------------------------------
 // OS-dependent application exit() wrapper.
@@ -180,9 +175,9 @@ inline void appExit(int returnValue)
     }
 #endif
 #if defined(HAVE_AMIGAOS)
-    if(returnValue<0)
+    if(returnValue!=0)
 	 {
-		exit(-returnValue);
+		exit(RETURN_FAIL);
 	 }
 #endif
     exit(returnValue);
@@ -209,21 +204,23 @@ int main(int, char* argv[])
 
     struct HVSCversionInfo
     {
-        float required;
-        float resulting;
-        float found;
+        HVSCVER required;
+        HVSCVER resulting;
+        HVSCVER found;
         bool havePrevScript;
         bool isHVSC1X;
         bool isUpdate10;
         bool printWarning;
     } HVSCversion;
 
-    HVSCversion.required = 0.0f;
-    HVSCversion.resulting = 0.0f;
-    HVSCversion.found = 0.0f;
+    HVSCversion.required = MAKE_HVSCVER(0,0);
+    HVSCversion.resulting = MAKE_HVSCVER(0,0);
+    HVSCversion.found = MAKE_HVSCVER(0,0);
     HVSCversion.isHVSC1X = false;
     HVSCversion.isUpdate10 = false;
     HVSCversion.printWarning = false;
+
+    HVSCversion_found = MAKE_HVSCVER(0,0);
 
     // Check whether user is in correct directory inside the HVSC tree.
     // Search for "update" directory.
@@ -328,8 +325,10 @@ int main(int, char* argv[])
         {
             hvsidsFile.readNextLine();
             line++;
-            if (hvsidsFile.isKey("release"))
-                HVSCversion.found = atof(hvsidsFile.getCurParseBuf());
+            if (hvsidsFile.isKey("release")) {
+                HVSCversion.found = atohvscver(hvsidsFile.getCurParseBuf());
+                HVSCversion_found = HVSCversion.found;
+            }
         }
         hvsidsFile.close();
     }
@@ -375,8 +374,15 @@ int main(int, char* argv[])
     {
         // Update data file is named "UpdateXY.hvs".
         // Work with HVSC-style path names.
-		sprintf(updateFileNameCat.getWritable(),"%s/Update%02d.hvs",UPDATE_DIR,updateNum);
-		sprintf(errorsFileName.getWritable(),"Errors%02d.hvs",updateNum);
+        if ( updateNum <= 99 ) {
+		    sprintf(updateFileNameCat.getWritable(),"%s/Update%02d.hvs",UPDATE_DIR,updateNum);
+		    sprintf(errorsFileName.getWritable(),"Errors%02d.hvs",updateNum);
+		}
+        else {
+            sprintf(updateFileNameCat.getWritable(),"%s/Update%d.hvs",UPDATE_DIR,updateNum);
+            sprintf(errorsFileName.getWritable(),"Errors%d.hvs",updateNum);
+        }
+
 		if (getHVSCpath(updateFileName,updateFileNameCat.get()))
         {
 			break;  // the HVS file has been located
@@ -399,9 +405,9 @@ int main(int, char* argv[])
         if (lines <= 10)
         {
             if (updateFile.isKey("#PreviousVersion:"))
-                HVSCversion.required = atof(updateFile.getCurParseBuf());
+                HVSCversion.required = atohvscver(updateFile.getCurParseBuf());
             else if (updateFile.isKey("#ResultingVersion:"))
-                HVSCversion.resulting = atof(updateFile.getCurParseBuf());
+                HVSCversion.resulting = atohvscver(updateFile.getCurParseBuf());
         }
     }
     updateFile.close();
@@ -430,23 +436,27 @@ int main(int, char* argv[])
     }
 
     // Version check can be done since Update #7 (HVSC 2.0 => 2.1).
-    if ((HVSCversion.required>equalRange) &&
-        (HVSCversion.resulting>equalRange))
+    if (hvscvercmp(HVSCversion.required,MAKE_HVSCVER(0,0))>0 &&
+        hvscvercmp(HVSCversion.resulting,MAKE_HVSCVER(0,0))>0)
     {
+        char ver[ 10 ];
+
+        hvscvertoa(ver,HVSCversion.required);
         cout.setf(ios::fixed);
         cout << "This update requires HVSC version: "
-            << setprecision(1) << HVSCversion.required << endl;
+            << ver << endl;
         cout << "The update tool has found version: ";
-        if (HVSCversion.found>equalRange)
+        if (hvscvercmp(HVSCversion.found,MAKE_HVSCVER(0,0))>0)
         {
-            cout << HVSCversion.found;
+            hvscvertoa(ver,HVSCversion.found);
+            cout << ver;
         }
         else
         {
             cout << "CHECK FAILED";
         }
         cout << endl << endl;
-        if (myAbs(HVSCversion.found-HVSCversion.required)>equalRange)
+        if (hvscvercmp(HVSCversion.found,HVSCversion.required)!=0)
         {
             HVSCversion.printWarning = true;
         }
@@ -480,8 +490,8 @@ int main(int, char* argv[])
 
     // If Update #10 is used, enable special compatibility mode.
     // Allow missing parameter lines in CREDITS command.
-    if ((myAbs(HVSCversion.required-2.3f)<equalRange) &&
-        myAbs(HVSCversion.resulting-2.4f)<equalRange)
+    if (hvscvercmp(HVSCversion.required,MAKE_HVSCVER(2,3))==0 &&
+        hvscvercmp(HVSCversion.resulting,MAKE_HVSCVER(2,4))==0)
     {
         HVSCversion.isUpdate10 = true;
     }
@@ -553,8 +563,8 @@ int main(int, char* argv[])
          case  INITPLAY:
          case MUSPLAYER:
          case   PLAYSID:
-         case     VIDEO:
-         case   SIDCHIP:
+         case     CLOCK:
+         case  SIDMODEL:
          case FREEPAGES:
          case     FLAGS:
             {
@@ -637,8 +647,8 @@ int main(int, char* argv[])
                         ;
                     }
 
-                    // SPEED, SONGS, INITPLAY, MUSPLAYER, PLAYSID, VIDEO,
-                    // SIDCHIP, FREEPAGES
+                    // SPEED, SONGS, INITPLAY, MUSPLAYER, PLAYSID, CLOCK,
+                    // SIDMODEL, FREEPAGES
                     else
                     {
                         updateFile.readNextLine();
@@ -1289,9 +1299,9 @@ bool fileCopy(ofstream& errorFile, int& errorCount, int line,
 {
 	// Open binary input file stream at end of file.
 #if defined(HAVE_IOS_BIN)
-	ifstream fIn(inFileName,ios::in|ios::bin|ios::nocreate);
+	ifstream fIn(inFileName,ios::in|ios::bin);
 #else
-	ifstream fIn(inFileName,ios::in|ios::binary|ios::nocreate);
+	ifstream fIn(inFileName,ios::in|ios::binary);
 #endif
     fIn.seekg(0,ios::end);  // explicit ios::ate
 	// As a replacement for !is_open(), bad() and the NOT-operator don`t seem
@@ -1299,7 +1309,7 @@ bool fileCopy(ofstream& errorFile, int& errorCount, int line,
 #if defined(DONT_HAVE_IS_OPEN)
     if ( !fIn )
 #else
-	if ( !fIn.is_open() )
+	if ( !fIn.is_open() || !fileExists(inFileName) )
 #endif
 	{
         logError(errorFile,inFileName,"Could not open source file.",
@@ -1307,24 +1317,30 @@ bool fileCopy(ofstream& errorFile, int& errorCount, int line,
         return false;
 	}
 
-	// Open binary input file stream at end of file.
-#if defined(HAVE_IOS_BIN)
-	ofstream fOut(outFileName,ios::out|ios::bin|ios::noreplace);
-#else
-	ofstream fOut(outFileName,ios::out|ios::binary|ios::noreplace);
-#endif
-	// As a replacement for !is_open(), bad() and the NOT-operator don`t seem
-	// to work on all systems.
-#if defined(DONT_HAVE_IS_OPEN)
-    if ( !fOut )
-#else
-	if ( !fOut.is_open() )
-#endif
-	{
+    if ( fileExists(outFileName) )
+    {
         logError(errorFile,outFileName,"Destination file already exists.",
                  line,mode,errorCount);
         return false;
-	}
+    }
+    // Open binary input file stream.
+#if defined(HAVE_IOS_BIN)
+    ofstream fOut(outFileName,ios::out|ios::bin);
+#else
+    ofstream fOut(outFileName,ios::out|ios::binary);
+#endif
+    // As a replacement for !is_open(), bad() and the NOT-operator don`t seem
+    // to work on all systems.
+#if defined(DONT_HAVE_IS_OPEN)
+    if ( !fOut )
+#else
+    if ( !fOut.is_open() )
+#endif
+    {
+        logError(errorFile,outFileName,"Could not open destination file.",
+                 line,mode,errorCount);
+        return false;
+    }
 
     int fileLen;
 #if defined(HAVE_SEEKG_OFFSET)
@@ -1432,11 +1448,11 @@ void logError(ofstream& errorFile,
      case PLAYSID:
         errorFile << "PLAYSID: ";
         break;
-     case VIDEO:
-        errorFile << "VIDEO: ";
+     case CLOCK:
+        errorFile << "CLOCK: ";
         break;
-     case SIDCHIP:
-        errorFile << "SIDCHIP: ";
+     case SIDMODEL:
+        errorFile << "SIDMODEL: ";
         break;
      case FREEPAGES:
         errorFile << "FREEPAGES: ";

@@ -1,0 +1,32 @@
+Building the HVSC Update Tool for AmigaOS using Geek Gadgets
+------------------------------------------------------------
+
+> cd [update tool source directory]
+> copy amigaos/config#? ""
+> sh
+$ autoconf
+$ ./configure
+$ (ctrl+\)
+> make
+
+This should create an executable called "Update" in
+the "src" directory.
+
+Config Files
+------------
+The config files in the amigaos directory are based
+on the standard files with these lines added:
+
+config.guess
+
+    m68k:AmigaOS:*:*)
+	echo m68k-cbm-amigaos
+	exit 0;;
+
+configure.in
+
+  *amigaos*) AC_DEFINE(HAVE_AMIGAOS,1)
+    AC_MSG_RESULT(AmigaOS)
+    CXXFLAGS="-g -O3 -mstackextend"
+    LDFLAGS="-s -noixemul -mstackextend -lstack"
+       ;;
