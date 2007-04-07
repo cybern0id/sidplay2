@@ -80,6 +80,9 @@ class mySidTune : public sidTune
                 // an unsigned long stores 32 bits.
                 if (sizeof(ulSpeed) >= 4)
                 {
+                    // Not modifiable!
+                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+                        return false;
                     // SPEED string is in hex.
                     ulSpeed = strtoul(newInfoString[0], NULL, 16);
                     convertOldStyleSpeedToTables((udword) ulSpeed);
@@ -135,9 +138,16 @@ class mySidTune : public sidTune
                 // If a comma found, continue...else fail
                 if (string_len >= index-1)
                 {
-                    // The strings are in hex.
+                    // The strings are in hex. Note that in RSID mode certain
+                    // values of init are illegal.  This is not checked here
                     info.initAddr = strtoul(newInfoString[0], NULL, 16);
                     info.playAddr = strtoul(newInfoString[0]+index+1, NULL, 16);
+                    // Not modifiable!
+                    if ((info.compatibility == SIDTUNE_COMPATIBILITY_R64) &&
+                        (info.playAddr != 0))
+                    {
+                        return false;
+                    }
                     break;
                 }
                 else
@@ -202,10 +212,16 @@ class mySidTune : public sidTune
                     ; // Do nothing - this field is not to be changed.
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 0) {
-                    info.psidSpecific = false;
+                    // Not supported by RSID files
+                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+                        return false;
+                    info.compatibility = SIDTUNE_COMPATIBILITY_C64;
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 1) {
-                    info.psidSpecific = true;
+                    // Not supported by RSID files
+                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+                        return false;
+                    info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
                 }
                 else {
                     return false;
@@ -226,16 +242,16 @@ class mySidTune : public sidTune
                     ; // Do nothing - this field is not to be changed.
                 }
                 else if (!strcmp(newInfoString[infoStringIndex], "UNKNOWN")) {
-                    info.clock = SIDTUNE_CLOCK_UNKNOWN;
+                    info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
                 }
                 else if (!strcmp(newInfoString[infoStringIndex], "PAL")) {
-                    info.clock = SIDTUNE_CLOCK_PAL;
+                    info.clockSpeed = SIDTUNE_CLOCK_PAL;
                 }
                 else if (!strcmp(newInfoString[infoStringIndex], "NTSC")) {
-                    info.clock = SIDTUNE_CLOCK_NTSC;
+                    info.clockSpeed = SIDTUNE_CLOCK_NTSC;
                 }
                 else if (!strcmp(newInfoString[infoStringIndex], "ANY") || !strcmp(newInfoString[infoStringIndex], "EITHER")) {
-                    info.clock = SIDTUNE_CLOCK_ANY;
+                    info.clockSpeed = SIDTUNE_CLOCK_ANY;
                 }
                 else {
                     return false;

@@ -32,6 +32,11 @@ const int SIDTUNE_SIDMODEL_6581 = 1;
 const int SIDTUNE_SIDMODEL_8580 = 2;
 const int SIDTUNE_SIDMODEL_ANY = SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580;
 
+const int SIDTUNE_COMPATIBILITY_C64  = 0x00; // File is C64 compatible
+const int SIDTUNE_COMPATIBILITY_PSID = 0x01; // File is PSID specific
+const int SIDTUNE_COMPATIBILITY_R64  = 0x02; // File is Real C64 only
+
+
 // An instance of this structure is used to transport values to
 // and from the ``sidTune-class'';
 struct sidTuneInfo
@@ -58,8 +63,7 @@ struct sidTuneInfo
 	ubyte songSpeed;            // intended speed, see top
 	ubyte clockSpeed;           // -"-
 	bool musPlayer;             // whether Sidplayer routine has been installed
-	bool psidSpecific;          // PlaySID specific extensions (samples, random, etc.)
-	ubyte clock;                // video standard (specifies clock to be used)
+	int  compatibility;         // compatibility requirements
 	ubyte sidModel;             // SID model required for this tune
 	bool fixLoad;               // whether load address might be duplicate
 	uword lengthInSeconds;      // --- not yet supported ---
@@ -224,7 +228,11 @@ class sidTune
 	// --- protected member functions ---
 
 	// Convert 32-bit PSID-style speed word to internal tables.
-	void convertOldStyleSpeedToTables(udword oldStyleSpeed);
+	void convertOldStyleSpeedToTables(udword oldStyleSpeed,
+		int clock = SIDTUNE_CLOCK_PAL);
+
+	// Check SidTuneInfo fields for all real c64 only formats
+	bool checkRealC64Info(udword speed);
 
 	// Copy C64 data from internal cache to C64 memory.
 	bool placeSidTuneInC64mem( ubyte* c64buf );

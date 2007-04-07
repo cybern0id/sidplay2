@@ -463,12 +463,11 @@ void sidTune::safeConstructor()
 	info.loadAddr = ( info.initAddr = ( info.playAddr = 0 ));
 	info.songs = ( info.startSong = ( info.currentSong = 0 ));
 	info.musPlayer = false;
-	info.psidSpecific = false;
-	info.clock = SIDTUNE_CLOCK_UNKNOWN;
+	info.compatibility = SIDTUNE_COMPATIBILITY_C64;
 	info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
 	info.fixLoad = false;
 	info.songSpeed = SIDTUNE_SPEED_VBI;
-	info.clockSpeed = SIDTUNE_CLOCK_PAL;
+	info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
 	info.lengthInSeconds = 0;
 	info.relocStartPage = 0;
 	info.relocPages = 0;
@@ -715,7 +714,7 @@ void sidTune::filesConstructor( const char* fileName )
 } 
 
 
-void sidTune::convertOldStyleSpeedToTables(udword oldStyleSpeed)
+void sidTune::convertOldStyleSpeedToTables(udword oldStyleSpeed, int clock)
 {
 	// Create the speed/clock setting tables.
 	//
@@ -728,16 +727,11 @@ void sidTune::convertOldStyleSpeedToTables(udword oldStyleSpeed)
 	int toDo = ((info.songs <= classMaxSongs) ? info.songs : classMaxSongs);
 	for (int s = 0; s < toDo; s++)
 	{
+		clockSpeed[s] = clock;
 		if (( (oldStyleSpeed>>(s&31)) & 1 ) == 0 )
-		{
 			songSpeed[s] = SIDTUNE_SPEED_VBI;
-			clockSpeed[s] = SIDTUNE_CLOCK_PAL;
-		}
 		else
-		{
 			songSpeed[s] = SIDTUNE_SPEED_CIA_1A;
-			clockSpeed[s] = SIDTUNE_CLOCK_PAL;
-		}
 	}
 }
 
@@ -862,4 +856,17 @@ bool sidTune::savePSIDfile( const char* fileName, bool overWriteFlag )
 		}
 	}
 	return success;
+}
+
+bool sidTune::checkRealC64Info (udword speed)
+{
+	if (info.loadAddr != 0)
+		return false;
+	if (info.playAddr != 0)
+		return false;
+	if (speed != 0)
+		return false;
+	if (info.compatibility == SIDTUNE_COMPATIBILITY_PSID)
+		return false;
+	return true;
 }
