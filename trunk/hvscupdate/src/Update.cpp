@@ -406,7 +406,7 @@ int main(int, char* argv[])
     // Search for Hubbard directory.
     if (updateNum > 46)
         HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR;
-    else if (updateNum > 7)
+    else if (updateNum > 6)
         HUBBARD_ROB_DIR = LONG_HUBBARD_ROB_DIR_PRE46;
     else
         HUBBARD_ROB_DIR = SHORT_HUBBARD_ROB_DIR;
