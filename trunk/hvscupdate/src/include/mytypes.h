@@ -9,7 +9,7 @@
 #include "compconf.h"
 
 // A ``bool'' type for compilers that don't (yet) support one.
-#if !HAVE_BOOL
+#ifndef HAVE_BOOL
   typedef int bool;
 
   #if defined(true) || defined(false)

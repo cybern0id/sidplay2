@@ -43,8 +43,8 @@
 #include "sidtune.h"
 #include "hvscver.h"
 
-static const char versionString[] = "2.8.1";
-static const char HVSCcontactEmail[] = "Warren Pilkington <hvscadmin@wazzaw.freeuk.com>";
+static const char versionString[] = "2.8.2";
+static const char HVSCcontactEmail[] = "Jan Diabelez Arnt Harries <nmioaon@get2net.dk>";
 
 HVSCVER HVSCversion_found;
 
@@ -104,21 +104,26 @@ static char* fileCopyBuffer;  // via new[]
 static const int maxUpdateNum = 1000;   // Should be plenty...
 static const int maxSidInfoLen = 31;  // not including terminator
 
-// Leave TITLE, AUTHOR, COPYRIGHT in exact order as enumerated below.
+// Denotes version from which copyright was dropped and released
+// was used instead
+static const HVSCVER HVSCVersion_ReleasedKeyword = MAKE_HVSCVER(5,1);
+
+
+// Leave TITLE, AUTHOR, RELEASED in exact order as enumerated below.
 static const char* keywords[] =
 {
-    "TITLE", "AUTHOR", "COPYRIGHT", "SPEED", "SONGS",
+    "TITLE", "AUTHOR", "RELEASED", "SPEED", "SONGS",
     "CREDITS", "DELETE", "MOVE", "REPLACE", "MKDIR", "FIXLOAD",
     "INITPLAY", "MUSPLAYER", "PLAYSID", "CLOCK", "SIDMODEL",
-    "FREEPAGES", "FLAGS",
+    "FREEPAGES", "FLAGS", "COPYRIGHT",
     NULL
 };
 enum mode_type
 {
-    TITLE=0, AUTHOR=1, COPYRIGHT=2, SPEED, SONGS,
+    TITLE=0, AUTHOR=1, RELEASED=2, SPEED, SONGS,
     CREDITS, DELETEMODE, MOVE, REPLACE, MKDIRMODE, FIXLOAD,
     INITPLAY, MUSPLAYER, PLAYSID, CLOCK, SIDMODEL,
-    FREEPAGES, FLAGS,
+    FREEPAGES, FLAGS, COPYRIGHT,
     NO_MODE
 };
 static mode_type mode = NO_MODE;
@@ -549,13 +554,19 @@ int main(int, char* argv[])
         int line = updateFile.getLineNum();
 
 // --------------------------------------------------------------------------
+        if (mode == COPYRIGHT)
+        {   // The use of the word copyright was replaced with released
+            if (hvscvercmp(HVSCversion_found,HVSCVersion_ReleasedKeyword)>=0)
+                continue;
+            mode = RELEASED;
+        }
 
         // Based on the mode, take the proper action.
         switch (mode)
         {
          case     TITLE:
          case    AUTHOR:
-         case COPYRIGHT:
+         case  RELEASED:
          case   CREDITS:
          case     SPEED:
          case     SONGS:
@@ -629,7 +640,7 @@ int main(int, char* argv[])
                             strncpy(sidInfo[n],updateFile.getLineBuf(),maxSidInfoLen+1);
                         }
                     }
-                    else if ((AUTHOR == mode) || (TITLE == mode) || (COPYRIGHT==mode))
+                    else if ((AUTHOR == mode) || (TITLE == mode) || (RELEASED==mode))
                     {
                         updateFile.readNextLine();
                         if (updateFile.isBlank())
@@ -1382,7 +1393,7 @@ bool fileCopy(ofstream& errorFile, int& errorCount, int line,
 
 bool myMkDir(const char* dirName)
 {
-#if defined(HAVE_LINUX) || defined(HAVE_UNIX) || defined(BEOS) || defined(HAVE_AMIGAOS)
+#if defined(HAVE_LINUX) || defined(HAVE_UNIX) || defined(HAVE_BEOS) || defined(HAVE_AMIGAOS)
     return (mkdir(dirName,0777) == 0);
 #else
     return (mkdir(dirName) == 0);
@@ -1430,8 +1441,11 @@ void logError(ofstream& errorFile,
      case TITLE:
         errorFile << "TITLE: ";
         break;
-     case COPYRIGHT:
-        errorFile << "COPYRIGHT: ";
+     case RELEASED:
+	if (hvscvercmp(HVSCversion_found,HVSCVersion_ReleasedKeyword)<0)
+            errorFile << "COPYRIGHT: ";
+        else
+            errorFile << "RELEASED: ";
         break;
      case CREDITS:
         errorFile << "CREDITS: ";

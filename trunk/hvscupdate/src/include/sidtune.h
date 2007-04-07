@@ -233,6 +233,10 @@ class sidTune
 
 	// Check SidTuneInfo fields for all real c64 only formats
 	bool checkRealC64Info(udword speed);
+	// Check the init address is legal for real C64 only tunes
+	bool checkRealC64Init(void);
+	// Check for valid relocation information
+	bool checkRelocInfo(void);
 
 	// Copy C64 data from internal cache to C64 memory.
 	bool placeSidTuneInC64mem( ubyte* c64buf );

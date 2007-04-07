@@ -1,6 +1,7 @@
 #ifndef mysidtune_h
 #define mysidtune_h
 
+
 class mySidTune : public sidTune
 {
  public:  // --------------------------------------------------------- public
@@ -30,7 +31,7 @@ class mySidTune : public sidTune
         {
          case TITLE:
          case AUTHOR:
-         case COPYRIGHT:
+         case RELEASED:
             {
                 // Copy string to private array.
                 strcpy(&infoString[(int) mode][0], newInfoString[(int) mode]);
@@ -44,7 +45,8 @@ class mySidTune : public sidTune
                     // Assign pointer: Second infoString usually is AUTHOR.
                     info.authorString = &infoString[(int) mode][0];
                 else
-                    // Assign pointer: Third infoString usually is COPYRIGHT.
+                    // Assign pointer: Third infoString usually is RELEASED
+                    // (original release information).
                     info.copyrightString = &infoString[(int) mode][0];
                 break;
             }
@@ -143,10 +145,12 @@ class mySidTune : public sidTune
                     info.initAddr = strtoul(newInfoString[0], NULL, 16);
                     info.playAddr = strtoul(newInfoString[0]+index+1, NULL, 16);
                     // Not modifiable!
-                    if ((info.compatibility == SIDTUNE_COMPATIBILITY_R64) &&
-                        (info.playAddr != 0))
-                    {
-                        return false;
+                    if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+		    {
+                        if (checkRealC64Init() == false)
+                            return false;
+                        if (info.playAddr != 0)
+                            return false;
                     }
                     break;
                 }
@@ -175,6 +179,8 @@ class mySidTune : public sidTune
                 {
                     info.relocStartPage = strtoul(newInfoString[0], NULL, 16);
                     info.relocPages = strtoul(newInfoString[0]+index+1, NULL, 16);
+                    if (checkRelocInfo() == false)
+		        return false;
                     break;
                 }
                 else
