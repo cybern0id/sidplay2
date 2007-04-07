@@ -68,7 +68,7 @@
 #include "hvscver.h"
 
 static const char versionString[] = "2.8.4";
-static const char HVSCcontactEmail[] = "Stephan Schmid <hvsc@c64.org>";
+static const char HVSCcontactEmail[] = "HVSC Admin <hvsc@c64.org>";
 
 HVSCVER HVSCversion_found;
 
