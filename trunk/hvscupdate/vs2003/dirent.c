@@ -45,6 +45,18 @@
 
 #include "dirent.h"
 
+struct dirstream
+{
+  int fd;		/* File descriptor.  */
+  char *data;		/* Directory block.  */
+  size_t allocation;	/* Space allocated for the block.  */
+  size_t size;		/* Total valid data in the block.  */
+  size_t offset;	/* Current offset into the block.  */
+  off_t filepos;	/* Position of next entry to read.  */
+  char *mask;           /* Initial file mask. */
+  struct dirent entry;
+};
+
 DIR *
 opendir (const char * name)
 {
@@ -82,11 +94,11 @@ opendir (const char * name)
 struct dirent *
 readdir (DIR * dir)
 {
-  static struct dirent entry;
   WIN32_FIND_DATA *find;
 
-  entry.d_ino = 0;
-  entry.d_type = 0;
+  struct dirent *entry = &dir->entry;
+  entry->d_ino = 0;
+  entry->d_type = 0;
   find = (WIN32_FIND_DATA *) dir->data;
 
   if (dir->filepos)
@@ -95,11 +107,11 @@ readdir (DIR * dir)
 	return NULL;
     }
 
-  entry.d_off = dir->filepos;
-  strncpy (entry.d_name, find->cFileName, sizeof (entry.d_name));
-  entry.d_reclen = strlen (find->cFileName);
+  entry->d_off = dir->filepos;
+  strncpy (entry->d_name, find->cFileName, sizeof (entry->d_name));
+  entry->d_reclen = strlen (find->cFileName);
   dir->filepos++;
-  return &entry;
+  return entry;
 }
 
 int 
