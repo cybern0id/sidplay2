@@ -6,7 +6,6 @@
 
 #define PSID_ID 0x50534944
 #define RSID_ID 0x52534944
-#define SIDTUNE_PSID2NG
 
 static const char _sidtune_format_psid[] = "PlaySID one-file format (PSID)";
 static const char _sidtune_format_rsid[] = "Real C64 one-file format (RSID)";
@@ -27,11 +26,7 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 {
 	int clock, compatibility;
 	udword speed;
-#ifdef SIDTUNE_PSID2NG
 	clock = SIDTUNE_CLOCK_UNKNOWN;
-#else
-	clock = info.clockSpeed;
-#endif
 	compatibility = SIDTUNE_COMPATIBILITY_C64;
 
 	// Require minimum size to allow access to the first few bytes.
@@ -105,9 +100,19 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 			info.musPlayer = true;
 		}
 
-#ifdef SIDTUNE_PSID2NG
-		if (flags & PSID_SPECIFIC)
-			info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
+		// This flags is only available for the appropriate
+		// file formats
+		switch (compatibility)
+		{
+		case SIDTUNE_COMPATIBILITY_C64:
+			if (flags & PSID_SPECIFIC)
+				info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
+			break;
+		case SIDTUNE_COMPATIBILITY_R64:
+			if (flags & PSID_BASIC)
+				info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
+			break;
+		}
 
 		if (flags & PSID_CLOCK_PAL)
 			clock |= SIDTUNE_CLOCK_PAL;
@@ -123,7 +128,6 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 
 		info.relocStartPage = pHeader->relocStartPage[0];
 		info.relocPages	 = pHeader->relocPages[0];
-#endif // SIDTUNE_PSID2NG
 	}
 
 	// Check reserved fields to force real c64 compliance
@@ -151,24 +155,17 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	// extracted
 	info.c64dataLen = bufLen - fileOffset;
 
-	if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64 )
+	if ( info.compatibility != SIDTUNE_COMPATIBILITY_BASIC )
 	{
-		// Check tune is loadable on a real C64
-		if ( info.loadAddr < 0x07e8 )
-		{
-			info.formatString = _sidtune_invalid;
-			return false;
-		}
-
-		if (checkRealC64Init() == false)
-		{
-			info.formatString = _sidtune_invalid;
-			return false;
-		}
+		if ( info.initAddr == 0 )
+			info.initAddr = info.loadAddr;
 	}
-	else if ( info.initAddr == 0 )
-		info.initAddr = info.loadAddr;
 
+	if (checkCompatibility() == false)
+	{
+		info.formatString = _sidtune_invalid;
+		return false;
+	}
 
 	if (hvscvercmp(HVSCversion_found,HVSCVersion_v2NGCompatible)>=0)
 	{
@@ -224,6 +221,8 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 	{
 		if (info.compatibility == SIDTUNE_COMPATIBILITY_PSID)
 			tmpFlags |= PSID_SPECIFIC;
+		else if (info.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
+			tmpFlags |= PSID_BASIC;
 
 		tmpFlags |= (info.clockSpeed << 2);
 		tmpFlags |= (info.sidModel << 4);
@@ -257,11 +256,15 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 	strncpy( myHeader.author, info.infoString[1], _sidtune_psid_maxStrLen);
 	strncpy( myHeader.copyright, info.infoString[2], _sidtune_psid_maxStrLen);
 
-	if (info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+	switch (info.compatibility)
 	{
+	case SIDTUNE_COMPATIBILITY_BASIC:
+		writeBEword(myHeader.init,0);
+	case SIDTUNE_COMPATIBILITY_R64:
 		writeBEdword((ubyte*)myHeader.id,RSID_ID);
 		writeBEword(myHeader.play,0);
 		writeBEdword(myHeader.speed,0);
+		break;
 	}
 
 	fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );

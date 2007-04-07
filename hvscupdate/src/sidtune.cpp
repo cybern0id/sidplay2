@@ -872,31 +872,48 @@ bool sidTune::checkRealC64Info (udword speed)
 		return false;
 	if (speed != 0)
 		return false;
-	if (info.compatibility == SIDTUNE_COMPATIBILITY_PSID)
-		return false;
+	if (info.compatibility == SIDTUNE_COMPATIBILITY_BASIC)
+    {
+		if (info.initAddr != 0)
+			return false;
+    }
 	return true;
 }
 
-bool sidTune::checkRealC64Init (void)
+bool sidTune::checkCompatibility (void)
 {
-	if (info.initAddr == 0)
-		info.initAddr = info.loadAddr;
-
-	// Check valid init address
-	switch (info.initAddr >> 12)
+	switch ( info.compatibility )
 	{
-	case 0x0F:
-	case 0x0E:
-	case 0x0D:
-	case 0x0B:
-	case 0x0A:
-		return false;
-	default:
-		if ( (info.initAddr < info.loadAddr) ||
-                     (info.initAddr > (info.loadAddr + info.c64dataLen - 1)) )
+	case SIDTUNE_COMPATIBILITY_R64:
+		// Check valid init address
+		switch (info.initAddr >> 12)
 		{
+		case 0x0F:
+		case 0x0E:
+		case 0x0D:
+		case 0x0B:
+		case 0x0A:
 			return false;
+		default:
+			if ( (info.initAddr < info.loadAddr) ||
+			     (info.initAddr > (info.loadAddr + info.c64dataLen - 1)) )
+			{
+				return false;
+			}
 		}
+		// deliberate run on
+
+	case SIDTUNE_COMPATIBILITY_BASIC:
+		// Check tune is loadable on a real C64
+		if ( info.loadAddr < 0x07e8 )
+			return false;
+		if ( info.playAddr != 0 )
+			return false;
+		if ( info.compatibility == SIDTUNE_COMPATIBILITY_R64)
+			break;
+        if ( info.initAddr != 0 )
+			return false;
+		break;
 	}
 	return true;
 }
