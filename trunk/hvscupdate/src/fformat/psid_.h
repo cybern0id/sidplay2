@@ -18,6 +18,13 @@
 
 extern HVSCVER HVSCversion_found;
 
+// Header has been extended for 'RSID' format
+// The following changes are present:
+//     id = 'RSID'
+//     version = 2 only
+//     play, load and speed reserved 0
+//     psidspecific flag reserved 0
+
 struct psidHeader
 {
     //
@@ -42,5 +49,28 @@ struct psidHeader
     ubyte reserved[2];          // only version 0x0002
 };
 
+enum
+{
+    PSID_MUS       = 1 << 0,
+    PSID_SPECIFIC  = 1 << 1,
+    PSID_CLOCK     = 3 << 2,
+    PSID_SIDMODEL  = 3 << 4
+};
+
+enum
+{
+    PSID_CLOCK_UNKNOWN = 0,
+    PSID_CLOCK_PAL     = 1 << 2,
+    PSID_CLOCK_NTSC    = 1 << 3,
+    PSID_CLOCK_ANY     = PSID_CLOCK_PAL | PSID_CLOCK_NTSC
+};
+
+enum
+{
+    PSID_SIDMODEL_UNKNOWN = 0,
+    PSID_SIDMODEL_6581    = 1 << 4,
+    PSID_SIDMODEL_8580    = 1 << 5,
+    PSID_SIDMODEL_ANY     = PSID_SIDMODEL_6581 | PSID_SIDMODEL_8580
+};
 
 #endif
