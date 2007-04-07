@@ -22,18 +22,15 @@ const udword maxSidtuneFileLen = 65536+2+0x7C;  // C64KB+LOAD+PSID
 const int SIDTUNE_SPEED_VBI = 0;      // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;  // CIA 1 Timer A
 
-const int SIDTUNE_CLOCK_PAL = 0;   // These are also used in the
-const int SIDTUNE_CLOCK_NTSC = 1;  // emulator engine!
+const int SIDTUNE_CLOCK_UNKNOWN = 0;   // These are also used in the
+const int SIDTUNE_CLOCK_PAL = 1;       // emulator engine!
+const int SIDTUNE_CLOCK_NTSC = 2;
+const int SIDTUNE_CLOCK_ANY = SIDTUNE_CLOCK_PAL | SIDTUNE_CLOCK_NTSC;
 
-const int SIDTUNE_VIDEO_UNKNOWN = 0;
-const int SIDTUNE_VIDEO_PAL = 1;
-const int SIDTUNE_VIDEO_NTSC = 2;
-const int SIDTUNE_VIDEO_ANY = SIDTUNE_VIDEO_PAL | SIDTUNE_VIDEO_NTSC;
-
-const int SIDTUNE_SIDCHIP_UNKNOWN = 0;
-const int SIDTUNE_SIDCHIP_6581 = 1;
-const int SIDTUNE_SIDCHIP_8580 = 2;
-const int SIDTUNE_SIDCHIP_ANY = SIDTUNE_SIDCHIP_6581 | SIDTUNE_SIDCHIP_8580;
+const int SIDTUNE_SIDMODEL_UNKNOWN = 0;
+const int SIDTUNE_SIDMODEL_6581 = 1;
+const int SIDTUNE_SIDMODEL_8580 = 2;
+const int SIDTUNE_SIDMODEL_ANY = SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580;
 
 // An instance of this structure is used to transport values to
 // and from the ``sidTune-class'';
@@ -61,14 +58,14 @@ struct sidTuneInfo
 	ubyte songSpeed;            // intended speed, see top
 	ubyte clockSpeed;           // -"-
 	bool musPlayer;             // whether Sidplayer routine has been installed
-	bool playSID;               // whether PlaySID specific or C64 compatible
-	ubyte video;                // video standard (0=unknown, 1=PAL, 2=NTSC, 3=any)
-	ubyte SIDchip;              // SID chip version (0=unknown, 1=6581, 2=8580, 3=any)
+	bool psidSpecific;          // PlaySID specific extensions (samples, random, etc.)
+	ubyte clock;                // video standard (specifies clock to be used)
+	ubyte sidModel;             // SID model required for this tune
 	bool fixLoad;               // whether load address might be duplicate
 	uword lengthInSeconds;      // --- not yet supported ---
 
-	ubyte startPage;            // page number of first free page
-	ubyte pageLength;           // number of fre pages, including the first free page
+	ubyte relocStartPage;       // First available page for relocation.
+	ubyte relocPages;           // Number of pages available for relocation.
 
 	//
 	// Song title, credits, ...
@@ -103,16 +100,16 @@ class sidTune
 	// --- constructors ---
 
 	// If your opendir() and readdir()->d_name return path names
-    // that contain the forward slash (/) as file separator, but
-    // your operating system uses a different character, there are
-    // extra functions that can deal with this special case. Set
-    // separatorIsSlash to true if you like path names to be split
-    // correctly.
-    // You don't need these extra functions if your systems file
-    // separator is the forward slash.
-    //
+	// that contain the forward slash (/) as file separator, but
+	// your operating system uses a different character, there are
+	// extra functions that can deal with this special case. Set
+	// separatorIsSlash to true if you like path names to be split
+	// correctly.
+	// You don't need these extra functions if your systems file
+	// separator is the forward slash.
+	//
 	// Load a sidtune from a file.
-    //
+	//
 	// To retrieve data from standard input pass in filename "-".
 	// If you want to override the default filename extensions use this
 	// contructor. Please note, that if the specified ``sidTuneFileName''
@@ -124,7 +121,7 @@ class sidTune
 	sidTune(const char* sidTuneFileName, const char **fileNameExt = 0);
 	sidTune(const char* sidTuneFileName, const bool separatorIsSlash,
             const char **fileNameExt = 0);
-    
+
 	// Load a single-file sidtune from a memory buffer.
 	// Currently supported: PSID format
 	sidTune(const ubyte* oneFileFormatSidtune, udword sidtuneLength);
@@ -137,12 +134,12 @@ class sidTune
 	// so make sure you keep it. If the provided pointer is 0, the
 	// default list will be activated.
 	void setFileNameExtensions(const char **fileNameExt);
-	
+
 	// Load a sidtune into an existing object.
 	// From a file.
 	bool open(const char* sidTuneFileName);
 	bool open(const char* sidTuneFileName, const bool separatorIsSlash);
-    
+
 	// From a buffer.
 	bool load(const ubyte* oneFileFormatSidtune, udword sidtuneLength);
 
@@ -194,7 +191,7 @@ class sidTune
 	//
 	// Don't forget to save the sidtune file.
 	void fixLoadAddress(bool force = false, uword initAddr = 0, uword playAddr = 0);
-	
+
 
  protected:  // -------------------------------------------------------------
 
@@ -243,9 +240,9 @@ class sidTune
 
 	virtual bool PSID_fileSupport(const void* buffer, udword bufLen);
 	virtual bool PSID_fileSupportSave(ofstream& toFile, const ubyte* dataBuffer);
-	
+
  private:  // ---------------------------------------------------------------
-	
+
 	void safeConstructor();
 	void safeDestructor();
 #if !defined(NO_STDIN_LOADER)
@@ -253,10 +250,10 @@ class sidTune
 #endif
 	void filesConstructor(const char* name);
         void bufferConstructor(const ubyte* data, udword dataLen);
-	
+
 	uword selectSong(uword selectedSong);
 	void setIRQaddress(uword address);
-	
+
         void clearCache();
 
 	void deleteFileBuffers();
@@ -270,6 +267,6 @@ class sidTune
 	bool createNewFileName(char** destStringPtr,
                                const char* sourceName, const char* sourceExt);
 };
-	
+
 
 #endif

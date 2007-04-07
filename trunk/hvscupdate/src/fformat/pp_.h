@@ -7,6 +7,7 @@
 
 
 #include <fstream.h>
+#include <iostream.h>
 #include <string.h>
 #include <limits.h>
 #include "mytypes.h"

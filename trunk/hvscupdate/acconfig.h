@@ -1,4 +1,3 @@
-/* src/include/config.h.in.  Generated automatically from configure.in by autoheader.  */
 /* Define your operating system. Leave undefined if none applies.  */
 #undef HAVE_LINUX
 #undef HAVE_UNIX
@@ -9,16 +8,7 @@
 #undef HAVE_MSDOS
 #undef HAVE_BEOS
 
-
-/* Define if you support file names longer than 14 characters.  */
-#undef HAVE_LONG_FILE_NAMES
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if your processor stores words with the most significant
-   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
-#undef WORDS_BIGENDIAN
+@TOP@
 
 /* Define whether the compiler supports a built-in bool type.  */
 #undef HAVE_BOOL
@@ -27,74 +17,7 @@
    instead of ios::binary.  */
 #undef HAVE_IOS_BIN
 
-/* The number of bytes in a long int.  */
-#undef SIZEOF_LONG_INT
-
-/* Define if you have the mkdir function.  */
-#undef HAVE_MKDIR
-
-/* Define if you have the rmdir function.  */
-#undef HAVE_RMDIR
-
-/* Define if you have the strcasecmp function.  */
-#undef HAVE_STRCASECMP
-
-/* Define if you have the stricmp function.  */
-#undef HAVE_STRICMP
-
-/* Define if you have the strncasecmp function.  */
-#undef HAVE_STRNCASECMP
-
-/* Define if you have the strnicmp function.  */
-#undef HAVE_STRNICMP
-
-/* Define if you have the strstr function.  */
-#undef HAVE_STRSTR
-
-/* Define if you have the strtoul function.  */
-#undef HAVE_STRTOUL
-
-/* Define if you have the <dirent.h> header file.  */
-#undef HAVE_DIRENT_H
-
-/* Define if you have the <fcntl.h> header file.  */
-#undef HAVE_FCNTL_H
-
-/* Define if you have the <fstream.h> header file.  */
-#undef HAVE_FSTREAM_H
-
-/* Define if you have the <iomanip.h> header file.  */
-#undef HAVE_IOMANIP_H
-
-/* Define if you have the <iostream.h> header file.  */
-#undef HAVE_IOSTREAM_H
-
-/* Define if you have the <limits.h> header file.  */
-#undef HAVE_LIMITS_H
-
-/* Define if you have the <ndir.h> header file.  */
-#undef HAVE_NDIR_H
-
-/* Define if you have the <strstrea.h> header file.  */
-#undef HAVE_STRSTREA_H
-
-/* Define if you have the <strstream.h> header file.  */
-#undef HAVE_STRSTREAM_H
-
-/* Define if you have the <sys/dir.h> header file.  */
-#undef HAVE_SYS_DIR_H
-
-/* Define if you have the <sys/ndir.h> header file.  */
-#undef HAVE_SYS_NDIR_H
-
-/* Define if you have the <sys/stat.h> header file.  */
-#undef HAVE_SYS_STAT_H
-
-/* Define if you have the <sys/types.h> header file.  */
-#undef HAVE_SYS_TYPES_H
-
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
+@BOTTOM@
 
 
 /* Define the file/path separator(s) that your filesystem uses:

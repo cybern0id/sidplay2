@@ -7,10 +7,10 @@
 
 #if defined(WB_DEBUG)
 # include <iomanip.h>
-# include <iostream.h>
 #endif
 #include <ctype.h>
 #include <fstream.h>
+#include <iostream.h>
 #include <string.h>
 #if defined(HAVE_STRSTREA_H)
 #include <strstrea.h>

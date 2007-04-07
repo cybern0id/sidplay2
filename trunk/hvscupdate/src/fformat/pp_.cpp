@@ -176,7 +176,7 @@ bool depp( ifstream& source, ubyte** destRef )
 	}
 	
 	// Load efficiency table.
-	source.read(efficiency,4);
+	source.read((char*)efficiency,4);
 	udword eff = readEndian(efficiency[0],efficiency[1],efficiency[2],efficiency[3]);
 	if (( eff != PP_BITS_FAST ) &&
 		( eff != PP_BITS_MEDIOCRE ) &&
@@ -213,11 +213,11 @@ bool depp( ifstream& source, ubyte** destRef )
 	// this to be able to load beyond the 64KB segment boundary.
 	udword restfilelen = inputlen;
 	while ( restfilelen > INT_MAX )  {
-		source.read( (ubyte*)sourceBuf + (inputlen - restfilelen), INT_MAX );
+		source.read( (char*)sourceBuf + (inputlen - restfilelen), INT_MAX );
 		restfilelen -= INT_MAX;
 	}
 	if ( restfilelen > 0 )
-		source.read( (ubyte*)sourceBuf + (inputlen - restfilelen), restfilelen );
+		source.read( (char*)sourceBuf + (inputlen - restfilelen), restfilelen );
 
 	// reset file pointer
 	source.seekg( 0, ios::beg );

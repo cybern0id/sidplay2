@@ -4,12 +4,14 @@
 
 #include "psid_.h"
 
-
 const char text_format[] = "PlaySID one-file format (PSID)";
 const char text_psidTruncated[] = "ERROR: PSID file is most likely truncated";
 
 const int maxStringLength = 31;
 
+// Denotes the first version of HVSC that was fully v2NG compatible (i.e. no
+// garbage in the 32-bit 'reserved' field).
+static const HVSCVER HVSCVersion_v2NGCompatible = MAKE_HVSCVER(3,9);
 
 bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 {
@@ -48,14 +50,16 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	{
 		info.songs = classMaxSongs;
 	}
-	
+
 	// Create the speed/clock setting table.
 	convertOldStyleSpeedToTables(readBEdword(pHeader->speed));
-	
+
 	info.musPlayer = false;
-	info.playSID = false;
-    info.video = SIDTUNE_VIDEO_UNKNOWN;
-    info.SIDchip = SIDTUNE_SIDCHIP_UNKNOWN;
+	info.psidSpecific = false;
+	info.clock = SIDTUNE_CLOCK_UNKNOWN;
+	info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
+	info.relocStartPage = 0;
+	info.relocPages = 0;
 
 	if ( readBEword(pHeader->version) >= 2 )
 	{
@@ -66,16 +70,16 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 
 		if (( readBEword(pHeader->flags) & 0x02 ) != 0 )
 		{
-			info.playSID = true;
+			info.psidSpecific = true;
 		}
 
-		info.video = ( readBEword(pHeader->flags) & 0x0C ) >> 2;
-		info.SIDchip = ( readBEword(pHeader->flags) & 0x30 ) >> 4;
+		info.clock = ( readBEword(pHeader->flags) & 0x0C ) >> 2;
+		info.sidModel = ( readBEword(pHeader->flags) & 0x30 ) >> 4;
+
+		info.relocStartPage = pHeader->relocStartPage[0];
+		info.relocPages = pHeader->relocPages[0];
 	}
 
-    info.startPage = pHeader->startPage[0];
-    info.pageLength = pHeader->pageLength[0];
-  
 	if ( info.loadAddr == 0 )
 	{
 		ubyte* pData = (ubyte*)buffer + fileOffset;
@@ -86,7 +90,7 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	{
 		info.initAddr = info.loadAddr;
 	}
-	
+
 	// Copy info strings, so they will not get lost.
 	strncpy(&infoString[0][0],pHeader->name,maxStringLength);
 	info.nameString = &infoString[0][0];
@@ -98,7 +102,7 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	info.copyrightString = &infoString[2][0];
 	info.infoString[2] = &infoString[2][0];
 	info.numberOfInfoStrings = 3;
-	
+
 	info.formatString = text_format;
 	return true;
 }
@@ -133,17 +137,32 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 		tmpFlags |= 1;
 	}
 
-   	if ( info.playSID )
-	{
-		tmpFlags |= 2;
+	// These fields exist in v2NG only.
+	if (hvscvercmp(HVSCversion_found,HVSCVersion_v2NGCompatible)>=0) {
+		if ( info.psidSpecific )
+		{
+			tmpFlags |= 2;
+		}
+
+		tmpFlags |= (info.clock << 2);
+		tmpFlags |= (info.sidModel << 4);
 	}
 
-    tmpFlags |= (info.video << 2);
-    tmpFlags |= (info.SIDchip << 4);
-
 	writeBEword(myHeader.flags,tmpFlags);
-	myHeader.startPage[0] = info.startPage;
-	myHeader.pageLength[0] = info.pageLength;
+
+	// If the version of HVSC we are updating is one that is not
+	// fully v2NG compatible (i.e. 32-bit v2 'reserved' field may
+	// contain garbage), then the below two fields are zeroed out.
+
+	if (hvscvercmp(HVSCversion_found,HVSCVersion_v2NGCompatible)<0) {
+		myHeader.relocStartPage[0] = 0;
+		myHeader.relocPages[0] = 0;
+	}
+	else {
+		myHeader.relocStartPage[0] = info.relocStartPage;
+		myHeader.relocPages[0] = info.relocPages;
+	}
+
 	writeBEword(myHeader.reserved,0);
 	for ( int i = 0; i < 32; i++ )
 	{
@@ -155,15 +174,15 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 	strncpy( myHeader.author, info.authorString, 31 );
 	strncpy( myHeader.copyright, info.copyrightString, 31 );
 	fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );
-	
+
 	// Save C64 lo/hi load address (little-endian).
 	ubyte saveAddr[2];
 	saveAddr[0] = info.loadAddr & 255;
 	saveAddr[1] = info.loadAddr >> 8;
-	fMyOut.write( saveAddr, 2 );
+	fMyOut.write( (char*)saveAddr, 2 );
 	// Data starts at: bufferaddr + fileoffset
 	// Data length: datafilelen - fileoffset
-	fMyOut.write( dataBuffer + fileOffset, info.dataFileLen - fileOffset );
+	fMyOut.write( (char*)dataBuffer + fileOffset, info.dataFileLen - fileOffset );
 	if ( !fMyOut )
 	{
 		return false;

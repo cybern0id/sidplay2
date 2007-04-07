@@ -14,6 +14,9 @@
 #include "mytypes.h"
 #include "myendian.h"
 #include "sidtune.h"
+#include "hvscver.h"
+
+extern HVSCVER HVSCversion_found;
 
 struct psidHeader
 {
@@ -33,10 +36,10 @@ struct psidHeader
     char name[32];       // ASCII strings, 31 characters long and
     char author[32];     // terminated by a trailing zero
     char copyright[32];  //
-    ubyte flags[2];      // only version 0x0002
-    ubyte startPage[1];      // only version 0x0002
-    ubyte pageLength[1];      // only version 0x0002
-    ubyte reserved[2];   // only version 0x0002
+    ubyte flags[2];             // only version 0x0002
+    ubyte relocStartPage[1];    // only version 0x0002
+    ubyte relocPages[1];        // only version 0x0002
+    ubyte reserved[2];          // only version 0x0002
 };
 
 
