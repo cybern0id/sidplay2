@@ -213,13 +213,19 @@ class mySidTune : public sidTune
                     ; // Do nothing - this field is not to be changed.
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 0) {
-                    if ( info.compatibility != SIDTUNE_COMPATIBILITY_PSID )
+                    if ( (info.compatibility != SIDTUNE_COMPATIBILITY_C64) &&
+                         (info.compatibility != SIDTUNE_COMPATIBILITY_PSID) )
+                    {
                         return false;
+                    }
                     info.compatibility = SIDTUNE_COMPATIBILITY_C64;
                 }
                 else if (atoi(newInfoString[infoStringIndex]) == 1) {
-                    if (info.compatibility != SIDTUNE_COMPATIBILITY_C64)
+                    if ( (info.compatibility != SIDTUNE_COMPATIBILITY_C64) &&
+                         (info.compatibility != SIDTUNE_COMPATIBILITY_PSID) )
+                    {
                         return false;
+                    }
                     info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
                 }
                 else {
