@@ -79,7 +79,7 @@ public:
     static   int  devices (char *error);
 
     // Specific to resid
-    void sampling (uint freq);
+    void sampling (uint_least32_t freq);
     bool filter   (const sid_filter_t *filter);
     void model    (sid2_model_t model);
     // Must lock the SID before using the standard functions.
