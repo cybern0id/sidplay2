@@ -24,7 +24,7 @@
 #include "sidbuilder.h"
 
 
-class sidplay2: public IInterface 
+class sidplay2: public IInterface
 {
 public:
     static const InterfaceID &iid () {
@@ -45,11 +45,20 @@ public:
     virtual sid2_player_t  state        (void) const = 0;
     virtual void           stop         (void) = 0;
     virtual void           debug        (bool enable, FILE *out) = 0;
+};
+
+class ISidplay2Timer: public IInterface
+{
+public:
+    static const InterfaceID &iid () {
+        return SID2IID<0xba2f0dd8, 0xdafb, 0x4aea, 0xb0, 0x9a, 0x8a, 0xa9, 0xd3, 0x35, 0xb3, 0x6b>();
+    }
 
     // Timer functions with respect to resolution returned by timebase
+    virtual uint_least32_t mileage  (void) const = 0;
+    virtual void           schedule (Event &event, event_clock_t ticks) = 0;
     virtual uint_least32_t timebase (void) const = 0;
     virtual uint_least32_t time     (void) const = 0;
-    virtual uint_least32_t mileage  (void) const = 0;
 };
 
 // Future interface name
