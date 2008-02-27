@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.25  2006/04/09 16:50:49  s_a_white
  *  Confirmed timer re-programming overhead is 2 cycles.
  *
@@ -115,6 +118,8 @@
 #include "sidendian.h"
 #include "mos6526.h"
 
+SIDPLAY2_NAMESPACE_START
+
 enum
 {
     INTERRUPT_TA      = 1 << 0,
@@ -154,7 +159,7 @@ const char *MOS6526::credit =
 
 
 MOS6526::MOS6526 (EventContext *context)
-:Component<IComponent>("MOS6526"),
+:CoComponent<ISidComponent>("MOS6526"),
  pra(regs[PRA]),
  prb(regs[PRB]),
  ddra(regs[DDRA]),
@@ -601,3 +606,5 @@ void MOS6526::tod_event(void)
             trigger (INTERRUPT_ALARM);
     }
 }
+
+SIDPLAY2_NAMESPACE_STOP

@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.23  2006/10/28 09:16:06  s_a_white
  *  Update to new style COM interface
  *
@@ -106,6 +109,8 @@
 #define HSID_VERSION_207 (WORD) 0x0207
 #define HSID_VERSION_208 (WORD) 0x0208
 
+SIDPLAY2_NAMESPACE_START
+
 //**************************************************************************
 // Version 1 Interface (used calls only)
 typedef BYTE (CALLBACK* HsidDLL1_InitMapper_t) (void);
@@ -163,10 +168,10 @@ static HsidDLL2 hsid2 = {0};
 char   HardSID::credit[];
 static int hsid_device = 0;
 
-HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
+HardSID::HardSID (IHardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
-:SidEmulation<ISidEmulation,HardSIDBuilder>("HardSID", builder),
- ICoAggregate<ISidMixer>(*aggregate()),
+:CoEmulation<ISidEmulation,IHardSIDBuilder>("HardSID", builder),
+ CoAggregate<ISidMixer>(*iaggregate()),
  Event("HardSID Delay"),
  m_handle(handle),
  m_eventContext(NULL),
@@ -442,3 +447,5 @@ void HardSID::clock(sid2_clock_t clk)
             hsid2.Clock ((BYTE) m_id, 1);
     }
 }
+
+SIDPLAY2_NAMESPACE_STOP

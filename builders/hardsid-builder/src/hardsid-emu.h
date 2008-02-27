@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.21  2007/01/27 11:18:24  s_a_white
+ *  Prevent infinite loop on aggregate call.
+ *
  *  Revision 1.20  2007/01/27 10:21:39  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -85,7 +88,8 @@
 #ifndef _hardsid_emu_h_
 #define _hardsid_emu_h_
 
-#include <sidplay/imp/sidbuilder.h>
+#include <sidplay/imp/sidcoaggregate.h>
+#include <sidplay/imp/sidcobuilder.h>
 #include <sidplay/event.h>
 #include "config.h"
 #include "hardsid-builder.h"
@@ -100,14 +104,16 @@ typedef int hwsid_handle_t;
 // Approx 60ms
 #define HARDSID_DELAY_CYCLES 60000
 
+SIDPLAY2_NAMESPACE_START
+
 /***************************************************************************
  * HardSID SID Specialisation
  ***************************************************************************/
-class HardSID: public SidEmulation<ISidEmulation,HardSIDBuilder>,
-               public ICoAggregate<ISidMixer>, private Event
+class HardSID: public CoEmulation<ISidEmulation,IHardSIDBuilder>,
+               public CoAggregate<ISidMixer>, private Event
 {
 private:
-    friend class HardSIDBuilderImpl;
+    friend class CoHardSIDBuilder;
 
     // HardSID specific data
     hwsid_handle_t m_handle;
@@ -125,14 +131,12 @@ private:
     bool           m_locked;
 
 public:
-    HardSID  (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
+    HardSID  (IHardSIDBuilder *builder, uint id, event_clock_t &accessClk,
               hwsid_handle_t handle);
     ~HardSID ();
 
-    IInterface *aggregate () { return SidEmulation<ISidEmulation,HardSIDBuilder>::aggregate (); }
-
-    // IInterface
-    bool ifquery   (const InterfaceID &cid, void **implementation);
+    // ISidUnknown
+    ISidUnknown *iaggregate () { return CoEmulation<ISidEmulation,IHardSIDBuilder>::iaggregate (); }
 
     // Standard component functions
     const char   *credits (void) {return credit;}
@@ -154,6 +158,9 @@ public:
     bool          lock    (c64env *env);
 
 private:
+    // ISidUnknown
+    bool _iquery (const Iid &cid, void **implementation);
+
     // Fixed interval timer delay to prevent sidplay2
     // shoot to 100% CPU usage when song nolonger
     // writes to SID.
@@ -173,5 +180,7 @@ inline int_least32_t HardSID::output (uint_least8_t bits)
 {   // Not supported, should return samples off card...???
     return 0;
 }
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _hardsid_emu_h_

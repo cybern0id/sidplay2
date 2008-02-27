@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2007/01/27 11:16:17  s_a_white
+ *  Unfortunate confusion between SidBuilder and SidEmulation in cfg variable.  We
+ *  are passing in a builder not emulation, so update the queried interface.
+ *
  *  Revision 1.14  2007/01/27 10:20:49  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -71,6 +75,9 @@
 #   define  sidplay2 sidplay
 #else
 #   include <sidplay/sidplay2.h>
+#   ifdef HAVE_SID2_COM
+#   include <sidplay/sidlazyiptr.h>
+#   endif
 #endif
 
 #include <sidplay/utils/SidDatabase.h>
@@ -142,11 +149,13 @@ private:
 
     const char* const  m_name;
 #ifdef HAVE_SID2_COM
-    IfPtr<sidplay2>    m_engine;
-    IfLazyPtr<IInterface> m_sidBuilder;
+    SidIPtr<ISidplay2> m_engine;
+    SidIPtr<ISidTimer> m_engineTimer;
+    SidLazyIPtr<ISidUnknown> m_sidBuilder;
 #else
     sidplay2           m_theEngine; // Do not use
     sidplay2 * const   m_engine;    // Use me
+    sidplay2 * const   m_engineTimer;
     sidbuilder        *m_sidBuilder;
 #endif
     sid2_config_t      m_engCfg;

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.23  2007/01/27 11:17:51  s_a_white
+ *  Better protection against hardsid failing to initialise.
+ *
  *  Revision 1.22  2007/01/27 10:21:39  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -97,11 +100,13 @@
 #include "hardsid-builder.h"
 #include "hardsid-stream.h"
 
-bool HardSIDBuilderImpl::m_initialised = false;
-uint HardSIDBuilderImpl::m_count = 0;
+SIDPLAY2_NAMESPACE_START
 
-HardSIDBuilderImpl::HardSIDBuilderImpl (const char * name)
-:SidBuilder<HardSIDBuilder>(name)
+bool CoHardSIDBuilder::m_initialised = false;
+uint CoHardSIDBuilder::m_count = 0;
+
+CoHardSIDBuilder::CoHardSIDBuilder (const char * name)
+:CoBuilder<IHardSIDBuilder>(name)
 {
     strcpy (m_errorBuffer, "N/A");
 
@@ -124,16 +129,16 @@ HardSIDBuilderImpl::HardSIDBuilderImpl (const char * name)
     }
 }
 
-HardSIDBuilderImpl::~HardSIDBuilderImpl (void)
+CoHardSIDBuilder::~CoHardSIDBuilder (void)
 {   // Remove all are SID emulations
     remove ();
 }
 
 // Create a new sid emulation.  Called by libsidplay2 only
-uint HardSIDBuilderImpl::create (uint sids)
+uint CoHardSIDBuilder::create (uint sids)
 {
     if (!m_initialised)
-        goto HardSIDBuilderImpl_create_error;
+        goto CoHardSIDBuilder_create_error;
 
     uint count;
     m_status = true;
@@ -141,7 +146,7 @@ uint HardSIDBuilderImpl::create (uint sids)
     // Check available devices
     count = devices (false);
     if (!m_status)
-        goto HardSIDBuilderImpl_create_error;
+        goto CoHardSIDBuilder_create_error;
     if (count && (count < sids))
         sids = count;
 
@@ -165,8 +170,8 @@ uint HardSIDBuilderImpl::create (uint sids)
         // Memory alloc failed for new stream?
         if (!stream)
         {
-            sprintf (m_errorBuffer, "%s ERROR: Unable to create HardSID stream", name ());
-            goto HardSIDBuilderImpl_create_error;
+            sprintf (m_errorBuffer, "%s ERROR: Unable to create HardSID stream", iname ());
+            goto CoHardSIDBuilder_create_error;
         }
 
         // stream init or sid alloc failed?
@@ -174,19 +179,19 @@ uint HardSIDBuilderImpl::create (uint sids)
         {
             strcpy (m_errorBuffer, stream->error ());
             delete stream;
-            goto HardSIDBuilderImpl_create_error;
+            goto CoHardSIDBuilder_create_error;
         }
         m_streams.push_back (stream);
     }
     return count;
 
-HardSIDBuilderImpl_create_error:
+CoHardSIDBuilder_create_error:
     m_status = false;
     return count;
 }
 
 // Return the available devices or the used (created) devices.
-uint HardSIDBuilderImpl::devices (bool created)
+uint CoHardSIDBuilder::devices (bool created)
 {
     if (m_initialised)
     {
@@ -203,20 +208,20 @@ uint HardSIDBuilderImpl::devices (bool created)
     return m_count;
 }
 
-const char *HardSIDBuilderImpl::credits ()
+const char *CoHardSIDBuilder::credits ()
 {
     m_status = true;
     return HardSID::credit;
 }
 
-void HardSIDBuilderImpl::flush(void)
+void CoHardSIDBuilder::flush(void)
 {
     int size = m_streams.size ();
     for (int i = 0; i < size; i++)
         m_streams[i]->flush ();
 }
 
-void HardSIDBuilderImpl::filter (bool enable)
+void CoHardSIDBuilder::filter (bool enable)
 {
     int size = m_streams.size ();
     m_status = true;
@@ -225,7 +230,7 @@ void HardSIDBuilderImpl::filter (bool enable)
 }
 
 // Find a free SID of the required type
-IInterface *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
+ISidUnknown *CoHardSIDBuilder::lock (c64env *env, sid2_model_t model)
 {
     HardSID *def = NULL;
     int size = m_streams.size ();
@@ -237,7 +242,7 @@ IInterface *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
         HardSIDStream *stream = m_streams[i];
         HardSID *sid = stream->lock (env, model);
         if (sid)
-            return sid->aggregate ();
+            return sid->iaggregate ();
     }
 
     // See if we can reallocate a sid to the correct model
@@ -248,7 +253,7 @@ IInterface *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
         if (sid)
         {
             if (stream->reallocate (sid, model))
-                return sid->aggregate ();
+                return sid->iaggregate ();
             sid->lock (NULL);
             if (!def)
                 def = sid;
@@ -259,24 +264,24 @@ IInterface *HardSIDBuilderImpl::lock (c64env *env, sid2_model_t model)
     if (def)
     {
         def->lock (env);
-        return def->aggregate ();
+        return def->iaggregate ();
     }
 
     // Unable to locate free SID
     m_status = false;
-    sprintf (m_errorBuffer, "%s ERROR: No available SIDs to lock", name ());
+    sprintf (m_errorBuffer, "%s ERROR: No available SIDs to lock", iname ());
     return NULL;
 }
 
 // Allow something to use this SID
-void HardSIDBuilderImpl::unlock (IInterface *device)
+void CoHardSIDBuilder::unlock (ISidUnknown &device)
 {
-    HardSID *sid = reinterpret_cast<HardSID*>(device->aggregate ()); // @FIXME@
+    HardSID *sid = reinterpret_cast<HardSID*>(device.iaggregate ()); // @FIXME@
     sid->lock (NULL);
 }
 
 // Remove all SID emulations.
-void HardSIDBuilderImpl::remove ()
+void CoHardSIDBuilder::remove ()
 {
     int size = m_streams.size ();
     for (int i = 0; i < size; i++)
@@ -287,7 +292,7 @@ void HardSIDBuilderImpl::remove ()
 // Find the number of sid devices.  We do not care about
 // stuppid device numbering or drivers not loaded for the
 // available nodes.
-int HardSIDBuilderImpl::init ()
+int CoHardSIDBuilder::init ()
 {
     if (HardSID::init (m_errorBuffer))
         return -1;
@@ -299,14 +304,14 @@ int HardSIDBuilderImpl::init ()
 }
 
 // Find the correct interface
-bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
+bool CoHardSIDBuilder::_iquery (const Iid &iid, void **implementation)
 {
-    if (iid == HardSIDBuilder::iid())
-        *implementation = static_cast<HardSIDBuilder *>(this);
+    if (iid == IHardSIDBuilder::iid())
+        *implementation = static_cast<IHardSIDBuilder *>(this);
     else if (iid == ISidBuilder::iid())
-        *implementation = static_cast<HardSIDBuilder *>(this);
-    else if (iid == IInterface::iid())
-        *implementation = static_cast<HardSIDBuilder *>(this);
+        *implementation = static_cast<IHardSIDBuilder *>(this);
+    else if (iid == ISidUnknown::iid())
+        *implementation = static_cast<IHardSIDBuilder *>(this);
     else
         return false;
     return true;
@@ -314,14 +319,16 @@ bool HardSIDBuilderImpl::ifquery (const InterfaceID &iid, void **implementation)
 
 
 // Entry point
-IInterface *HardSIDBuilderCreate (const char * name)
+ISidUnknown *HardSIDBuilderCreate (const char * name)
 {
 #ifdef HAVE_EXCEPTIONS
-    HardSIDBuilderImpl *builder = new(nothrow) HardSIDBuilderImpl(name);
+    CoHardSIDBuilder *builder = new(nothrow) CoHardSIDBuilder(name);
 #else
-    HardSIDBuilderImpl *builder = new HardSIDBuilderImpl(name);
+    CoHardSIDBuilder *builder = new CoHardSIDBuilder(name);
 #endif
     if (builder)
-        return builder->aggregate ();
+        return builder->iaggregate ();
     return 0;
 }
+
+SIDPLAY2_NAMESPACE_STOP

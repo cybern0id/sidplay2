@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/12/07 00:40:22  s_a_white
+ *  Windows fixes.
+ *
  *  Revision 1.4  2001/12/05 23:37:39  s_a_white
  *  Now redirects to real sidfig.hy/i
  *
@@ -24,7 +27,15 @@
 #if defined(HAVE_UNIX)
 #   include "../../unix/sidconfig.h"
 #elif defined(HAVE_MSWINDOWS)
-#   include "../../win/VC/sidconfig.h"
+#   ifdef _MSC_VER
+#       if _MSC_VER < 1300
+#           include "../../win/VC5/sidconfig.h"
+#       else
+#           include "../../win/VC/sidconfig.h"
+#       endif
+#   else
+#       error Compiler not supported!
+#   endif
 #else
 #   error Platform not supported!
 #endif

@@ -15,52 +15,50 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SIDIPTR_H_
-#define _SIDIPTR_H_
+#ifndef _sidiptr_h_
+#define _sidiptr_h_
 
 #include <assert.h>
 
-#include <sidconfig.h>
-#include <sidiunknown.h>
+#include <sidplay/sidconfig.h>
+#include <sidplay/sidunknown.h>
 
-template<class TImplementation> class SidLazyIPtr;
+template<class TInterface> class SidLazyIPtr;
 
 // An interface ptr class to automatically
 // handle querying and releasing of the interface.
 // NEVER pass one of these across a binary boundary,
 // this class is free to change!!
-template<class T>
-class SidIPtr: public SidIUnknown
+template<class TInterface>
+class SidIPtr: public ISidUnknown
 {
 private:
-    typedef SIDPLAY2_NAMESPACE::Iid SidIid;
-
-    const SidIid &m_iid;
-    T            *m_if;
-    SidIUnknown  *m_unknown;
+    const Iid   &m_iid;
+    TInterface  *m_if;
+    ISidUnknown *m_unknown;
 
 public:
-    SidIfPtr  (const SidIfPtr<T> &unknown) // std::list objects are const
-        : m_iid(T::iid ()) { _init (&unknown); }
-    SidIfPtr  (const SidIUnknown &unknown)
-        : m_iid(T::iid ()) { _init (&unknown); }
-    SidIfPtr  (const SidIUnknown *unknown)
-        : m_iid(T::iid ()) { _init (unknown); }
-    ~SidIfPtr () { _release (); }
+    SidIPtr (const SidIPtr<TInterface> &unknown) // std::list objects are const
+        : m_iid(TInterface::iid ()) { _init (&unknown); }
+    SidIPtr (const ISidUnknown &unknown)
+        : m_iid(TInterface::iid ()) { _init (&unknown); }
+    SidIPtr (const ISidUnknown *unknown)
+        : m_iid(TInterface::iid ()) { _init (unknown); }
+    ~SidIPtr () { _release (); }
 
 public:
-    const SidIid &iid  () const { return m_iid; }
-    const char   *name () const { return m_unknown->name (); }
+    ISidUnknown *iaggregate () { return m_unknown; }
+    const char  *iname      () const { return m_unknown->iname (); }
 
-    T *operator -> () const { assert (m_unknown); return m_if; }
-    operator bool  () const { return m_unknown != 0; }
+    TInterface *operator -> () const { assert (m_unknown); return m_if; }
+    operator    bool        () const { return m_unknown != 0; }
 
-    bool operator == (const SidIUnknown *unknown) const
+    bool operator == (const ISidUnknown *unknown) const
     {
         return (m_unknown == unknown);
     }
 
-    bool operator == (const SidIPtr<T>& other) const
+    bool operator == (const SidIPtr<TInterface>& other) const
     {
         return m_unknown == other.m_unknown;
     }
@@ -69,20 +67,18 @@ public:
     // calls allows you to access those hidden ones (i.e. consider
     // a private interface aggregated and passed around with a
     // public one)
-    template<class Timplementation>
-    SidLazyIPtr<Timplementation> hidden ()
+    template<class THiddenInterface>
+    SidLazyIPtr<THiddenInterface> hidden ()
     {
-        SidLazyIPtr<Timplementation> hidden = m_if;
+        SidLazyIPtr<THiddenInterface> hidden = m_if;
         return hidden;
     }
 
 private:
-    SidIUnknown *iaggregate () { return m_unknown; }
-
-    // afUnknown
-    bool iquery (const afId &afid, void **implementation)
+    // ISidUnknown
+    bool _iquery (const Iid &iid, void **implementation)
     {
-        if (afid == m_afid)
+        if (iid == m_iid)
         {
             if (m_unknown)
             {
@@ -92,14 +88,15 @@ private:
             return false;
         }
         if (m_unknown)
-            return m_unknown->iquery (afid, implementation);
+            return m_unknown->_iquery (iid, implementation);
         return false;
     }
 
-    void iadd      () { assert (0); }
-    void irelease  () { assert (0); }
+    void  _iadd     () { assert (0); }
+    const Iid &_iid () const { return m_iid; }
+    void  _irelease () { assert (0); }
 
-    void _assign (SidIUnknown *unknown)
+    void _assign (ISidUnknown *unknown)
     {
         if (!unknown)
         {
@@ -107,24 +104,24 @@ private:
             return;
         }
 
-        SidIUnknown *u = unknown;
+        ISidUnknown *u = unknown;
         for (;;)
         {
             m_if = 0;
-            if (u->iquery (m_afid, reinterpret_cast<void**>(&m_if)))
+            if (u->_iquery (m_iid, reinterpret_cast<void**>(&m_if)))
                 break;
             else if (!m_if)
                 return;
-            u = m_if->aggregate (); // chain
+            u = m_if->iaggregate (); // chain
         }
-        m_unknown = unknown->aggregate ();
-        m_unknown->iadd ();
+        m_unknown = unknown->iaggregate ();
+        m_unknown->_iadd ();
     }
 
-    void _init (const SidIUnknown *unknown)
+    void _init (const ISidUnknown *unknown)
     {
         m_unknown = 0;
-        _assign (const_cast<SidIUnknown*>(unknown));
+        _assign (const_cast<ISidUnknown*>(unknown));
         assert  (m_unknown);
     }
 
@@ -132,38 +129,38 @@ private:
     {
         if (m_unknown)
         {
-            m_unknown->irelease ();
+            m_unknown->_irelease ();
             m_unknown = 0;
             m_if = 0;
         }
     }
 
 protected: // For lazy initialisation
-    SidIPtr () : m_iid(T::afid ()), m_unknown(0) { ; }
+    SidIPtr () : m_iid(TInterface::iid ()), m_unknown(0) { ; }
 
-    const SidIUnknown *operator = (const SidIUnknown *unknown)
+    const ISidUnknown *operator = (const ISidUnknown *unknown)
     {
-        _assign (const_cast<afUnknown*>(unknown));
+        _assign (const_cast<ISidUnknown*>(unknown));
         return unknown;
     }
 
-    const SidIUnknown &operator = (const SidIUnknown &unknown)
+    const ISidUnknown &operator = (const ISidUnknown &unknown)
     {
-        _assign (const_cast<afUnknown*>(&unknown));
+        _assign (const_cast<ISidUnknown*>(&unknown));
         return unknown;
     }
 
-    const SidIUnknown &operator = (const SidIPtr<T> &unknown)
+    const ISidUnknown &operator = (const SidIPtr<TInterface> &unknown)
     {
-        _assign (const_cast<SidIUnknown*>(&unknown));
+        _assign (const_cast<ISidUnknown*>(&unknown));
         return unknown;
     }
 };
 
-template <class T>
-bool operator == (const SidIPtr<T>& first, const SidIPtr<T>& second)
+template <class TInterface>
+bool operator == (const SidIPtr<TInterface>& first, const SidIPtr<TInterface>& second)
 {
     return first.operator==(second);
 }
 
-#endif // _SIDIPTR_H_
+#endif // _sidiptr_h_

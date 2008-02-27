@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.17  2006/11/01 21:26:47  s_a_white
  *  Future compatibility name added
  *
@@ -76,11 +79,11 @@
 
 #include <sidplay/sidbuilder.h>
 
-class HardSIDBuilder: public ISidBuilder
+class IHardSIDBuilder: public ISidBuilder
 {
 public:
-    static const InterfaceID &iid () {
-        return SID2IID<0x92b1592e, 0x7f8e, 0x47ec, 0xb9, 0x95, 0x4a, 0xd6, 0x9a, 0xa7, 0x27, 0xa1>();
+    static const Iid &iid () {
+        return SIDIID<0x92b1592e, 0x7f8e, 0x47ec, 0xb995, 0x4ad6, 0x9aa727a1>();
     }
 
     virtual uint create  (uint sids) = 0;
@@ -91,8 +94,8 @@ public:
 };
 
 // Future interface name
-typedef HardSIDBuilder IHardSIDBuilder;
+typedef IHardSIDBuilder HardSIDBuilder;
 
-extern "C" IInterface *HardSIDBuilderCreate (const char * name);
+extern "C" ISidUnknown *HardSIDBuilderCreate (const char * name);
 
 #endif // _hardsid_h_

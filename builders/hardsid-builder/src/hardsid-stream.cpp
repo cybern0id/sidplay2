@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.8  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.7  2006/10/28 09:16:06  s_a_white
  *  Update to new style COM interface
  *
@@ -43,8 +46,9 @@
 
 #include "hardsid-stream.h"
 
+SIDPLAY2_NAMESPACE_START
 
-HardSIDStream::HardSIDStream(HardSIDBuilder *builder)
+HardSIDStream::HardSIDStream(IHardSIDBuilder *builder)
 :m_builder(builder),
  m_status(false),
  m_handle(0),
@@ -157,3 +161,5 @@ void HardSIDStream::flush ()
 {
     HardSID::flush (m_handle);
 }
+
+SIDPLAY2_NAMESPACE_STOP

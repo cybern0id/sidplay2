@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.57  2007/01/27 11:14:21  s_a_white
+ *  Must export interfaces correctly via ifquery now.
+ *
  *  Revision 1.56  2007/01/27 10:22:44  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -205,9 +208,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "sidconfig.h"
 #include "sid2types.h"
 #include "SidTune.h"
 #include "sidbuilder.h"
+#include "imp/sidcounknown.h"
 
 #include "config.h"
 #include "sidenv.h"
@@ -223,12 +228,11 @@
 #define  SID2_TIME_BASE 10
 #define  SID2_MAPPER_SIZE 32
 
-#include "imp/iinterface.h"
 #include "sidplay2.h"
 
 SIDPLAY2_NAMESPACE_START
 
-class Player: public ICoInterface<sidplay2>, private C64Environment,
+class Player: public CoUnknown<ISidplay2>, private C64Environment,
               private c64env
 {
 private:
@@ -268,7 +272,7 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    IfLazyPtr<ISidEmulation> sid[SID2_MAX_SIDS];
+    SidLazyIPtr<ISidEmulation> sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
     EventCallback<Player> m_mixerEvent;
@@ -360,8 +364,8 @@ private:
     // ------------------------
 
 private:
-    // IInterface
-    void _ifdestroy () { delete this; }
+    // ISidUnknown
+    void _idestroy () { delete this; }
 
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);
@@ -372,7 +376,7 @@ private:
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidCreate      (IfLazyPtr<ISidBuilder> &builder, sid2_model_t model,
+    int       sidCreate      (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t model,
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();
@@ -451,8 +455,8 @@ public:
     Player ();
     ~Player ();
 
-    // IInterface
-    bool ifquery (const InterfaceID &iid, void **implementation);
+    // ISidUnknown
+    bool _iquery (const Iid &iid, void **implementation);
 
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }

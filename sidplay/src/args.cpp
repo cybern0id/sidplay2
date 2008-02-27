@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2007/01/27 10:20:49  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.28  2006/10/30 19:32:06  s_a_white
  *  Switch sidplay2 class to iinterface.
  *
@@ -660,8 +663,8 @@ void ConsolePlayer::displayArgs (const char *arg)
 #ifdef HAVE_HARDSID_BUILDER
     {
 #ifdef HAVE_SID2_COM
-        IfPtr<IInterface> unknown (HardSIDBuilderCreate (""));
-        IfLazyPtr<HardSIDBuilder> hs = unknown;
+        SidLazyIPtr<ISidUnknown>    unknown (HardSIDBuilderCreate (""));
+        SidLazyIPtr<HardSIDBuilder> hs = unknown;
 #else // Depreciated Interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );

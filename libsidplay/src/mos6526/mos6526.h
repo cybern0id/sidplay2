@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.20  2006/06/27 19:35:28  s_a_white
+ *  Changed ifquery return type.
+ *
  *  Revision 1.19  2006/06/19 19:14:05  s_a_white
  *  Get most derived interface to be inherited by the lowest base class.  This
  *  removes duplicate inheritance of interfaces and the need for virtual
@@ -96,10 +99,13 @@
 #ifndef _mos6526_h_
 #define _mos6526_h_
 
+#include "sidconfig.h"
 #include "imp/component.h"
 #include "event.h"
 
-class MOS6526: public Component<IComponent>
+SIDPLAY2_NAMESPACE_START
+
+class MOS6526: public CoComponent<ISidComponent>
 {
 private:
     static const char *credit;
@@ -156,7 +162,7 @@ protected:
 
 private:
     // Interface - Later use
-    bool ifquery (const InterfaceID &, void **) { return false; }
+    bool _iquery (const Iid &, void **) { return false; }
 
 protected:
     MOS6526 (EventContext *context);
@@ -185,5 +191,7 @@ public:
     // connected to pins on the IC.
     void clock (float64_t clock);
 };
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _mos6526_h_

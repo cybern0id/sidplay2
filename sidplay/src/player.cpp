@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.47  2007/01/27 11:37:33  s_a_white
+ *  Improve backwards compatibility
+ *
  *  Revision 1.46  2007/01/27 11:16:17  s_a_white
  *  Unfortunate confusion between SidBuilder and SidEmulation in cfg variable.  We
  *  are passing in a builder not emulation, so update the queried interface.
@@ -195,8 +198,10 @@ ConsolePlayer::ConsolePlayer (const char * const name)
  m_name(name),
 #ifdef HAVE_SID2_COM
  m_engine(sidplay2::create ()),
+ m_engineTimer(m_engine),
 #else
  m_engine(&m_theEngine),
+ m_engineTimer(m_engine),
  m_sidBuilder(0),
 #endif
  m_tune(0),
@@ -412,10 +417,10 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     {
 #ifdef HAVE_SID2_COM
         m_sidBuilder = ReSIDBuilderCreate ("");
-        IfLazyPtr<ReSIDBuilder> rs(m_sidBuilder);
+        SidLazyIPtr<IReSIDBuilder> rs(m_sidBuilder);
         if (rs)
         {
-            m_engCfg.sidEmulation = rs->aggregate ();
+            m_engCfg.sidEmulation = rs->iaggregate ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
@@ -451,10 +456,10 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
     {
 #ifdef HAVE_SID2_COM
         m_sidBuilder = HardSIDBuilderCreate ("");
-        IfLazyPtr<HardSIDBuilder> hs(m_sidBuilder);
+        SidLazyIPtr<IHardSIDBuilder> hs(m_sidBuilder);
         if (hs)
         {
-            m_engCfg.sidEmulation = hs->aggregate ();
+            m_engCfg.sidEmulation = hs->iaggregate ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );
@@ -497,7 +502,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
 
 createSidEmu_error:
 #ifdef HAVE_SID2_COM
-    displayError (IfPtr<ISidBuilder>(m_sidBuilder)->error ());
+    displayError (SidIPtr<ISidBuilder>(m_sidBuilder)->error ());
 #else // Depreciated Interface
     displayError (m_sidBuilder->error ());
     delete m_engCfg.sidEmulation;
@@ -620,7 +625,7 @@ void ConsolePlayer::emuflush ()
     // seperate to a specific interface
 #ifdef HSID_SID2_COM
 #   ifdef HAVE_HARDSID_BUILDER
-    IfPtr<HardSIDBuilder> hs(m_engCfg.sidEmulation);
+    SidIPtr<HardSIDBuilder> hs(m_engCfg.sidEmulation);
     if (hs)
         hs->flush ();
 #   endif // HAVE_HARDSID_BUILDER
@@ -685,15 +690,10 @@ bool ConsolePlayer::play ()
                  << "/" << tuneInfo->songs << endl;
         }
         m_engine->stop ();
-#if HAVE_TSID == 1
+#if HAVE_TSID
         if (m_tsid)
         {
-            m_tsid.addTime ((int) m_timer.current, m_track.selected,
-                            m_filename);
-        }
-#elif HAVE_TSID == 2
-        if (m_tsid)
-        {
+#   if HAVE_TSID == 2
             int_least32_t length;
             char md5[SIDTUNE_MD5_LENGTH + 1];
             m_tune.createMD5 (md5);
@@ -701,10 +701,14 @@ bool ConsolePlayer::play ()
             // ignore errors
             if (length < 0)
                 length = 0;
-            m_tsid.addTime (md5, m_filename, (uint) m_timer.current,
-                            m_track.selected, (uint) length);
+#   endif
+            m_tsid.addTime ((uint) m_timer.current, m_track.selected, m_filename
+#   if HAVE_TSID == 2
+                           , md5, (uint) length
+#   endif
+                           );
         }
-#endif
+#endif // HAVE_TSID
         break;
     }
     return false;
@@ -721,7 +725,7 @@ void ConsolePlayer::stop ()
 // External Timer Event
 void ConsolePlayer::event (void)
 {
-    uint_least32_t seconds = m_engine->time() / m_engine->timebase();
+    uint_least32_t seconds = m_engineTimer->time() / m_engineTimer->timebase();
     if (m_verboseLevel >= 0)
     {
         cerr << "\b\b\b\b\b" << std::setw(2) << std::setfill('0')
@@ -810,7 +814,7 @@ void ConsolePlayer::decodeKeys ()
             if (!m_track.single)
             {   // Only select previous song if less than timeout
                 // else restart current song
-                if ((m_engine->time() / m_engine->timebase()) < SID2_PREV_SONG_TIMEOUT)
+                if ((m_engineTimer->time() / m_engineTimer->timebase()) < SID2_PREV_SONG_TIMEOUT)
                 {
                     m_track.selected--;
                     if (m_track.selected < 1)

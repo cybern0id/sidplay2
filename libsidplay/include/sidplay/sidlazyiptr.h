@@ -15,18 +15,19 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SIDLAZYIPTR_H_
-#define _SIDLAZYIPTR_H_
+#ifndef _sidlazyiptr_h_
+#define _sidlazyiptr_h_
 
-#include "sidiptr.h"
+#include <sidplay/sidiptr.h>
 
 class SidLazyIPtrAssign
 {
 protected:
     virtual ~SidLazyIPtrAssign () { ; }
+
 public:
-    virtual const SidIUnknown *operator = (const SidIUnknown *unknown) = 0;
-    virtual const SidIUnknown &operator = (const SidIUnknown &unknown) = 0;
+    virtual const ISidUnknown *operator = (const ISidUnknown *unknown) = 0;
+    virtual const ISidUnknown &operator = (const ISidUnknown &unknown) = 0;
     virtual operator bool () const = 0;
 
 private:
@@ -38,19 +39,19 @@ class SidLazyIPtr: public SidIPtr<T>, public SidLazyIPtrAssign
 {
 public:
     SidLazyIPtr () { ; }
-    SidLazyIPtr (const SidIUnknown &unknown) { *this = unknown; }
-    SidLazyIPtr (const SidIUnknown *unknown) { *this = unknown; }
+    SidLazyIPtr (const ISidUnknown &unknown) { *this = unknown; }
+    SidLazyIPtr (const ISidUnknown *unknown) { *this = unknown; }
     SidLazyIPtr (const SidLazyIPtr<T> &unknown) { *this = unknown; }
 
-    const SidIUnknown *operator = (const SidIUnknown *unknown)
-        { SidIPtr<T>::operator = (unknown); _notify (); return unknown; }
-    const SidIUnknown &operator = (const SidIUnknown &unknown)
-        { SidIPtr<T>::operator = (unknown); _notify (); return unknown; }
+    const ISidUnknown *operator = (const ISidUnknown *unknown)
+        { SidIPtr<T>::operator = (unknown); return unknown; }
+    const ISidUnknown &operator = (const ISidUnknown &unknown)
+        { SidIPtr<T>::operator = (unknown); return unknown; }
     const SidLazyIPtr<T> &operator = (const SidLazyIPtr<T> &unknown)
-        { SidIPtr<T>::operator = (unknown); _notify (); return unknown; }
+        { SidIPtr<T>::operator = (unknown); return unknown; }
 
     operator bool () const
         { return SidIPtr<T>::operator bool (); }
 };
 
-#endif // _SIDLAZYIPTR_H_
+#endif // _sidlazyiptr_h_

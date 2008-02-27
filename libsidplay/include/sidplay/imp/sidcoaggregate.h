@@ -18,35 +18,34 @@
 #ifndef _sidcoaggregate_h_
 #define _sidcoaggregate_h_
 
-#include <sidplay/sidiunknown.h>
+#include <sidplay/sidunknown.h>
 
 SIDPLAY2_NAMESPACE_START
 
-template <class TImplementation>
-class CoAggregate: public TImplementation
+template <class TInterface>
+class CoAggregate: public TInterface
 {
 private:
-    SidIUnknown &m_unknown;
+    ISidUnknown &m_unknown;
 
 public:
-    CoAggregate (SidIUnknown &unknown)
+    CoAggregate (ISidUnknown &unknown)
         : m_unknown(unknown) { ; }
 
-private:
-    const SidIid &iid () const { return TImplementation::iid (); }
-
-    virtual SidIUnknown &iaggregate () = 0;
+    virtual ISidUnknown *iaggregate () = 0;
     const char *iname () const { return m_unknown.iname (); }
 
-    void iadd     () { return m_unknown.iadd (); }
-    void irelease () { return m_unknown.irelease (); }
+private:
+    void       _iadd     () { return m_unknown._iadd (); }
+    const Iid &_iid      () const { return TInterface::iid (); }
+    void       _irelease () { return m_unknown._irelease (); }
 
 protected:
-    virtual bool iquery (const SidIid &iid, void **implementation)
-                        { return m_unknown.ifquery (iid, implementation); }
+    virtual bool _iquery (const Iid &iid, void **implementation)
+                         { return m_unknown._iquery (iid, implementation); }
 
 };
 
-SIDPLAY2_NAMESPACE_END
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _sidcoaggregate_h_

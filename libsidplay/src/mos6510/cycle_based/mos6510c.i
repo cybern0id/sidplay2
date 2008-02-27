@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.51  2004/11/12 20:18:43  s_a_white
+ *  Valgrind memory access fixes
+ *
  *  Revision 1.50  2004/09/18 11:15:01  s_a_white
  *  Mixer's Iisibiisi.sid showed that we were not delaying long enough
  *  between receiving an NMI and starting its processing.
@@ -184,6 +187,8 @@
 #ifdef HAVE_EXCEPTIONS
 #   include <new>
 #endif
+
+SIDPLAY2_NAMESPACE_START
 
 //#define PC64_TESTSUITE
 #ifdef PC64_TESTSUITE
@@ -2508,3 +2513,5 @@ void MOS6510::debug (bool enable, FILE *out)
     else
         m_fdbg = out;
 }
+
+SIDPLAY2_NAMESPACE_STOP

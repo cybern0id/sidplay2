@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2006/06/19 20:52:46  s_a_white
+ *  Switch to new interfaces
+ *
  *  Revision 1.2  2005/03/22 19:10:28  s_a_white
  *  Converted windows hardsid code to work with new linux streaming changes.
  *  Windows itself does not yet support streaming in the drivers for synchronous
@@ -31,12 +34,14 @@
 #include <vector>
 #include "hardsid-emu.h"
 
+SIDPLAY2_NAMESPACE_START
+
 // Provide stream interface, currently Linux only but should
 // also support Windows at some point
 class HardSIDStream
 {
 private:
-    HardSIDBuilder * const m_builder;
+    IHardSIDBuilder * const m_builder;
     
     bool           m_status;
     hwsid_handle_t m_handle;
@@ -48,7 +53,7 @@ private:
     std::vector<HardSID *> m_sids;
 
 public:
-    HardSIDStream  (HardSIDBuilder *builder);
+    HardSIDStream  (IHardSIDBuilder *builder);
     ~HardSIDStream ();
 
     HardSID      *lock       (c64env *env, sid2_model_t model = SID2_MODEL_CORRECT);
@@ -61,5 +66,7 @@ public:
 
     operator bool () const { return m_status; }
 };
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _hardsid_stream_h_

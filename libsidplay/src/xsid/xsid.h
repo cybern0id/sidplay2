@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.29  2007/01/27 11:14:21  s_a_white
+ *  Must export interfaces correctly via ifquery now.
+ *
  *  Revision 1.28  2006/10/28 08:39:55  s_a_white
  *  New, easier to use, COM style interface.
  *
@@ -126,7 +129,7 @@ programmed with.
 #define _xsid_h_
 
 #include "config.h"
-#include "imp/sidbuilder.h"
+#include "imp/sidcobuilder.h"
 #include "event.h"
 
 // XSID configuration settings
@@ -142,6 +145,8 @@ programmed with.
 #ifdef XSID_DEBUG
 #   include <stdio.h>
 #endif
+
+SIDPLAY2_NAMESPACE_START
 
 class XSID;
 class channel
@@ -222,7 +227,7 @@ private:
 };
 
 
-class XSID: public SidEmulation<ISidEmulation>, private Event
+class XSID: public CoEmulation<ISidEmulation>, private Event
 {
     friend class channel;
 
@@ -250,7 +255,7 @@ private:
     virtual void    writeMemByte (uint8_t data) = 0;
 
 protected:
-    virtual bool ifquery (const InterfaceID &, void **);
+    virtual bool _iquery (const Iid &, void **);
 
 public:
     XSID (EventContext *context);
@@ -287,5 +292,7 @@ inline int_least32_t XSID::output (uint_least8_t bits)
     sample = sampleConvertTable[sampleOutput () + 8];
     return sample << (bits - 8);
 }
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _xsid_h_

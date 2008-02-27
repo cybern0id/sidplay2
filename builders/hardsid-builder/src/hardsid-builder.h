@@ -17,6 +17,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.4  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.3  2006/10/20 16:16:29  s_a_white
  *  Better compatibility with old code.
  *
@@ -50,12 +53,14 @@
 #define  _hardsid_builder_h_
 
 #include <vector>
-#include <sidplay/imp/sidbuilder.h>
+#include <sidplay/imp/sidcobuilder.h>
 #include "hardsid.h"
+
+SIDPLAY2_NAMESPACE_START
 
 class HardSIDStream;
 
-class HardSIDBuilderImpl: public SidBuilder<HardSIDBuilder>
+class CoHardSIDBuilder: public CoBuilder<IHardSIDBuilder>
 {
 private:
     static bool   m_initialised;
@@ -66,27 +71,29 @@ private:
     int init (void);
 
 public:
-    HardSIDBuilderImpl  (const char * const name);
-    ~HardSIDBuilderImpl (void);
+    CoHardSIDBuilder  (const char * const name);
+    ~CoHardSIDBuilder (void);
 
     // IInterface
-    bool ifquery (const InterfaceID &iid, void **implementation);
+    bool _iquery (const Iid &iid, void **implementation);
 
     // true will give you the number of used devices.
     //    return values: 0 none, positive is used sids
     // false will give you all available sids.
     //    return values: 0 endless, positive is available sids.
     // use bool operator to determine error
-    uint        devices (bool used);
-    IInterface *lock    (c64env *env, sid2_model_t model);
-    void        unlock  (IInterface *device);
-    void        remove  (void);
-    const char *error   (void) const { return m_errorBuffer; }
-    const char *credits (void);
-    void        flush   (void);
-    void        filter  (bool enable);
+    uint         devices (bool used);
+    ISidUnknown *lock    (c64env *env, sid2_model_t model);
+    void         unlock  (ISidUnknown &device);
+    void         remove  (void);
+    const char  *error   (void) const { return m_errorBuffer; }
+    const char  *credits (void);
+    void         flush   (void);
+    void         filter  (bool enable);
 
-    uint        create  (uint sids);
+    uint         create  (uint sids);
 };
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _hardsid_builder_h_
