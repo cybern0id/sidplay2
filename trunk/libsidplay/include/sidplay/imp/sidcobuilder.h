@@ -15,21 +15,24 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _imp_sidbuilder_h_
-#define _imp_sidbuilder_h_
+#ifndef _sidcobuilder_h_
+#define _sidcobuilder_h_
 
 // This file is only to be used be things creating implementations.
 // DO NOT include this file in external code usings these implementations,
 // use interface files instead:
 
+#include <sidplay/sidconfig.h>
 #include <sidplay/sidbuilder.h>
 
 //-------------------------------------------------------------------------
 #include <sidplay/imp/component.h>
 
+SIDPLAY2_NAMESPACE_START
+
 // Inherit this class to create a new SID emulations for libsidplay2.
-template <class TImplementation, class TBuilder = ISidBuilder>
-class SidEmulation: public Component<TImplementation>
+template <class TInterface, class TBuilder = ISidBuilder>
+class CoEmulation: public CoComponent<TInterface>
 {
 private:
     TBuilder * const m_builder;
@@ -38,33 +41,35 @@ private:
     void reset (void) { reset (0); }
 
 public:
-    SidEmulation (const char *name, TBuilder *builder)
-    :Component<TImplementation>(name), m_builder (builder) {;}
+    CoEmulation (const char *name, TBuilder *builder)
+    :CoComponent<TInterface>(name), m_builder (builder) {;}
 
     // ISidEmulation
-    ISidBuilder         *builder      (void) const { return m_builder; }
+    ISidUnknown         *builder      (void) const { return m_builder; }
     virtual void         clock        (sid2_clock_t clk) {;}
     virtual void         gain         (int_least8_t precent) {;}
     virtual void         optimisation (uint_least8_t level) {;}
     virtual void         reset        (uint_least8_t volume) = 0;
 };
 
-template <class TImplementation>
-class SidBuilder: public ICoInterface<TImplementation>
+template <class TInterface>
+class CoBuilder: public CoUnknown<TInterface>
 {
 protected:
     bool m_status;
 
 public:
     // Determine current state of object (true = okay, false = error).
-    SidBuilder(const char * name)
-    : ICoInterface<TImplementation>(name), m_status (true) {;}
+    CoBuilder(const char * name)
+    : CoUnknown<TInterface>(name), m_status (true) {;}
 
-    // IInterface
-    void _ifdestroy () { delete this; }
+    // ISidUnknown
+    void _idestroy () { delete this; }
 
     // ISidBuilder (implementations only)
     operator bool   () const { return m_status; }
 };
 
-#endif // _imp_sidbuilder_h_
+SIDPLAY2_NAMESPACE_STOP
+
+#endif // _sidcobuilder_h_

@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.15  2006/10/28 08:39:55  s_a_white
+ *  New, easier to use, COM style interface.
+ *
  *  Revision 1.14  2006/04/09 16:51:47  s_a_white
  *  Confirmed timer re-programming overhead is 2 cycles.
  *
@@ -62,8 +65,11 @@
 
 #include <time.h>
 #include "config.h"
+#include "c64env.h"
 #include "sidendian.h"
 #include "sid6526.h"
+
+SIDPLAY2_NAMESPACE_START
 
 const char * const SID6526::credit =
 {   // Optional information
@@ -72,7 +78,7 @@ const char * const SID6526::credit =
 };
 
 SID6526::SID6526 (c64env *env)
-:Component<IComponent>("SID6526"),
+:CoComponent<ISidComponent>("SID6526"),
  Event("CIA Timer A"),
  m_env(*env),
  m_eventContext(m_env.context ()),
@@ -165,3 +171,5 @@ void SID6526::event (void)
     schedule (m_eventContext, (event_clock_t) ta + 3, m_phase);
     m_env.interruptIRQ (true);
 }
+
+SIDPLAY2_NAMESPACE_STOP

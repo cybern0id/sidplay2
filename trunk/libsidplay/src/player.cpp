@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.89  2007/01/27 16:18:38  s_a_white
+ *  GCC compile fixes.
+ *
  *  Revision 1.88  2007/01/27 11:14:21  s_a_white
  *  Must export interfaces correctly via ifquery now.
  *
@@ -327,7 +330,7 @@
 
 
 // Static Creat function
-IInterface *sidplay2::create ()
+ISidUnknown *ISidplay2::create ()
 {
 #ifdef HAVE_EXCEPTIONS
     return new(std::nothrow) SIDPLAY2_NAMESPACE::Player;
@@ -385,7 +388,7 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:ICoInterface<sidplay2>("SIDPlay 2"),
+:CoUnknown<ISidplay2>("SIDPlay 2"),
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
@@ -417,10 +420,10 @@ Player::Player (void)
 
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i] = nullsid.aggregate ();
+        sid[i] = nullsid.iaggregate ();
     }
     xsid.emulation(sid[0]);
-    sid[0] = xsid.aggregate ();
+    sid[0] = xsid.iaggregate ();
     // Setup sid mapping table
     {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
         m_sidmapper[i] = 0;
@@ -591,7 +594,7 @@ int Player::load (SidTune *tune)
 
     for (int i = 0; i < SID2_MAX_SIDS; i++)
     {
-        IfPtr<ISidMixer> mixer(sid[1]);
+        SidIPtr<ISidMixer> mixer(sid[1]);
         if (mixer)
         {
             uint_least8_t v = 3;
@@ -963,7 +966,7 @@ void Player::reset (void)
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
     {
-        IfPtr<ISidEmulation> s(sid[i]);
+        SidIPtr<ISidEmulation> s(sid[i]);
         s->reset (0x0f);
         // Synchronise the waveform generators
         // (must occur after reset)
@@ -1283,12 +1286,12 @@ void Player::sid2crc (uint8_t data)
     }
 }
 
-bool Player::ifquery (const InterfaceID &iid, void **implementation)
+bool Player::_iquery (const Iid &iid, void **implementation)
 {
-    if (iid == sidplay2::iid())
-        *implementation = static_cast<sidplay2 *>(this);
-    else if (iid == IInterface::iid())
-        *implementation = static_cast<sidplay2 *>(this);
+    if (iid == ISidplay2::iid())
+        *implementation = static_cast<ISidplay2 *>(this);
+    else if (iid == ISidUnknown::iid())
+        *implementation = static_cast<ISidplay2 *>(this);
     else
         return false;
     return true;

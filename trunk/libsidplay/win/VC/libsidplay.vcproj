@@ -518,15 +518,6 @@
 				RelativePath="..\..\include\sidplay\event.h">
 			</File>
 			<File
-				RelativePath="..\..\include\sidplay\ifptr.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\iinterface.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\imp\iinterface.h">
-			</File>
-			<File
 				RelativePath="..\..\include\sidplay\sid2gui.h">
 			</File>
 			<File
@@ -536,16 +527,28 @@
 				RelativePath="..\..\include\sidplay\sidbuilder.h">
 			</File>
 			<File
-				RelativePath="..\..\include\sidplay\imp\sidbuilder.h">
+				RelativePath="..\..\include\sidplay\imp\sidcoaggregate.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\imp\sidcobuilder.h">
 			</File>
 			<File
 				RelativePath="sidconfig.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\imp\sidcounknown.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidendian.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidenv.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\sidiptr.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\sidlazyiptr.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidplay.h">
@@ -555,6 +558,9 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidtypes.h">
+			</File>
+			<File
+				RelativePath="..\..\include\sidplay\sidunknown.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidusage.h">

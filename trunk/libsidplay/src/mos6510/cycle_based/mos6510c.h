@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.26  2004/06/26 11:10:47  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.25  2004/04/23 01:01:37  s_a_white
  *  Added debug clock to record cycle instructions starts on.
  *
@@ -107,9 +110,11 @@
 #define _mos6510c_h_
 
 #include <stdio.h>
+#include "sidconfig.h"
 #include "sidtypes.h"
 #include "sidendian.h"
 
+SIDPLAY2_NAMESPACE_START
 
 class MOS6510: public C64Environment, public Event
 {
@@ -361,5 +366,7 @@ inline void MOS6510::event (void)
     schedule (eventContext, 1, m_phase);
     clock ();
 }
+
+SIDPLAY2_NAMESPACE_STOP
 
 #endif // _mos6510c_h_

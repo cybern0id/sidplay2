@@ -15,32 +15,28 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _SIDCOUNKNOWN_H_
-#define _SIDCOUNKNOWN_H_
+#ifndef _sidcounknown_h_
+#define _sidcounknown_h_
 
 #include <assert.h>
-#include "sidconfig.h"
-#include "sidiunknown.h"
+#include <string.h>
+#include <sidplay/sidconfig.h>
+#include <sidplay/sidunknown.h>
 
-SIDPLAY2_NAMESPACE_START
-
-inline bool operator == (const Iid &iid1, const Iid &iid2)
-{
-    return !memcmp (&iid1, &iid2, sizeof (Iid));
-}
-
-inline bool operator != (const Iid &iid1, const Iid &iid2)
+inline bool operator != (const SIDPLAY2_NAMESPACE::Iid &iid1, const SIDPLAY2_NAMESPACE::Iid &iid2)
 {
     return !(iid1 == iid2);
 }
 
-inline bool operator < (const Iid &iid1, const Iid &iid2)
+inline bool operator < (const SIDPLAY2_NAMESPACE::Iid &iid1, const SIDPLAY2_NAMESPACE::Iid &iid2)
 {
-    return memcmp (&iid1, &iid2, sizeof (Iid)) < 0;
+    return memcmp (&iid1, &iid2, sizeof (SIDPLAY2_NAMESPACE::Iid)) < 0;
 }
 
-template <class TImplementation>
-class CoUnknown: public TImplementation
+SIDPLAY2_NAMESPACE_START
+
+template <class TInterface>
+class CoUnknown: public TInterface
 {
 private:
     const char * const m_name;
@@ -56,14 +52,14 @@ public:
     CoUnknown (const char *name) : m_name(name), m_refcount(0) { ; }
     virtual ~CoUnknown () { _idestroy (); assert (!m_refcount); }
 
-    virtual const Iid &iid () const { return TImplementation::iid(); }
-
-    SidIUnknown *iaggregate   () { return this; }
+    ISidUnknown *iaggregate   () { return this; }
     virtual const char *iname () const { return m_name; }
 
 private:
-    void iadd     () { _iadd (++m_refcount); }
-    void irelease ()
+    const Iid &_iid () const { return TInterface::iid(); }
+
+    void _iadd     () { _iadd (++m_refcount); }
+    void _irelease ()
     {
         _irelease (--m_refcount);
         if (!m_refcount)
@@ -73,4 +69,4 @@ private:
 
 SIDPLAY2_NAMESPACE_STOP
 
-#endif // _SIDCOUNKNOWN_H_
+#endif // _sidcounknown_h_

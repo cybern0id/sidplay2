@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.39  2004/06/26 11:10:23  s_a_white
+ *  Changes to support new calling convention for event scheduler.
+ *
  *  Revision 1.38  2004/05/03 22:36:49  s_a_white
  *  Fix sleep handling to take into about the new instruction pipelining.
  *
@@ -145,6 +148,7 @@
 
 #include "sid6510c.h"
 
+SIDPLAY2_NAMESPACE_START
 
 SID6510::SID6510 (EventContext *context)
 :MOS6510(context),
@@ -461,3 +465,5 @@ void SID6510::triggerIRQ (void)
         }
     }
 }
+
+SIDPLAY2_NAMESPACE_STOP

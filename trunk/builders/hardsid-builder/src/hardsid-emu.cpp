@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.3  2007/01/27 10:21:39  s_a_white
+ *  Updated to use better COM emulation interface.
+ *
  *  Revision 1.2  2006/10/28 09:16:06  s_a_white
  *  Update to new style COM interface
  *
@@ -26,16 +29,20 @@
 
 #include "hardsid-emu.h"
 
+SIDPLAY2_NAMESPACE_START
+
 // Find the correct interface
-bool HardSID::ifquery (const InterfaceID &iid, void **implementation)
+bool HardSID::_iquery (const Iid &iid, void **implementation)
 {
     if (iid == ISidEmulation::iid())
         *implementation = static_cast<ISidEmulation *>(this);
     else if (iid == ISidMixer::iid())
         *implementation = static_cast<ISidMixer *>(this);
-    else if (iid == IInterface::iid())
+    else if (iid == ISidUnknown::iid())
         *implementation = static_cast<ISidEmulation *>(this);
     else
         return false;
     return true;
 }
+
+SIDPLAY2_NAMESPACE_STOP
