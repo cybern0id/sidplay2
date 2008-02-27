@@ -137,8 +137,8 @@ SID2_FIND_BUILDERS
 
 dnl Compatibility test new/old code.  Look for COM
 MY_TRY_COMPILE($LIBSIDPLAY2_CXXFLAGS,$LIBSIDPLAY_LDFLAGS,
-               [sidplay/component.h],
-               [IInterface *i;],sid2_com)
+               [sidplay/sidunknown.h],
+               [ISidUnknown *i;],sid2_com)
 if test "$sid2_com" = YES; then
     AC_DEFINE(HAVE_SID2_COM,,[Define to 1 for COM libsidplay2 interface])
 fi
