@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.58  2008/02/27 20:59:27  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.57  2007/01/27 11:14:21  s_a_white
  *  Must export interfaces correctly via ifquery now.
  *
@@ -213,6 +216,7 @@
 #include "SidTune.h"
 #include "sidbuilder.h"
 #include "imp/sidcounknown.h"
+#include "imp/sidcoaggregate.h"
 
 #include "config.h"
 #include "sidenv.h"
@@ -232,7 +236,9 @@
 
 SIDPLAY2_NAMESPACE_START
 
-class Player: public CoUnknown<ISidplay2>, private C64Environment,
+class Player: public  CoUnknown<ISidplay2>,
+              public  CoAggregate<ISidTimer>,
+      	      private C64Environment,
               private c64env
 {
 private:
@@ -366,6 +372,7 @@ private:
 private:
     // ISidUnknown
     void _idestroy () { delete this; }
+    bool _iquery   (const Iid &iid, void **implementation);
 
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);
@@ -456,7 +463,7 @@ public:
     ~Player ();
 
     // ISidUnknown
-    bool _iquery (const Iid &iid, void **implementation);
+    ISidUnknown *iaggregate () { return CoUnknown<ISidplay2>::iaggregate (); }
 
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }
