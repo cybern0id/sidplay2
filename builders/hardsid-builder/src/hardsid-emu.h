@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.22  2008/02/27 20:58:52  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.21  2007/01/27 11:18:24  s_a_white
  *  Prevent infinite loop on aggregate call.
  *
@@ -85,8 +88,8 @@
  *
  ***************************************************************************/
 
-#ifndef _hardsid_emu_h_
-#define _hardsid_emu_h_
+#ifndef _HARDSID_EMU_H_
+#define _HARDSID_EMU_H_
 
 #include <sidplay/imp/sidcoaggregate.h>
 #include <sidplay/imp/sidcobuilder.h>
@@ -97,7 +100,7 @@
 #ifdef HAVE_MSWINDOWS
 typedef int hwsid_handle_t;
 #else
-#include "/home/swhite/CVSROOT/hardsid/src/hwsid.h"
+#include <hwsid.h>
 #endif
 
 #define HARDSID_VOICES 3
@@ -183,4 +186,4 @@ inline int_least32_t HardSID::output (uint_least8_t bits)
 
 SIDPLAY2_NAMESPACE_STOP
 
-#endif // _hardsid_emu_h_
+#endif // _HARDSID_EMU_H_
