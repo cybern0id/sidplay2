@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2007/01/27 16:31:48  s_a_white
+ *  Updated to new COM emulation
+ *
  *  Revision 1.26  2006/10/28 09:16:06  s_a_white
  *  Update to new style COM interface
  *
@@ -107,6 +110,8 @@
 #include "config.h"
 #include "hardsid-emu.h"
 
+SIDPLAY2_NAMESPACE_START
+
 #define HARDSID_SYNC_ID(id) ((id) << 24)
 #define HARDSID_SYNC_ID_OPT(id) (HARDSID_SYNC_ID(id) | HSID_SID_ID_PRESENT)
 char    HardSID::credit[];
@@ -116,8 +121,8 @@ static  int hsid_devices = 0;
 
 HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
-:SidEmulation<ISidEmulation,HardSIDBuilder>("HardSID", builder),
- ICoAggregate<ISidMixer>(*aggregate()),
+:CoEmulation<ISidEmulation,HardSIDBuilder>("HardSID", builder),
+ CoAggregate<ISidMixer>(*iaggregate()),
  Event("HardSID Delay"),
  m_stream(handle),
  m_eventContext(NULL),
@@ -175,7 +180,7 @@ void HardSID::mute (uint_least8_t num, bool mute)
     if (num >= HARDSID_VOICES)
         return;
     muted[num] = mute;
-    
+
     int cmute = 0;
     for ( uint i = 0; i < HARDSID_VOICES; i++ )
         cmute |= (muted[i] << i);
@@ -334,7 +339,7 @@ int HardSID::devices (char *error)
             // SID device
             if (strncmp ("sid", entry->d_name, 3))
                 continue;
-        
+
             // if it is truely one of ours then it will be
             // followed by numerics only
             const char *p = entry->d_name+3;
@@ -372,3 +377,5 @@ void HardSID::clock(sid2_clock_t /*clk*/)
 //    else
 //       hsid2.Clock ((BYTE) m_id, 1);
 }
+
+SIDPLAY2_NAMESPACE_STOP
