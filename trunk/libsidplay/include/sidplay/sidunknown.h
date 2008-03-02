@@ -15,13 +15,13 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef _sidunknown_h_
-#define _sidunknown_h_
+#ifndef _SIDUNKNOWN_H_
+#define _SIDUNKNOWN_H_
 
 #include <sidplay/sidconfig.h>
 #include <sidplay/sidint.h>
 
-template <class T> class SidIPtr;
+template <class TInterface> class SidIPtr;
 
 SIDPLAY2_NAMESPACE_START
 
@@ -58,12 +58,9 @@ public:
         return SIDIID<0xa595fcc4, 0xa138, 0x449a, 0x9711, 0x4ea5, 0xbb301d2a>();
     }
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1300)
 private:
-    template<class T> friend class SidIPtr;
+    template<class TInterface> friend class SidIPtr;
     template<class TInterface> friend class SIDPLAY2_NAMESPACE::CoAggregate;
-
-#endif
 
     virtual void       _iadd     () = 0;
     virtual const Iid &_iid      () const = 0;
@@ -86,4 +83,4 @@ inline bool operator == (const SIDPLAY2_NAMESPACE::Iid &iid1, const SIDPLAY2_NAM
            (iid1.d4 == iid2.d4) & (iid1.d5 == iid2.d5) & (iid1.d6 == iid2.d6);
 }
 
-#endif // _sidunknown_h_
+#endif // _SIDUNKNOWN_H_
