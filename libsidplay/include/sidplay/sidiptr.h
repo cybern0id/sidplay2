@@ -152,7 +152,8 @@ protected: // For lazy initialisation
 
     const ISidUnknown &operator = (const SidIPtr<TInterface> &unknown)
     {
-        _assign (const_cast<ISidUnknown*>(&unknown));
+        const ISidUnknown *u = &unknown;
+        _assign (const_cast<ISidUnknown*>(u));
         return unknown;
     }
 };
