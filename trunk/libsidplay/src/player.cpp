@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.90  2008/02/27 20:59:27  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.89  2007/01/27 16:18:38  s_a_white
  *  GCC compile fixes.
  *
@@ -333,10 +336,13 @@
 ISidUnknown *ISidplay2::create ()
 {
 #ifdef HAVE_EXCEPTIONS
-    return new(std::nothrow) SIDPLAY2_NAMESPACE::Player;
+    ISidplay2 *sidplay2 = new(std::nothrow) SIDPLAY2_NAMESPACE::Player;
 #else
-    return new SIDPLAY2_NAMESPACE::Player;
+    ISidplay2 *sidplay2 = new SIDPLAY2_NAMESPACE::Player;
 #endif
+    if (sidplay2)
+        return sidplay2->iaggregate ();
+    return 0;
 }
 
 
@@ -389,6 +395,7 @@ const char  *Player::credit[];
 Player::Player (void)
 // Set default settings for system
 :CoUnknown<ISidplay2>("SIDPlay 2"),
+ CoAggregate<ISidTimer>(*this),
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
@@ -1288,10 +1295,11 @@ void Player::sid2crc (uint8_t data)
 
 bool Player::_iquery (const Iid &iid, void **implementation)
 {
-    if (iid == ISidplay2::iid())
-        *implementation = static_cast<ISidplay2 *>(this);
-    else if (iid == ISidUnknown::iid())
-        *implementation = static_cast<ISidplay2 *>(this);
+    if ( (iid == ISidplay2::iid()) || (iid == ISidTimer::iid()) ||
+         (iid == ISidUnknown::iid()) )
+    {
+        *implementation = static_cast<ISidplay2*>(this);
+    }
     else
         return false;
     return true;
