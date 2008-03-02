@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.18  2006/10/30 19:32:06  s_a_white
+ *  Switch sidplay2 class to iinterface.
+ *
  *  Revision 1.17  2006/10/17 21:36:58  s_a_white
  *  Restore credit printing on verbose level 3.
  *
@@ -372,7 +375,7 @@ void ConsolePlayer::consoleColour (player_colour_t colour, bool bold)
 {
     if ((m_iniCfg.console ()).ansi)
     {
-        char *mode = "";
+        const char *mode = "";
 
         switch (colour)
         {
