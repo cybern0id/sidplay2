@@ -16,6 +16,10 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.5  2001/07/03 17:49:27  s_a_white
+ *  External filter no longer supported.  This filter is needed internally by the
+ *  library.
+ *
  *  Revision 1.4  2001/04/09 17:11:03  s_a_white
  *  Added INI file version number so theres a possibility for automated updates
  *  should the keys/sections change names (or meaning).
@@ -94,11 +98,11 @@ protected:
 protected:
     void  clear ();
 
-    bool  readInt    (ini_fd_t ini, char *key, int &value);
-    bool  readString (ini_fd_t ini, char *key, char *&str);
-    bool  readBool   (ini_fd_t ini, char *key, bool &boolean);
-    bool  readChar   (ini_fd_t ini, char *key, char &ch);
-    bool  readTime   (ini_fd_t ini, char *key, int  &time);
+    bool  readInt    (ini_fd_t ini, const char *key, int &value);
+    bool  readString (ini_fd_t ini, const char *key, char *&str);
+    bool  readBool   (ini_fd_t ini, const char *key, bool &boolean);
+    bool  readChar   (ini_fd_t ini, const char *key, char &ch);
+    bool  readTime   (ini_fd_t ini, const char *key, int  &time);
 
     bool  readSidplay2  (ini_fd_t ini);
     bool  readConsole   (ini_fd_t ini);
