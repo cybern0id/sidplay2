@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.24  2008/02/27 20:58:52  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.23  2007/01/27 11:17:51  s_a_white
  *  Better protection against hardsid failing to initialise.
  *
@@ -317,6 +320,9 @@ bool CoHardSIDBuilder::_iquery (const Iid &iid, void **implementation)
     return true;
 }
 
+SIDPLAY2_NAMESPACE_STOP
+
+using SIDPLAY2_NAMESPACE::CoHardSIDBuilder;
 
 // Entry point
 ISidUnknown *HardSIDBuilderCreate (const char * name)
@@ -330,5 +336,3 @@ ISidUnknown *HardSIDBuilderCreate (const char * name)
         return builder->iaggregate ();
     return 0;
 }
-
-SIDPLAY2_NAMESPACE_STOP
