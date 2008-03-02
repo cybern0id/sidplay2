@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.17  2008/02/27 20:58:52  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.16  2007/01/27 10:21:39  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -270,6 +273,9 @@ bool CoReSIDBuilder::_iquery (const Iid &iid, void **implementation)
     return true;
 }
 
+SIDPLAY2_NAMESPACE_STOP
+
+using SIDPLAY2_NAMESPACE::CoReSIDBuilder;
 
 // Entry point
 ISidUnknown *ReSIDBuilderCreate (const char * const name)
@@ -283,5 +289,3 @@ ISidUnknown *ReSIDBuilderCreate (const char * const name)
         return builder->iaggregate ();
     return 0;
 }
-
-SIDPLAY2_NAMESPACE_STOP
