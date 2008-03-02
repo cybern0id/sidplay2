@@ -43,8 +43,8 @@ const float SIDEMU_DEFAULTFILTERFT = (float) 0.05;
 class SID_EXTERN SidFilter
 {
 protected:
-    bool  m_status;
-    char *m_errorString;
+    bool         m_status;
+    const char  *m_errorString;
     sid_filter_t m_filter;
 
 protected:
