@@ -39,7 +39,7 @@ public:
     virtual ~CoComponent () {;}
 
     // ISidUnknown
-    void _irelease () { if (!this->_irefcount()) delete this; }
+//    void _idestroy () { delete this; }
 };
 
 SIDPLAY2_NAMESPACE_STOP

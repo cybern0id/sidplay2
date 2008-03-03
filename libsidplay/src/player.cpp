@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.91  2008/03/02 23:16:00  s_a_white
+ *  Add Timer API
+ *
  *  Revision 1.90  2008/02/27 20:59:27  s_a_white
  *  Re-sync COM like interface and update to final names.
  *
@@ -1295,11 +1298,10 @@ void Player::sid2crc (uint8_t data)
 
 bool Player::_iquery (const Iid &iid, void **implementation)
 {
-    if ( (iid == ISidplay2::iid()) || (iid == ISidTimer::iid()) ||
-         (iid == ISidUnknown::iid()) )
-    {
+    if ((iid == ISidplay2::iid()) || (iid == ISidUnknown::iid()))
         *implementation = static_cast<ISidplay2*>(this);
-    }
+    else if (iid == ISidTimer::iid())
+        *implementation = static_cast<ISidTimer*>(this);
     else
         return false;
     return true;
