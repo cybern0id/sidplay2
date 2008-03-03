@@ -107,7 +107,12 @@ private:
             {
                 m_if = 0;
                 if (u->_iquery (m_iid, reinterpret_cast<void**>(&m_if)))
-                    break;
+                {
+                    if (m_if)
+                        break;
+                    assert (0); // Error, no interface present
+                    return;
+                }
                 else if (!m_if)
                     return;
                 u = m_if->iaggregate (); // chain
