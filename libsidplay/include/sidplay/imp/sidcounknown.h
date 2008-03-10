@@ -45,6 +45,7 @@ private:
 protected:
     virtual void _idestroy  () { ; }
     virtual void _iadd      (unsigned int /*count*/) { ; }
+    virtual bool _iquery    (const Iid &iid, void **implementation) = 0;
     virtual void _irelease  (unsigned int /*count*/) { ; }
     unsigned int _irefcount () const { return m_refcount; }
 
@@ -65,6 +66,13 @@ private:
         if (!m_refcount)
             _idestroy ();
     }
+
+    bool iquery (const Iid &iid, void **implementation)
+    {
+        return _iquery (iid, implementation);
+    }
+    CoUnknown (const CoUnknown &);
+    CoUnknown &operator= (const CoUnknown &);
 };
 
 SIDPLAY2_NAMESPACE_STOP

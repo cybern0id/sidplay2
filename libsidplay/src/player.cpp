@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.92  2008/03/03 08:24:37  s_a_white
+ *  Fixes up various asserts.  Is component.h still needed?
+ *
  *  Revision 1.91  2008/03/02 23:16:00  s_a_white
  *  Add Timer API
  *
@@ -398,7 +401,7 @@ const char  *Player::credit[];
 Player::Player (void)
 // Set default settings for system
 :CoUnknown<ISidplay2>("SIDPlay 2"),
- CoAggregate<ISidTimer>(*this),
+ CoAggregate<ISidTimer>(*iaggregate()),
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),

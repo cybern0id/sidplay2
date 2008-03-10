@@ -41,9 +41,12 @@ private:
     void       _irelease () { return m_unknown._irelease (); }
 
 protected:
-    virtual bool _iquery (const Iid &iid, void **implementation)
-                         { return m_unknown._iquery (iid, implementation); }
+    virtual bool iquery (const Iid &iid, void **implementation)
+                        { return m_unknown.iquery (iid, implementation); }
 
+private:
+    CoAggregate (const CoAggregate &);
+    CoAggregate &operator= (const CoAggregate &);
 };
 
 SIDPLAY2_NAMESPACE_STOP

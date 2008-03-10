@@ -76,7 +76,7 @@ public:
 
 private:
     // ISidUnknown
-    bool _iquery (const Iid &iid, void **implementation)
+    bool iquery (const Iid &iid, void **implementation)
     {
         if (iid == m_iid)
         {
@@ -88,7 +88,7 @@ private:
             return false;
         }
         if (m_unknown)
-            return m_unknown->_iquery (iid, implementation);
+            return m_unknown->iquery (iid, implementation);
         return false;
     }
 
@@ -106,7 +106,7 @@ private:
             for (;;)
             {
                 m_if = 0;
-                if (u->_iquery (m_iid, reinterpret_cast<void**>(&m_if)))
+                if (u->iquery (m_iid, reinterpret_cast<void**>(&m_if)))
                 {
                     if (m_if)
                         break;
