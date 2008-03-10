@@ -68,7 +68,7 @@ private:
 
 protected:
     virtual ~ISidUnknown () = 0;
-    virtual bool _iquery (const Iid &iid, void **implementation) = 0;
+    virtual bool iquery (const Iid &iid, void **implementation) = 0;
 
 public:
     virtual ISidUnknown *iaggregate ()  = 0;
