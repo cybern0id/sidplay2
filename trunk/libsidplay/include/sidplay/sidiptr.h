@@ -51,6 +51,7 @@ public:
     const char  *iname      () const { return m_unknown->iname (); }
 
     TInterface *operator -> () const { assert (m_unknown); return m_if; }
+    TInterface &operator *  () const { assert (m_unknown); return *m_if; }
     operator    bool        () const { return m_unknown != 0; }
 
     bool operator == (const ISidUnknown *unknown) const
