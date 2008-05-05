@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.16  2008/02/27 20:59:27  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.15  2006/10/28 08:39:55  s_a_white
  *  New, easier to use, COM style interface.
  *
@@ -168,7 +171,7 @@ void SID6526::event (void)
 {   // Timer Modes
     m_accessClk = m_eventContext.getTime (m_phase);
     ta = ta_latch;
-    schedule (m_eventContext, (event_clock_t) ta + 3, m_phase);
+    schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
     m_env.interruptIRQ (true);
 }
 

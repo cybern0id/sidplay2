@@ -16,6 +16,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.27  2008/02/27 20:59:27  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.26  2006/10/28 08:39:55  s_a_white
  *  New, easier to use, COM style interface.
  *
@@ -485,11 +488,11 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_taEvent.schedule (event_context, (event_clock_t) ta + 3,
+        m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
                             m_phase);
     }
     trigger (INTERRUPT_TA);
-    
+
     // Handle serial port
     if (cra & 0x40)
     {
@@ -515,7 +518,7 @@ void MOS6526::ta_event (void)
     break;
     }
 }
-    
+
 void MOS6526::tb_event (void)
 {   // Timer Modes
     uint8_t mode = crb & 0x61;
@@ -537,7 +540,7 @@ void MOS6526::tb_event (void)
                 return;
         }
     break;
-    
+
     default:
         return;
     }
@@ -550,7 +553,7 @@ void MOS6526::tb_event (void)
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_tbEvent.schedule (event_context, (event_clock_t) tb + 3,
+        m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
                             m_phase);
     }
     trigger (INTERRUPT_TB);
@@ -566,8 +569,8 @@ void MOS6526::tod_event(void)
     if (cra & 0x80)
         m_todCycles += (m_todPeriod * 5);
     else
-        m_todCycles += (m_todPeriod * 6);    
-    
+        m_todCycles += (m_todPeriod * 6);
+
     // Fixed precision 25.7
     m_todEvent.schedule (event_context, m_todCycles >> 7, m_phase);
     m_todCycles &= 0x7F; // Just keep the decimal part
