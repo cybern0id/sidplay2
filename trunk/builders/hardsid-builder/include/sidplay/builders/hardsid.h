@@ -15,6 +15,9 @@
  ***************************************************************************/
 /***************************************************************************
  *  $Log: not supported by cvs2svn $
+ *  Revision 1.19  2008/02/27 20:58:52  s_a_white
+ *  Re-sync COM like interface and update to final names.
+ *
  *  Revision 1.18  2007/01/27 10:21:39  s_a_white
  *  Updated to use better COM emulation interface.
  *
@@ -83,7 +86,7 @@ class IHardSIDBuilder: public ISidBuilder
 {
 public:
     static const Iid &iid () {
-        return SIDIID<0x92b1592e, 0x7f8e, 0x47ec, 0xb995, 0x4ad6, 0x9aa727a1>();
+        SIDIID(0x92b1592e, 0x7f8e, 0x47ec, 0xb995, 0x4ad6, 0x9aa727a1);
     }
 
     virtual uint create  (uint sids) = 0;
