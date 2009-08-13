@@ -18,6 +18,15 @@
  ***************************************************************************/
 /***************************************************************************
  * $Log: not supported by cvs2svn $
+ * Revision 1.38  2008/04/04 23:17:48  s_a_white
+ * Why is Microsoft dropping POSIX!  Switch Microsoft names back to POSIX
+ *
+ * Revision 1.37  2008/04/04 22:50:05  s_a_white
+ * Remove some depreciated warnings
+ *
+ * Revision 1.36  2008/04/04 22:26:35  s_a_white
+ * Don't use depreciated names
+ *
  * Revision 1.35  2004/11/26 23:18:22  s_a_white
  * Add Karel Vanroye patch (whitespace).
  *
@@ -133,6 +142,14 @@
 #include "ini.h"
 
 #define INI_BUFFER_SIZE (1024 * 5)
+
+#if defined(HAVE_STRINGS_H)
+#   include <strings.h>
+#endif
+
+#ifndef HAVE_STRCASECMP
+#   define strcasecmp _stricmp
+#endif
 
 enum
 {

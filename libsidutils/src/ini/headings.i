@@ -21,14 +21,6 @@
 #include <string.h>
 #include "headings.h"
 
-#if defined(HAVE_STRINGS_H)
-#   include <strings.h>
-#endif
-
-#ifndef HAVE_STRCASECMP
-#   define strcasecmp stricmp
-#endif
-
 
 /********************************************************************************************************************
  * Function          : __ini_addHeading
