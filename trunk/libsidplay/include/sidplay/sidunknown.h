@@ -39,14 +39,10 @@ struct Iid
 
 SIDPLAY2_NAMESPACE_STOP
 
-template<uint_least32_t d1, uint_least16_t d2, uint_least16_t d3,
-         uint_least16_t d4, uint_least16_t d5, uint_least32_t d6>
-inline const SIDPLAY2_NAMESPACE::Iid &SIDIID ()
-{
-    static const SIDPLAY2_NAMESPACE::Iid iid = {d1, d2, d3, d4, d5, d6};
-    return iid;
-};
-
+#define SIDIID(d1,d2,d3,d4,d5,d6) \
+    static const SIDPLAY2_NAMESPACE::Iid idvar = \
+        {d1, d2, d3, d4, d5, d6}; \
+    return idvar
 
 class ISidUnknown
 {
@@ -55,7 +51,7 @@ protected:
 
 public:
     static const Iid &iid () {
-        return SIDIID<0xa595fcc4, 0xa138, 0x449a, 0x9711, 0x4ea5, 0xbb301d2a>();
+        SIDIID(0xa595fcc4, 0xa138, 0x449a, 0x9711, 0x4ea5, 0xbb301d2a);
     }
 
 private:
