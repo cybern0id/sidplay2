@@ -385,6 +385,8 @@ private:
     void      mileageCorrect (void);
     int       sidCreate      (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t model,
                               sid2_model_t defaultModel);
+    sid2_model_t sidModel    (int &model, sid2_model_t userModel,
+                              sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();
     uint8_t   iomap          (uint_least16_t addr);
