@@ -4,15 +4,17 @@
              ===================================================
 
                                    version
-                                    2.7.0
+                                    2.8.5
 
 AUTHORS:
-The Shark <shark@dhp.com>
+The Shark <shark (sid) dhp.com>
     (original author of the HVSC Update Tool, maintained it until v2.5)
-Michael Schwendt <sidplay@geocities.com>
+Michael Schwendt
     (v2.4.x portability fixes, v2.5 - v2.6.1, v2.7.0 GCC v3 patch)
-LaLa <LaLa@C64.org>
+LaLa <LaLa (sid) C64.org>
     (v2.7.0)
+iAN CooG <iancoog (sid) alice.it>
+    (v2.8.5 modifications for v3 file format)
 
 
 INTRODUCTION
@@ -67,10 +69,10 @@ MODIFYING SID FILES
 
 Any file that is modified with the Update Tool (i.e. modified by keywords that
 change bits, bytes or characters inside a PSID file) is always saved as a
-valid PSID v2NG file, even if it wasn't such before. This means that, for
-example, any bits that might have been set in the 'reserved' field of the file
-before will be zeroed out by the Update Tool, since this field is defined as
-such in the PSID v2NG specification.
+valid PSID v2NG, PSID v3, RSID v2 or RSID v3 file, even if it wasn't such
+before. This means that, for example, any bits that might have been set in the
+'reserved' field of the file before will be zeroed out by the Update
+Tool, since this field is defined as such in the file format specification.
 
 
 AFTER THE UPDATE
@@ -230,8 +232,8 @@ DESCRIPTION OF KEYWORDS
 
 Below is a listing of each keyword, the parameters they take and a detailed
 description of what they do. Since many of the keywords change specific fields
-inside PSID v2NG files, the reader is advised to become familiar with the PSID
-file format before reading further.
+inside PSID v2NG/v3 files, the reader is advised to become familiar with the
+SID file format before reading further.
 
 The format of parameter lines is as follows:
 
@@ -241,8 +243,7 @@ The format of parameter lines is as follows:
 - <16-bit hex> indicates a 16-bit hexadecimal value (with no prefix).
 - <8-bit hex> indicates an 8-bit hexadecimal value (with no prefix).
 - <dec> indicates a decimal value.
-- <text> indicates plain text that is max. 31 characters long, end-of-string
-  delimiter excluded.
+- <text> indicates plain text that is max. 32 characters long
 - <PAL | NTSC> indicates the possible case-sensitive (!) values for the given
   parameter, in this case only two, PAL and NTSC.
 
@@ -454,12 +455,11 @@ TITLE, AUTHOR, COPYRIGHT
 
 These keywords take a destination file name as the first and a credit line as
 the second parameter line. A credit line must not be an empty or blank line
-and is limited to 31 characters, end-of-string delimiter excluded. TITLE
-changes the 'name' field inside a PSID file, AUTHOR the 'author' and COPYRIGHT
-the 'copyright' field.
+and is limited to 32 characters. TITLE changes the 'name' field inside a PSID
+file, AUTHOR the 'author' and COPYRIGHT the 'copyright' field.
 
 Note that these keywords _always_ change the destination file to a valid PSID
-v2NG file!
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -493,8 +493,8 @@ lines as parameters. A parameter line consisting of nothing but an
 asterisk (*) leaves the corresponding credit line in the given PSID file
 untouched. See also TITLE, AUTHOR and COPYRIGHT above.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 NOTE: HVSC Update #10 has a parameter block which lacks the third credit line.
 Since old versions of the Update Tool did not detect this and hence did not
@@ -535,8 +535,8 @@ hexadecimal value shouldn't be bigger than 32 bits. If the number of bits set
 this way is more than the number of songs in a PSID file, only the relevant
 bits will be set by the Update Tool.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -562,8 +562,8 @@ the 'startSong' field. The decimal values should be less than 256 and the
 second value should be less than the first. There should be no whitespace
 around the comma.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -589,8 +589,8 @@ field, the second the 'playAddress' field. Since these refer to C64 addresses,
 the values should be maximum 16 bits large. There should be no whitespace
 around the comma.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -614,8 +614,8 @@ It takes a destination file name as the first and a binary value as the second
 parameter line. A 0 indicates a built-in player, a 1 that Compute's Sidplayer
 is required to play the given SID tune.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -642,8 +642,8 @@ C64 compatible, a 1 indicates that it's PlaySID specific (requiring special
 extensions introduced by the Amiga PlaySID program, like sample support,
 random value support, etc.)
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -667,8 +667,8 @@ which indicate the video standard to be used to play the included SID tune,
 basically determining its speed. The keyword takes a destination file name as
 the first and a case-sensitive textual value as the second parameter line.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -692,8 +692,8 @@ file which indicate the SID model the tune inside the given PSID file was
 intended for. The keyword takes a destination file name as the first and a
 case-sensitive textual value as the second parameter line.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -719,8 +719,8 @@ keywords above (in the same order). A parameter line consisting of nothing but
 an asterisk (*) leaves the corresponding bitfield in the given PSID file
 untouched.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -752,8 +752,8 @@ as the second parameter line: the first one changes the 'startPage' field, the
 second the 'pageLength' field. The values should be maximum 8 bits large.
 There should be no whitespace around the comma.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 
@@ -775,8 +775,8 @@ to drop the first two bytes of C64 data to get rid of a duplicate load address
 ($0FFE instead of $1000, for example). It takes one parameter line only, which
 should be the filename to be modified.
 
-Note that this keyword _always_ changes the destination file to a valid PSID
-v2NG file!
+Note that this keyword _always_ change the destination file to a valid PSID
+v2NG, PSID v3, RSID v2 or RSID v3 file!
 
 Format:
 

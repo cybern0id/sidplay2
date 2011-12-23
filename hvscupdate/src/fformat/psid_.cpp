@@ -16,7 +16,7 @@ static const char _sidtune_truncated[] = "ERROR: File is most likely truncated";
 static const char _sidtune_invalid[] = "ERROR: File contains invalid data";
 static const char _sidtune_reloc[] = "ERROR: File contains bad reloc data";
 
-const int _sidtune_psid_maxStrLen = 31;
+const int _sidtune_psid_maxStrLen = 32;
 
 // Denotes the first version of HVSC that was fully v2NG compatible (i.e. no
 // garbage in the 32-bit 'reserved' field).
@@ -41,7 +41,7 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 		return false;
 	if (readBEdword((const ubyte*)pHeader->id)==PSID_ID)
 	{
-	   if (readBEword(pHeader->version) >= 3)
+	   if (readBEword(pHeader->version) > 3)
 	   {
 		   info.formatString = _sidtune_unknown_psid;
 		   return false;
@@ -50,7 +50,7 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	}
 	else if (readBEdword((const ubyte*)pHeader->id)==RSID_ID)
 	{
-	   if (readBEword(pHeader->version) != 2)
+	   if ((readBEword(pHeader->version) < 2)||(readBEword(pHeader->version) > 3))
 	   {
 		   info.formatString = _sidtune_unknown_rsid;
 		   return false;
@@ -81,12 +81,14 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 	info.startSong     = readBEword(pHeader->start);
 	info.compatibility = compatibility;
 	speed              = readBEdword(pHeader->speed);
-
+    // added for v3, convert to v2 only v1 headers, v3 must be kept
+    info.version       = readBEword(pHeader->version);
+    if(info.version<2)
+		info.version = 2;
 	if (info.songs > classMaxSongs)
 	{
 		info.songs = classMaxSongs;
 	}
-
 	info.musPlayer      = false;
 	info.sidModel       = SIDTUNE_SIDMODEL_UNKNOWN;
 	info.relocPages     = 0;
@@ -125,6 +127,16 @@ bool sidTune::PSID_fileSupport(const void* buffer, udword bufLen)
 			info.sidModel |= SIDTUNE_SIDMODEL_6581;
 		if (flags & PSID_SIDMODEL_8580)
 			info.sidModel |= SIDTUNE_SIDMODEL_8580;
+        // added for v3
+        if(info.version>=3)
+        {
+    		if (flags & PSID_SIDMODEL2_6581)
+    			info.sidModel |= SIDTUNE_SIDMODEL2_6581;
+    		if (flags & PSID_SIDMODEL2_8580)
+    			info.sidModel |= SIDTUNE_SIDMODEL2_8580;
+            info.reserved = readBEword(pHeader->reserved);
+
+        }
 
 		info.relocStartPage = pHeader->relocStartPage[0];
 		info.relocPages	 = pHeader->relocPages[0];
@@ -195,7 +207,7 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 {
 	psidHeader myHeader;
 	writeBEdword((ubyte*)myHeader.id,PSID_ID);
-	writeBEword(myHeader.version,2);
+	writeBEword(myHeader.version,info.version);
 	writeBEword(myHeader.data,sizeof(psidHeader));
 	writeBEword(myHeader.load,0);
 	writeBEword(myHeader.init,info.initAddr);
@@ -266,9 +278,13 @@ bool sidTune::PSID_fileSupportSave(ofstream& fMyOut, const ubyte* dataBuffer)
 		writeBEdword(myHeader.speed,0);
 		break;
 	}
+    if(info.version>=3)
+    {
+    	writeBEword(myHeader.reserved,info.reserved);
+    }
 
 	fMyOut.write( (char*)&myHeader, sizeof(psidHeader) );
-	
+
 	// Save C64 lo/hi load address (little-endian).
 	ubyte saveAddr[2];
 	saveAddr[0] = info.loadAddr & 255;

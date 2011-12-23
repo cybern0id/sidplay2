@@ -67,7 +67,7 @@
 #include "sidtune.h"
 #include "hvscver.h"
 
-static const char versionString[] = "2.8.4";
+static const char versionString[] = "2.8.5";
 static const char HVSCcontactEmail[] = "HVSC Admin <hvsc@c64.org>";
 
 HVSCVER HVSCversion_found;
@@ -127,7 +127,7 @@ static const int fileCopyBufLen = 16*1024;
 static char* fileCopyBuffer;  // via new[]
 
 static const int maxUpdateNum = 1000;   // Should be plenty...
-static const int maxSidInfoLen = 31;  // not including terminator
+static const int maxSidInfoLen = 32;  // not including terminator
 
 // Denotes version from which copyright was dropped and released
 // was used instead
@@ -651,7 +651,7 @@ int main(int, char* argv[])
                                 logError(errorFile,tmpSource.get(),
                                          "SID credit string too long.",
                                          updateFile.getLineNum(),mode,errorCount);
-                            strncpy(sidInfo[n],updateFile.getLineBuf(),maxSidInfoLen+1);
+                            strncpy(sidInfo[n],updateFile.getLineBuf(),maxSidInfoLen);/*+1*/
                         }
                     }
                     else if (FLAGS == mode)
@@ -666,7 +666,7 @@ int main(int, char* argv[])
                                              "Premature end of update script?",
                                              updateFile.getLineNum(),mode,errorCount);
                             }
-                            strncpy(sidInfo[n],updateFile.getLineBuf(),maxSidInfoLen+1);
+                            strncpy(sidInfo[n],updateFile.getLineBuf(),maxSidInfoLen);/*+1*/
                         }
                     }
                     else if ((AUTHOR == mode) || (TITLE == mode) || (RELEASED==mode))
@@ -680,7 +680,7 @@ int main(int, char* argv[])
                             logError(errorFile,tmpSource.get(),
                                      "SID credit string too long.",
                                      updateFile.getLineNum(),mode,errorCount);
-                        strncpy(sidInfo[mode],updateFile.getLineBuf(),maxSidInfoLen+1);
+                     strncpy(sidInfo[mode],updateFile.getLineBuf(),maxSidInfoLen);/*+1*/
                     }
                     else if (FIXLOAD == mode)
                     {

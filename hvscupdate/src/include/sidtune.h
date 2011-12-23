@@ -20,17 +20,17 @@
 #endif
 #include "mytypes.h"
 
-const uint classMaxSongs = 256;   // also file format limit
-const uint infoStringNum = 5;     // maximum
+const uint classMaxSongs = 256;	  // also file format limit
+const uint infoStringNum = 5;	  // maximum
 const uint infoStringLen = 80+1;  // 80 characters plus terminating zero
 
-const udword maxSidtuneFileLen = 65536+2+0x7C;  // C64KB+LOAD+PSID
+const udword maxSidtuneFileLen = 65536+2+0x7C;	// C64KB+LOAD+PSID
 
-const int SIDTUNE_SPEED_VBI = 0;      // Vertical-Blanking-Interrupt
+const int SIDTUNE_SPEED_VBI = 0;	  // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;  // CIA 1 Timer A
 
 const int SIDTUNE_CLOCK_UNKNOWN = 0;   // These are also used in the
-const int SIDTUNE_CLOCK_PAL = 1;       // emulator engine!
+const int SIDTUNE_CLOCK_PAL = 1;	   // emulator engine!
 const int SIDTUNE_CLOCK_NTSC = 2;
 const int SIDTUNE_CLOCK_ANY = SIDTUNE_CLOCK_PAL | SIDTUNE_CLOCK_NTSC;
 
@@ -38,10 +38,13 @@ const int SIDTUNE_SIDMODEL_UNKNOWN = 0;
 const int SIDTUNE_SIDMODEL_6581 = 1;
 const int SIDTUNE_SIDMODEL_8580 = 2;
 const int SIDTUNE_SIDMODEL_ANY = SIDTUNE_SIDMODEL_6581 | SIDTUNE_SIDMODEL_8580;
+const int SIDTUNE_SIDMODEL2_6581 = 4;
+const int SIDTUNE_SIDMODEL2_8580 = 8;
+const int SIDTUNE_SIDMODEL2_ANY = SIDTUNE_SIDMODEL2_6581 | SIDTUNE_SIDMODEL2_8580;
 
-const int SIDTUNE_COMPATIBILITY_C64   = 0x00; // File is C64 compatible
+const int SIDTUNE_COMPATIBILITY_C64	  = 0x00; // File is C64 compatible
 const int SIDTUNE_COMPATIBILITY_PSID  = 0x01; // File is PSID specific
-const int SIDTUNE_COMPATIBILITY_R64   = 0x02; // File is Real C64 only
+const int SIDTUNE_COMPATIBILITY_R64	  = 0x02; // File is Real C64 only
 const int SIDTUNE_COMPATIBILITY_BASIC = 0x03; // File requires C64 Basic
 
 
@@ -54,50 +57,53 @@ struct sidTuneInfo
 	// Currently, the only way to get the class to accept values which
 	// are written to these fields is by creating a derived class.
 	//
-	const char* formatString;   // the name of the identified file format
-	const char* speedString;    // describing the speed a song is running at
+	uword version;				// added for v3
+	const char* formatString;	// the name of the identified file format
+	const char* speedString;	// describing the speed a song is running at
 	uword loadAddr;
 	uword initAddr;
 	uword playAddr;
 	uword startSong;
 	uword songs;
+
 	//
 	// Available after song initialization.
 	//
-	uword irqAddr;              // if (playAddr == 0), interrupt handler has been
-	                            // installed and starts calling the C64 player
-	                            // at this address
-	uword currentSong;          // the one that has been initialized
-	ubyte songSpeed;            // intended speed, see top
-	ubyte clockSpeed;           // -"-
-	bool musPlayer;             // whether Sidplayer routine has been installed
-	int  compatibility;         // compatibility requirements
-	ubyte sidModel;             // SID model required for this tune
-	bool fixLoad;               // whether load address might be duplicate
-	uword lengthInSeconds;      // --- not yet supported ---
+	uword irqAddr;				// if (playAddr == 0), interrupt handler has been
+								// installed and starts calling the C64 player
+								// at this address
+	uword currentSong;			// the one that has been initialized
+	ubyte songSpeed;			// intended speed, see top
+	ubyte clockSpeed;			// -"-
+	bool musPlayer;				// whether Sidplayer routine has been installed
+	int	 compatibility;			// compatibility requirements
+	ubyte sidModel;				// SID model required for this tune
+	uword reserved;				// SID address of 2nd sid; added for v3
+	bool fixLoad;				// whether load address might be duplicate
+	uword lengthInSeconds;		// --- not yet supported ---
 
-	ubyte relocStartPage;       // First available page for relocation.
-	ubyte relocPages;           // Number of pages available for relocation.
+	ubyte relocStartPage;		// First available page for relocation.
+	ubyte relocPages;			// Number of pages available for relocation.
 
 	//
 	// Song title, credits, ...
 	//
-	ubyte numberOfInfoStrings;  // the number of available text info lines
+	ubyte numberOfInfoStrings;	// the number of available text info lines
 	char* infoString[infoStringNum];
-	char* nameString;           // name, author and copyright strings
-	char* authorString;         // are duplicates of infoString[?]
+	char* nameString;			// name, author and copyright strings
+	char* authorString;			// are duplicates of infoString[?]
 	char* copyrightString;
 	//
 	uword numberOfCommentStrings;  // --- not yet supported ---
-	char ** commentString;         // -"-
+	char ** commentString;		   // -"-
 	//
-	udword dataFileLen;         // length of single-file sidtune file
-	udword c64dataLen;          // length of raw C64 data without load address
-        char* path;                 // path to sidtune files; 0, if cwd
-	char* dataFileName;         // a first file: e.g. ``*.c64''
-	char* infoFileName;         // a second file: e.g. ``*.sid''
+	udword dataFileLen;			// length of single-file sidtune file
+	udword c64dataLen;			// length of raw C64 data without load address
+		char* path;					// path to sidtune files; 0, if cwd
+	char* dataFileName;			// a first file: e.g. ``*.c64''
+	char* infoFileName;			// a second file: e.g. ``*.sid''
 	//
-	const char* statusString;   // error/status message of last operation
+	const char* statusString;	// error/status message of last operation
 };
 
 
@@ -132,13 +138,13 @@ class sidTune
 	// load a sidtune. You can later load one with open().
 	sidTune(const char* sidTuneFileName, const char **fileNameExt = 0);
 	sidTune(const char* sidTuneFileName, const bool separatorIsSlash,
-            const char **fileNameExt = 0);
+			const char **fileNameExt = 0);
 
 	// Load a single-file sidtune from a memory buffer.
 	// Currently supported: PSID format
 	sidTune(const ubyte* oneFileFormatSidtune, udword sidtuneLength);
 
-	virtual ~sidTune();  // destructor
+	virtual ~sidTune();	 // destructor
 
 	// --- member functions ---
 
@@ -174,15 +180,15 @@ class sidTune
 	// Determine current state of object (true = okay, false = error).
 	// Upon error condition use ``getInfo'' to get a descriptive
 	// text string in ``sidTuneInfo.statusString''.
-	operator bool()  { return status; }
+	operator bool()	 { return status; }
 	bool getStatus()  { return status; }
 
 	// --- file save & format conversion ---
 
 	// These functions work for any successfully created object.
-	// overWriteFlag: true  = Overwrite existing file.
-	//                false = Default, return error when file already
-	//                        exists.
+	// overWriteFlag: true	= Overwrite existing file.
+	//				  false = Default, return error when file already
+	//						  exists.
 	// One could imagine an "Are you sure ?"-checkbox before overwriting
 	// any file.
 	// returns: true = Successful, false = Error condition.
@@ -205,7 +211,7 @@ class sidTune
 	void fixLoadAddress(bool force = false, uword initAddr = 0, uword playAddr = 0);
 
 
- protected:  // -------------------------------------------------------------
+ protected:	 // -------------------------------------------------------------
 
 	bool status;
 	sidTuneInfo info;
@@ -221,14 +227,14 @@ class sidTune
 	ubyte* cachePtr;
 	udword cacheLen;
 
-    bool isSlashedFileName;
+	bool isSlashedFileName;
 
 	// Using external buffers for loading files instead of the interpreter
 	// memory. This separates the sidtune objects from the interpreter.
 	ubyte* fileBuf;
 	ubyte* fileBuf2;
 
-	udword fileOffset;  // for files with header: offset to real data
+	udword fileOffset;	// for files with header: offset to real data
 
 	// Filename extensions to append for various file types.
 	const char **fileNameExtensions;
@@ -269,23 +275,23 @@ class sidTune
 	void stdinConstructor();
 #endif
 	void filesConstructor(const char* name);
-        void bufferConstructor(const ubyte* data, udword dataLen);
+		void bufferConstructor(const ubyte* data, udword dataLen);
 
 	uword selectSong(uword selectedSong);
 	void setIRQaddress(uword address);
 
-        void clearCache();
+		void clearCache();
 
 	void deleteFileBuffers();
-        void deleteFileNameCopies();
+		void deleteFileNameCopies();
 	// Try to retrieve single-file sidtune from specified buffer.
 	bool getSidtuneFromFileBuffer(const ubyte* buffer, udword bufferLen);
 	// Cache the data of a single-file or two-file sidtune and its
 	// corresponding file names.
 	void acceptSidTune(const char* dataFileName, const char* infoFileName,
-                           const ubyte* dataFileBuf, udword dataLen );
+						   const ubyte* dataFileBuf, udword dataLen );
 	bool createNewFileName(char** destStringPtr,
-                               const char* sourceName, const char* sourceExt);
+							   const char* sourceName, const char* sourceExt);
 };
 
 

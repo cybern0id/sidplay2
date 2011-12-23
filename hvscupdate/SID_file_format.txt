@@ -4,35 +4,32 @@
                           ===========================
 
 AUTHORS:
-Michael Schwendt <sidplay@geocities.com> (PSID v1 and v2)
-Simon White <sidplay2@yahoo.com> (PSID v2NG, RSID)
-Dag Lem <dag@nimrod.no>(PSID v2NG)
-LaLa <LaLa@C64.org> (This document)
+Michael Schwendt (PSID v1 and v2)
+Simon White (PSID v2NG, RSID)
+Dag Lem (PSID v2NG)
+Wilfred Bos (PSID v3, RSID v3)
+LaLa (This document)
 
 
 INTRODUCTION
 ============
 
 This document describes the SID file format used for SID tunes in the HVSC
-(High Voltage SID Collection - http://www.hvsc.c64.org). It is based mostly on
-Michael Schwendt's excellent document found at:
-
-http://www.geocities.com/SiliconValley/Lakes/5147/sidplay/doc_formats.html
-
-and the PSID v2NG extensions described by Simon White and Dag Lem in:
-
-http://sidplay2.sourceforge.net
+(High Voltage SID Collection - http://hvsc.de). It is based mostly on
+Michael Schwendt's document that describes the file format and the PSID v2NG
+extensions described by Simon White and Dag Lem.
 
 SID files use the .sid file extension.
 
 Since PSID v2 is simply an extension of PSID v1, PSID v2NG is an extension of
-PSID v2, and RSID is a restricted version of PSID v2NG, all of the formats are
-discussed together below. RSID in specific is discussed in detail under the
-'magicID' field description.
+PSID v2, RSID is a restricted version of PSID v2NG, PSID v3 and RSID v3 are
+extentions of PSID v2NG and RSID v2, all of the formats are discussed together
+below. RSID in specific is discussed in detail under the 'magicID' field
+description.
 
-The information presented here targets programmers, freaks, or other people
-with reasonable background. It is not suitable for newbies who have never
-before used a machine code monitor, a disassembler, or a hexadecimal editor.
+The information presented here targets programmers or other people with
+reasonable background. It is not suitable for newbies who have never before
+used a machine code monitor, a disassembler, or a hexadecimal editor.
 
 
 The SID file header v1
@@ -64,18 +61,18 @@ these tunes safely until they can be upgraded to cope with the additional
 requirements.
 
 Due to the nature of these tunes, every effort must be made to make sure they
-are directly runnable on an actual C64 computer. As such the tunes will only 
+are directly runnable on an actual C64 computer. As such the tunes will only
 be presented with the default C64 power-on environment and expected to
 configure and use all hardware appropriately.
 
 RSID is based on PSIDv2NG with the following modifications:
 
 magicID = RSID
-version = only 2
+version = 2 and 3 only
 loadAddress = 0 (reserved)
 playAddress = 0 (reserved)
 speed = 0 (reserved)
-psidSpecific flag = 0 (reserved)
+psidSpecific flag is called C64BASIC flag
 
 The above fields MUST be checked and if any differ from the above then the
 tune MUST be rejected. The definitions above will force tunes to contain
@@ -83,35 +80,34 @@ proper hardware configuration code and install valid interrupt handlers.
 
 The default C64 environment is as follows:
 
-VIC - IRQ set to raster 0, but not enabled.
+VIC - IRQ set to raster $137, but not enabled.
 CIA 1 timer A - set to 60Hz with the counter running and IRQs active.
 Other timers - disabled and loaded with $FFFF.
 Bank register - $37
-CPU - Interrupt flag cleared
 
-A side effect of the bank register is that init MUST NOT be located under a 
-ROM/IO memory area (addesses $A000-$BFFF and $D000-$FFFF) or outside the
-load image.  Since every effort needs to be made to run the tune on a real
+A side effect of the bank register is that init MUST NOT be located under a
+ROM/IO memory area (addresses $A000-$BFFF and $D000-$FFFF) or outside the
+load image. Since every effort needs to be made to run the tune on a real
 C64 the load address of the image MUST NOT be set lower than $07E8.
 
 +04    WORD version
 
-Available version number can either be 0001 or 0002. Headers of version 2
-provide additional fields. RSID and PSID v2NG files must have 0002 here.
+Available version number can be 0001, 0002 or 0003. Headers of version 2 and 3
+provide additional fields. RSID and PSID v2NG files must have 0002 or 0003 here.
 
 +06    WORD dataOffset
 
 This is the offset from the start of the file to the C64 binary data area.
 Because of the fixed size of the header, this is either 0x0076 for version 1
-and 0x007C for version 2.
+and 0x007C for version 2 and 3.
 
 +08    WORD loadAddress
 
 The C64 memory location where to put the C64 data. 0 means the data are in
 original C64 binary file format, i.e. the first two bytes of the data contain
 the little-endian load address (low byte, high byte). This must always be true
-for RSID files. Furthermore, the actual load address must be less than $0801
-in RSID files.
+for RSID files. Furthermore, the actual load address must NOT be less than
+$07E8 in RSID files.
 
 You must be absolutely sure what to enter here. There is no way to detect
 automatically whether the first two bytes in a C64 data file are meant to be a
@@ -145,7 +141,8 @@ accepting the contents of the 8-bit 6510 Accumulator as the song number
 parameter. 0 means the address is equal to the effective load address.
 
 In RSID files initAddress must never point to a ROM area ($A000-$BFFF or
-$D000-$FFFF) or be lower than $0801.
+$D000-$FFFF) or be lower than $07E8. Also, if the C64 BASIC flag is set,
+initAddress must be 0.
 
 +0C    WORD playAddress
 
@@ -167,10 +164,24 @@ taken from. It has a default of 1.
 
 +12    LONGWORD speed
 
-This is a 32 bit big endian number. Each bit in 'speed' specifies the speed
-for the corresponding tune number, i.e. bit 0 specifies the speed for tune 1.
-If there are more than 32 tunes, the speed specified for tune 32 is also used
-for all higher numbered tunes.
+This is a 32 bit big endian number.
+
+For version 1 and 2 and for version 2NG and 3 with PlaySID specific flag (+76)
+set, the 'speed' should be handled as follows:
+
+Each bit in 'speed' specifies the speed for the corresponding tune number,
+i.e. bit 0 specifies the speed for tune 1. If there are more than 32 tunes,
+the speed specified for tune 32 is the same as tune 1, for tune 33 it is the
+same as tune 2, etc.
+
+For version 2NG and 3 with PlaySID specific flag (+76) cleared, the 'speed'
+should be handled as follows:
+
+Each bit in 'speed' specifies the speed for the corresponding tune number,
+i.e. bit 0 specifies the speed for tune 1. If there are more than 32 tunes,
+the speed specified for tune 32 is also used for all higher numbered tunes.
+
+For all version counts:
 
 A 0 bit specifies vertical blank interrupt (50Hz PAL, 60Hz NTSC), and a 1 bit
 specifies CIA 1 timer interrupt (default 60Hz).
@@ -189,11 +200,12 @@ v2NG! See also the 'clock' (video standard) field described below for 'flags'.
 
 +16    ``<name>''
 +36    ``<author>''
-+56    ``<copyright>''
++56    ``<released>'' (once known as ``<copyright>'')
 
-These are 32 byte long zero terminated ASCII character strings. Upon
-evaluating the header, a zero byte will always be put into the last byte of
-each string. So the maximum number of available free characters is 31.
+These are 32 byte long ASCII character strings. Upon evaluating the header,
+these fields may hold a character string of 32 bytes which is not zero
+terminated. For less than 32 characters the string should be zero terminated.
+The maximum number of available free characters is 32.
 
 +76    <data>
 
@@ -201,12 +213,12 @@ Version 1 of the SID header is complete at this point. The binary C64 data
 starts here.
 
 
-The SID file header v2
-======================
+The SID file header v2 and v3
+=============================
 
-Version 2 of the header incorporates the v1 header fields and provides
-additional fields. Some of these are actually v2NG specific - those are noted
-below.
+Version 2 and 3 of the header incorporates the v1 header fields and provides
+additional fields. Some of these are actually v2NG or v3 specific - those are
+noted below.
 
 +76    WORD flags
 
@@ -223,9 +235,10 @@ machine code must be merged to replay such a sidtune.
 - Bit 1 specifies whether the tune is PlaySID specific, e.g. uses PlaySID
   samples (psidSpecific):
   0 = C64 compatible,
-  1 = PlaySID specific.
+  1 = PlaySID specific (PSID v2NG, v3)
+  1 = C64 BASIC flag (RSID)
 
-This is a v2NG specific field.
+This is a v2NG and RSID specific field.
 
 PlaySID samples were invented to facilitate playback of C64 volume register
 samples with the original Amiga PlaySID software. PlaySID samples made samples
@@ -245,7 +258,10 @@ files containing only original C64 code and PSID files containing PlaySID
 samples or having other PlaySID specific issues. As stated above, bit 1 in
 'flags' is reserved for this purpose.
 
-For the same reasons, this flag must always be set to 0 in RSID files.
+Since RSID files do not have the need for PlaySID samples, this flag is used
+for a different purpose: tunes that include a BASIC executable portion will
+be played (with the BASIC portion executed) if the C64 BASIC flag is set. At
+the same time, initAddress must be 0.
 
 - Bits 2-3 specify the video standard (clock):
   00 = Unknown,
@@ -274,6 +290,14 @@ The 'clock' (video standard) field was introduced to circumvent this problem.
 
 This is a v2NG specific field.
 
+- Bits 6-7 specify the SID version (sidModel) of the second SID:
+  00 = Unknown,
+  01 = MOS6581,
+  10 = MOS8580,
+  11 = MOS6581 and MOS8580.
+
+This is a v3 specific field.
+
 The MOS6581 and the MOS8580 have three notable differences. First, combined
 waveforms are generally louder on a MOS8580, to the extent that some
 combinations that are clearly audible on a MOS8580 are completely silent on a
@@ -283,9 +307,12 @@ MOS8580 analog filter has totally different characteristics from the MOS6581
 analog filter.
 
 To ensure that music specifically written for one of the two SID versions can
-be played back correctly, bits 4-5 in 'flags' are used as stated above.
+be played back correctly, bits 4-7 in 'flags' are used as stated above.
 
-- Bits 6-15 are reserved and should be set to 0.
+If bits 6-7 are set to Unknown then the second SID will be set to the same SID
+model as the first SID.
+
+- Bits 8-15 are reserved and should be set to 0.
 
 +78    BYTE startPage (relocStartPage)
 
@@ -314,12 +341,22 @@ overlap or encompass the load range of the C64 data. For RSID files, the
 relocation range should also not overlap or encompass any of the ROM areas
 ($A000-$BFFF and $D000-$FFFF) or the reserved memory area ($0000-$03FF).
 
-+7A    WORD reserved
++7A    BYTE secondSIDAddress
 
-This is a 16 bit number and is reserved and should be set to 0.
+This is a v3 specific field. For v2NG, it should be set to 0.
+
+This is an 8 bit number indicating the address of the second SID. It specifies
+the middle part of the address, $Dxx0, starting from value $42 for $D420 to
+$FE for $DFE0). Only even values are valid. Ranges $00-$41 ($D000-$D410) and
+$80-$DF ($D800-$DDF0) are invalid. Any invalid value means that no second SID
+is used, like $00.
+
++7B    BYTE reserved
+
+This is a 8 bit number and is reserved and should be set to 0.
 
 +7C    <data>
 
-Version 2 of the SID header ends here. This offset is the start of the binary
-C64 data. See also 'loadAddress' for what the first 2 bytes of 'data' might
-indicate.
+Version 2 and 3 of the SID header ends here. This offset is the start of the
+binary C64 data. See also 'loadAddress' for what the first 2 bytes of 'data'
+might indicate.
