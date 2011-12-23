@@ -2,7 +2,7 @@
 HVSC UPDATE SCRIPT
 STRUCTURE DESCRIPTION
 
-Version: 1.3 <the.mage@gmx.net>, <LaLa@C64.org>
+Version: 1.3 <the.mage (sid) gmx.net>, <LaLa (sid) C64.org>
 
 [Ed: I guess you don't mind that I don't document the syntax using
 anything as formal as (E)BNF. The complete thing is pretty complex
@@ -121,7 +121,7 @@ in these examples is redundant.
 
 The TITLE, AUTHOR, COPYRIGHT commands take a destination file name
 and a credit line. A credit line must not be an empty or blank line
-and is limited to 31 characters, end-of-string delimiter excluded.
+and is limited to 32 characters.
 TITLE changes first line in PSID file, AUTHOR second line,
 COPYRIGHT third line. ;-)
 

@@ -52,7 +52,7 @@ struct psidHeader
     ubyte flags[2];             // only version 0x0002
     ubyte relocStartPage[1];    // only version 0x0002
     ubyte relocPages[1];        // only version 0x0002
-    ubyte reserved[2];          // only version 0x0002
+    ubyte reserved[2];          // only version 0x0002, used from version 3
 };
 
 enum
@@ -61,7 +61,8 @@ enum
     PSID_SPECIFIC  = 1 << 1,
     PSID_BASIC     = 1 << 1,
     PSID_CLOCK     = 3 << 2,
-    PSID_SIDMODEL  = 3 << 4
+    PSID_SIDMODEL  = 3 << 4, /* NOT USED */
+    PSID_SIDMODEL2 = 3 << 6  /* NOT USED */
 };
 
 enum
@@ -77,7 +78,10 @@ enum
     PSID_SIDMODEL_UNKNOWN = 0,
     PSID_SIDMODEL_6581    = 1 << 4,
     PSID_SIDMODEL_8580    = 1 << 5,
-    PSID_SIDMODEL_ANY     = PSID_SIDMODEL_6581 | PSID_SIDMODEL_8580
+    PSID_SIDMODEL_ANY     = PSID_SIDMODEL_6581 | PSID_SIDMODEL_8580,
+    PSID_SIDMODEL2_6581   = 1 << 6,
+    PSID_SIDMODEL2_8580   = 1 << 7,
+    PSID_SIDMODEL2_ANY    = PSID_SIDMODEL2_6581 | PSID_SIDMODEL2_8580
 };
 
 #endif
