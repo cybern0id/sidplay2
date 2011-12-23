@@ -646,69 +646,18 @@ int Player::sidCreate (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t userModel
     else
     {   // Detect the Correct SID model
         // Determine model when unknown
-        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_UNKNOWN)
-        {
-            switch (defaultModel)
-            {
-            case SID2_MOS6581:
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-                break;
-            case SID2_MOS8580:
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
-                break;
-            case SID2_MODEL_CORRECT:
-                // No default so base it on emulation clock
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_ANY;
-            }
-        }
+        sid2_model_t userModels[SID2_MAX_SIDS];
 
-        // Since song will run correct on any sid model
-        // set it to the current emulation
-        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_ANY)
-        {
-            if (userModel == SID2_MODEL_CORRECT)
-                userModel  = defaultModel;
-            
-            switch (userModel)
-            {
-            case SID2_MOS8580:
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
-                break;
-            case SID2_MOS6581:
-            default:
-                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-                break;
-            }
-        }
-
-        switch (userModel)
-        {
-        case SID2_MODEL_CORRECT:
-            switch (m_tuneInfo.sidModel)
-            {
-            case SIDTUNE_SIDMODEL_8580:
-                userModel = SID2_MOS8580;
-                break;
-            case SIDTUNE_SIDMODEL_6581:
-                userModel = SID2_MOS6581;
-                break;
-            }
-            break;
-        // Fixup tune information if model is forced
-        case SID2_MOS6581:
-            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
-            break;
-        case SID2_MOS8580:
-            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
-            break;
-        }
+        memset (userModels, 0, sizeof(userModels));
+        userModels[0] = sidModel(m_tuneInfo.sidModel1, userModel, defaultModel);
+        userModels[1] = sidModel(m_tuneInfo.sidModel2, userModel, userModels[0]);
 
         for (int i = 0; i < SID2_MAX_SIDS; i++)
         {   // Get first SID emulation
-            sid[i] = builder->lock (this, userModel);
+            sid[i] = builder->lock (this, userModels[i]);
             if (!sid[i])
                 sid[i] = nullsid.iaggregate ();
-            if ((i == 0) && !builder)
+                if ((i == 0) && !builder)
                 return -1;
             sid[i]->optimisation (m_cfg.optimisation);
             sid[i]->clock ((sid2_clock_t) m_tuneInfo.clockSpeed);
@@ -717,6 +666,69 @@ int Player::sidCreate (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t userModel
     xsid.emulation (sid[0]);
     sid[0] = xsid.iaggregate ();
     return 0;
+}
+
+sid2_model_t Player::sidModel(int &model, sid2_model_t userModel,
+                              sid2_model_t defaultModel)
+{
+    if (model == SIDTUNE_SIDMODEL_UNKNOWN)
+    {
+        switch (defaultModel)
+        {
+        case SID2_MOS6581:
+            model = SIDTUNE_SIDMODEL_6581;
+            break;
+        case SID2_MOS8580:
+            model = SIDTUNE_SIDMODEL_8580;
+            break;
+        case SID2_MODEL_CORRECT:
+            // No default so base it on emulation clock
+            model = SIDTUNE_SIDMODEL_ANY;
+        }
+    }
+
+    // Since song will run correct on any sid model
+    // set it to the current emulation
+    if (model == SIDTUNE_SIDMODEL_ANY)
+    {
+        if (userModel == SID2_MODEL_CORRECT)
+            userModel  = defaultModel;
+
+        switch (userModel)
+        {
+        case SID2_MOS8580:
+            model = SIDTUNE_SIDMODEL_8580;
+            break;
+        case SID2_MOS6581:
+        default:
+            model = SIDTUNE_SIDMODEL_6581;
+            break;
+        }
+    }
+
+    switch (userModel)
+    {
+    case SID2_MODEL_CORRECT:
+        switch (model)
+        {
+        case SIDTUNE_SIDMODEL_8580:
+            userModel = SID2_MOS8580;
+            break;
+        case SIDTUNE_SIDMODEL_6581:
+            userModel = SID2_MOS6581;
+            break;
+        }
+        break;
+    // Fixup tune information if model is forced
+    case SID2_MOS6581:
+        model = SIDTUNE_SIDMODEL_6581;
+        break;
+    case SID2_MOS8580:
+        model = SIDTUNE_SIDMODEL_8580;
+        break;
+    }
+
+    return userModel;
 }
 
 void Player::sidSamples (bool enable)

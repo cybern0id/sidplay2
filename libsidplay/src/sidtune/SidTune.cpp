@@ -33,31 +33,31 @@
 #include <string.h>
 #include <limits.h>
 
-#if defined(HAVE_IOS_OPENMODE)
+#ifdef HAVE_IOS_OPENMODE
     typedef std::ios::openmode openmode;
 #else
     typedef int openmode;
 #endif
 
 
-const char* SidTune::txt_songNumberExceed = "SIDTUNE WARNING: Selected song number was too high";
-const char* SidTune::txt_empty = "SIDTUNE ERROR: No data to load";
-const char* SidTune::txt_unrecognizedFormat = "SIDTUNE ERROR: Could not determine file format";
-const char* SidTune::txt_noDataFile = "SIDTUNE ERROR: Did not find the corresponding data file";
-const char* SidTune::txt_notEnoughMemory = "SIDTUNE ERROR: Not enough free memory";
-const char* SidTune::txt_cantLoadFile = "SIDTUNE ERROR: Could not load input file";
-const char* SidTune::txt_cantOpenFile = "SIDTUNE ERROR: Could not open file for binary input";
-const char* SidTune::txt_fileTooLong = "SIDTUNE ERROR: Input data too long";
-const char* SidTune::txt_dataTooLong = "SIDTUNE ERROR: Size of music data exceeds C64 memory";
-const char* SidTune::txt_cantCreateFile = "SIDTUNE ERROR: Could not create output file";
-const char* SidTune::txt_fileIoError = "SIDTUNE ERROR: File I/O error";
-const char* SidTune::txt_VBI = "VBI";
-const char* SidTune::txt_CIA = "CIA 1 Timer A";
-const char* SidTune::txt_noErrors = "No errors";
-const char* SidTune::txt_na = "N/A";
-const char* SidTune::txt_badAddr = "SIDTUNE ERROR: Bad address data";
-const char* SidTune::txt_badReloc = "SIDTUNE ERROR: Bad reloc data";
-const char* SidTune::txt_corrupt = "SIDTUNE ERROR: File is incomplete or corrupt";
+const char SidTune::txt_songNumberExceed[] = "SIDTUNE WARNING: Selected song number was too high";
+const char SidTune::txt_empty[] = "SIDTUNE ERROR: No data to load";
+const char SidTune::txt_unrecognizedFormat[] = "SIDTUNE ERROR: Could not determine file format";
+const char SidTune::txt_noDataFile[] = "SIDTUNE ERROR: Did not find the corresponding data file";
+const char SidTune::txt_notEnoughMemory[] = "SIDTUNE ERROR: Not enough free memory";
+const char SidTune::txt_cantLoadFile[] = "SIDTUNE ERROR: Could not load input file";
+const char SidTune::txt_cantOpenFile[] = "SIDTUNE ERROR: Could not open file for binary input";
+const char SidTune::txt_fileTooLong[] = "SIDTUNE ERROR: Input data too long";
+const char SidTune::txt_dataTooLong[] = "SIDTUNE ERROR: Size of music data exceeds C64 memory";
+const char SidTune::txt_cantCreateFile[] = "SIDTUNE ERROR: Could not create output file";
+const char SidTune::txt_fileIoError[] = "SIDTUNE ERROR: File I/O error";
+const char SidTune::txt_VBI[] = "VBI";
+const char SidTune::txt_CIA[] = "CIA 1 Timer A";
+const char SidTune::txt_noErrors[] = "No errors";
+const char SidTune::txt_na[] = "N/A";
+const char SidTune::txt_badAddr[] = "SIDTUNE ERROR: Bad address data";
+const char SidTune::txt_badReloc[] = "SIDTUNE ERROR: Bad reloc data";
+const char SidTune::txt_corrupt[] = "SIDTUNE ERROR: File is incomplete or corrupt";
 
 // Default sidtune file name extensions. This selection can be overriden
 // by specifying a custom list in the constructor.
@@ -255,7 +255,7 @@ void SidTune::fixLoadAddress(bool force, uint_least16_t init, uint_least16_t pla
 
 bool SidTune::placeSidTuneInC64mem(uint_least8_t* c64buf)
 {
-    if ( status && c64buf!=0 )
+    if ( status && c64buf )
     {
         uint_least32_t endPos = info.loadAddr + info.c64dataLen;
         if (endPos <= SIDTUNE_MAX_MEMORY)
@@ -281,8 +281,9 @@ bool SidTune::placeSidTuneInC64mem(uint_least8_t* c64buf)
         {
             MUS_installPlayer(c64buf);
         }
+        return true;
     }
-    return ( status && c64buf!=0 );
+    return false;
 }
 
 bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& bufferRef)
@@ -302,7 +303,7 @@ bool SidTune::loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& 
     createAtrr |= std::ios::binary;
 #endif
 
-    std::fstream myIn(fileName,createAtrr);
+    std::fstream myIn(fileName, createAtrr);
     // As a replacement for !is_open(), bad() and the NOT-operator don't seem
     // to work on all systems.
 #if defined(DONT_HAVE_IS_OPEN)
@@ -400,11 +401,12 @@ void SidTune::init()
     info.songSpeed = SIDTUNE_SPEED_VBI;
 #ifdef SIDTUNE_PSID2NG
     info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
-    info.sidModel = SIDTUNE_SIDMODEL_UNKNOWN;
+    info.sidModel1 = SIDTUNE_SIDMODEL_UNKNOWN;
 #else
     info.clockSpeed = SIDTUNE_CLOCK_PAL;
-    info.sidModel = SIDTUNE_SIDMODEL_6581;
+    info.sidModel1 = SIDTUNE_SIDMODEL_6581;
 #endif
+    info.sidModel2 = SIDTUNE_SIDMODEL_UNKNOWN;
     info.compatibility = SIDTUNE_COMPATIBILITY_C64;
     info.songLength = 0;
     info.relocStartPage = 0;
@@ -419,7 +421,7 @@ void SidTune::init()
 
     fileOffset = 0;
     musDataLen = 0;
-    
+
     for ( uint_least16_t sNum = 0; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
     {
         for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
@@ -438,8 +440,6 @@ void SidTune::init()
 #endif
     if (info.commentString != 0)
         info.commentString[0] = SidTuneTools::myStrDup("--- SAVED WITH SIDPLAY ---");
-    else
-        info.commentString[0] = 0;
 }
 
 void SidTune::cleanup()
@@ -503,34 +503,30 @@ void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least3
         info.statusString = SidTune::txt_empty;
         return;
     }
-    else if (bufferLen > SIDTUNE_MAX_FILELEN)
+
+    if (bufferLen > SIDTUNE_MAX_FILELEN)
     {
         info.statusString = SidTune::txt_fileTooLong;
         return;
     }
 
-    uint_least8_t* tmpBuf;
 #ifdef HAVE_EXCEPTIONS
-    if ( 0 == (tmpBuf = new(std::nothrow) uint_least8_t[bufferLen]) )
+    uint_least8_t* tmpBuf = new(std::nothrow) uint_least8_t[bufferLen];
 #else
-    if ( 0 == (tmpBuf = new uint_least8_t[bufferLen]) )
+    uint_least8_t* tmpBuf = new uint_least8_t[bufferLen];
 #endif
+    if ( tmpBuf == 0 )
     {
         info.statusString = SidTune::txt_notEnoughMemory;
         return;
     }
     memcpy(tmpBuf,buffer,bufferLen);
 
-    Buffer_sidtt<const uint_least8_t> buf1(tmpBuf,bufferLen);
-    Buffer_sidtt<const uint_least8_t> buf2;  // empty
-
-    if ( decompressPP20(buf1) < 0 )
-        return;
+    Buffer_sidtt<const uint_least8_t> buf1(tmpBuf, bufferLen);
 
     bool foundFormat = false;
-    LoadStatus ret;
     // Here test for the possible single file formats. --------------
-    ret = PSID_fileSupport( buf1 ); 
+    LoadStatus ret = PSID_fileSupport( buf1 );
     if ( ret != LOAD_NOT_MINE )
     {
         if ( ret == LOAD_ERROR )
@@ -539,6 +535,7 @@ void SidTune::getFromBuffer(const uint_least8_t* const buffer, const uint_least3
     }
     else
     {
+        Buffer_sidtt<const uint_least8_t> buf2;  // empty
         ret = MUS_fileSupport(buf1,buf2);
         if ( ret != LOAD_NOT_MINE )
         {
@@ -1191,7 +1188,7 @@ bool SidTune::checkCompatibility (void)
         {
             info.statusString = txt_badAddr;
             return false;
-        }    
+        }
         break;
     }
     return true;
