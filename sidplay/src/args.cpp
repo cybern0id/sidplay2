@@ -110,8 +110,9 @@
  ***************************************************************************/
 
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
+#include <vector>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -128,46 +129,55 @@ using std::endl;
 
 
 // Convert time from integer
-bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
+bool ConsolePlayer::parseTime (const char *timeStr, uint_least32_t &time)
 {
-    const char *sep;
-    uint_least32_t _time;
-
     // Check for empty string
-    if (*str == '\0')
+    if (*timeStr == '\0')
         return false;
 
-    sep = strstr (str, ":");
-    if (!sep)
-    {   // User gave seconds
-        _time = atoi (str);
-    }
-    else
-    {   // Read in MM:SS format
-        char min[3] = {'\0', '\0', '\0'};
-        int  val;
+    try
+    {
+        const char *sep;
+        uint_least32_t _time;
+        std::vector<char> str(strlen(timeStr)+1);
 
-        if (str[0] == ':')
-            return false;
-        min[0]  = str[0];
-        if (str[1] != ':')
-        {
-            min[1]  = str[1];
-            if (str[2] != ':')
+        strcpy (&str[0], timeStr);
+        sep = strstr (&str[0], ":");
+        if (!sep)
+        {   // User gave seconds
+            _time = atoi (&str[0]);
+        }
+        else
+        {   // Read in MM:SS format
+            char min[3] = {'\0', '\0', '\0'};
+            int  val;
+
+            if (str[0] == ':')
                 return false;
+            min[0]  = str[0];
+            if (str[1] != ':')
+            {
+                min[1]  = str[1];
+                if (str[2] != ':')
+                    return false;
+            }
+
+            val = atoi (min);
+            if (val < 0 || val > 99)
+                return false;
+            _time = (uint_least32_t) val * 60;
+            val   = atoi (sep + 1);
+            if (val < 0 || val > 59)
+                return false;
+            _time += (uint_least32_t) val;
         }
 
-        val = atoi (min);
-        if (val < 0 || val > 99)
-            return false;
-        _time = (uint_least32_t) val * 60;
-        val   = atoi (sep + 1);
-        if (val < 0 || val > 59)
-            return false;
-        _time += (uint_least32_t) val;
+        time = _time;
     }
-
-    time = _time;
+    catch (...)
+    {
+        return false;
+    }
     return true;
 }
 
@@ -537,9 +547,9 @@ int ConsolePlayer::args (int argc, const char *argv[])
         }
         if (print == PRINT_MODEL)
         {
-            if (tuneInfo.sidModel == SIDTUNE_SIDMODEL_6581)
+            if (tuneInfo.sidModel1 == SIDTUNE_SIDMODEL_6581)
                 cout << "6581";
-            else if (tuneInfo.sidModel == SIDTUNE_SIDMODEL_8580)
+            else if (tuneInfo.sidModel1 == SIDTUNE_SIDMODEL_8580)
                 cout << "8580";
         }
         cout << std::flush; // cerr << endl can overtake
