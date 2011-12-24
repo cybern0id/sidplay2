@@ -31,21 +31,21 @@
 SIDPLAY2_NAMESPACE_START
 
 // Inherit this class to create a new SID emulations for libsidplay2.
-template <class TInterface, class TBuilder = ISidBuilder>
+template <class TInterface>
 class CoEmulation: public CoComponent<TInterface>
 {
 private:
-    TBuilder * const m_builder;
+    ISidUnknown * const m_builder;
 
 private:
     void reset (void) { reset (0); }
 
 public:
-    CoEmulation (const char *name, TBuilder *builder)
+    CoEmulation (const char *name, ISidUnknown *builder)
     :CoComponent<TInterface>(name), m_builder (builder) {;}
 
     // ISidEmulation
-    ISidUnknown         *builder      (void) const { return m_builder; }
+    virtual ISidUnknown *builder      (void) const { return m_builder; }
     virtual void         clock        (sid2_clock_t clk) {;}
     virtual void         gain         (int_least8_t precent) {;}
     virtual void         optimisation (uint_least8_t level) {;}

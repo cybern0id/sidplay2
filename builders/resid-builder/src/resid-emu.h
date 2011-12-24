@@ -39,7 +39,7 @@
 
 SIDPLAY2_NAMESPACE_START
 
-class ReSID: public CoEmulation<ISidEmulation,IReSIDBuilder>,
+class ReSID: public CoEmulation<ISidEmulation>,
              public CoAggregate<ISidMixer>
 {
 private:
@@ -58,7 +58,7 @@ public:
     ReSID  (IReSIDBuilder *builder);
     ~ReSID (void);
 
-    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation,IReSIDBuilder>::iunknown (); }
+    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
 
     // IInterface
     bool _iquery (const Iid &iid, void **implementation);

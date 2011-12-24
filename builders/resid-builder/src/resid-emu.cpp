@@ -30,7 +30,7 @@ SIDPLAY2_NAMESPACE_START
 char ReSID::m_credit[];
 
 ReSID::ReSID (IReSIDBuilder *builder)
-:CoEmulation<ISidEmulation,IReSIDBuilder>("ReSID", builder),
+:CoEmulation<ISidEmulation>("ReSID", builder->iunknown()),
  CoAggregate<ISidMixer>(*iunknown()),
  m_context(NULL),
  m_phase(EVENT_CLOCK_PHI1),
