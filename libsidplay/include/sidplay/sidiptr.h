@@ -47,7 +47,7 @@ public:
     ~SidIPtr () { _release (); }
 
 public:
-    ISidUnknown *iaggregate () { return m_unknown; }
+    ISidUnknown *iunknown   () { return m_unknown; }
     const char  *iname      () const { return m_unknown->iname (); }
 
     TInterface *operator -> () const { assert (m_unknown); return m_if; }
@@ -116,9 +116,9 @@ private:
                 }
                 else if (!m_if)
                     return;
-                u = m_if->iaggregate (); // chain
+                u = m_if->iunknown (); // chain
             }
-            m_unknown = unknown->iaggregate ();
+            m_unknown = unknown->iunknown ();
             m_unknown->_iadd ();
         }
     }

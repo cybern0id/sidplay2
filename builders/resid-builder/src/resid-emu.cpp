@@ -31,7 +31,7 @@ char ReSID::m_credit[];
 
 ReSID::ReSID (IReSIDBuilder *builder)
 :CoEmulation<ISidEmulation,IReSIDBuilder>("ReSID", builder),
- CoAggregate<ISidMixer>(*iaggregate()),
+ CoAggregate<ISidMixer>(*iunknown()),
  m_context(NULL),
  m_phase(EVENT_CLOCK_PHI1),
 #ifdef HAVE_EXCEPTIONS

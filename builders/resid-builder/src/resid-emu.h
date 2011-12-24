@@ -58,7 +58,7 @@ public:
     ReSID  (IReSIDBuilder *builder);
     ~ReSID (void);
 
-    ISidUnknown *iaggregate () { return CoEmulation<ISidEmulation,IReSIDBuilder>::iaggregate (); }
+    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation,IReSIDBuilder>::iunknown (); }
 
     // IInterface
     bool _iquery (const Iid &iid, void **implementation);

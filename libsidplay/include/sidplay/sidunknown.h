@@ -67,8 +67,8 @@ protected:
     virtual bool iquery (const Iid &iid, void **implementation) = 0;
 
 public:
-    virtual ISidUnknown *iaggregate ()  = 0;
-    virtual const char  *iname () const = 0;
+    virtual ISidUnknown *iunknown ()  = 0;
+    virtual const char  *iname    () const = 0;
 };
 
 inline ISidUnknown::~ISidUnknown () { ; }

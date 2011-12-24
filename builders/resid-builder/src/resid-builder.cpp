@@ -216,7 +216,7 @@ ISidUnknown *CoReSIDBuilder::lock (c64env *env, sid2_model_t model)
         if (sid->lock (env))
         {
             sid->model (model);
-            return sid->iaggregate ();
+            return sid->iunknown ();
         }
     }
     // Unable to locate free SID
@@ -228,12 +228,12 @@ ISidUnknown *CoReSIDBuilder::lock (c64env *env, sid2_model_t model)
 // Allow something to use this SID
 void CoReSIDBuilder::unlock (ISidUnknown &device)
 {
-    ISidUnknown *emulation = device.iaggregate ();
+    ISidUnknown *emulation = device.iunknown ();
     int size = sidobjs.size ();
     // Maek sure this is our SID
     for (int i = 0; i < size; i++)
     {
-        if (sidobjs[i]->iaggregate() == emulation)
+        if (sidobjs[i]->iunknown() == emulation)
         {   // Unlock it
             ReSID *sid = sidobjs[i];
             sid->lock (NULL);
@@ -286,6 +286,6 @@ ISidUnknown *ReSIDBuilderCreate (const char * const name)
     CoReSIDBuilder *builder = new CoReSIDBuilder(name);
 #endif
     if (builder)
-        return builder->iaggregate ();
+        return builder->iunknown ();
     return 0;
 }

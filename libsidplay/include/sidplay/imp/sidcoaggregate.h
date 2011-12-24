@@ -32,7 +32,7 @@ public:
     CoAggregate (ISidUnknown &unknown)
         : m_unknown(unknown) { ; }
 
-    virtual ISidUnknown *iaggregate () = 0;
+    virtual ISidUnknown *iunknown () = 0;
     const char *iname () const { return m_unknown.iname (); }
 
 private:
