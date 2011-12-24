@@ -112,7 +112,7 @@ SIDPLAY2_NAMESPACE_START
 /***************************************************************************
  * HardSID SID Specialisation
  ***************************************************************************/
-class HardSID: public CoEmulation<ISidEmulation,IHardSIDBuilder>,
+class HardSID: public CoEmulation<ISidEmulation>,
                public CoAggregate<ISidMixer>, private Event
 {
 private:
@@ -139,7 +139,7 @@ public:
     ~HardSID ();
 
     // ISidUnknown
-    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation,IHardSIDBuilder>::iunknown (); }
+    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
 
     // Standard component functions
     const char   *credits (void) {return credit;}

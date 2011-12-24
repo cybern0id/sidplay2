@@ -170,7 +170,7 @@ static int hsid_device = 0;
 
 HardSID::HardSID (IHardSIDBuilder *builder, uint id, event_clock_t &accessClk,
                   hwsid_handle_t handle)
-:CoEmulation<ISidEmulation,IHardSIDBuilder>("HardSID", builder),
+:CoEmulation<ISidEmulation>("HardSID", builder->iunknown()),
  CoAggregate<ISidMixer>(*iunknown()),
  Event("HardSID Delay"),
  m_handle(handle),
