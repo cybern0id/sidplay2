@@ -569,17 +569,6 @@ int Player::initialise ()
     if (psidDrvReloc (m_tuneInfo, m_info) < 0)
         return -1;
 
-    // The Basic ROM sets these values on loading a file.
-    {   // Program end address
-        uint_least16_t start = m_tuneInfo.loadAddr;
-        uint_least16_t end   = start + m_tuneInfo.c64dataLen;
-        endian_little16 (&m_ram[0x2d], end); // Variables start
-        endian_little16 (&m_ram[0x2f], end); // Arrays start
-        endian_little16 (&m_ram[0x31], end); // Strings start
-        endian_little16 (&m_ram[0xac], start);
-        endian_little16 (&m_ram[0xae], end);
-    }
-
     if (!m_tune->placeSidTuneInC64mem (m_ram))
     {   // Rev 1.6 (saw) - Allow loop through errors
         m_errorString = (m_tune->getInfo()).statusString;
