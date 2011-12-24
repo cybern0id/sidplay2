@@ -60,13 +60,13 @@ private:
 public:
     c64xsid (c64env *env)
     :XSID(&env->context ()),
-     CoAggregate<ISidMixer>(*iaggregate()),
+     CoAggregate<ISidMixer>(*iunknown()),
      m_env(*env), m_sid(0), m_mixer(0), m_gain(100)
     {
         ;
     }
 
-    ISidUnknown *iaggregate () { return XSID::iaggregate (); }
+    ISidUnknown *iunknown () { return XSID::iunknown (); }
 
     // Standard component interface
     const char *error (void) {return "";}

@@ -245,7 +245,7 @@ ISidUnknown *CoHardSIDBuilder::lock (c64env *env, sid2_model_t model)
         HardSIDStream *stream = m_streams[i];
         HardSID *sid = stream->lock (env, model);
         if (sid)
-            return sid->iaggregate ();
+            return sid->iunknown ();
     }
 
     // See if we can reallocate a sid to the correct model
@@ -256,7 +256,7 @@ ISidUnknown *CoHardSIDBuilder::lock (c64env *env, sid2_model_t model)
         if (sid)
         {
             if (stream->reallocate (sid, model))
-                return sid->iaggregate ();
+                return sid->iunknown ();
             sid->lock (NULL);
             if (!def)
                 def = sid;
@@ -267,7 +267,7 @@ ISidUnknown *CoHardSIDBuilder::lock (c64env *env, sid2_model_t model)
     if (def)
     {
         def->lock (env);
-        return def->iaggregate ();
+        return def->iunknown ();
     }
 
     // Unable to locate free SID
@@ -279,7 +279,7 @@ ISidUnknown *CoHardSIDBuilder::lock (c64env *env, sid2_model_t model)
 // Allow something to use this SID
 void CoHardSIDBuilder::unlock (ISidUnknown &device)
 {
-    HardSID *sid = reinterpret_cast<HardSID*>(device.iaggregate ()); // @FIXME@
+    HardSID *sid = reinterpret_cast<HardSID*>(device.iunknown ()); // @FIXME@
     sid->lock (NULL);
 }
 
@@ -333,6 +333,6 @@ ISidUnknown *HardSIDBuilderCreate (const char * name)
     CoHardSIDBuilder *builder = new CoHardSIDBuilder(name);
 #endif
     if (builder)
-        return builder->iaggregate ();
+        return builder->iunknown ();
     return 0;
 }

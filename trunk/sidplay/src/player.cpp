@@ -420,7 +420,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         SidLazyIPtr<IReSIDBuilder> rs(m_sidBuilder);
         if (rs)
         {
-            m_engCfg.sidEmulation = rs->iaggregate ();
+            m_engCfg.sidEmulation = rs->iunknown ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         ReSIDBuilder *rs = new(std::nothrow) ReSIDBuilder( RESID_ID );
@@ -459,7 +459,7 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
         SidLazyIPtr<IHardSIDBuilder> hs(m_sidBuilder);
         if (hs)
         {
-            m_engCfg.sidEmulation = hs->iaggregate ();
+            m_engCfg.sidEmulation = hs->iunknown ();
 #else // Depreciated interface
 #   ifdef HAVE_EXCEPTIONS
         HardSIDBuilder *hs = new(std::nothrow) HardSIDBuilder( HARDSID_ID );

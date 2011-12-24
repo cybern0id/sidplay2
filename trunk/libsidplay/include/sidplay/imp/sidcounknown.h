@@ -53,7 +53,7 @@ public:
     CoUnknown (const char *name) : m_name(name), m_refcount(0) { ; }
     virtual ~CoUnknown () { _idestroy (); assert (!m_refcount); }
 
-    ISidUnknown *iaggregate   () { return this; }
+    ISidUnknown *iunknown     () { return this; }
     virtual const char *iname () const { return m_name; }
 
 private:

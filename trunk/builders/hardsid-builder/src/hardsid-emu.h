@@ -139,7 +139,7 @@ public:
     ~HardSID ();
 
     // ISidUnknown
-    ISidUnknown *iaggregate () { return CoEmulation<ISidEmulation,IHardSIDBuilder>::iaggregate (); }
+    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation,IHardSIDBuilder>::iunknown (); }
 
     // Standard component functions
     const char   *credits (void) {return credit;}

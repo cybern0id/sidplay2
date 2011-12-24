@@ -43,9 +43,9 @@ private:
 public:
     NullSID ()
     :CoEmulation<ISidEmulation>("NullSID", NULL),
-     CoAggregate<ISidMixer>(*iaggregate()) {;}
+     CoAggregate<ISidMixer>(*iunknown()) {;}
 
-    ISidUnknown *iaggregate () { return CoEmulation<ISidEmulation>::iaggregate (); }
+    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
 
     // Standard component functions
     void    reset (uint8_t) { ; }

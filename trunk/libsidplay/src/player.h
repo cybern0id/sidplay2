@@ -389,6 +389,7 @@ private:
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();
+    Player   *self           () { return this; }
     uint8_t   iomap          (uint_least16_t addr);
 
     uint8_t readMemByte_plain     (uint_least16_t addr);
@@ -465,7 +466,7 @@ public:
     ~Player ();
 
     // ISidUnknown
-    ISidUnknown *iaggregate () { return CoUnknown<ISidplay2>::iaggregate (); }
+    ISidUnknown *iunknown () { return CoUnknown<ISidplay2>::iunknown (); }
 
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }

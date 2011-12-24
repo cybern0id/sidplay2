@@ -347,7 +347,7 @@ ISidUnknown *ISidplay2::create ()
     ISidplay2 *sidplay2 = new SIDPLAY2_NAMESPACE::Player;
 #endif
     if (sidplay2)
-        return sidplay2->iaggregate ();
+        return sidplay2->iunknown ();
     return 0;
 }
 
@@ -401,16 +401,16 @@ const char  *Player::credit[];
 Player::Player (void)
 // Set default settings for system
 :CoUnknown<ISidplay2>("SIDPlay 2"),
- CoAggregate<ISidTimer>(*iaggregate()),
+ CoAggregate<ISidTimer>(*iunknown()),
  c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
  cpu     (&m_scheduler),
- xsid    (this),
- cia     (this),
- cia2    (this),
- sid6526 (this),
- vic     (this),
- m_mixerEvent ("Mixer", *this, &Player::mixer),
+ xsid    (self()),
+ cia     (self()),
+ cia2    (self()),
+ sid6526 (self()),
+ vic     (self()),
+ m_mixerEvent ("Mixer", *self(), &Player::mixer),
  rtc        (&m_scheduler),
  m_tune (NULL),
  m_ram  (NULL),
@@ -433,10 +433,10 @@ Player::Player (void)
 
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i] = nullsid.iaggregate ();
+        sid[i] = nullsid.iunknown ();
     }
     xsid.emulation(sid[0]);
-    sid[0] = xsid.iaggregate ();
+    sid[0] = xsid.iunknown ();
     // Setup sid mapping table
     {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
         m_sidmapper[i] = 0;
