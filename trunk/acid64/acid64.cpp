@@ -46,6 +46,7 @@ struct Acid64: public Acid64Cmd
 {
     Acid64        * const me;
     Acid64Builder         builder;
+    float64_t             cpuClock;
     long                  cycleCorrection;
     SidLazyIPtr<sidplay2> engine;
     LPVOID                engineFiber;
@@ -186,6 +187,7 @@ static std::string stilEntry (const char *filepath, uint_least16_t tune)
 
 void Acid64::delay (event_clock_t cycles)
 {
+    cpuClock += cycles;
     if (!pending())
     {
         cycleCorrection += (long)cycles;
@@ -280,6 +282,7 @@ __declspec(dllexport) handle_t __stdcall createC64 ()
         if (!inst->engine)
             throw 0;
         inst->cycleCorrection = 0;
+        inst->cpuClock = 0.0;
         inst->builder.create (inst->engine->info().maxsids);
 
         // Create the fiber
@@ -370,6 +373,7 @@ __declspec(dllexport) void __stdcall run (handle_t handle)
     SafeThreadToFibre convert(inst.mainFiber);
     if (inst.engine->state() == sid2_stopped)
     {
+        inst.cpuClock = 0.0;
         if (inst.engine->load(&inst.tune) < 0)
             throw 0;
         inst.engine->state();
@@ -610,8 +614,14 @@ __declspec(dllexport) int __stdcall getSongLength (handle_t handle)
 __declspec(dllexport) DWORD __stdcall getTime (handle_t handle)
 {
     BEGIN (inst, handle)
-    SidIPtr<ISidTimer> timer(inst.engine);
-    return (DWORD)(timer->time() * (1000 / timer->timebase()));
+    // Accuracy needs to be ms.  This is not supported by the default clock
+    // which has an accuracy of 1/10th of a second.
+    // SidIPtr<ISidTimer> timer(inst.engine);
+    // return (DWORD)(timer->time() * (1000 / timer->timebase()));
+    // Instead we count the cycles that have passed to the SID and from that we can
+    // deduce the cycle accuracy to that inuse by the emulation to drive the CPU.
+    if (!inst.pending())
+        return (DWORD)(inst.cpuClock * 1000.0 / inst.engine->info().cpuFrequency + 0.5);
     END
     return 0;
 }
