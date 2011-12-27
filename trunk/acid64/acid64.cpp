@@ -17,10 +17,12 @@
 
 #include <windows.h>
 #include <algorithm>
+#include <vector>
 #include <sidplay/sidplay2.h>
 #include <sidplay/sidlazyiptr.h>
 #include <sidplay/utils/SidDatabase.h>
 #include <sidplay/utils/SidTuneMod.h>
+#include <stil.h>
 
 #include "acid64-cmd.h"
 #include "acid64-builder.h"
@@ -36,6 +38,9 @@ typedef enum command_t
   ACID64_CMD_NEXT_PART = 4
 } command_t;
 
+static SidDatabase g_database;
+static STIL        g_stil;
+
 struct Acid64: public Acid64Cmd
              , public Event
 {
@@ -49,6 +54,7 @@ struct Acid64: public Acid64Cmd
     SidTuneMod            tune;
     SidTuneInfo           tuneInfo;
     const char           *tuneMD5;
+    std::string           tunePath;
 
     // Event
     virtual void event ();
@@ -141,6 +147,43 @@ static void stop (Acid64 &inst)
     inst.cycleCorrection = 0;
 }
 
+static std::string stilEntry (const char *filepath, uint_least16_t tune)
+{
+    for (;;)
+    {
+        std::string entry;
+        const char *s = g_stil.getAbsGlobalComment (filepath);
+        if (!s)
+        {
+            s = g_stil.getGlobalComment (filepath);
+            if (!s)
+                break;
+            entry += s;
+            s = g_stil.getEntry (filepath, tune, STIL::all);
+            if (!s)
+                break;
+            entry += s;
+            s = g_stil.getBug (filepath, tune);
+            if (!s)
+                break;
+            entry += s;
+        }
+        else
+        {
+            entry += s;
+            s = g_stil.getAbsEntry (filepath, tune, STIL::all);
+            if (!s)
+                break;
+            entry += s;
+            s = g_stil.getAbsBug (filepath, tune);
+            if (!s)
+                break;
+            entry += s;
+        }
+    }
+    return std::string();
+}
+
 void Acid64::delay (event_clock_t cycles)
 {
     if (!pending())
@@ -200,8 +243,6 @@ uint8_t Acid64::read  (event_clock_t cycles, uint_least8_t addr)
     SwitchToFiber (mainFiber);
     return cmdData;
 }
-
-static SidDatabase g_database;
 
 extern "C"
 {
@@ -282,11 +323,13 @@ __declspec(dllexport) BOOL __stdcall closeC64 (handle_t handle)
 __declspec(dllexport) BOOL __stdcall loadFile (handle_t handle, const char *filename)
 {
     BEGIN (inst, handle)
+    std::string path = filename; 
     if (inst.tune.load (filename))
     {   // Default tune
         inst.tune.selectSong (0);
         inst.tuneInfo = inst.tune.getInfo   ();
         inst.tuneMD5  = inst.tune.createMD5 ();
+        inst.tunePath.swap (path);
         return TRUE;
     }
     END
@@ -577,6 +620,8 @@ __declspec(dllexport) DWORD __stdcall getTime (handle_t handle)
 // STIL
 __declspec(dllexport) BOOL __stdcall loadSTIL (const char *directory)
 {
+    if (g_stil.setBaseDir (directory))
+        return TRUE;
     return FALSE;
 }
 
@@ -587,6 +632,13 @@ __declspec(dllexport) BOOL __stdcall loadSTILFromBuffer (const char *buffer, int
 
 __declspec(dllexport) const char *__stdcall getSTILEntry (handle_t handle)
 {
+    BEGIN (inst, handle)
+    if (inst.tune)
+    {
+        static std::string entry = stilEntry (inst.tunePath.c_str(), inst.tuneInfo.currentSong);
+        return entry.c_str ();
+    }
+    END
     return "";
 }
 

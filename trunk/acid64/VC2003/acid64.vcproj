@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../libsidplay/include;../../libsidutils/include"
-				PreprocessorDefinitions="HAVE_MSWINDOWS;_WIN32_WINNT=0x0400"
+				AdditionalIncludeDirectories="../../libsidplay/include;../../libsidutils/include;../stil"
+				PreprocessorDefinitions="HAVE_MSWINDOWS;_WIN32_WINNT=0x0400,snprintf=_snprintf"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -69,8 +69,8 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../libsidplay/include;../../libsidutils/include"
-				PreprocessorDefinitions="HAVE_MSWINDOWS;_WIN32_WINNT=0x0400"
+				AdditionalIncludeDirectories="../../libsidplay/include;../../libsidutils/include;../stil"
+				PreprocessorDefinitions="HAVE_MSWINDOWS;_WIN32_WINNT=0x0400,snprintf=_snprintf"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -157,6 +157,25 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
 				RelativePath="..\acid64.def">
+			</File>
+		</Filter>
+		<Filter
+			Name="STIL"
+			Filter="">
+			<File
+				RelativePath="..\stil\stil.cpp">
+			</File>
+			<File
+				RelativePath="..\stil\stil.h">
+			</File>
+			<File
+				RelativePath="..\stil\stilcomm.cpp">
+			</File>
+			<File
+				RelativePath="..\stil\stilcomm.h">
+			</File>
+			<File
+				RelativePath="..\stil\stildefs.h">
 			</File>
 		</Filter>
 	</Files>
