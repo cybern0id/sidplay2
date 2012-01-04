@@ -354,7 +354,7 @@ __declspec(dllexport) int __stdcall getDefaultSong (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.startSong;
     END
-    return -1; // @FIXME@ - error condition
+    return 0;
 }
 
 __declspec(dllexport) void __stdcall setSongToPlay (handle_t handle, int songToPlay)
@@ -459,7 +459,7 @@ __declspec(dllexport) int __stdcall getLoadAddress (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.loadAddr;
     END
-    return -1; // @FIXME@ - what to return for error condition
+    return 0;
 }
 
 __declspec(dllexport) int __stdcall getLoadEndAddress (handle_t handle)
@@ -468,7 +468,7 @@ __declspec(dllexport) int __stdcall getLoadEndAddress (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.loadAddr + inst.tuneInfo.c64dataLen; //- 1;
     END
-    return -1; // @FIXME@ - what to return for error condition
+    return 0;
 }
 
 __declspec(dllexport) int __stdcall getInitAddress (handle_t handle)
@@ -477,7 +477,7 @@ __declspec(dllexport) int __stdcall getInitAddress (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.initAddr;
     END
-    return -1; // @FIXME@ - what to return for error condition
+    return 0;
 }
 
 __declspec(dllexport) int __stdcall getPlayAddress (handle_t handle)
@@ -486,7 +486,7 @@ __declspec(dllexport) int __stdcall getPlayAddress (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.playAddr;
     END
-    return -1; // @FIXME@ - what to return for error condition
+    return 0;
 }
 
 __declspec(dllexport) int __stdcall getSIDModel (handle_t handle)
@@ -495,7 +495,7 @@ __declspec(dllexport) int __stdcall getSIDModel (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.sidModel1;
     END
-    return SIDTUNE_SIDMODEL_ANY;
+    return SIDTUNE_SIDMODEL_UNKNOWN;
 }
 
 __declspec(dllexport) int __stdcall getC64Version (handle_t handle)
@@ -504,7 +504,7 @@ __declspec(dllexport) int __stdcall getC64Version (handle_t handle)
     if (inst.tune)
         return inst.tuneInfo.clockSpeed;
     END
-    return SIDTUNE_CLOCK_ANY;
+    return SIDTUNE_CLOCK_UNKNOWN;
 }
 
 __declspec(dllexport) void __stdcall setC64Version (handle_t handle, int model)
