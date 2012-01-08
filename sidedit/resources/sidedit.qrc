@@ -1,4 +1,7 @@
 <RCC>
-    <qresource prefix="sidedit">
+    <qresource prefix="/">
+        <file>images/new.png</file>
+        <file>images/open.png</file>
+        <file>images/save.png</file>
     </qresource>
 </RCC>
