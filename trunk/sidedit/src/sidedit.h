@@ -9,6 +9,7 @@
 
 #include <sidplay/SidTune.h>
 #include "enuminfo.h"
+#include "hexspinbox.h"
 
 class SidEdit : public QMainWindow
 {
@@ -26,17 +27,47 @@ public:
     SidEdit(QWidget *parent = 0, Qt::WFlags flags = 0);
     ~SidEdit();
 
+protected:
+    virtual void closeEvent (QCloseEvent *closeEvent);
+
 private:
     template <class T> T* _find (const char *objectName);
+    void _loadFile       (const QString &fileName);
+    bool _maybeSave      ();
+    void _pages          (int start, int end);
+    bool _saveFile       (QString fileName);
     void _setupPSID      (int version);
     void _setupRSID      (int version);
     void _updateComboBox (QComboBox *cbo, EnumInfo &info);
+
+private slots:
+    void _defaultClicked     ();
+    void _fileTypeChanged    (int index);
+    void _new                ();
+    void _open               ();
+    void _playerEndChanged   (int end);
+    void _playerStartChanged (int end);
+    bool _save               ();
+    bool _saveAs             ();
+    void _songChanged        (int song);
+    void _songsChanged       (int songs);
+    void _versionChanged     (int version);
+
+signals:
+    void _defaultSong   (int  index);
+    void _player        (bool visible);
+    void _player        (int  index);
+    void _hwInfo        (bool visible);
+    void _subtune       (bool visible);
+    void _subtuneHwInfo (bool visible);
+    void _timingEnabled (bool enabled);
 
 private:
     int              m_defaultSong;
     filetype_t       m_fileType;
     FileTypeInfo     m_fileTypeInfo;
     bool             m_hwInfo;
+    bool             m_isModified;
     PlayerType       m_playerTypePSID;
     PlayerType       m_playerTypeRSID;
     SIDTypeInfo      m_sidTypeInfo;
@@ -54,28 +85,17 @@ private:
     QLineEdit  *m_txtCreditTitle;
     QLineEdit  *m_txtCreditAuthor;
     QLineEdit  *m_txtCreditReleased;
+    QLabel     *m_txtLoadRange;
     QScrollBar *m_sbrSong;
+    HexSpinBox *m_spnInitAddress;
+    HexSpinBox *m_spnLoadAddress;
+    HexSpinBox *m_spnPlayAddress;
+    HexSpinBox *m_spnPlayerStart;
+    HexSpinBox *m_spnPlayerEnd;
     QSpinBox   *m_spnSongs;
     QSpinBox   *m_spnVersion;
     QLabel     *m_txtPlayerPages;
     QLabel     *m_txtSong;
-
-private slots:
-    void _defaultClicked  ();
-    void _fileTypeChanged (int index);
-    void _new             ();
-    void _songChanged     (int song);
-    void _songsChanged    (int songs);
-    void _versionChanged  (int version);
-
-signals:
-    void _defaultSong   (int  index);
-    void _player        (bool visible);
-    void _player        (int  index);
-    void _hwInfo        (bool visible);
-    void _subtune       (bool visible);
-    void _subtuneHwInfo (bool visible);
-    void _timingEnabled (bool enabled);
 };
 
 #endif // SIDEDIT_H
