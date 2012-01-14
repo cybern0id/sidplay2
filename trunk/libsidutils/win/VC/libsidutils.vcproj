@@ -140,13 +140,16 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{EAE4B524-4789-4436-842B-3E4319827EB4}"
+			Name="libsidplay"/>
 	</References>
 	<Files>
 		<File
-			RelativePath="config.h">
+			RelativePath="..\..\include\config.h">
 		</File>
 		<File
-			RelativePath="..\..\include\config.h">
+			RelativePath="config.h">
 		</File>
 		<File
 			RelativePath="..\..\src\ini\headings.h">
