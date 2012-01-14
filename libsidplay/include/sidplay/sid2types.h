@@ -87,6 +87,7 @@ struct sid2_info_t
 {
     const char              **credits;
     uint                      channels;
+    float64_t                 cpuFrequency;
     uint_least16_t            driverAddr;
     uint_least16_t            driverLength;
     const char               *name;

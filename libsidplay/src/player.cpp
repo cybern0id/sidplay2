@@ -445,6 +445,7 @@ Player::Player (void)
     // Setup exported info
     m_info.credits         = credit;
     m_info.channels        = 1;
+    m_info.cpuFrequency    = CLOCK_FREQ_PAL;
     m_info.driverAddr      = 0;
     m_info.driverLength    = 0;
     m_info.name            = PACKAGE_NAME;
