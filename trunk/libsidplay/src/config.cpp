@@ -253,6 +253,7 @@ int Player::config (const sid2_config_t &cfg)
             // Determine clock speed
             cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
                                   cfg.clockForced);
+            m_info.cpuFrequency = cpuFreq;
             // Fixed point conversion 16.16
             m_samplePeriod = (event_clock_t) (cpuFreq /
                              (float64_t) cfg.frequency *
