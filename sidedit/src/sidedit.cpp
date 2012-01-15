@@ -1,6 +1,8 @@
 #include <QCloseEvent>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
+#include <QTextDecoder>
 
 #include "sidedit.h"
 #include "ui_sidedit.h"
@@ -29,9 +31,9 @@ static bool safe_connect (bool condition, int line)
 SidEdit::PlayerType::PlayerType (bool rsid)
 {
     if (rsid)
-        _add (SIDTUNE_COMPATIBILITY_C64,   QT_TR_NOOP("C64 Only"));
+        _add (SIDTUNE_COMPATIBILITY_R64,   QT_TR_NOOP("C64 Only"));
     else
-        _add (SIDTUNE_COMPATIBILITY_R64,   QT_TR_NOOP("C64 Compatible"));
+        _add (SIDTUNE_COMPATIBILITY_C64,   QT_TR_NOOP("C64 Compatible"));
     if (rsid)
         _add (SIDTUNE_COMPATIBILITY_BASIC, QT_TR_NOOP("C64 Basic"));
     else
@@ -73,6 +75,7 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
 ,m_playerTypePSID(false)
 ,m_playerTypeRSID(true)
 ,m_setup(0)
+,m_tune(new SidTune(0))
 {
     {   // Do this to ensure we are compatible with dynamic loading
         Ui::sideditClass ui;
@@ -145,8 +148,6 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
 
     _new ();
 
-//QTextDecoder* decoder = QTextCodec::codecForName("Windows-1252")->makeDecoder();
-//    QString result = decoder->toUnicode(data,data.length());
 //QTextEncoder* encoder = QTextCodec::codecForName("Windows-1250")->makeEncoder();
 //QByteArray outputData = encoder->fromUnicode(result);
 }
@@ -174,43 +175,50 @@ void SidEdit::_defaultClicked ()
 
 void SidEdit::_fileTypeChanged (int index)
 {
-    m_fileType = m_fileTypeInfo.value (index);
-
-    switch (m_fileType)
+    if (index >= 0)
     {
-    case ftPSID:
-        m_spnSongs->setMaximum   (256);
-        m_timingMaxSong         = 32;
-        _updateComboBox (m_cboPlayerType, m_playerTypePSID);
-        m_setup = &SidEdit::_setupPSID;
-        m_spnVersion->setMinimum (1);
-        m_spnVersion->setMaximum (3);
-        m_spnVersion->setValue   (2);
-        break;
-    case ftRSID:
-        {   // RSID must use VIC timing and re-program the hardware for CIA
-            int index = m_timingInfo.indexOf (SIDTUNE_SPEED_VBI);
-            m_cboTiming->setCurrentIndex (index);
-        }
-        m_spnSongs->setMaximum   (256);
-        m_timingMaxSong         = 0;
-        _updateComboBox (m_cboPlayerType, m_playerTypeRSID);
-        m_setup = &SidEdit::_setupRSID;
-        m_spnVersion->setMinimum (2);
-        m_spnVersion->setMaximum (3);
-        m_spnVersion->setValue   (2);
-        break;
-    }
+        m_fileType = m_fileTypeInfo.value (index);
 
-    _versionChanged (m_spnVersion->value());
-    _timingEnabled  (m_sbrSong->value() <= m_timingMaxSong);
+        switch (m_fileType)
+        {
+        case ftPSID:
+            m_spnSongs->setMaximum   (256);
+            m_timingMaxSong         = 32;
+            _updateComboBox (m_cboPlayerType, m_playerTypePSID);
+            m_setup = &SidEdit::_setupPSID;
+            m_spnVersion->setMinimum (1);
+            m_spnVersion->setMaximum (3);
+            m_spnVersion->setValue   (2);
+            break;
+        case ftRSID:
+            {   // RSID must use VIC timing and re-program the hardware for CIA
+                int index = m_timingInfo.indexOf (SIDTUNE_SPEED_VBI);
+                m_cboTiming->setCurrentIndex (index);
+            }
+            m_spnSongs->setMaximum   (256);
+            m_timingMaxSong         = 0;
+            _updateComboBox (m_cboPlayerType, m_playerTypeRSID);
+            m_setup = &SidEdit::_setupRSID;
+            m_spnVersion->setMinimum (2);
+            m_spnVersion->setMaximum (3);
+            m_spnVersion->setValue   (2);
+            break;
+        }
+
+        _versionChanged (m_spnVersion->value());
+        _timingEnabled  (m_sbrSong->value() <= m_timingMaxSong);
+    }
 }
 
 void SidEdit::_loadFile (const QString &fileName)
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+    std::auto_ptr<SidTune> tune;
 
-    QApplication::restoreOverrideCursor();
+    try
+    {
+        QFileInfo info(fileName);
+        tune.reset (new SidTune(fileName.toUtf8()));
 
 /*
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
@@ -221,39 +229,123 @@ void SidEdit::_loadFile (const QString &fileName)
         return;
     }
 */
+        if (!tune->getStatus())
+            tune.reset (0);
+    }
+    catch (...)
+    {
+        ;
+    }
+
+    QApplication::restoreOverrideCursor();
+
+    if (!tune.get())
+        return;
+
     setWindowFilePath (fileName);
+    m_tune = tune;
+    _loadTuneInfo ();
+}
+
+void SidEdit::_loadTuneInfo ()
+{
+    QString text;
+
+    const SidTuneInfo &info = m_tune->getInfo ();
+    m_sbrSong->setValue   (info.startSong);
+    m_spnSongs->setValue  (info.songs);
+
+    switch (info.compatibility)
+    {
+    case SIDTUNE_COMPATIBILITY_R64:
+    case SIDTUNE_COMPATIBILITY_BASIC:
+        m_cboFileType->setCurrentIndex (m_fileTypeInfo.indexOf(ftRSID));
+        break;
+    default:
+        m_cboFileType->setCurrentIndex (m_fileTypeInfo.indexOf(ftPSID));
+        break;
+    }
+
+    // @FIXME@: Need to remove version setting and make it automatic
+    m_spnVersion->setValue (3);
+
+    _updateComboBox (m_cboFileType, m_fileTypeInfo);
+    _updateComboBox (m_cboSidType,  m_sidTypeInfo);
+    _updateComboBox (m_cboTiming,   m_timingInfo);
+    _updateComboBox (m_cboVicSpeed, m_vicSpeedInfo);
+    _defaultClicked ();
+
+    // Load Address
+    m_spnLoadAddress->setValue (info.loadAddr);
+    text = QString::number(info.dataFileLen);
+    if (info.dataFileLen > 0)
+    {   // Add end address if usefull
+        text += " (";
+        text += tr (QT_TR_NOOP("End"));
+        text += ": ";
+        text += m_spnLoadAddress->prefix ();
+        text += QString::number(info.loadAddr + info.dataFileLen - 1, 16).rightJustified(4, '0').toUpper ();
+        text += ')';
+    }
+    m_txtLoadRange->setText    (text);
+    m_spnInitAddress->setValue (info.initAddr);
+    m_spnPlayAddress->setValue (info.playAddr);
+
+    // Player Details
+    m_spnPlayerStart->setValue (info.relocStartPage << 8);
+    int start = info.relocStartPage << 8;
+    int end   = 0;
+    if ((start > 0) || (start < 0xff00))
+        end = start + (info.relocPages << 8) - 1;
+    m_spnPlayerStart->setValue (start);
+    m_spnPlayerEnd->setValue   (end);
+    _pages (start, end);
+
+    // Credits
+    QTextDecoder* decoder = QTextCodec::codecForName("Windows-1252")->makeDecoder();
+    if (info.numberOfInfoStrings > 0)
+    {
+        text = decoder->toUnicode (info.infoString[0], strlen(info.infoString[0]));
+        m_txtCreditTitle->setText    (text);
+    }
+    if (info.numberOfInfoStrings > 1)
+    {
+        text = decoder->toUnicode (info.infoString[1], strlen(info.infoString[1]));
+        m_txtCreditAuthor->setText   (text);
+    }
+    if (info.numberOfInfoStrings > 2)
+    {
+        text = decoder->toUnicode (info.infoString[2], strlen(info.infoString[2]));
+        m_txtCreditReleased->setText (text);
+    }
+
+    if (m_fileType == ftRSID)
+        m_cboPlayerType->setCurrentIndex (m_playerTypeRSID.indexOf(info.compatibility));
+    else
+        m_cboPlayerType->setCurrentIndex (m_playerTypePSID.indexOf(info.compatibility));
+
+    m_cboSidType->setCurrentIndex    (m_sidTypeInfo.indexOf(info.sidModel1));
+    m_cboVicSpeed->setCurrentIndex   (m_vicSpeedInfo.indexOf(info.clockSpeed));
 }
 
 void SidEdit::_new ()
 {
     if (_maybeSave())
     {
+        try
+        {
+            m_tune.reset (new SidTune(0));
+        }
+        catch (...)
+        {
+            return;
+        }
+
         setWindowFilePath ("");
-        m_sbrSong->setValue  (1);
-        m_spnSongs->setValue (1);
-        _updateComboBox (m_cboFileType, m_fileTypeInfo);
-        _updateComboBox (m_cboSidType,  m_sidTypeInfo);
-        _updateComboBox (m_cboTiming,   m_timingInfo);
-        _updateComboBox (m_cboVicSpeed, m_vicSpeedInfo);
-        _defaultClicked ();
-
-        // Load Address
-        m_spnLoadAddress->setValue (0);
-        m_txtLoadRange->setText    ("1 (End: 0x0000)");
-        m_spnInitAddress->setValue (0);
-        m_spnPlayAddress->setValue (0);
-
-        // Player Details
-        m_spnPlayerStart->setValue (0);
-        m_spnPlayerEnd->setValue   (0);
-        _pages (0, 0);
-
-        // Credits
-        m_txtCreditTitle->setText    ("<?>");
-        m_txtCreditAuthor->setText   ("<?>");
-        m_txtCreditReleased->setText ("<?>");
-
-        m_isModified = false;
+        _loadTuneInfo ();
+//    m_txtCreditTitle->setText    ("<?>");
+//    m_txtCreditAuthor->setText   ("<?>");
+//    m_txtCreditReleased->setText ("<?>");
     }
 }
 
@@ -289,8 +381,16 @@ void SidEdit::_pages (int start, int end)
     QString str;
     int offset = 0, length = 0;
 
-    if ((start | end) == 0)
-        str += QT_TR_NOOP("Auto");
+    if (start < 0x100)
+    {
+        str += tr (QT_TR_NOOP("Auto"));
+        end  = 0;
+    }
+    else if (start >= 0xff00)
+    {
+        str   += tr (QT_TR_NOOP("No Space"));
+        offset = 0xff;
+    }
     else
     {
         offset  = ((start + 0xff) >> 8);
@@ -298,7 +398,7 @@ void SidEdit::_pages (int start, int end)
         length -= offset;
         if ((end < start) || (length < 0))
         {
-            m_txtPlayerPages->setText (QT_TR_NOOP("Illegal"));
+            m_txtPlayerPages->setText (tr(QT_TR_NOOP("Illegal")));
             return;
         }
 
@@ -306,7 +406,7 @@ void SidEdit::_pages (int start, int end)
     }
 
     str += " (";
-    str += QT_TR_NOOP("Code");
+    str += tr (QT_TR_NOOP("Code"));
     str += ": ";
     str += m_spnPlayerStart->prefix ();
     str += QString::number (offset, 16).rightJustified(2, '0').toUpper ();
@@ -327,9 +427,14 @@ void SidEdit::_playerStartChanged (int start)
 
 bool SidEdit::_save()
 {
+    bool ret = false;
     if (windowFilePath().isEmpty())
-        return _saveAs ();
-    return _saveFile (windowFilePath());
+        ret = _saveAs ();
+    else
+        ret = _saveFile (windowFilePath());
+    if (ret)
+        m_isModified = false;
+    return ret;
 }
 
 bool SidEdit::_saveAs ()
@@ -422,5 +527,5 @@ void SidEdit::_updateComboBox (QComboBox *cbo, EnumInfo &info)
 {
     cbo->clear ();
     for (int i = 0; i < info.size(); ++i)
-        cbo->addItem (info.at(i));
+        cbo->addItem (tr(info.at(i)));
 }

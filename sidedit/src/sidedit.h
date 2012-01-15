@@ -1,6 +1,8 @@
 #ifndef SIDEDIT_H
 #define SIDEDIT_H
 
+#include <algorithm>
+
 #include <QComboBox>
 #include <QLabel>
 #include <QMainWindow>
@@ -33,6 +35,7 @@ protected:
 private:
     template <class T> T* _find (const char *objectName);
     void _loadFile       (const QString &fileName);
+    void _loadTuneInfo   ();
     bool _maybeSave      ();
     void _pages          (int start, int end);
     bool _saveFile       (QString fileName);
@@ -63,19 +66,20 @@ signals:
     void _timingEnabled (bool enabled);
 
 private:
-    int              m_defaultSong;
-    filetype_t       m_fileType;
-    FileTypeInfo     m_fileTypeInfo;
-    bool             m_hwInfo;
-    bool             m_isModified;
-    PlayerType       m_playerTypePSID;
-    PlayerType       m_playerTypeRSID;
-    SIDTypeInfo      m_sidTypeInfo;
-    bool             m_subtuneInfo;
-    TimingInfo       m_timingInfo;
-    int              m_timingMaxSong;
-    VICSpeedInfo     m_vicSpeedInfo;
-    void (SidEdit::* m_setup) (int);
+    int                    m_defaultSong;
+    filetype_t             m_fileType;
+    FileTypeInfo           m_fileTypeInfo;
+    bool                   m_hwInfo;
+    bool                   m_isModified;
+    PlayerType             m_playerTypePSID;
+    PlayerType             m_playerTypeRSID;
+    SIDTypeInfo            m_sidTypeInfo;
+    bool                   m_subtuneInfo;
+    TimingInfo             m_timingInfo;
+    int                    m_timingMaxSong;
+    std::auto_ptr<SidTune> m_tune;
+    VICSpeedInfo           m_vicSpeedInfo;
+    void (SidEdit::*       m_setup) (int);
 
     QComboBox  *m_cboFileType;
     QComboBox  *m_cboPlayerType;
