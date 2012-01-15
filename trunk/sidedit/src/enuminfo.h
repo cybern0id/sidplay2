@@ -10,8 +10,8 @@ class EnumInfo
 public:
     virtual ~EnumInfo () { ; }
 
-    virtual QString at   (int index) const = 0;
-    virtual int     size () const = 0;
+    virtual const char *at   (int index) const = 0;
+    virtual int         size () const = 0;
 
 protected:
     EnumInfo () { ; }
@@ -21,8 +21,9 @@ template <typename T>
 class TEnumInfo: public EnumInfo
 {
 public:
-    virtual int     size () const { return m_info.size(); }
-    virtual QString at   (int index) const
+    virtual int size () const { return m_info.size(); }
+
+    virtual const char *at (int index) const
     {
         return m_info.at(index).second;
     }
