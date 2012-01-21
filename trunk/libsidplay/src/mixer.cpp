@@ -79,7 +79,7 @@ void Player::mixer (void)
 
     // Filled buffer
     if (m_sampleIndex >= m_sampleCount)
-        m_running = false;
+        m_running = -1;
 }
 
 
