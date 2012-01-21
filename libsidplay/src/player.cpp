@@ -631,7 +631,7 @@ void Player::pause (void)
     if (m_running)
     {
         m_playerState = sid2_paused;
-        m_running     = false;
+        m_running     = -1; // stop running
     }
 }
 
@@ -650,11 +650,12 @@ uint_least32_t Player::play (void *buffer, uint_least32_t length)
     m_playerState = sid2_playing;
     m_running     = true;
 
-    while (m_running)
+    while (m_running > 0)
         m_scheduler.clock ();
 
     if (m_playerState == sid2_stopped)
         initialise ();
+    m_running = false;
     return m_sampleIndex;
 }
 
@@ -662,13 +663,11 @@ void Player::stop (void)
 {   // Re-start song
     if (m_tune && (m_playerState != sid2_stopped))
     {
+        m_playerState = sid2_stopped;
         if (!m_running)
             initialise ();
         else
-        {
-            m_playerState = sid2_stopped;
-            m_running     = false;
-        }
+            m_running = -1; // stop running
     }
 }
 
@@ -957,8 +956,8 @@ void Player::reset (void)
 {
     int i;
 
+    m_running      = -1; // Pending stop
     m_playerState  = sid2_stopped;
-    m_running      = false;
     m_sid2crc      = 0xffffffff;
     m_info.sid2crc = m_sid2crc ^ 0xffffffff;    
     m_sid2crcCount = m_info.sid2crcCount = 0;
@@ -981,7 +980,13 @@ void Player::reset (void)
         s->write (0x12, 0x00);
     }
 
-    if (m_info.environment == sid2_envR)
+	// Must be after SID writes to ensure asynchronous state
+	// queries do not return we have completed.  This can be
+	// problematic when reseting things real hardware e.g.
+	// HardSID and fixes issues supporting the Acid64 API.
+    m_running = false;
+
+	if (m_info.environment == sid2_envR)
     {
         cia.reset  ();
         cia2.reset ();

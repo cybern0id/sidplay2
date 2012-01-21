@@ -336,7 +336,7 @@ private:
     int_least32_t   m_leftVolume;
     int_least32_t   m_rightVolume;
     volatile sid2_player_t m_playerState;
-    volatile bool   m_running;
+    volatile int    m_running;
     int             m_rand;
     uint_least32_t  m_sid2crc;
     uint_least32_t  m_sid2crcCount;
@@ -480,7 +480,7 @@ public:
     uint_least32_t mileage      (void) const { return m_mileage + time(); }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
-    sid2_player_t  state        (void) const { return m_playerState; }
+	sid2_player_t  state        (void) const { return m_running ? sid2_playing : m_playerState; }
     void           stop         (void);
     uint_least32_t time         (void) const {return rtc.getTime (); }
     uint_least32_t timebase     (void) const { return SID2_TIME_BASE; }
