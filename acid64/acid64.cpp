@@ -139,12 +139,10 @@ static void __stdcall start (LPVOID lp)
 
 static void stop (Acid64 &inst)
 {
+    inst.engine->stop ();
     SafeThreadToFibre convert(inst.mainFiber);
     while (inst.engine->state() != sid2_stopped)
-    {
-        SwitchToFiber (inst.mainFiber);
-        // Never get here
-    }
+        SwitchToFiber (inst.engineFiber);
     inst.cycleCorrection = 0;
 }
 
