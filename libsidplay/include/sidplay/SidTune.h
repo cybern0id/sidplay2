@@ -204,7 +204,7 @@ class SID_EXTERN SidTune
     // Whether sidtune uses two SID chips.
     bool isStereo()
     {
-        return (info.sidChipBase1!=0 && info.sidChipBase2!=0);
+        return (m_info.sidChipBase1!=0 && m_info.sidChipBase2!=0);
     }
     
     // Copy sidtune into C64 memory (64 KB).
@@ -245,7 +245,7 @@ class SID_EXTERN SidTune
 
  protected:  // -------------------------------------------------------------
 
-    SidTuneInfo info;
+    SidTuneInfo m_info;
     bool status;
 
     uint_least8_t songSpeed[SIDTUNE_MAX_SONGS];
@@ -278,11 +278,11 @@ class SID_EXTERN SidTune
     static int convertPetsciiToAscii (SmartPtr_sidtt<const uint_least8_t>&, char*);
 
     // Check compatibility details are sensible
-    bool checkCompatibility(void);
+    bool checkCompatibility(SidTuneInfo &info);
     // Check for valid relocation information
-    bool checkRelocInfo(void);
+    bool checkRelocInfo(SidTuneInfo &info);
     // Common address resolution procedure
-    bool resolveAddrs(const uint_least8_t* c64data);
+    bool resolveAddrs(SidTuneInfo &info, const uint_least8_t* c64data);
 
     // Support for various file formats.
 

@@ -81,14 +81,14 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
     if ( SidTuneTools::myStrNcaseCmp( pParseBuf, keyword_id ) == 0 )
     {
         // At least the ID was found, so set a default error message.
-        info.formatString = text_truncatedError;
+        m_info.formatString = text_truncatedError;
         
         // Defaults.
         fileOffset = 0;                // no header in separate data file
-        info.sidChipBase1 = 0xd400;
-        info.sidChipBase2 = 0;
-        info.musPlayer = false;
-        info.numberOfInfoStrings = 0;
+        m_info.sidChipBase1 = 0xd400;
+        m_info.sidChipBase2 = 0;
+        m_info.musPlayer = false;
+        m_info.numberOfInfoStrings = 0;
         uint_least32_t oldStyleSpeed = 0;
 
         // Flags for required entries.
@@ -108,7 +108,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
 #endif
         if ( pParseChunk == 0 )
         {
-            info.formatString = text_noMemError;
+            m_info.formatString = text_noMemError;
             return LOAD_ERROR;
         }
         
@@ -161,15 +161,15 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
             if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_address ) == 0 )
             {
                 SidTuneTools::skipToEqu( parseStream );
-                info.loadAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
-                info.initAddr = info.loadAddr;
+                m_info.loadAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
+                m_info.initAddr = m_info.loadAddr;
                 hasInitAddr = true;
                 if ( parseStream )
                 {
-                    info.initAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
+                    m_info.initAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
                     if ( !parseStream )
                         break;
-                    info.playAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
+                    m_info.playAddr = (uint_least16_t)SidTuneTools::readHex( parseStream );
                     hasAddress = true;
                 }
             }
@@ -177,36 +177,36 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_name ) == 0 )
             {
                 SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[0][0],SIDTUNE_MAX_CREDIT_STRLEN);
-                info.infoString[0] = &infoString[0][0];
+                m_info.infoString[0] = &infoString[0][0];
                 hasName = true;
             }
             // AUTHOR
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_author ) == 0 )
             {
                 SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[1][0],SIDTUNE_MAX_CREDIT_STRLEN);
-                info.infoString[1] = &infoString[1][0];
+                m_info.infoString[1] = &infoString[1][0];
                 hasAuthor = true;
             }
             // COPYRIGHT
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_copyright ) == 0 )
             {
                 SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-                info.infoString[2] = &infoString[2][0];
+                m_info.infoString[2] = &infoString[2][0];
                 hasReleased = true;
             }
             // RELEASED
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_released ) == 0 )
             {
                 SidTuneTools::copyStringValueToEOL(pParseBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-                info.infoString[2] = &infoString[2][0];
+                m_info.infoString[2] = &infoString[2][0];
                 hasReleased = true;
             }
             // SONGS
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_songs ) == 0 )
             {
                 SidTuneTools::skipToEqu( parseStream );
-                info.songs = (uint_least16_t)SidTuneTools::readDec( parseStream );
-                info.startSong = (uint_least16_t)SidTuneTools::readDec( parseStream );
+                m_info.songs = (uint_least16_t)SidTuneTools::readDec( parseStream );
+                m_info.startSong = (uint_least16_t)SidTuneTools::readDec( parseStream );
                 hasSongs = true;
             }
             // SPEED
@@ -219,15 +219,15 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
             // SIDSONG
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_musPlayer ) == 0 )
             {
-                info.musPlayer = true;
+                m_info.musPlayer = true;
             }
             // RELOC
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_reloc ) == 0 )
             {
-                info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( parseStream );
+                m_info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( parseStream );
                 if ( !parseStream )
                     break;
-                info.relocPages = (uint_least8_t)SidTuneTools::readHex( parseStream );
+                m_info.relocPages = (uint_least8_t)SidTuneTools::readHex( parseStream );
             }
             // CLOCK
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_clock ) == 0 )
@@ -235,13 +235,13 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 char clock[8];
                 SidTuneTools::copyStringValueToEOL(pParseBuf,clock,sizeof(clock));
                 if ( SidTuneTools::myStrNcaseCmp( clock, "UNKNOWN" ) == 0 )
-                    info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
+                    m_info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
                 else if ( SidTuneTools::myStrNcaseCmp( clock, "PAL" ) == 0 )
-                    info.clockSpeed = SIDTUNE_CLOCK_PAL;
+                    m_info.clockSpeed = SIDTUNE_CLOCK_PAL;
                 else if ( SidTuneTools::myStrNcaseCmp( clock, "NTSC" ) == 0 )
-                    info.clockSpeed = SIDTUNE_CLOCK_NTSC;
+                    m_info.clockSpeed = SIDTUNE_CLOCK_NTSC;
                 else if ( SidTuneTools::myStrNcaseCmp( clock, "ANY" ) == 0 )
-                    info.clockSpeed = SIDTUNE_CLOCK_ANY;
+                    m_info.clockSpeed = SIDTUNE_CLOCK_ANY;
             }
             // SIDMODEL
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_sidModel ) == 0 )
@@ -249,13 +249,13 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 char model[8];
                 SidTuneTools::copyStringValueToEOL(pParseBuf,model,sizeof(model));
                 if ( SidTuneTools::myStrNcaseCmp( model, "UNKNOWN" ) == 0 )
-                    info.sidModel1 = SIDTUNE_SIDMODEL_UNKNOWN;
+                    m_info.sidModel1 = SIDTUNE_SIDMODEL_UNKNOWN;
                 else if ( SidTuneTools::myStrNcaseCmp( model, "6581" ) == 0 )
-                    info.sidModel1 = SIDTUNE_SIDMODEL_6581;
+                    m_info.sidModel1 = SIDTUNE_SIDMODEL_6581;
                 else if ( SidTuneTools::myStrNcaseCmp( model, "8580" ) == 0 )
-                    info.sidModel1 = SIDTUNE_SIDMODEL_8580;
+                    m_info.sidModel1 = SIDTUNE_SIDMODEL_8580;
                 else if ( SidTuneTools::myStrNcaseCmp( model, "ANY" ) == 0 )
-                    info.sidModel1 = SIDTUNE_SIDMODEL_ANY;
+                    m_info.sidModel1 = SIDTUNE_SIDMODEL_ANY;
             }
             // COMPATIBILITY
             else if ( SidTuneTools::myStrNcaseCmp( pParseChunk, keyword_compatibility ) == 0 )
@@ -263,13 +263,13 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 char comp[6];
                 SidTuneTools::copyStringValueToEOL(pParseBuf,comp,sizeof(comp));
                 if ( SidTuneTools::myStrNcaseCmp( comp, "C64" ) == 0 )
-                    info.compatibility = SIDTUNE_COMPATIBILITY_C64;
+                    m_info.compatibility = SIDTUNE_COMPATIBILITY_C64;
                 else if ( SidTuneTools::myStrNcaseCmp( comp, "PSID" ) == 0 )
-                    info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
+                    m_info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
                 else if ( SidTuneTools::myStrNcaseCmp( comp, "R64" ) == 0 )
-                    info.compatibility = SIDTUNE_COMPATIBILITY_R64;
+                    m_info.compatibility = SIDTUNE_COMPATIBILITY_R64;
                 else if ( SidTuneTools::myStrNcaseCmp( comp, "BASIC" ) == 0 )
-                    info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
+                    m_info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
             }
             parseLen  -= restLen;
             pParseBuf += restLen;
@@ -284,7 +284,7 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
             return LOAD_ERROR;
         }
 
-        switch ( info.compatibility )
+        switch ( m_info.compatibility )
         {
         case SIDTUNE_COMPATIBILITY_PSID:
         case SIDTUNE_COMPATIBILITY_C64:
@@ -297,10 +297,10 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
                 return LOAD_ERROR; // Error set above
             // Allow user to provide single address
             if ( !hasAddress )
-                info.loadAddr = 0;
-            else if ( info.loadAddr || info.playAddr )
+                m_info.loadAddr = 0;
+            else if ( m_info.loadAddr || m_info.playAddr )
             {
-                info.formatString = text_invalidError;
+                m_info.formatString = text_invalidError;
                 return LOAD_ERROR;
             }
             // Deliberate run on
@@ -310,11 +310,11 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
         }
 
         // Create the speed/clock setting table.
-        convertOldStyleSpeedToTables(oldStyleSpeed, info.clockSpeed);
-        info.numberOfInfoStrings = 3;
+        convertOldStyleSpeedToTables(oldStyleSpeed, m_info.clockSpeed);
+        m_info.numberOfInfoStrings = 3;
         // We finally accept the input data.
-        info.formatString = text_format;
-        if ( info.musPlayer && !dataBuf.isEmpty() )
+        m_info.formatString = text_format;
+        if ( m_info.musPlayer && !dataBuf.isEmpty() )
             return MUS_load (dataBuf);
         return LOAD_OK;
     }
@@ -325,9 +325,9 @@ SidTune::LoadStatus SidTune::SID_fileSupport(Buffer_sidtt<const uint_least8_t>& 
 bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
 {
     toFile << keyword_id << std::endl;
-    int compatibility = info.compatibility;
+    int compatibility = m_info.compatibility;
 
-    if ( info.musPlayer )
+    if ( m_info.musPlayer )
     {
         compatibility = SIDTUNE_COMPATIBILITY_C64;
     }
@@ -339,20 +339,20 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
         toFile << keyword_address << std::setfill('0')
             << std::hex << std::setw(4) << 0 << ',';
 
-        if ( info.musPlayer )
+        if ( m_info.musPlayer )
         {
             toFile << std::setw(4) << 0 << ','
                    << std::setw(4) << 0 << std::endl;
         }
         else
         {
-            toFile << std::hex << std::setw(4) << info.initAddr << ','
-                   << std::hex << std::setw(4) << info.playAddr << std::endl;
+            toFile << std::hex << std::setw(4) << m_info.initAddr << ','
+                   << std::hex << std::setw(4) << m_info.playAddr << std::endl;
         }
 
         {
             uint_least32_t oldStyleSpeed = 0;
-            int maxBugSongs = ((info.songs <= 32) ? info.songs : 32);
+            int maxBugSongs = ((m_info.songs <= 32) ? m_info.songs : 32);
             for (int s = 0; s < maxBugSongs; s++)
             {
                 if (songSpeed[s] == SIDTUNE_SPEED_CIA_1A)
@@ -367,19 +367,19 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
         break;
     case SIDTUNE_COMPATIBILITY_R64:
         toFile << keyword_address << std::hex << std::setw(4)
-            << std::setfill('0') << info.initAddr << std::endl;
+            << std::setfill('0') << m_info.initAddr << std::endl;
         break;
     }
 
-    toFile << keyword_songs << std::dec << (int)info.songs << ","
-           << (int)info.startSong << std::endl;
+    toFile << keyword_songs << std::dec << (int)m_info.songs << ","
+           << (int)m_info.startSong << std::endl;
 
     // @FIXME@ Need better solution.  Make it possible to override MUS strings
-    if ( info.numberOfInfoStrings == 3 )
+    if ( m_info.numberOfInfoStrings == 3 )
     {
-        toFile << keyword_name << info.infoString[0] << std::endl
-               << keyword_author << info.infoString[1] << std::endl
-               << keyword_released << info.infoString[2] << std::endl;
+        toFile << keyword_name << m_info.infoString[0] << std::endl
+               << keyword_author << m_info.infoString[1] << std::endl
+               << keyword_released << m_info.infoString[2] << std::endl;
     }
     else
     {
@@ -387,7 +387,7 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
                << keyword_released << std::endl;
     }
 
-    if ( info.musPlayer )
+    if ( m_info.musPlayer )
     {
         toFile << keyword_musPlayer << std::endl;
     }
@@ -405,18 +405,18 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
         {
             toFile << keyword_compatibility << "BASIC" << std::endl;
         }
-        if ( info.relocStartPage )
+        if ( m_info.relocStartPage )
         {
             toFile
                 << keyword_reloc << std::setfill('0')
-                << std::hex << std::setw(2) << (int) info.relocStartPage << ","
-                << std::hex << std::setw(2) << (int) info.relocPages << std::endl;
+                << std::hex << std::setw(2) << (int) m_info.relocStartPage << ","
+                << std::hex << std::setw(2) << (int) m_info.relocPages << std::endl;
         }
     }
-    if ( info.clockSpeed != SIDTUNE_CLOCK_UNKNOWN )
+    if ( m_info.clockSpeed != SIDTUNE_CLOCK_UNKNOWN )
     {
         toFile << keyword_clock;
-        switch (info.clockSpeed)
+        switch (m_info.clockSpeed)
         {
         case SIDTUNE_CLOCK_PAL:
             toFile << "PAL";
@@ -430,10 +430,10 @@ bool SidTune::SID_fileSupportSave( std::ofstream& toFile )
         }
         toFile << std::endl;
     }
-    if ( info.sidModel1 != SIDTUNE_SIDMODEL_UNKNOWN )
+    if ( m_info.sidModel1 != SIDTUNE_SIDMODEL_UNKNOWN )
     {
         toFile << keyword_sidModel;
-        switch (info.sidModel1)
+        switch (m_info.sidModel1)
         {
         case SIDTUNE_SIDMODEL_6581:
             toFile << "6581";
