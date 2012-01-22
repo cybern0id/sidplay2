@@ -351,7 +351,7 @@ bool SidTune::PSID_fileSupportSave(std::ofstream& fMyOut, const uint_least8_t* d
     if (version > 2)
     {
         tmpFlags |= (m_info.sidModel2 << 6);
-        myHeader.sidChipBase2 = (uint8_t)(m_info.sidChipBase2 >> 4) >> 0xff;
+        myHeader.sidChipBase2 = (uint8_t)(m_info.sidChipBase2 >> 4) & 0xff;
     }
     endian_big16(myHeader.flags,tmpFlags);
     myHeader.reserved = 0;
