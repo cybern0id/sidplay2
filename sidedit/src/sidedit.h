@@ -52,6 +52,7 @@ private slots:
     void _playerStartChanged (int end);
     bool _save               ();
     bool _saveAs             ();
+    bool _saveTuneInfo       ();
     void _songChanged        (int song);
     void _songsChanged       (int songs);
     void _versionChanged     (int version);
@@ -71,6 +72,7 @@ private:
     FileTypeInfo           m_fileTypeInfo;
     bool                   m_hwInfo;
     bool                   m_isModified;
+    uint_least8_t          m_pages;
     PlayerType             m_playerTypePSID;
     PlayerType             m_playerTypeRSID;
     SIDTypeInfo            m_sidTypeInfo;

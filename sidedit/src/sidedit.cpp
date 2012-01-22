@@ -72,6 +72,7 @@ SidEdit::VICSpeedInfo::VICSpeedInfo ()
 SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
 :QMainWindow(parent, flags)
 ,m_isModified(false)
+,m_pages(0)
 ,m_playerTypePSID(false)
 ,m_playerTypeRSID(true)
 ,m_setup(0)
@@ -302,7 +303,7 @@ void SidEdit::_loadTuneInfo ()
     _pages (start, end);
 
     // Credits
-    QTextDecoder* decoder = QTextCodec::codecForName("Windows-1252")->makeDecoder();
+    QTextDecoder* decoder = QTextCodec::codecForName("Windows-1252")->makeDecoder ();
     if (info.numberOfInfoStrings > 0)
     {
         text = decoder->toUnicode (info.infoString[0], strlen(info.infoString[0]));
@@ -322,7 +323,11 @@ void SidEdit::_loadTuneInfo ()
     if (m_fileType == ftRSID)
         m_cboPlayerType->setCurrentIndex (m_playerTypeRSID.indexOf(info.compatibility));
     else
+    {
         m_cboPlayerType->setCurrentIndex (m_playerTypePSID.indexOf(info.compatibility));
+        int index = m_timingInfo.indexOf (info.songSpeed);
+        m_cboTiming->setCurrentIndex     (index);
+    }
 
     m_cboSidType->setCurrentIndex    (m_sidTypeInfo.indexOf(info.sidModel1));
     m_cboVicSpeed->setCurrentIndex   (m_vicSpeedInfo.indexOf(info.clockSpeed));
@@ -413,6 +418,7 @@ void SidEdit::_pages (int start, int end)
     str += QString::number (length, 16).rightJustified(2, '0').toUpper ();
     str += ')';
     m_txtPlayerPages->setText (str);
+    m_pages = length;
 }
 
 void SidEdit::_playerEndChanged (int end)
@@ -461,6 +467,59 @@ bool SidEdit::_saveFile (QString fileName)
 */
 
     setWindowFilePath (fileName);
+    return true;
+}
+
+bool SidEdit::_saveTuneInfo ()
+{
+    QString text;
+
+    SidTuneInfo info = m_tune->getInfo ();
+    info.currentSong = m_sbrSong->value ();
+    info.startSong   = m_defaultSong;
+    info.songs       = m_sbrSong->value ();
+
+    if (m_fileType == ftRSID)
+        info.compatibility = m_playerTypeRSID.value (m_cboPlayerType->currentIndex());
+    else
+        info.compatibility = m_playerTypePSID.value (m_cboPlayerType->currentIndex());
+
+    info.sidModel1    = m_sidTypeInfo.value (m_cboSidType->currentIndex());
+    info.sidChipBase1 = 0xd400;
+//    info.sidModel2    = m_sidTypeInfo.value (m_cboSidType->currentIndex());
+//    info.sidChipBase2 = 0xd400;
+
+    info.songSpeed  = m_timingInfo.value   (m_cboTiming->currentIndex());
+    info.clockSpeed = m_vicSpeedInfo.value (m_cboVicSpeed->currentIndex());
+
+    // Load Address
+    info.fixLoad  = false;
+    info.loadAddr = m_spnLoadAddress->value ();
+    info.initAddr = m_spnInitAddress->value ();
+    info.playAddr = m_spnPlayAddress->value ();
+
+    // Player Details
+    info.relocStartPage = m_spnPlayerStart->value ();
+    info.relocPages     = m_pages;
+
+    // Credits
+    QTextEncoder* encoder    = QTextCodec::codecForName("Windows-1252")->makeEncoder ();
+    info.numberOfInfoStrings = 3;
+    strncpy (info.infoString[0], encoder->fromUnicode(m_txtCreditTitle->text()),    SIDTUNE_MAX_CREDIT_STRLEN);
+    strncpy (info.infoString[1], encoder->fromUnicode(m_txtCreditAuthor->text()),   SIDTUNE_MAX_CREDIT_STRLEN);
+    strncpy (info.infoString[2], encoder->fromUnicode(m_txtCreditReleased->text()), SIDTUNE_MAX_CREDIT_STRLEN);
+
+    // Clear other fields
+    info.infoString[0][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+    info.infoString[1][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+    info.infoString[2][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+
+    for ( uint_least16_t sNum = 3; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
+    {
+        for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
+            info.infoString[sNum][sPos] = 0;
+    }
+
     return true;
 }
 
