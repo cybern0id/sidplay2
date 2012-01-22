@@ -297,7 +297,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
     SmartPtr_sidtt<const char> spTool((const char*)icon,infoLength-(uint_least32_t)(icon-(const char*)infoBuf.get()));
     if ( !spTool )
     {
-        info.formatString = _sidtune_txt_corruptError;
+        m_info.formatString = _sidtune_txt_corruptError;
         return LOAD_ERROR;
     }
 
@@ -309,7 +309,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
 #endif
     if ( !spCmpBuf )
     {
-        info.formatString = _sidtune_txt_noMemError;
+        m_info.formatString = _sidtune_txt_noMemError;
         return LOAD_ERROR;
     }
 
@@ -374,13 +374,13 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
             std::istrstream addrIn( cmpBuf + strlen(_sidtune_keyword_address),
                                     toolLen - strlen(_sidtune_keyword_address) );
 #endif
-            info.loadAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
-            info.initAddr = info.loadAddr;
+            m_info.loadAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
+            m_info.initAddr = m_info.loadAddr;
             hasInitAddr = true;
-            info.initAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
+            m_info.initAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
             if ( addrIn )
             {
-                info.playAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
+                m_info.playAddr = (uint_least16_t)SidTuneTools::readHex( addrIn );
                 if ( !addrIn )
                 {
                     return LOAD_ERROR;
@@ -402,8 +402,8 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
             {
                 return LOAD_ERROR;
             }
-            info.songs = (uint_least16_t)SidTuneTools::readDec( numIn );
-            info.startSong = (uint_least16_t)SidTuneTools::readDec( numIn );
+            m_info.songs = (uint_least16_t)SidTuneTools::readDec( numIn );
+            m_info.startSong = (uint_least16_t)SidTuneTools::readDec( numIn );
             hasSongs = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_speed) == 0 )
@@ -426,24 +426,24 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_name) == 0 )
         {
             SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-            info.infoString[0] = &infoString[0][0];
+            m_info.infoString[0] = &infoString[0][0];
             hasName = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_author) == 0 )
         {
             SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-            info.infoString[1] = &infoString[1][0];
+            m_info.infoString[1] = &infoString[1][0];
             hasAuthor = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_copyright) == 0 )
         {
             SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-            info.infoString[2] = &infoString[2][0];
+            m_info.infoString[2] = &infoString[2][0];
             hasReleased = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_musPlayer) == 0 )
         {
-            info.musPlayer = true;
+            m_info.musPlayer = true;
         }
 
         
@@ -451,7 +451,7 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf, _sidtune_keyword_released) == 0 )
         {
             SidTuneTools::copyStringValueToEOL(cmpBuf,&infoString[2][0],SIDTUNE_MAX_CREDIT_STRLEN);
-            info.infoString[2] = &infoString[2][0];
+            m_info.infoString[2] = &infoString[2][0];
             hasReleased = true;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_reloc) == 0 )
@@ -464,56 +464,56 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
             std::istrstream relocIn( cmpBuf + strlen(_sidtune_keyword_reloc),
                                      toolLen - strlen(_sidtune_keyword_reloc) );
 #endif
-            info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( relocIn );
+            m_info.relocStartPage = (uint_least8_t)SidTuneTools::readHex( relocIn );
             if ( !relocIn )
                 break;
-            info.relocPages = (uint_least8_t)SidTuneTools::readHex( relocIn );
+            m_info.relocPages = (uint_least8_t)SidTuneTools::readHex( relocIn );
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_clock) == 0 )
         {
             char clock[8];
             SidTuneTools::copyStringValueToEOL(cmpBuf,clock,sizeof(clock));
             if ( SidTuneTools::myStrNcaseCmp( clock, "UNKNOWN" ) == 0 )
-                info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
+                m_info.clockSpeed = SIDTUNE_CLOCK_UNKNOWN;
             else if ( SidTuneTools::myStrNcaseCmp( clock, "PAL" ) == 0 )
-                info.clockSpeed = SIDTUNE_CLOCK_PAL;
+                m_info.clockSpeed = SIDTUNE_CLOCK_PAL;
             else if ( SidTuneTools::myStrNcaseCmp( clock, "NTSC" ) == 0 )
-                info.clockSpeed = SIDTUNE_CLOCK_NTSC;
+                m_info.clockSpeed = SIDTUNE_CLOCK_NTSC;
             else if ( SidTuneTools::myStrNcaseCmp( clock, "ANY" ) == 0 )
-                info.clockSpeed = SIDTUNE_CLOCK_ANY;
+                m_info.clockSpeed = SIDTUNE_CLOCK_ANY;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_sidModel) == 0 )
         {
             char model[8];
             SidTuneTools::copyStringValueToEOL(cmpBuf,model,sizeof(model));
             if ( SidTuneTools::myStrNcaseCmp( model, "UNKNOWN" ) == 0 )
-                info.sidModel1 = SIDTUNE_SIDMODEL_UNKNOWN;
+                m_info.sidModel1 = SIDTUNE_SIDMODEL_UNKNOWN;
             else if ( SidTuneTools::myStrNcaseCmp( model, "6581" ) == 0 )
-                info.sidModel1 = SIDTUNE_SIDMODEL_6581;
+                m_info.sidModel1 = SIDTUNE_SIDMODEL_6581;
             else if ( SidTuneTools::myStrNcaseCmp( model, "8580" ) == 0 )
-                info.sidModel1 = SIDTUNE_SIDMODEL_8580;
+                m_info.sidModel1 = SIDTUNE_SIDMODEL_8580;
             else if ( SidTuneTools::myStrNcaseCmp( model, "ANY" ) == 0 )
-                info.sidModel1 = SIDTUNE_SIDMODEL_ANY;
+                m_info.sidModel1 = SIDTUNE_SIDMODEL_ANY;
         }
         else if ( SidTuneTools::myStrNcaseCmp(cmpBuf,_sidtune_keyword_compatibility) == 0 )
         {
             char comp[6];
             SidTuneTools::copyStringValueToEOL(cmpBuf,comp,sizeof(comp));
             if ( SidTuneTools::myStrNcaseCmp( comp, "C64" ) == 0 )
-                info.compatibility = SIDTUNE_COMPATIBILITY_C64;
+                m_info.compatibility = SIDTUNE_COMPATIBILITY_C64;
             else if ( SidTuneTools::myStrNcaseCmp( comp, "PSID" ) == 0 )
-                info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
+                m_info.compatibility = SIDTUNE_COMPATIBILITY_PSID;
             else if ( SidTuneTools::myStrNcaseCmp( comp, "R64" ) == 0 )
-                info.compatibility = SIDTUNE_COMPATIBILITY_R64;
+                m_info.compatibility = SIDTUNE_COMPATIBILITY_R64;
             else if ( SidTuneTools::myStrNcaseCmp( comp, "BASIC" ) == 0 )
-                info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
+                m_info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
         }
 
         else
         {
             hasUnknownChunk = true;
 #if defined(SIDTUNE_REJECT_UNKNOWN_FIELDS)
-            info.formatString = _sidtune_txt_chunkError;
+            m_info.formatString = _sidtune_txt_chunkError;
             return LOAD_ERROR;
 #endif
         }
@@ -526,22 +526,22 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
         // Error string set above.
         if ( hasName || hasAuthor || hasReleased || hasSongs )
         {   // Something is missing (or damaged?).
-            info.formatString = _sidtune_txt_corruptError;
+            m_info.formatString = _sidtune_txt_corruptError;
         }
         else
         {   // No PlaySID conform info strings.
-            info.formatString = _sidtune_txt_noStringsError;
+            m_info.formatString = _sidtune_txt_noStringsError;
         }
         return LOAD_ERROR;
     }
 
-    switch ( info.compatibility )
+    switch ( m_info.compatibility )
     {
     case SIDTUNE_COMPATIBILITY_PSID:
     case SIDTUNE_COMPATIBILITY_C64:
         if ( ! (hasAddress && hasSpeed) )
         {
-            info.formatString = _sidtune_txt_corruptError;
+            m_info.formatString = _sidtune_txt_corruptError;
             return LOAD_ERROR;
         }
         break;
@@ -549,15 +549,15 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
     case SIDTUNE_COMPATIBILITY_R64:
         if ( !(hasInitAddr || hasAddress) )
         {
-            info.formatString = _sidtune_txt_corruptError;
+            m_info.formatString = _sidtune_txt_corruptError;
             return LOAD_ERROR;
         }
         // Allow user to provide single address
         if ( !hasAddress )
-            info.loadAddr = 0;
-        else if ( info.loadAddr || info.playAddr )
+            m_info.loadAddr = 0;
+        else if ( m_info.loadAddr || m_info.playAddr )
         {
-            info.formatString = _sidtune_txt_invalidError;
+            m_info.formatString = _sidtune_txt_invalidError;
             return LOAD_ERROR;
         }
         // Deliberate run on
@@ -567,11 +567,11 @@ SidTune::LoadStatus SidTune::INFO_fileSupport(Buffer_sidtt<const uint_least8_t>&
     }
 
     // Create the speed/clock setting table.
-    convertOldStyleSpeedToTables(oldStyleSpeed, info.clockSpeed);
-    info.numberOfInfoStrings = 3;
+    convertOldStyleSpeedToTables(oldStyleSpeed, m_info.clockSpeed);
+    m_info.numberOfInfoStrings = 3;
     // We finally accept the input data.
-    info.formatString = _sidtune_txt_format;
-    if ( info.musPlayer && !dataBuf.isEmpty() )
+    m_info.formatString = _sidtune_txt_format;
+    if ( m_info.musPlayer && !dataBuf.isEmpty() )
         return MUS_load (dataBuf);
     return LOAD_OK;
 }
