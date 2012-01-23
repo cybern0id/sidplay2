@@ -28,23 +28,13 @@ static bool safe_connect (bool condition, int line)
 #endif
 
 
-SidEdit::PlayerType::PlayerType (bool rsid)
+SidEdit::PlayerType::PlayerType ()
 {
-    if (rsid)
-        _add (SIDTUNE_COMPATIBILITY_R64,   QT_TR_NOOP("C64 Only"));
-    else
-        _add (SIDTUNE_COMPATIBILITY_C64,   QT_TR_NOOP("C64 Compatible"));
-    if (rsid)
-        _add (SIDTUNE_COMPATIBILITY_BASIC, QT_TR_NOOP("C64 Basic"));
-    else
-        _add (SIDTUNE_COMPATIBILITY_PSID,  QT_TR_NOOP("PlaySID Only"));
-    _add (MUSPLAYER, QT_TR_NOOP("Compute's Sidplayer"));
-}
-
-SidEdit::FileTypeInfo::FileTypeInfo ()
-{
-    _add (SidEdit::ftPSID, "PSID");
-    _add (SidEdit::ftRSID, "RSID");
+    _add (SIDTUNE_COMPATIBILITY_C64,   QT_TR_NOOP("C64 Compatible"));
+    _add (SIDTUNE_COMPATIBILITY_R64,   QT_TR_NOOP("C64 Only"));
+    _add (SIDTUNE_COMPATIBILITY_BASIC, QT_TR_NOOP("C64 Basic"));
+    _add (SIDTUNE_COMPATIBILITY_PSID,  QT_TR_NOOP("PlaySID Only"));
+//    _add (MUSPLAYER, QT_TR_NOOP("Compute's Sidplayer"));
 }
 
 SidEdit::SIDTypeInfo::SIDTypeInfo ()
@@ -73,19 +63,16 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
 :QMainWindow(parent, flags)
 ,m_isModified(false)
 ,m_pages(0)
-,m_playerTypePSID(false)
-,m_playerTypeRSID(true)
-,m_setup(0)
-,m_tune(new SidTune(0))
+,m_tune(new SidTuneWrite(0))
 {
     {   // Do this to ensure we are compatible with dynamic loading
         Ui::sideditClass ui;
         ui.setupUi(this);
     }
 
-    m_cboFileType       = _find<QComboBox>("cboFileType");
     m_cboPlayerType     = _find<QComboBox>("cboPlayerType");
     m_cboSidType        = _find<QComboBox>("cboSidType");
+    m_cboSid2Type       = _find<QComboBox>("cboSid2Type");
     m_cboTiming         = _find<QComboBox>("cboTiming");
     m_cboVicSpeed       = _find<QComboBox>("cboVicSpeed");
     m_txtCreditTitle    = _find<QLineEdit>("txtCreditTitle");
@@ -98,33 +85,14 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
     m_spnPlayAddress    = _find<HexSpinBox>("spnPlayAddress");
     m_spnPlayerStart    = _find<HexSpinBox>("spnPlayerStart");
     m_spnPlayerEnd      = _find<HexSpinBox>("spnPlayerEnd");
-    m_spnVersion        = _find<QSpinBox>("spnVersion");
+    m_spnSid2Address    = _find<HexSpinBox>("spnSid2Address");
     m_spnSongs          = _find<QSpinBox>("spnSongs");
-    m_spnVersion        = _find<QSpinBox>("spnVersion");
     m_txtPlayerPages    = _find<QLabel>("txtPlayerPages");
     m_txtSong           = _find<QLabel>("txtSong");
 
-    {
-        QLabel *txtPlayerType = _find<QLabel>("txtPlayerType");
-        int index = m_playerTypePSID.indexOf(SIDTUNE_COMPATIBILITY_PSID);
-        txtPlayerType->setText (m_playerTypePSID.at(index));
-    }
-
-    connect (m_cboFileType, SIGNAL(currentIndexChanged(int)), SLOT(_fileTypeChanged(int)));
-    connect (m_spnVersion,  SIGNAL(valueChanged(int)), SLOT(_versionChanged(int)));
-
-    connect (this, SIGNAL(_player(int)),  _find<QObject>("stkPlayerType"),  SLOT(setCurrentIndex(int)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("stkPlayerType"),  SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("lblPlayerType"),  SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("lblPlayerTitle"), SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("lblPlayerStart"), SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("lblPlayerEnd"),   SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), _find<QObject>("lblPlayerRange"), SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), m_spnPlayerStart, SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), m_spnPlayerEnd,   SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_player(bool)), m_txtPlayerPages, SLOT(setEnabled(bool)));
-    connect (m_spnPlayerStart, SIGNAL(valueChanged(int)), SLOT (_playerStartChanged(int)));
-    connect (m_spnPlayerEnd,   SIGNAL(valueChanged(int)), SLOT (_playerEndChanged(int)));
+    connect (m_spnPlayerEnd,   SIGNAL(valueChanged(int)),        SLOT (_playerEndChanged(int)));
+    connect (m_spnPlayerStart, SIGNAL(valueChanged(int)),        SLOT (_playerStartChanged(int)));
+    connect (m_cboPlayerType,  SIGNAL(currentIndexChanged(int)), SLOT (_playerTypeChanged(int)));
 
     connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblCreditTitle"),    SLOT(setEnabled(bool)));
     connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblCreditAuthor"),   SLOT(setEnabled(bool)));
@@ -136,10 +104,14 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
     connect (m_spnSongs, SIGNAL(valueChanged(int)), this, SLOT(_songsChanged(int)));
     connect (m_sbrSong,  SIGNAL(valueChanged(int)), this, SLOT(_songChanged(int)));
 
-    connect (this, SIGNAL(_subtuneHwInfo(bool)), _find<QObject>("lblSidType"), SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_subtuneHwInfo(bool)), m_cboSidType,  SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_subtuneHwInfo(bool)), _find<QObject>("lblVicSpeed"), SLOT(setEnabled(bool)));
-    connect (this, SIGNAL(_subtuneHwInfo(bool)), m_cboVicSpeed, SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblSidType"), SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), m_cboSidType,  SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblSid2Type"), SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), m_cboSid2Type,  SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblSid2Address"), SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), m_spnSid2Address,  SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), _find<QObject>("lblVicSpeed"), SLOT(setEnabled(bool)));
+    connect (this, SIGNAL(_subtune(bool)), m_cboVicSpeed, SLOT(setEnabled(bool)));
 
     connect (_find<QObject>("btnDefaultSong"), SIGNAL(clicked()), this, SLOT(_defaultClicked()));
     connect (this, SIGNAL(_defaultSong(int)), _find<QObject>("stkDefaultSong"), SLOT(setCurrentIndex(int)));
@@ -147,10 +119,13 @@ SidEdit::SidEdit(QWidget *parent, Qt::WFlags flags)
     connect (this, SIGNAL(_timingEnabled(bool)), _find<QObject>("lblTiming"), SLOT(setEnabled(bool)));
     connect (this, SIGNAL(_timingEnabled(bool)), m_cboTiming, SLOT(setEnabled(bool)));
 
-    _new ();
+    _updateComboBox (m_cboPlayerType, m_playerType);
+    _updateComboBox (m_cboSidType,    m_sidTypeInfo);
+    _updateComboBox (m_cboSid2Type,   m_sidTypeInfo);
+    _updateComboBox (m_cboTiming,     m_timingInfo);
+    _updateComboBox (m_cboVicSpeed,   m_vicSpeedInfo);
 
-//QTextEncoder* encoder = QTextCodec::codecForName("Windows-1250")->makeEncoder();
-//QByteArray outputData = encoder->fromUnicode(result);
+    _new ();
 }
 
 SidEdit::~SidEdit ()
@@ -174,56 +149,19 @@ void SidEdit::_defaultClicked ()
     _defaultSong (true);
 }
 
-void SidEdit::_fileTypeChanged (int index)
-{
-    if (index >= 0)
-    {
-        m_fileType = m_fileTypeInfo.value (index);
-
-        switch (m_fileType)
-        {
-        case ftPSID:
-            m_spnSongs->setMaximum   (256);
-            m_timingMaxSong         = 32;
-            _updateComboBox (m_cboPlayerType, m_playerTypePSID);
-            m_setup = &SidEdit::_setupPSID;
-            m_spnVersion->setMinimum (1);
-            m_spnVersion->setMaximum (3);
-            m_spnVersion->setValue   (2);
-            break;
-        case ftRSID:
-            {   // RSID must use VIC timing and re-program the hardware for CIA
-                int index = m_timingInfo.indexOf (SIDTUNE_SPEED_VBI);
-                m_cboTiming->setCurrentIndex (index);
-            }
-            m_spnSongs->setMaximum   (256);
-            m_timingMaxSong         = 0;
-            _updateComboBox (m_cboPlayerType, m_playerTypeRSID);
-            m_setup = &SidEdit::_setupRSID;
-            m_spnVersion->setMinimum (2);
-            m_spnVersion->setMaximum (3);
-            m_spnVersion->setValue   (2);
-            break;
-        }
-
-        _versionChanged (m_spnVersion->value());
-        _timingEnabled  (m_sbrSong->value() <= m_timingMaxSong);
-    }
-}
-
 void SidEdit::_loadFile (const QString &fileName)
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    std::auto_ptr<SidTune> tune;
+    std::auto_ptr<SidTuneWrite> tune;
 
     try
     {
         QFileInfo info(fileName);
-        tune.reset (new SidTune(fileName.toUtf8()));
+        tune.reset (new SidTuneWrite(fileName.toUtf8()));
 
 /*
     if (!file.open(QFile::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Application"),
+        QMessageBox::critical(this, tr("Application"),
                              tr("Cannot read file %1:\n%2.")
                              .arg(fileName)
                              .arg(file.errorString()));
@@ -231,6 +169,8 @@ void SidEdit::_loadFile (const QString &fileName)
     }
 */
         if (!tune->getStatus())
+            tune.reset (0);
+        if (!tune->selectSong(0))
             tune.reset (0);
     }
     catch (...)
@@ -253,28 +193,15 @@ void SidEdit::_loadTuneInfo ()
     QString text;
 
     const SidTuneInfo &info = m_tune->getInfo ();
-    m_sbrSong->setValue   (info.startSong);
-    m_spnSongs->setValue  (info.songs);
+    uint_least16_t     song = info.currentSong;
+    m_sbrSong->setValue  (song);
+    m_spnSongs->setValue (info.songs);
+    m_defaultSong = info.startSong;
+    _defaultSong (song == m_defaultSong);
 
-    switch (info.compatibility)
-    {
-    case SIDTUNE_COMPATIBILITY_R64:
-    case SIDTUNE_COMPATIBILITY_BASIC:
-        m_cboFileType->setCurrentIndex (m_fileTypeInfo.indexOf(ftRSID));
-        break;
-    default:
-        m_cboFileType->setCurrentIndex (m_fileTypeInfo.indexOf(ftPSID));
-        break;
-    }
-
-    // @FIXME@: Need to remove version setting and make it automatic
-    m_spnVersion->setValue (3);
-
-    _updateComboBox (m_cboFileType, m_fileTypeInfo);
-    _updateComboBox (m_cboSidType,  m_sidTypeInfo);
-    _updateComboBox (m_cboTiming,   m_timingInfo);
-    _updateComboBox (m_cboVicSpeed, m_vicSpeedInfo);
-    _defaultClicked ();
+    QString str;
+    str.setNum (song);
+    m_txtSong->setText (str);
 
     // Load Address
     m_spnLoadAddress->setValue (info.loadAddr);
@@ -320,17 +247,21 @@ void SidEdit::_loadTuneInfo ()
         m_txtCreditReleased->setText (text);
     }
 
-    if (m_fileType == ftRSID)
-        m_cboPlayerType->setCurrentIndex (m_playerTypeRSID.indexOf(info.compatibility));
-    else
+    m_cboPlayerType->setCurrentIndex (m_playerType.indexOf(info.compatibility));
+    if (m_fileType == ftPSID)
     {
-        m_cboPlayerType->setCurrentIndex (m_playerTypePSID.indexOf(info.compatibility));
         int index = m_timingInfo.indexOf (info.songSpeed);
         m_cboTiming->setCurrentIndex     (index);
+        _timingEnabled                   (song <= m_timingMaxSong);
     }
 
     m_cboSidType->setCurrentIndex    (m_sidTypeInfo.indexOf(info.sidModel1));
+    m_cboSid2Type->setCurrentIndex   (m_sidTypeInfo.indexOf(info.sidModel2));
+    m_spnSid2Address->setValue       (info.sidChipBase2);
     m_cboVicSpeed->setCurrentIndex   (m_vicSpeedInfo.indexOf(info.clockSpeed));
+
+    bool enable = m_subtuneInfo ? true : song == 1;
+    emit _subtune (enable);
 }
 
 void SidEdit::_new ()
@@ -339,7 +270,8 @@ void SidEdit::_new ()
     {
         try
         {
-            m_tune.reset (new SidTune(0));
+            m_tune.reset (new SidTuneWrite(0));
+            (void)m_tune->selectSong (1);
         }
         catch (...)
         {
@@ -407,7 +339,8 @@ void SidEdit::_pages (int start, int end)
             return;
         }
 
-        str += QString::number (length + 1);
+        ++length;
+        str += QString::number (length);
     }
 
     str += " (";
@@ -429,6 +362,44 @@ void SidEdit::_playerEndChanged (int end)
 void SidEdit::_playerStartChanged (int start)
 {
     _pages (start, m_spnPlayerEnd->value());
+}
+
+void SidEdit::_playerTypeChanged (int index)
+{
+    if (index < 0)
+        return;
+
+    m_fileType = ftPSID;
+    switch (m_playerType.value(index))
+    {
+    case SIDTUNE_COMPATIBILITY_R64:
+    case SIDTUNE_COMPATIBILITY_BASIC:
+        m_fileType = ftRSID;
+    }
+
+    switch (m_fileType)
+    {
+    case ftPSID:
+        m_spnSongs->setMaximum   (256);
+        m_timingMaxSong         = 32;
+        m_subtuneInfo = false;
+        emit _subtune (m_sbrSong->value() == 1);
+        emit _timingEnabled (m_sbrSong->value() <= m_timingMaxSong);
+        break;
+    case ftRSID:
+        {   // RSID must use VIC timing and re-program the hardware for CIA
+            int index = m_timingInfo.indexOf (SIDTUNE_SPEED_VBI);
+            m_cboTiming->setCurrentIndex (index);
+        }
+        m_spnSongs->setMaximum   (256);
+        m_timingMaxSong         = 0;
+        m_subtuneInfo = false;
+        emit _subtune (m_sbrSong->value() == 1);
+        emit _timingEnabled (false);
+        m_spnInitAddress->setValue (0);
+        m_spnPlayAddress->setValue (0);
+        break;
+    }
 }
 
 bool SidEdit::_save()
@@ -455,39 +426,40 @@ bool SidEdit::_saveFile (QString fileName)
 {
     if (fileName.isEmpty())
         fileName = "untitled";
-    QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    QApplication::restoreOverrideCursor();
+    for (;;)
+    {
+        bool ret;
+        if (!_saveTuneInfo(m_sbrSong->value()))
+            break;
 
-/*
-    QMessageBox::warning(this, tr("Application"),
-                         tr("Cannot write file %1:\n%2.")
-                         .arg(fileName)
-                         .arg(file.errorString()));
-*/
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+        ret = m_tune->savePSIDfile (fileName.toUtf8(), true);
+        QApplication::restoreOverrideCursor();
+        if (!ret)
+            break;
 
-    setWindowFilePath (fileName);
-    return true;
+        setWindowFilePath (fileName);
+        return true;
+    }
+    QMessageBox::critical (this, tr("Application"), m_tune->getInfo().statusString);
+    return false;
 }
 
-bool SidEdit::_saveTuneInfo ()
+bool SidEdit::_saveTuneInfo (int song)
 {
     QString text;
 
     SidTuneInfo info = m_tune->getInfo ();
-    info.currentSong = m_sbrSong->value ();
+    info.currentSong = song;
     info.startSong   = m_defaultSong;
-    info.songs       = m_sbrSong->value ();
+    info.songs       = m_spnSongs->value ();
 
-    if (m_fileType == ftRSID)
-        info.compatibility = m_playerTypeRSID.value (m_cboPlayerType->currentIndex());
-    else
-        info.compatibility = m_playerTypePSID.value (m_cboPlayerType->currentIndex());
-
-    info.sidModel1    = m_sidTypeInfo.value (m_cboSidType->currentIndex());
-    info.sidChipBase1 = 0xd400;
-//    info.sidModel2    = m_sidTypeInfo.value (m_cboSidType->currentIndex());
-//    info.sidChipBase2 = 0xd400;
+    info.compatibility = m_playerType.value  (m_cboPlayerType->currentIndex());
+    info.sidModel1     = m_sidTypeInfo.value (m_cboSidType->currentIndex());
+    info.sidChipBase1  = 0xd400;
+    info.sidModel2     = m_sidTypeInfo.value (m_cboSid2Type->currentIndex());
+    info.sidChipBase2  = m_spnSid2Address->value ();
 
     info.songSpeed  = m_timingInfo.value   (m_cboTiming->currentIndex());
     info.clockSpeed = m_vicSpeedInfo.value (m_cboVicSpeed->currentIndex());
@@ -499,71 +471,47 @@ bool SidEdit::_saveTuneInfo ()
     info.playAddr = m_spnPlayAddress->value ();
 
     // Player Details
-    info.relocStartPage = m_spnPlayerStart->value ();
+    info.relocStartPage = (m_spnPlayerStart->value() + 0xff) >> 8;
     info.relocPages     = m_pages;
 
     // Credits
     QTextEncoder* encoder    = QTextCodec::codecForName("Windows-1252")->makeEncoder ();
     info.numberOfInfoStrings = 3;
-    strncpy (info.infoString[0], encoder->fromUnicode(m_txtCreditTitle->text()),    SIDTUNE_MAX_CREDIT_STRLEN);
-    strncpy (info.infoString[1], encoder->fromUnicode(m_txtCreditAuthor->text()),   SIDTUNE_MAX_CREDIT_STRLEN);
-    strncpy (info.infoString[2], encoder->fromUnicode(m_txtCreditReleased->text()), SIDTUNE_MAX_CREDIT_STRLEN);
+    char infoString[3][SIDTUNE_MAX_CREDIT_STRLEN];
+
+    strncpy (infoString[0], encoder->fromUnicode(m_txtCreditTitle->text()),    SIDTUNE_MAX_CREDIT_STRLEN);
+    strncpy (infoString[1], encoder->fromUnicode(m_txtCreditAuthor->text()),   SIDTUNE_MAX_CREDIT_STRLEN);
+    strncpy (infoString[2], encoder->fromUnicode(m_txtCreditReleased->text()), SIDTUNE_MAX_CREDIT_STRLEN);
 
     // Clear other fields
-    info.infoString[0][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
-    info.infoString[1][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
-    info.infoString[2][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+    infoString[0][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+    infoString[1][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
+    infoString[2][SIDTUNE_MAX_CREDIT_STRLEN-1] = '\0';
 
-    for ( uint_least16_t sNum = 3; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
-    {
-        for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
-            info.infoString[sNum][sPos] = 0;
-    }
+    // Assign Strings
+    info.infoString[0] = infoString[0];
+    info.infoString[1] = infoString[1];
+    info.infoString[2] = infoString[2];
 
-    return true;
-}
-
-void SidEdit::_setupPSID (int version)
-{
-    int version2  = version > 1;
-    m_hwInfo      = version2;
-    m_subtuneInfo = false;
-    emit _hwInfo (m_hwInfo);
-    emit _player (version2);
-    emit _player ((int)version2);
-    emit _subtuneHwInfo (m_hwInfo && (m_sbrSong->value() == 1));
-
-    if (!version2)
-    {
-        m_cboSidType->setCurrentIndex  (m_sidTypeInfo.indexOf(SIDTUNE_SIDMODEL_UNKNOWN));
-        m_cboVicSpeed->setCurrentIndex (m_vicSpeedInfo.indexOf(SIDTUNE_CLOCK_UNKNOWN));
-    }
-}
-
-void SidEdit::_setupRSID (int version)
-{
-    m_hwInfo      = true;
-    m_subtuneInfo = false;
-    emit _hwInfo (m_hwInfo);
-    emit _player (true);
-    emit _player ((int)true);
-    emit _subtuneHwInfo (m_sbrSong->value() == 1);
-    m_spnInitAddress->setValue (0);
-    m_spnPlayAddress->setValue (0);
+    return m_tune->setInfo (info);
 }
 
 void SidEdit::_songChanged (int song)
 {
-    bool enable = m_subtuneInfo ? true : song == 1;
-    emit _subtune       (enable);
-    emit _subtuneHwInfo (m_hwInfo && enable);
+    uint_least16_t currentSong = m_tune->getInfo().currentSong;
+    if (!_saveTuneInfo(currentSong))
+    {
+        m_sbrSong->setValue (currentSong);
+        return;
+    }
+    currentSong = m_tune->selectSong (song);
+    if (song != currentSong)
+    {
+        m_sbrSong->setValue (currentSong);
+        return;
+    }
 
-
-    QString str;
-    str.setNum (song);
-    m_txtSong->setText (str);
-    _defaultSong   (song == m_defaultSong);
-    _timingEnabled (song <= m_timingMaxSong);
+    _loadTuneInfo ();
 }
 
 void SidEdit::_songsChanged (int songs)
@@ -574,12 +522,6 @@ void SidEdit::_songsChanged (int songs)
     m_sbrSong->setMaximum (songs);
     if (increase)
         m_sbrSong->setValue (songs);
-}
-
-void SidEdit::_versionChanged (int version)
-{
-    if (m_setup)
-        (this->*m_setup) (version);
 }
 
 void SidEdit::_updateComboBox (QComboBox *cbo, EnumInfo &info)

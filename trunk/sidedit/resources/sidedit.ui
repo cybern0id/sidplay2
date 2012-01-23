@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>286</width>
-    <height>708</height>
+    <height>706</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,17 +27,7 @@
        <string>SID Header</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>File Type:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
+       <item row="7" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Load Address:</string>
@@ -47,7 +37,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="0">
+       <item row="17" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Songs:</string>
@@ -57,7 +47,7 @@
          </property>
         </widget>
        </item>
-       <item row="18" column="0">
+       <item row="22" column="0">
         <widget class="QLabel" name="label_9">
          <property name="text">
           <string>Default:</string>
@@ -67,7 +57,7 @@
          </property>
         </widget>
        </item>
-       <item row="23" column="0">
+       <item row="27" column="0">
         <widget class="QLabel" name="lblCreditTitle">
          <property name="text">
           <string>Title:</string>
@@ -77,7 +67,7 @@
          </property>
         </widget>
        </item>
-       <item row="24" column="0">
+       <item row="28" column="0">
         <widget class="QLabel" name="lblCreditAuthor">
          <property name="text">
           <string>Author:</string>
@@ -87,7 +77,7 @@
          </property>
         </widget>
        </item>
-       <item row="25" column="0">
+       <item row="29" column="0">
         <widget class="QLabel" name="lblCreditReleased">
          <property name="text">
           <string>Released:</string>
@@ -97,7 +87,7 @@
          </property>
         </widget>
        </item>
-       <item row="13" column="1">
+       <item row="17" column="1">
         <widget class="QSpinBox" name="spnSongs">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -113,7 +103,7 @@
          </property>
         </widget>
        </item>
-       <item row="23" column="1">
+       <item row="27" column="1">
         <widget class="QLineEdit" name="txtCreditTitle">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -129,7 +119,7 @@
          </property>
         </widget>
        </item>
-       <item row="24" column="1">
+       <item row="28" column="1">
         <widget class="QLineEdit" name="txtCreditAuthor">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -145,7 +135,7 @@
          </property>
         </widget>
        </item>
-       <item row="25" column="1">
+       <item row="29" column="1">
         <widget class="QLineEdit" name="txtCreditReleased">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -161,40 +151,7 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="cboFileType">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Version:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="spnVersion">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Load Range:</string>
@@ -204,7 +161,7 @@
          </property>
         </widget>
        </item>
-       <item row="26" column="0">
+       <item row="30" column="0">
         <widget class="QLabel" name="lblInitAddress">
          <property name="text">
           <string>Init Address:</string>
@@ -214,7 +171,7 @@
          </property>
         </widget>
        </item>
-       <item row="27" column="0">
+       <item row="31" column="0">
         <widget class="QLabel" name="lblPlayAddress">
          <property name="text">
           <string>Play Address:</string>
@@ -224,17 +181,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0">
-        <widget class="QLabel" name="lblPlayerEnd">
-         <property name="text">
-          <string>End Address:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="1">
+       <item row="18" column="1">
         <widget class="QScrollBar" name="sbrSong">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -253,7 +200,7 @@
          </property>
         </widget>
        </item>
-       <item row="32" column="0">
+       <item row="37" column="0">
         <widget class="QLabel" name="lblVicSpeed">
          <property name="text">
           <string>VIC Speed:</string>
@@ -263,7 +210,7 @@
          </property>
         </widget>
        </item>
-       <item row="32" column="1">
+       <item row="37" column="1">
         <widget class="QComboBox" name="cboVicSpeed">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -273,7 +220,7 @@
          </property>
         </widget>
        </item>
-       <item row="17" column="0">
+       <item row="21" column="0">
         <widget class="QLabel" name="label_17">
          <property name="text">
           <string>Song:</string>
@@ -283,7 +230,7 @@
          </property>
         </widget>
        </item>
-       <item row="30" column="0">
+       <item row="35" column="0">
         <widget class="QLabel" name="lblTiming">
          <property name="text">
           <string>Timing:</string>
@@ -293,7 +240,7 @@
          </property>
         </widget>
        </item>
-       <item row="30" column="1">
+       <item row="35" column="1">
         <widget class="QComboBox" name="cboTiming">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -303,7 +250,7 @@
          </property>
         </widget>
        </item>
-       <item row="28" column="0">
+       <item row="32" column="0">
         <widget class="QLabel" name="lblSidType">
          <property name="text">
           <string>SID Type:</string>
@@ -313,7 +260,7 @@
          </property>
         </widget>
        </item>
-       <item row="28" column="1">
+       <item row="32" column="1">
         <widget class="QComboBox" name="cboSidType">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
@@ -323,7 +270,7 @@
          </property>
         </widget>
        </item>
-       <item row="18" column="1">
+       <item row="22" column="1">
         <widget class="QStackedWidget" name="stkDefaultSong">
          <property name="currentIndex">
           <number>1</number>
@@ -346,7 +293,195 @@
          </widget>
         </widget>
        </item>
-       <item row="2" column="0" colspan="2">
+       <item row="19" column="0" colspan="2">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="0" colspan="2">
+        <widget class="QWidget" name="widget_3" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="Line" name="line_7">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_22">
+            <property name="text">
+             <string>Song Details</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QStackedWidget" name="stackedWidget_2">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QLabel" name="txtLoadRange">
+          <property name="frameShape">
+           <enum>QFrame::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_4"/>
+        </widget>
+       </item>
+       <item row="21" column="1">
+        <widget class="QStackedWidget" name="stackedWidget_4">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QLabel" name="txtSong">
+          <property name="frameShape">
+           <enum>QFrame::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </widget>
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item row="30" column="1">
+        <widget class="HexSpinBox" name="spnInitAddress">
+         <property name="prefix">
+          <string>0x</string>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
+        </widget>
+       </item>
+       <item row="31" column="1">
+        <widget class="HexSpinBox" name="spnPlayAddress">
+         <property name="prefix">
+          <string>0x</string>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="2">
+        <widget class="QWidget" name="lblPlayerTitle" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="Line" name="line_5">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>Player Setup</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="lblPlayerEnd">
+         <property name="text">
+          <string>End Address:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="lblPlayerStart">
+         <property name="text">
+          <string>Start Address:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0" colspan="2">
         <widget class="QWidget" name="widget" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -409,58 +544,37 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
-        <widget class="QWidget" name="lblPlayerTitle" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>9</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="Line" name="line_5">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>Player Setup</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="Line" name="line_3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
+       <item row="7" column="1">
+        <widget class="HexSpinBox" name="spnLoadAddress">
+         <property name="prefix">
+          <string>0x</string>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
         </widget>
        </item>
-       <item row="10" column="0">
+       <item row="3" column="1">
+        <widget class="HexSpinBox" name="spnPlayerStart">
+         <property name="prefix">
+          <string>0x</string>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="HexSpinBox" name="spnPlayerEnd">
+         <property name="prefix">
+          <string>0x</string>
+         </property>
+         <property name="maximum">
+          <number>65535</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
         <widget class="QLabel" name="lblPlayerRange">
          <property name="text">
           <string>Pages:</string>
@@ -470,133 +584,7 @@
          </property>
         </widget>
        </item>
-       <item row="15" column="0" colspan="2">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0" colspan="2">
-        <widget class="QWidget" name="widget_3" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="Line" name="line_7">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Song Details</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="Line" name="line_4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="lblPlayerStart">
-         <property name="text">
-          <string>Start Address:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="lblPlayerType">
-         <property name="text">
-          <string>Type:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QStackedWidget" name="stkPlayerType">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QLabel" name="txtPlayerType">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QComboBox" name="cboPlayerType">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QStackedWidget" name="stackedWidget_2">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <widget class="QLabel" name="txtLoadRange">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_4"/>
-        </widget>
-       </item>
-       <item row="10" column="1">
+       <item row="5" column="1">
         <widget class="QStackedWidget" name="stackedWidget_3">
          <widget class="QLabel" name="txtPlayerPages">
           <property name="frameShape">
@@ -612,71 +600,48 @@
          <widget class="QPushButton" name="pushButton_2"/>
         </widget>
        </item>
-       <item row="17" column="1">
-        <widget class="QStackedWidget" name="stackedWidget_4">
-         <property name="currentIndex">
-          <number>0</number>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lblPlayerType">
+         <property name="text">
+          <string>Compatibility:</string>
          </property>
-         <widget class="QLabel" name="txtSong">
-          <property name="frameShape">
-           <enum>QFrame::Panel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="HexSpinBox" name="spnLoadAddress">
-         <property name="prefix">
-          <string>0x</string>
-         </property>
-         <property name="maximum">
-          <number>65535</number>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="8" column="1">
-        <widget class="HexSpinBox" name="spnPlayerStart">
-         <property name="prefix">
-          <string>0x</string>
-         </property>
-         <property name="maximum">
-          <number>65535</number>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="HexSpinBox" name="spnPlayerEnd">
-         <property name="prefix">
-          <string>0x</string>
-         </property>
-         <property name="maximum">
-          <number>65535</number>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cboPlayerType">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
         </widget>
        </item>
-       <item row="26" column="1">
-        <widget class="HexSpinBox" name="spnInitAddress">
-         <property name="prefix">
-          <string>0x</string>
+       <item row="33" column="1">
+        <widget class="QComboBox" name="cboSid2Type"/>
+       </item>
+       <item row="33" column="0">
+        <widget class="QLabel" name="lblSid2Type">
+         <property name="text">
+          <string>SID2 Type:</string>
          </property>
-         <property name="maximum">
-          <number>65535</number>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="27" column="1">
-        <widget class="HexSpinBox" name="spnPlayAddress">
+       <item row="34" column="0">
+        <widget class="QLabel" name="lblSid2Address">
+         <property name="text">
+          <string>SID2 Address:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="34" column="1">
+        <widget class="HexSpinBox" name="spnSid2Address">
          <property name="prefix">
           <string>0x</string>
          </property>

@@ -9,7 +9,7 @@
 #include <QScrollBar>
 #include <QSpinBox>
 
-#include <sidplay/SidTune.h>
+#include "SidTuneWrite.h"
 #include "enuminfo.h"
 #include "hexspinbox.h"
 
@@ -20,8 +20,7 @@ class SidEdit : public QMainWindow
 public:
     typedef enum {ftPSID, ftRSID} filetype_t;
     enum { MUSPLAYER = -1 };
-    struct FileTypeInfo: TEnumInfo<SidEdit::filetype_t> { FileTypeInfo (); };
-    struct PlayerType:   TEnumInfo<int> { PlayerType (bool rsid); };
+    struct PlayerType:   TEnumInfo<int> { PlayerType (); };
     struct SIDTypeInfo:  TEnumInfo<int> { SIDTypeInfo (); };
     struct TimingInfo:   TEnumInfo<int> { TimingInfo (); };
     struct VICSpeedInfo: TEnumInfo<int> { VICSpeedInfo (); };
@@ -34,58 +33,48 @@ protected:
 
 private:
     template <class T> T* _find (const char *objectName);
-    void _loadFile       (const QString &fileName);
-    void _loadTuneInfo   ();
-    bool _maybeSave      ();
-    void _pages          (int start, int end);
-    bool _saveFile       (QString fileName);
-    void _setupPSID      (int version);
-    void _setupRSID      (int version);
-    void _updateComboBox (QComboBox *cbo, EnumInfo &info);
+    void _fileTypeChanged (filetype_t fileType);
+    void _loadFile        (const QString &fileName);
+    void _loadTuneInfo    ();
+    bool _maybeSave       ();
+    void _pages           (int start, int end);
+    bool _saveFile        (QString fileName);
+    void _updateComboBox  (QComboBox *cbo, EnumInfo &info);
 
 private slots:
     void _defaultClicked     ();
-    void _fileTypeChanged    (int index);
     void _new                ();
     void _open               ();
     void _playerEndChanged   (int end);
     void _playerStartChanged (int end);
+    void _playerTypeChanged  (int index);
     bool _save               ();
     bool _saveAs             ();
-    bool _saveTuneInfo       ();
+    bool _saveTuneInfo       (int song);
     void _songChanged        (int song);
     void _songsChanged       (int songs);
-    void _versionChanged     (int version);
 
 signals:
     void _defaultSong   (int  index);
-    void _player        (bool visible);
-    void _player        (int  index);
-    void _hwInfo        (bool visible);
     void _subtune       (bool visible);
-    void _subtuneHwInfo (bool visible);
     void _timingEnabled (bool enabled);
 
 private:
     int                    m_defaultSong;
     filetype_t             m_fileType;
-    FileTypeInfo           m_fileTypeInfo;
-    bool                   m_hwInfo;
     bool                   m_isModified;
     uint_least8_t          m_pages;
-    PlayerType             m_playerTypePSID;
-    PlayerType             m_playerTypeRSID;
+    PlayerType             m_playerType;
     SIDTypeInfo            m_sidTypeInfo;
     bool                   m_subtuneInfo;
     TimingInfo             m_timingInfo;
     int                    m_timingMaxSong;
-    std::auto_ptr<SidTune> m_tune;
+    std::auto_ptr<SidTuneWrite> m_tune;
     VICSpeedInfo           m_vicSpeedInfo;
-    void (SidEdit::*       m_setup) (int);
 
-    QComboBox  *m_cboFileType;
     QComboBox  *m_cboPlayerType;
     QComboBox  *m_cboSidType;
+    QComboBox  *m_cboSid2Type;
     QComboBox  *m_cboTiming;
     QComboBox  *m_cboVicSpeed;
     QLineEdit  *m_txtCreditTitle;
@@ -98,8 +87,8 @@ private:
     HexSpinBox *m_spnPlayAddress;
     HexSpinBox *m_spnPlayerStart;
     HexSpinBox *m_spnPlayerEnd;
+    HexSpinBox *m_spnSid2Address;
     QSpinBox   *m_spnSongs;
-    QSpinBox   *m_spnVersion;
     QLabel     *m_txtPlayerPages;
     QLabel     *m_txtSong;
 };

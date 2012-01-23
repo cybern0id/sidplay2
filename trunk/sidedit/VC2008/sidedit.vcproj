@@ -19,6 +19,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			>
 			<Tool
@@ -173,6 +174,10 @@
 				RelativePath="..\src\sidedit.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\src\SidTuneWrite.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -234,6 +239,10 @@
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\SidTuneWrite.h"
+				>
 			</File>
 		</Filter>
 		<Filter
