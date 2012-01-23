@@ -21,7 +21,8 @@ bool SidTuneWrite::setInfo (const SidTuneInfo &tuneInfo)
     SidTuneInfo info = tuneInfo;
 
     // Lets verify some of the data
-    if ((info.currentSong >= info.songs) || (info.songs >= SIDTUNE_MAX_SONGS))
+    if ((info.currentSong > info.songs)  || (info.currentSong == 0) ||
+        (info.songs > SIDTUNE_MAX_SONGS) || (info.startSong == 0))
     {
         m_info.statusString = txt_songNumberExceed;
         return false;
@@ -92,14 +93,23 @@ bool SidTuneWrite::setInfo (const SidTuneInfo &tuneInfo)
         m_info.statusString = info.statusString;
         return false;
     }
-/*
-    for ( uint_least16_t sNum = 0; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
-    {
-        for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
-        {
-            infoString[sNum][sPos] = info.infoString[sNum][sPos];
-        }
-    }
-*/
+
     m_info = info;
+
+    for ( uint_least16_t sNum = 0; sNum < m_info.numberOfInfoStrings; sNum++ )
+    {
+        m_info.infoString[sNum] = infoString[sNum];
+        for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
+            infoString[sNum][sPos] = info.infoString[sNum][sPos];
+    }
+
+    for ( uint_least16_t sNum = m_info.numberOfInfoStrings; sNum < SIDTUNE_MAX_CREDIT_STRINGS; sNum++ )
+    {
+        m_info.infoString[sNum] = infoString[sNum];
+        for ( uint_least16_t sPos = 0; sPos < SIDTUNE_MAX_CREDIT_STRLEN; sPos++ )
+            infoString[sNum][sPos] = '\0';
+    }
+
+    songSpeed[m_info.currentSong-1] = m_info.songSpeed;
+    return true;
 }
