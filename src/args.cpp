@@ -91,6 +91,7 @@ using std::endl;
 #   define DISALLOW_STEREO_SOUND
 #endif
 
+extern int asid_midi_port;
 
 // Convert time from integer
 bool ConsolePlayer::parseTime (char *str, uint_least32_t &time)
@@ -142,6 +143,8 @@ int ConsolePlayer::args (int argc, char *argv[])
     m_driver.output = OUT_SOUNDCARD;
     m_driver.file   = false;
     m_driver.sid    = EMU_RESID;
+
+    //asid_midi_port=-1;
 
     // parse command line arguments
     while ((i < argc) && (argv[i] != NULL))
@@ -383,6 +386,13 @@ int ConsolePlayer::args (int argc, char *argv[])
                 m_driver.sid    = EMU_HARDSID;
                 m_driver.output = OUT_NULL;
             }
+	    else if(strncmp (&argv[i][1],"-midiport=",10) == 0)
+	    {
+		    asid_midi_port=atoi(&argv[i][11]);
+		    //TODO: using global vars to set this isn't very nice
+		    //printf("midi port set to %d\n",asid_midi_port);
+	    }
+
 #endif // HAVE_HARDSID_BUILDER
 
             // These are for debug

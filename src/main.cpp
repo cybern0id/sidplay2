@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
     ConsolePlayer player(argv[0]);
     g_player = &player;
 
+	printf("sidplay2 with ASID midi hack, v0.2 sid@k-n-p.org, activate with --hardsid\n");
+
     {// Decode the command line args
         int ret = player.args (argc - 1, const_cast<char**>(argv + 1));
         if (ret < 0)

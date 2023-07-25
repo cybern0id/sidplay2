@@ -392,11 +392,13 @@ bool ConsolePlayer::createSidEmu (SIDEMUS emu)
             m_engCfg.sidEmulation = hs;
             if (!*hs) goto createSidEmu_error;
 
+	    //hs->setmidiport(123);
             // Setup the emulation
             hs->create ((m_engine.info ()).maxsids);
             if (!*hs) goto createSidEmu_error;
             hs->filter (m_filter.enabled);
             if (!*hs) goto createSidEmu_error;
+	    
         }
         break;
     }
@@ -677,8 +679,7 @@ void ConsolePlayer::event (void)
             if (m_track.loop)
                 m_state = playerRestart;
         }            
-    }
-    
+    }    
     // Units in C64 clock cycles
     m_context->schedule (this, 900000, EVENT_CLOCK_PHI1);
 }
