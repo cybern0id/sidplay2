@@ -47,6 +47,7 @@
  ***************************************************************************/
 
 #include <stdio.h>
+#include <cstring>
 #include "config.h"
 
 #ifdef HAVE_EXCEPTIONS

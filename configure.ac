@@ -2,7 +2,7 @@ AC_INIT(Makefile.am)
 
 #Variables
 pwd=`pwd`
-builders='${libdir}'/sidplay/builders
+builders='${libdir}'/
 ac_configure_args="$ac_configure_args --disable-library-checks"
 
 AC_CONFIG_AUX_DIR(unix)
@@ -11,7 +11,7 @@ AC_CANONICAL_HOST
 
 hardsid=false
 case "$host" in
-    *linux*) hardsid=true
+    *linux*|*-k*bsd*-gnu) hardsid=true
         ;;
 esac
 AM_CONDITIONAL(HARDSID, test x$hardsid = xtrue)
