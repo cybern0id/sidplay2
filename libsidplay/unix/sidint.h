@@ -2,7 +2,7 @@
 #define _UNIX_SIDINT_H 1
 #ifndef _GENERATED_STDINT_H
 #define _GENERATED_STDINT_H "libsidplay 2.1.1"
-/* generated using a gnu compiler version x86_64-linux-gnu-gcc (Debian 4.3.4-2) 4.3.4 Copyright (C) 2008 Free Software Foundation, Inc. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. */
+/* generated using a gnu compiler version arm-angstrom-linux-gnueabi-gcc (GCC) 4.3.3 Copyright (C) 2008 Free Software Foundation, Inc. This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. */
 
 #include <stdint.h>
 

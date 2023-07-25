@@ -57,6 +57,7 @@
 #include "hardsid.h"
 #include "hardsid-emu.h"
 
+int asid_midi_port=-1;
 
 #ifdef HAVE_MSWINDOWS
 //**************************************************************************
@@ -379,4 +380,11 @@ int HardSIDBuilder::init ()
     closedir (dir);
 }
 
+int HardSIDBuilder::setmidiport(int port)
+{
+	printf(" setmidiport : %d\n\n",port);
+	asid_midi_port=port;
+	
+	return port;
+}
 #endif // HAVE_MSWINDOWS

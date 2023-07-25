@@ -149,6 +149,7 @@ void ReSID::write (uint_least8_t addr, uint8_t data)
 {
     event_clock_t cycles = m_context->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
+    int cy=cycles;
     if (m_optimisation)
     {
         if (cycles)
@@ -159,7 +160,7 @@ void ReSID::write (uint_least8_t addr, uint8_t data)
         while(cycles--)
             m_sid.clock ();
          
-    }
+    } 
     m_sid.write (addr, data);
 }
 

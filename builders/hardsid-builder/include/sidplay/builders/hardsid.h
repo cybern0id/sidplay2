@@ -68,6 +68,7 @@ public:
     const char *credits (void);
     void        flush   (void);
     void        filter  (bool enable);
+    int		setmidiport(int port);
 
     uint        create  (uint sids);
 };

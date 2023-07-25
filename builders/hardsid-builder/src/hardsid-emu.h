@@ -49,6 +49,8 @@
 #include <sidplay/sidbuilder.h>
 #include <sidplay/event.h>
 #include "config.h"
+#include "RtMidi.h"
+#include <time.h>
 
 #ifdef HAVE_MSWINDOWS
 
@@ -119,6 +121,13 @@ private:
     static         bool m_sidFree[16];
     int            m_handle;
 #endif
+    int            cycletimer;
+    unsigned char           sid_register[28];
+    unsigned char           sid_modified[28];
+    FILE *f;
+    timespec time1;
+
+    RtMidiOut *midiout;
 
     static const   uint voices;
     static         uint sid;
@@ -136,6 +145,7 @@ private:
     uint           m_instance;
     bool           m_status;
     bool           m_locked;
+
 
 public:
     HardSID  (sidbuilder *builder);
@@ -169,6 +179,9 @@ private:
     // shoot to 100% CPU usage when song nolonger
     // writes to SID.
     void event (void);
+
+    void sendreg(void); //output changed registers to midi
+    void delay(int clockcycles);
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)
