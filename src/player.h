@@ -194,7 +194,7 @@ private:
     void consoleRestore (void);
 
     // Command line args
-    bool parseTime        (const char *str, uint_least32_t &time);
+    bool parseTime        (char *str, uint_least32_t &time);
     void displayArgs      (const char *arg = NULL);
     void displayDebugArgs ();
 
@@ -211,7 +211,7 @@ public:
     ConsolePlayer (const char * const name);
     virtual ~ConsolePlayer() {;}
 
-    int            args  (int argc, const char *argv[]);
+    int            args  (int argc, char *argv[]);
     bool           open  (void);
     void           close (void);
     bool           play  (void);

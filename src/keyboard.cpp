@@ -56,7 +56,7 @@
 #   include <sys/stat.h>
 #   include <fcntl.h>
 #   include <unistd.h>
-char _getch (void);
+int _getch (void);
 #endif
 
 #define MAX_CMDLEN 10
@@ -200,7 +200,8 @@ static int keyboard_search (char *cmd)
 
 int keyboard_decode ()
 {
-    char cmd[MAX_CMDLEN+1], c;
+    char cmd[MAX_CMDLEN+1];
+    int c;
     int  nch = 0;
     int  action = A_NONE;
 
@@ -208,14 +209,14 @@ int keyboard_decode ()
      * Collect characters in a buffer.
      * Start with the one we have, and get more if we need them.
      */
-    c = (char) _getch();
+    c = _getch();
     if (c == '\0')
         c = '\340'; // 224
     else if (c == ESC)
     {
         cmd[nch++] = c;
         if (_kbhit ())
-            c = (char) _getch ();
+            c = _getch ();
     }
 
     while (c >= 0)
@@ -228,7 +229,7 @@ int keyboard_decode ()
             break;
         if (!_kbhit ())
             break;
-        c = (char) _getch ();
+        c = _getch ();
     }
     return action;
 }
@@ -256,7 +257,7 @@ int _kbhit (void)
     return 0;
 }
 
-char _getch (void)
+int _getch (void)
 {
     char ch = -1;
     if (infd >= 0)

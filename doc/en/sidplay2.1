@@ -12,7 +12,7 @@ SIDPLAY \- Sidplay is SID-chip emulator for playing Commodore 64 music.
 .I [ OPTIONS... ]
 .B <datafile>
 .SH DESCRIPTION
-.B Sidplay is a music player that emulates various components from a Commodore 64 (C64) computer.  The result is a program which can load and execute C64 machine code programs which produce music and sound.  This page covers both Sidplay versions 1 and 2, Sidplay being an frame based emulation capable of playback on low  specification PCs.  Sidplay2 on the other hand has been designed for accuracy which results in a much higher cpu usuage.  Additional playback modes have however been provided to allow playback on low specification machines at the cost of accuracy, but it still has a higher cpu demand than Sidplay.
+Sidplay is a music player that emulates various components from a Commodore 64 (C64) computer.  The result is a program which can load and execute C64 machine code programs which produce music and sound.  This page covers both Sidplay versions 1 and 2, Sidplay being an frame based emulation capable of playback on low  specification PCs.  Sidplay2 on the other hand has been designed for accuracy which results in a much higher cpu usage.  Additional playback modes have however been provided to allow playback on low specification machines at the cost of accuracy, but it still has a higher cpu demand than Sidplay.
 .SH COMMON OPTIONS
 .TP
 \fB\--help|-h\fR
@@ -47,7 +47,7 @@ Force dual sid environment.
 This forces emulation of  2 sid-chips for stereo playback
 even if datafile is identified as only being mono.  This occurs
 in the case of the stereo sid format as currently there is no way
-to identfy them.  Stereo MUS files are however automatically
+to identify them.  Stereo MUS files are however automatically
 detected.  The second sid appears in the 0xD500 address range.
 \fB\-fs\fR
 By default all samples are played through the SIDs master volume.  This can cause the
@@ -91,7 +91,7 @@ Set play length in [mins]:secs format (0 is endless).
 Set VIC clock speed.  'n' is NTSC (America, 60Hz) and 'p' is PAL (Europe, 50Hz).  Providing an 'f' will prevent speed fixing that tries to compensate automatically for the speed difference.  Removing speed speed fixing simulates what happens on a real C64.  Options can be written as: -vnf or -vn -vf.
 .TP
 \fB\-w[name]|--wav[name]\fR
-Create WAV-file.  The default output filename is <datafile>[n].wav where [n] is the tune number should there be more than one in the sid.  This allows batch conversion of sid tunes without them overwritting each other.  By providing a name you override this default behaviour.  The output file will be <name> with no tune number is added and <name> IS NOT checked for or appended with a legal wav file extension.
+Create WAV-file.  The default output filename is <datafile>[n].wav where [n] is the tune number should there be more than one in the sid.  This allows batch conversion of sid tunes without them overwriting each other.  By providing a name you override this default behavior.  The output file will be <name> with no tune number is added and <name> IS NOT checked for or appended with a legal wav file extension.
 
 .SH SIDPLAY OPTIONS
 .TP

@@ -57,7 +57,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#if defined(HAVE_LINUX_SOUNDCARD_H)
+#if defined(HAVE_SYS_SOUNDCARD_H)
+#   include <sys/soundcard.h>
+#elif defined(HAVE_LINUX_SOUNDCARD_H)
 #   include <linux/soundcard.h>
 #elif defined(HAVE_MACHINE_SOUNDCARD_H)
 #   include <machine/soundcard.h>

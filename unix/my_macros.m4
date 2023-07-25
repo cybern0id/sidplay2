@@ -80,7 +80,8 @@ AC_DEFUN([MY_CHECK_IOS_BIN],
     AC_CACHE_VAL(test_cv_have_ios_binary,
     [
         AC_TRY_COMPILE(
-            [#include <fstream.h>],
+            [#include <fstream>
+	    using namespace std;],
             [ifstream myTest(ios::in|ios::binary);],
             [test_cv_have_ios_binary=yes],
             [test_cv_have_ios_binary=no]
@@ -105,8 +106,9 @@ AC_DEFUN([MY_CHECK_IOS_OPENMODE],
     AC_CACHE_VAL(test_cv_have_ios_openmode,
     [
         AC_TRY_COMPILE(
-            [#include <fstream.h>
-             #include <iomanip.h>],
+            [#include <fstream>
+             #include <iomanip>
+	     using namespace std;],
             [ios::openmode myTest = ios::in;],
             [test_cv_have_ios_openmode=yes],
             [test_cv_have_ios_openmode=no]

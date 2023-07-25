@@ -93,7 +93,7 @@ using std::endl;
 
 
 // Convert time from integer
-bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
+bool ConsolePlayer::parseTime (char *str, uint_least32_t &time)
 {
     char *sep;
     uint_least32_t _time;
@@ -126,7 +126,7 @@ bool ConsolePlayer::parseTime (const char *str, uint_least32_t &time)
 }
 
 // Parse command line arguments
-int ConsolePlayer::args (int argc, const char *argv[])
+int ConsolePlayer::args (int argc, char *argv[])
 {
     int  infile = 0;
     int  i      = 0;
