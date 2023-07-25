@@ -1,0 +1,116 @@
+/* unix/config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define supported audio driver */
+#undef HAVE_HARDSID
+#undef HAVE_ALSA
+#undef HAVE_IRIX
+#undef HAVE_HPUX
+#undef HAVE_MMSYSTEM
+#undef HAVE_OSS
+#undef HAVE_SGI
+#undef HAVE_SUNOS
+#undef HAVE_WAV_ONLY
+
+
+
+/* Define supported builder */
+#undef HAVE_RESID_BUILDER
+#undef HAVE_HARDSID_BUILDER
+    
+
+/* Define to 1 if you have the <audio.h> header file. */
+#undef HAVE_AUDIO_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <dmedia/audio.h> header file. */
+#undef HAVE_DMEDIA_AUDIO_H
+
+/* Define if your C++ compiler implements exception-handling. */
+#undef HAVE_EXCEPTIONS
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if standard member ``ios::binary'' is called ``ios::bin''. */
+#undef HAVE_IOS_BIN
+
+/* Define if ``ios::openmode'' is supported. */
+#undef HAVE_IOS_OPENMODE
+
+/* Define to 1 if you have the <linux/soundcard.h> header file. */
+#undef HAVE_LINUX_SOUNDCARD_H
+
+/* Define to 1 if you have the <machine/soundcard.h> header file. */
+#undef HAVE_MACHINE_SOUNDCARD_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <soundcard.h> header file. */
+#undef HAVE_SOUNDCARD_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sun/audioio.h> header file. */
+#undef HAVE_SUN_AUDIOIO_H
+
+/* Define to 1 if you have the <sun/dbriio.h> header file. */
+#undef HAVE_SUN_DBRIIO_H
+
+/* Define to 1 if you have the <sys/audioio.h> header file. */
+#undef HAVE_SYS_AUDIOIO_H
+
+/* Define to 1 if you have the <sys/audio.h> header file. */
+#undef HAVE_SYS_AUDIO_H
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#undef WORDS_BIGENDIAN
