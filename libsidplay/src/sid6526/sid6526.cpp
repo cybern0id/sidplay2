@@ -15,19 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.16  2008/02/27 20:59:27  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.15  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.14  2006/04/09 16:51:47  s_a_white
- *  Confirmed timer re-programming overhead is 2 cycles.
- *
- *  Revision 1.13  2004/06/26 11:06:52  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: sid6526.cpp,v $
  *  Revision 1.12  2004/05/28 15:45:12  s_a_white
  *  Correct credit email address
  *
@@ -68,11 +56,8 @@
 
 #include <time.h>
 #include "config.h"
-#include "c64env.h"
 #include "sidendian.h"
 #include "sid6526.h"
-
-SIDPLAY2_NAMESPACE_START
 
 const char * const SID6526::credit =
 {   // Optional information
@@ -81,12 +66,11 @@ const char * const SID6526::credit =
 };
 
 SID6526::SID6526 (c64env *env)
-:CoComponent<ISidComponent>("SID6526"),
- Event("CIA Timer A"),
- m_env(*env),
+:m_env(*env),
  m_eventContext(m_env.context ()),
  m_phase(EVENT_CLOCK_PHI1),
- rnd(0)
+ rnd(0),
+ m_taEvent(*this)
 {
     clock (0xffff);
     reset (false);
@@ -104,7 +88,7 @@ void SID6526::reset (bool seed)
         rnd += time(NULL) & 0xff;
     m_accessClk = 0;
     // Remove outstanding events
-    cancel ();
+    m_eventContext.cancel (&m_taEvent);
 }
 
 uint8_t SID6526::read (uint_least8_t addr)
@@ -160,7 +144,8 @@ void SID6526::write (uint_least8_t addr, uint8_t data)
             cra &= (~0x10);
             ta   = ta_latch;
         }
-        schedule (m_eventContext, (event_clock_t) ta + 3, m_phase);
+        m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
+                                 m_phase);
     break;
     default:
     break;
@@ -171,8 +156,7 @@ void SID6526::event (void)
 {   // Timer Modes
     m_accessClk = m_eventContext.getTime (m_phase);
     ta = ta_latch;
-    schedule (m_eventContext, (event_clock_t) ta + 1, m_phase);
+    m_eventContext.schedule (&m_taEvent, (event_clock_t) ta + 1,
+                             m_phase);
     m_env.interruptIRQ (true);
 }
-
-SIDPLAY2_NAMESPACE_STOP

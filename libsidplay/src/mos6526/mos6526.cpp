@@ -15,19 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.27  2008/02/27 20:59:27  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.26  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.25  2006/04/09 16:50:49  s_a_white
- *  Confirmed timer re-programming overhead is 2 cycles.
- *
- *  Revision 1.24  2004/06/26 11:09:13  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: mos6526.cpp,v $
  *  Revision 1.23  2004/05/04 22:40:20  s_a_white
  *  Fix pulse mode output on the ports to work.
  *
@@ -121,8 +109,6 @@
 #include "sidendian.h"
 #include "mos6526.h"
 
-SIDPLAY2_NAMESPACE_START
-
 enum
 {
     INTERRUPT_TA      = 1 << 0,
@@ -162,8 +148,7 @@ const char *MOS6526::credit =
 
 
 MOS6526::MOS6526 (EventContext *context)
-:CoComponent<ISidComponent>("MOS6526"),
- pra(regs[PRA]),
+:pra(regs[PRA]),
  prb(regs[PRB]),
  ddra(regs[DDRA]),
  ddrb(regs[DDRB]),
@@ -171,9 +156,9 @@ MOS6526::MOS6526 (EventContext *context)
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  m_todPeriod(~0), // Dummy
- m_taEvent("CIA Timer A", *this, &MOS6526::ta_event),
- m_tbEvent("CIA Timer B", *this, &MOS6526::tb_event),
- m_todEvent("CIA Time of Day", *this, &MOS6526::tod_event)
+ event_ta(this),
+ event_tb(this),
+ event_tod(this)
 {
     reset ();
 }
@@ -209,9 +194,9 @@ void MOS6526::reset (void)
     m_todCycles = 0;
 
     // Remove outstanding events
-    m_taEvent.cancel ();
-    m_tbEvent.cancel ();
-    m_todEvent.schedule (event_context, 0, m_phase);
+    event_context.cancel   (&event_ta);
+    event_context.cancel   (&event_tb);
+    event_context.schedule (&event_tod, 0, m_phase);
 }
 
 uint8_t MOS6526::read (uint_least8_t addr)
@@ -408,11 +393,11 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x21) == 0x01)
         {   // Active
-            m_taEvent.schedule (event_context, (event_clock_t) ta + 3,
-                                m_phase);
+            event_context.schedule (&event_ta, (event_clock_t) ta + 1,
+                                    m_phase);
         } else
         {   // Inactive
-            m_taEvent.cancel ();
+            event_context.cancel (&event_ta);
         }
     break;
 
@@ -433,11 +418,11 @@ void MOS6526::write (uint_least8_t addr, uint8_t data)
 
         if ((data & 0x61) == 0x01)
         {   // Active
-            m_tbEvent.schedule (event_context, (event_clock_t) tb + 3,
-                                m_phase);
+            event_context.schedule (&event_tb, (event_clock_t) tb + 1,
+                                    m_phase);
         } else
         {   // Inactive
-            m_tbEvent.cancel ();
+            event_context.cancel (&event_tb);
         }
     break;
 
@@ -488,11 +473,11 @@ void MOS6526::ta_event (void)
         cra &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_taEvent.schedule (event_context, (event_clock_t) ta + 1,
-                            m_phase);
+        event_context.schedule (&event_ta, (event_clock_t) ta + 1,
+                                m_phase);
     }
     trigger (INTERRUPT_TA);
-
+    
     // Handle serial port
     if (cra & 0x40)
     {
@@ -518,7 +503,7 @@ void MOS6526::ta_event (void)
     break;
     }
 }
-
+    
 void MOS6526::tb_event (void)
 {   // Timer Modes
     uint8_t mode = crb & 0x61;
@@ -540,7 +525,7 @@ void MOS6526::tb_event (void)
                 return;
         }
     break;
-
+    
     default:
         return;
     }
@@ -553,8 +538,8 @@ void MOS6526::tb_event (void)
         crb &= (~0x01);
     } else if (mode == 0x01)
     {   // Reset event
-        m_tbEvent.schedule (event_context, (event_clock_t) tb + 1,
-                            m_phase);
+        event_context.schedule (&event_tb, (event_clock_t) tb + 1,
+                                m_phase);
     }
     trigger (INTERRUPT_TB);
 }
@@ -569,10 +554,10 @@ void MOS6526::tod_event(void)
     if (cra & 0x80)
         m_todCycles += (m_todPeriod * 5);
     else
-        m_todCycles += (m_todPeriod * 6);
-
+        m_todCycles += (m_todPeriod * 6);    
+    
     // Fixed precision 25.7
-    m_todEvent.schedule (event_context, m_todCycles >> 7, m_phase);
+    event_context.schedule (&event_tod, m_todCycles >> 7, m_phase);
     m_todCycles &= 0x7F; // Just keep the decimal part
 
     if (!m_todstopped)
@@ -609,5 +594,3 @@ void MOS6526::tod_event(void)
             trigger (INTERRUPT_ALARM);
     }
 }
-
-SIDPLAY2_NAMESPACE_STOP

@@ -14,35 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.50  2007/01/27 16:18:38  s_a_white
- *  GCC compile fixes.
- *
- *  Revision 1.49  2007/01/27 11:14:21  s_a_white
- *  Must export interfaces correctly via ifquery now.
- *
- *  Revision 1.48  2007/01/27 10:22:44  s_a_white
- *  Updated to use better COM emulation interface.
- *
- *  Revision 1.47  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.46  2006/06/29 19:18:17  s_a_white
- *  Seperate mixer interface from emulation interface.
- *
- *  Revision 1.45  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.44  2006/05/31 20:38:14  s_a_white
- *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
- *
- *  Revision 1.43  2004/11/12 20:17:22  s_a_white
- *  Valgrind memory access fixes
- *
- *  Revision 1.42  2004/06/26 10:58:01  s_a_white
- *  Merged sidplay2/w volume/mute changes.
- *
+ *  $Log: config.cpp,v $
  *  Revision 1.41  2004/06/14 20:05:16  s_a_white
  *  Restore optimisation level support
  *
@@ -191,7 +163,7 @@ SIDPLAY2_NAMESPACE_START
 
 int Player::config (const sid2_config_t &cfg)
 {
-    bool monosid = true;
+    bool monosid = false;
 
     if (m_running)
     {
@@ -225,11 +197,6 @@ int Player::config (const sid2_config_t &cfg)
         goto Player_configure_error;
     }
    
-    // Initialise sid mapping table
-    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
-        m_sidmapper[i] = 0;
-    }
-
     // Only do these if we have a loaded tune
     if (m_tune)
     {
@@ -238,10 +205,9 @@ int Player::config (const sid2_config_t &cfg)
 
         // SID emulation setup (must be performed before the
         // environment setup call)
-        SidLazyIPtr<ISidBuilder> builder(cfg.sidEmulation);
-        if (sidCreate (builder, cfg.sidModel, cfg.sidDefault) < 0)
+        if (sidCreate (cfg.sidEmulation, cfg.sidModel, cfg.sidDefault) < 0)
         {
-            m_errorString      = builder->error ();
+            m_errorString      = cfg.sidEmulation->error ();
             m_cfg.sidEmulation = NULL;
             goto Player_configure_restore;
         }
@@ -253,7 +219,6 @@ int Player::config (const sid2_config_t &cfg)
             // Determine clock speed
             cpuFreq = clockSpeed (cfg.clockSpeed, cfg.clockDefault,
                                   cfg.clockForced);
-            m_info.cpuFrequency = cpuFreq;
             // Fixed point conversion 16.16
             m_samplePeriod = (event_clock_t) (cpuFreq /
                              (float64_t) cfg.frequency *
@@ -278,28 +243,31 @@ int Player::config (const sid2_config_t &cfg)
                 cia2.clock (cpuFreq / VIC_FREQ_NTSC);
             }
 
-            // Start the real time clock event
-            rtc.clock  (cpuFreq);
-
             // Configure, setup and install C64 environment/events
             if (environment (cfg.environment) < 0)
                 goto Player_configure_restore;
+            // Start the real time clock event
+            rtc.clock  (cpuFreq);
         }
-
-        // Setup sid mapping table
-        // Note this should be based on m_tuneInfo.sidChipBase1
-        // but this is only temporary code anyway
-        if (m_tuneInfo.sidChipBase2)
-        {
-            // Assumed to be in d4xx-d7xx range
-            m_sidmapper[(m_tuneInfo.sidChipBase2 >> 5) &
-                        (SID2_MAPPER_SIZE - 1)] = 1;
-        }
-        monosid = !m_tuneInfo.sidChipBase2;
     }
     sidSamples (cfg.sidSamples);
 
+    // Setup sid mapping table
+    // Note this should be based on m_tuneInfo.sidChipBase1
+    // but this is only temporary code anyway
+    {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
+        m_sidmapper[i] = 0;
+    }
+    if (m_tuneInfo.sidChipBase2)
+    {
+        monosid = false;
+        // Assumed to be in d4xx-d7xx range
+        m_sidmapper[(m_tuneInfo.sidChipBase2 >> 5) &
+                    (SID2_MAPPER_SIZE - 1)] = 1;
+    }
+
     // All parameters check out, so configure player.
+    monosid = !m_tuneInfo.sidChipBase2;
     m_info.channels = 1;
     m_emulateStereo = false;
     if (cfg.playback == sid2_stereo)
@@ -307,7 +275,7 @@ int Player::config (const sid2_config_t &cfg)
         m_info.channels++;
         // Enough sids are available to perform
         // stereo spliting
-        if (monosid && (sid[1]->iunknown() != nullsid.iunknown()))
+        if (monosid && (sid[1] != &nullsid))
             m_emulateStereo = cfg.emulateStereo;
     }
 
@@ -325,16 +293,9 @@ int Player::config (const sid2_config_t &cfg)
     {   // Try Spliting channels across 2 sids
         if (m_emulateStereo)
         {   // Mute Voices
-            SidLazyIPtr<ISidMixer> mixer;
-            mixer = sid[0];
-            if (mixer)
-            {
-                mixer->mute (0, true);
-                mixer->mute (2, true);
-            }
-            mixer = sid[1];
-            if (mixer)
-                mixer->mute (1, true);
+            sid[0]->voice (0, 0, true);
+            sid[0]->voice (2, 0, true);
+            sid[1]->voice (1, 0, true);
             // 2 Voices scaled to unity from 4 (was !SID_VOL)
             //    m_leftVolume  *= 2;
             //    m_rightVolume *= 2;
@@ -609,7 +570,7 @@ int Player::environment (sid2_env_t env)
 
 // Integrate SID emulation from the builder class into
 // libsidplay2
-int Player::sidCreate (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t userModel,
+int Player::sidCreate (sidbuilder *builder, sid2_model_t userModel,
                        sid2_model_t defaultModel)
 {
     sid[0] = xsid.emulation ();
@@ -625,15 +586,14 @@ int Player::sidCreate (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t userModel
     }
     ****************************************/
 
-    {   // Make xsid forget it's emulation
-        SidIPtr<ISidEmulation> none(nullsid.iunknown());
-        xsid.emulation (none);
-    }
+    // Make xsid forget it's emulation
+    xsid.emulation (&nullsid);
 
     {   // Release old sids
         for (int i = 0; i < SID2_MAX_SIDS; i++)
         {
-            SidLazyIPtr<ISidBuilder> b(sid[i]->builder());
+            sidbuilder *b;
+            b = sid[i]->builder ();
             if (b)
                 b->unlock (sid[i]);
         }
@@ -642,94 +602,81 @@ int Player::sidCreate (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t userModel
     if (!builder)
     {   // No sid
         for (int i = 0; i < SID2_MAX_SIDS; i++)
-            sid[i] = nullsid.iunknown ();
+            sid[i] = &nullsid;
     }
     else
     {   // Detect the Correct SID model
         // Determine model when unknown
-        sid2_model_t userModels[SID2_MAX_SIDS];
-
-        memset (userModels, 0, sizeof(userModels));
-        userModels[0] = sidModel(m_tuneInfo.sidModel1, userModel, defaultModel);
-        userModels[1] = sidModel(m_tuneInfo.sidModel2, userModel, userModels[0]);
-
-        for (int i = 0; i < SID2_MAX_SIDS; i++)
-        {   // Get first SID emulation
-            sid[i] = builder->lock (this, userModels[i]);
-            if (!sid[i])
-                sid[i] = nullsid.iunknown ();
-                if ((i == 0) && !builder)
-                return -1;
-            sid[i]->optimisation (m_cfg.optimisation);
-            sid[i]->clock ((sid2_clock_t) m_tuneInfo.clockSpeed);
-        }
-    }
-    xsid.emulation (sid[0]);
-    sid[0] = xsid.iunknown ();
-    return 0;
-}
-
-sid2_model_t Player::sidModel(int &model, sid2_model_t userModel,
-                              sid2_model_t defaultModel)
-{
-    if (model == SIDTUNE_SIDMODEL_UNKNOWN)
-    {
-        switch (defaultModel)
+        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_UNKNOWN)
         {
-        case SID2_MOS6581:
-            model = SIDTUNE_SIDMODEL_6581;
-            break;
-        case SID2_MOS8580:
-            model = SIDTUNE_SIDMODEL_8580;
-            break;
-        case SID2_MODEL_CORRECT:
-            // No default so base it on emulation clock
-            model = SIDTUNE_SIDMODEL_ANY;
+            switch (defaultModel)
+            {
+            case SID2_MOS6581:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+                break;
+            case SID2_MOS8580:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+                break;
+            case SID2_MODEL_CORRECT:
+                // No default so base it on emulation clock
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_ANY;
+            }
         }
-    }
 
-    // Since song will run correct on any sid model
-    // set it to the current emulation
-    if (model == SIDTUNE_SIDMODEL_ANY)
-    {
-        if (userModel == SID2_MODEL_CORRECT)
-            userModel  = defaultModel;
+        // Since song will run correct on any sid model
+        // set it to the current emulation
+        if (m_tuneInfo.sidModel == SIDTUNE_SIDMODEL_ANY)
+        {
+            if (userModel == SID2_MODEL_CORRECT)
+                userModel  = defaultModel;
+            
+            switch (userModel)
+            {
+            case SID2_MOS8580:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
+                break;
+            case SID2_MOS6581:
+            default:
+                m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+                break;
+            }
+        }
 
         switch (userModel)
         {
-        case SID2_MOS8580:
-            model = SIDTUNE_SIDMODEL_8580;
+        case SID2_MODEL_CORRECT:
+            switch (m_tuneInfo.sidModel)
+            {
+            case SIDTUNE_SIDMODEL_8580:
+                userModel = SID2_MOS8580;
+                break;
+            case SIDTUNE_SIDMODEL_6581:
+                userModel = SID2_MOS6581;
+                break;
+            }
             break;
+        // Fixup tune information if model is forced
         case SID2_MOS6581:
-        default:
-            model = SIDTUNE_SIDMODEL_6581;
+            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_6581;
+            break;
+        case SID2_MOS8580:
+            m_tuneInfo.sidModel = SIDTUNE_SIDMODEL_8580;
             break;
         }
-    }
 
-    switch (userModel)
-    {
-    case SID2_MODEL_CORRECT:
-        switch (model)
-        {
-        case SIDTUNE_SIDMODEL_8580:
-            userModel = SID2_MOS8580;
-            break;
-        case SIDTUNE_SIDMODEL_6581:
-            userModel = SID2_MOS6581;
-            break;
+        for (int i = 0; i < SID2_MAX_SIDS; i++)
+        {   // Get first SID emulation
+            sid[i] = builder->lock (this, userModel);
+            if (!sid[i])
+                sid[i] = &nullsid;
+            if ((i == 0) && !*builder)
+                return -1;
+            sid[0]->optimisation (m_cfg.optimisation);
         }
-        break;
-    // Fixup tune information if model is forced
-    case SID2_MOS6581:
-        model = SIDTUNE_SIDMODEL_6581;
-        break;
-    case SID2_MOS8580:
-        model = SIDTUNE_SIDMODEL_8580;
-        break;
     }
-
-    return userModel;
+    xsid.emulation (sid[0]);
+    sid[0] = &xsid;
+    return 0;
 }
 
 void Player::sidSamples (bool enable)
@@ -744,12 +691,8 @@ void Player::sidSamples (bool enable)
     xsid.gain (-100 - gain);
     sid[0] = xsid.emulation ();
     for (int i = 0; i < SID2_MAX_SIDS; i++)
-    {
-        SidIPtr<ISidMixer> mixer(sid[i]);
-        if (mixer)
-            mixer->gain (gain);
-    }
-    sid[0] = xsid.iunknown ();
+        sid[i]->gain (gain);
+    sid[0] = &xsid;
 }
 
 SIDPLAY2_NAMESPACE_STOP

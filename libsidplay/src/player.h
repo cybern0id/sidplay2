@@ -15,30 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.58  2008/02/27 20:59:27  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.57  2007/01/27 11:14:21  s_a_white
- *  Must export interfaces correctly via ifquery now.
- *
- *  Revision 1.56  2007/01/27 10:22:44  s_a_white
- *  Updated to use better COM emulation interface.
- *
- *  Revision 1.55  2006/10/30 19:30:36  s_a_white
- *  Switch sidplay2/player to use iinterface
- *
- *  Revision 1.54  2006/06/29 19:25:13  s_a_white
- *  Remove unused variable.
- *
- *  Revision 1.53  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.52  2004/06/26 11:02:55  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *  Removed unnecessary cpu emulation.
- *
+ *  $Log: player.h,v $
  *  Revision 1.51  2004/05/03 22:42:56  s_a_white
  *  Change how port handling is dealt with to provide better C64 compatiiblity.
  *  Add character rom support.
@@ -211,12 +188,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sidconfig.h"
 #include "sid2types.h"
 #include "SidTune.h"
 #include "sidbuilder.h"
-#include "imp/sidcounknown.h"
-#include "imp/sidcoaggregate.h"
 
 #include "config.h"
 #include "sidenv.h"
@@ -232,14 +206,9 @@
 #define  SID2_TIME_BASE 10
 #define  SID2_MAPPER_SIZE 32
 
-#include "sidplay2.h"
-
 SIDPLAY2_NAMESPACE_START
 
-class Player: public  CoUnknown<ISidplay2>,
-              public  CoAggregate<ISidTimer>,
-      	      private C64Environment,
-              private c64env
+class Player: private C64Environment, c64env
 {
 private:
     static const double CLOCK_FREQ_NTSC;
@@ -270,7 +239,9 @@ private:
     EventScheduler m_scheduler;
 
     //SID6510  cpu(6510, "Main CPU");
-    SID6510 cpu;
+    SID6510 sid6510;
+    MOS6510 mos6510;
+    MOS6510 *cpu;
     // Sid objects to use.
     NullSID nullsid;
     c64xsid xsid;
@@ -278,10 +249,22 @@ private:
     c64cia2 cia2;
     SID6526 sid6526;
     c64vic  vic;
-    SidLazyIPtr<ISidEmulation> sid[SID2_MAX_SIDS];
+    sidemu *sid[SID2_MAX_SIDS];
     int     m_sidmapper[32]; // Mapping table in d4xx-d7xx
 
-    EventCallback<Player> m_mixerEvent;
+    class EventMixer: public Event
+    {
+    private:
+        Player &m_player;
+        void event (void) { m_player.mixer (); }
+
+    public:
+        EventMixer (Player *player)
+        :Event("Mixer"),
+         m_player(*player) {}
+    } mixerEvent;
+    friend class EventMixer;
+
     class EventRTC: public Event
     {
     private:
@@ -297,7 +280,7 @@ private:
             cycles = m_clk >> 7;
             m_clk &= 0x7F;
             m_seconds++;
-            schedule (m_eventContext, cycles, EVENT_CLOCK_PHI1);
+            m_eventContext.schedule (this, cycles, EVENT_CLOCK_PHI1);
         }
 
     public:
@@ -313,14 +296,14 @@ private:
         {   // Fixed point 25.7
             m_seconds = 0;
             m_clk     = m_period & 0x7F;
-            schedule (m_eventContext, m_period >> 7, EVENT_CLOCK_PHI1);
+            m_eventContext.schedule (this, m_period >> 7, EVENT_CLOCK_PHI1);
         }
 
         void clock (float64_t period)
         {   // Fixed point 25.7
             m_period = (event_clock_t) (period / 10.0 * (float64_t) (1 << 7));
             reset ();
-        }
+        }   
     } rtc;
 
     // User Configuration Settings
@@ -336,11 +319,10 @@ private:
     int_least32_t   m_leftVolume;
     int_least32_t   m_rightVolume;
     volatile sid2_player_t m_playerState;
-    volatile int    m_running;
+    volatile bool   m_running;
     int             m_rand;
     uint_least32_t  m_sid2crc;
     uint_least32_t  m_sid2crcCount;
-    bool            m_sidFirstAccess;
     bool            m_emulateStereo;
 
     // Mixer settings
@@ -370,10 +352,6 @@ private:
     // ------------------------
 
 private:
-    // ISidUnknown
-    void _idestroy () { delete this; }
-    bool _iquery   (const Iid &iid, void **implementation);
-
     float64_t clockSpeed     (sid2_clock_t clock, sid2_clock_t defaultClock,
                               bool forced);
     int       environment    (sid2_env_t env);
@@ -383,13 +361,10 @@ private:
     void      mixer          (void);
     void      mixerReset     (void);
     void      mileageCorrect (void);
-    int       sidCreate      (SidLazyIPtr<ISidBuilder> &builder, sid2_model_t model,
-                              sid2_model_t defaultModel);
-    sid2_model_t sidModel    (int &model, sid2_model_t userModel,
+    int       sidCreate      (sidbuilder *builder, sid2_model_t model,
                               sid2_model_t defaultModel);
     void      sidSamples     (bool enable);
     void      reset          ();
-    Player   *self           () { return this; }
     uint8_t   iomap          (uint_least16_t addr);
 
     uint8_t readMemByte_plain     (uint_least16_t addr);
@@ -453,7 +428,7 @@ private:
     inline void interruptIRQ (bool state);
     inline void interruptNMI (void);
     inline void interruptRST (void);
-    void signalAEC (bool state) { cpu.aecSignal (state); }
+    void signalAEC (bool state) { cpu->aecSignal (state); }
     void lightpen  () { vic.lightpen (); }
 
     // PSID driver
@@ -465,25 +440,21 @@ public:
     Player ();
     ~Player ();
 
-    // ISidUnknown
-    ISidUnknown *iunknown () { return CoUnknown<ISidplay2>::iunknown (); }
-
     const sid2_config_t &config (void) const { return m_cfg; }
     const sid2_info_t   &info   (void) const { return m_info; }
 
     int            config       (const sid2_config_t &cfg);
-    void           debug        (bool enable, FILE *out)
-                                { cpu.debug (enable, out); }
-    const char    *error        (void) const { return m_errorString; }
     int            fastForward  (uint percent);
     int            load         (SidTune *tune);
     uint_least32_t mileage      (void) const { return m_mileage + time(); }
     void           pause        (void);
     uint_least32_t play         (void *buffer, uint_least32_t length);
-	sid2_player_t  state        (void) const { return m_running ? sid2_playing : m_playerState; }
+    sid2_player_t  state        (void) const { return m_playerState; }
     void           stop         (void);
     uint_least32_t time         (void) const {return rtc.getTime (); }
-    uint_least32_t timebase     (void) const { return SID2_TIME_BASE; }
+    void           debug        (bool enable, FILE *out)
+                                { cpu->debug (enable, out); }
+    const char    *error        (void) const { return m_errorString; }
 };
 
 
@@ -516,17 +487,17 @@ void Player::interruptIRQ (bool state)
     if (state)
     {
         if (m_info.environment == sid2_envR)
-            cpu.triggerIRQ ();
+            cpu->triggerIRQ ();
         else
             fakeIRQ ();
     }
     else
-        cpu.clearIRQ ();
+        cpu->clearIRQ ();
 }
 
 void Player::interruptNMI ()
 {
-    cpu.triggerNMI ();
+    cpu->triggerNMI ();
 }
 
 void Player::interruptRST ()

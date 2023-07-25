@@ -18,36 +18,15 @@
 #ifndef _nullsid_h_
 #define _nullsid_h_
 
-#include "sidconfig.h"
 #include "sidbuilder.h"
 
-SIDPLAY2_NAMESPACE_START
-
-class NullSID: public CoEmulation<ISidEmulation>,
-               public CoAggregate<ISidMixer>
+class NullSID: public sidemu
 {
-private:
-    bool _iquery (const Iid &iid, void **implementation)
-    {
-        if (iid == ISidEmulation::iid())
-            *implementation = static_cast<ISidEmulation *>(this);
-        else if (iid == ISidMixer::iid())
-            *implementation = static_cast<ISidMixer *>(this);
-        else if (iid == ISidUnknown::iid())
-            *implementation = static_cast<ISidEmulation *>(this);
-        else
-            return false;
-        return true;
-    }
-
 public:
-    NullSID ()
-    :CoEmulation<ISidEmulation>("NullSID", NULL),
-     CoAggregate<ISidMixer>(*iunknown()) {;}
-
-    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
+    NullSID () : sidemu (NULL) {;}
 
     // Standard component functions
+    void    reset () { sidemu::reset (); }
     void    reset (uint8_t) { ; }
     uint8_t read  (uint_least8_t) { return 0; }
     void    write (uint_least8_t, uint8_t) { ; }
@@ -56,11 +35,9 @@ public:
 
     // Standard SID functions
     int_least32_t output (uint_least8_t) { return 0; }
-    void          volume (uint_least8_t, uint_least8_t) { ; }
-    void          mute   (uint_least8_t, bool) { ; }
+    void          voice  (uint_least8_t, uint_least8_t,
+                          bool) { ; }
     void          gain   (int_least8_t) { ; }
 };
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _nullsid_h_

@@ -21,55 +21,35 @@
  */
 
 #include "c64env.h"
-#include "sidconfig.h"
 #include "sidbuilder.h"
-#include "sidlazyiptr.h"
-#include "imp/sidcoaggregate.h"
 #include "../xsid/xsid.h"
 
-SIDPLAY2_NAMESPACE_START
-
-class c64xsid: public XSID, CoAggregate<ISidMixer>
+class c64xsid: public XSID
 {
 private:
-    c64env                    &m_env;
-    SidLazyIPtr<ISidEmulation> m_sid;
-    SidLazyIPtr<ISidMixer>     m_mixer;
-    int_least32_t              m_gain;
+    c64env        &m_env;
+    sidemu        *m_sid;
+    int_least32_t  m_gain;
 
 private:
-    uint8_t readMemByte (uint_least16_t addr)
+    uint8_t readMemByte  (uint_least16_t addr)
     {
         uint8_t data = m_env.readMemRamByte (addr);
         m_env.sid2crc (data);
         return data;
     }
-
-    void writeMemByte (uint8_t data) { m_sid->write (0x18, data); }
-
-    bool _iquery (const Iid &iid, void **implementation)
-    {
-        if (iid == ISidMixer::iid())
-        {
-            *implementation = static_cast<ISidMixer *>(this);
-            return true;
-        }
-        return XSID::_iquery (iid, implementation);
-    }
+    void    writeMemByte (uint8_t data)
+    {   m_sid->write (0x18, data);}
 
 public:
-    c64xsid (c64env *env)
+    c64xsid (c64env *env, sidemu *sid)
     :XSID(&env->context ()),
-     CoAggregate<ISidMixer>(*iunknown()),
-     m_env(*env), m_sid(0), m_mixer(0), m_gain(100)
-    {
-        ;
-    }
-
-    ISidUnknown *iunknown () { return XSID::iunknown (); }
-
+     m_env(*env), m_sid(sid), m_gain(100)
+    {;}
+    
     // Standard component interface
     const char *error (void) {return "";}
+    void reset () { sidemu::reset (); }
     void reset (uint8_t volume)
     {
         XSID::reset  (volume);
@@ -94,25 +74,16 @@ public:
 
     // Standard SID interface
     int_least32_t output (uint_least8_t bits)
-    {
-        return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100);
-    }
+    {   return m_sid->output (bits) + (XSID::output (bits) * m_gain / 100); }
 
-    void volume (uint_least8_t num, uint_least8_t vol)
-    {
-        if (m_mixer)
-            m_mixer->volume (num, vol);
-    }
-
-    void mute (uint_least8_t num, bool mute)
+    void voice (uint_least8_t num, uint_least8_t vol,
+                bool mute)
     {
         if (num == 3)
-            XSID::mute  (mute);
-        else if (m_mixer)
-            m_mixer->mute (num, mute);
+            XSID::mute (mute);
+        else
+            m_sid->voice (num, vol, mute);
     }
-
-    void mute (bool mute) { XSID::mute (mute); }
 
     void gain (int_least8_t percent)
     {
@@ -124,13 +95,6 @@ public:
     }
 
     // Xsid specific
-    void emulation (SidIPtr<ISidEmulation> &sid)
-    {
-        m_mixer = sid;
-        m_sid   = sid;
-    }
-
-    ISidUnknown *emulation (void) { return &m_sid; }
+    void emulation (sidemu *sid) {m_sid = sid;}
+    sidemu *emulation (void) { return m_sid; }
 };
-
-SIDPLAY2_NAMESPACE_STOP

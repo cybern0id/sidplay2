@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: mos6510.cpp,v $
  *  Revision 1.13  2004/04/23 01:06:24  s_a_white
  *  Display correct cycle instruction starts on via dbgClk.  This is set at the
  *  start of every instruction correctly allows for cycle stealing.
@@ -80,8 +80,6 @@
 #else
     // Line based emulation code has not been provided
 #endif // MOS6510_CYCLE_BASED
-
-SIDPLAY2_NAMESPACE_START
 
 void MOS6510::DumpState (void)
 {
@@ -549,7 +547,5 @@ void MOS6510::DumpState (void)
     fprintf (m_fdbg, "\n\n");
     fflush  (m_fdbg);
 }
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // MOS6510_STATE_6510

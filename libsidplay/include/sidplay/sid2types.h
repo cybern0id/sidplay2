@@ -21,6 +21,9 @@
 #include "sidtypes.h"
 #include "event.h"
 
+class   sidbuilder;
+struct  SidTuneInfo;
+
 #ifndef SIDPLAY2_DEFAULTS
 #define SIDPLAY2_DEFAULTS
     // Maximum values
@@ -72,7 +75,7 @@ struct sid2_config_t
     sid2_playback_t     playback;
     int                 precision;
     sid2_model_t        sidDefault;    // Intended sid model when unknown
-    class ISidUnknown  *sidEmulation;
+    sidbuilder         *sidEmulation;
     sid2_model_t        sidModel;      // User requested sid model
     bool                sidSamples;
     uint_least32_t      leftVolume;
@@ -80,27 +83,25 @@ struct sid2_config_t
     sid2_sample_t       sampleFormat;
     uint_least16_t      powerOnDelay;
     uint_least32_t      sid2crcCount;  // Max sid writes to form crc
-    Event              *sidFirstAccess;
 };
 
 struct sid2_info_t
 {
-    const char              **credits;
-    uint                      channels;
-    float64_t                 cpuFrequency;
-    uint_least16_t            driverAddr;
-    uint_least16_t            driverLength;
-    const char               *name;
-    const struct SidTuneInfo *tuneInfo; // May not need this
-    const char               *version;
+    const char       **credits;
+    uint               channels;
+    uint_least16_t     driverAddr;
+    uint_least16_t     driverLength;
+    const char        *name;
+    const SidTuneInfo *tuneInfo; // May not need this
+    const char        *version;
     // load, config and stop calls will reset this
     // and remove all pending events! 10th sec resolution.
-    EventContext             *eventContext;
-    uint                      maxsids;
-    sid2_env_t                environment;
-    uint_least16_t            powerOnDelay;
-    uint_least32_t            sid2crc;
-    uint_least32_t            sid2crcCount; // Number of sid writes forming crc
+    EventContext      *eventContext;
+    uint               maxsids;
+    sid2_env_t         environment;
+    uint_least16_t     powerOnDelay;
+    uint_least32_t     sid2crc;
+    uint_least32_t     sid2crcCount; // Number of sid writes forming crc
 };
 
 #endif // _sid2types_h_

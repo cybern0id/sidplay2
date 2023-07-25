@@ -16,7 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: sid6510c.h,v $
  *  Revision 1.19  2003/01/23 19:52:42  s_a_white
  *  Redundent code removal.
  *
@@ -84,11 +84,8 @@
 #ifndef _sid6510c_h_
 #define _sid6510c_h_
 
-#include "sidconfig.h"
 #include "mos6510c.h"
 #include "sid2types.h"
-
-SIDPLAY2_NAMESPACE_START
 
 class SID6510: public MOS6510
 {
@@ -127,7 +124,5 @@ private:
     inline void sid_rti  (void);
     inline void sid_irq  (void);
 };
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _sid6510c_h_

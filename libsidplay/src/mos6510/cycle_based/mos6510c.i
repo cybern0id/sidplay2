@@ -15,17 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.51  2004/11/12 20:18:43  s_a_white
- *  Valgrind memory access fixes
- *
- *  Revision 1.50  2004/09/18 11:15:01  s_a_white
- *  Mixer's Iisibiisi.sid showed that we were not delaying long enough
- *  between receiving an NMI and starting its processing.
- *
- *  Revision 1.49  2004/06/26 11:11:21  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: mos6510c.i,v $
  *  Revision 1.48  2004/05/03 22:37:17  s_a_white
  *  Remove debug code.
  *
@@ -188,8 +178,6 @@
 #   include <new>
 #endif
 
-SIDPLAY2_NAMESPACE_START
-
 //#define PC64_TESTSUITE
 #ifdef PC64_TESTSUITE
 static const char _sidtune_CHRtab[256] =  // CHR$ conversion table (0x01 = no output)
@@ -269,7 +257,7 @@ void MOS6510::aecSignal (bool state)
             m_blocked = false;
         }
 
-        schedule (eventContext, eventContext.phase() == m_phase, m_phase);
+        eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
     }
 }
 
@@ -407,7 +395,7 @@ MOS6510_interruptPending_check:
     case oNMI:
     {
         // Try to determine if we should be processing the NMI yet
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
         if (cycles >= MOS6510_INTERRUPT_DELAY)
         {
             interrupts.pending &= ~iNMI;
@@ -422,7 +410,7 @@ MOS6510_interruptPending_check:
     case oIRQ:
     {
         // Try to determine if we should be processing the IRQ yet
-        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_phase);
+        event_clock_t cycles = eventContext.getTime (interrupts.irqClk, m_extPhase);
         if (cycles >= MOS6510_INTERRUPT_DELAY)
             break;
 
@@ -809,8 +797,8 @@ void MOS6510::brk_instr (void)
     // Check for an NMI, and switch over if pending
     if (interrupts.pending & iNMI)
     {
-        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_phase);
-        if (cycles >= MOS6510_INTERRUPT_DELAY)
+        event_clock_t cycles = eventContext.getTime (interrupts.nmiClk, m_extPhase);
+        if (cycles > MOS6510_INTERRUPT_DELAY)
         {
             interrupts.pending &= ~iNMI;
             instrCurrent = &interruptTable[oNMI];
@@ -2468,22 +2456,27 @@ void MOS6510::Initialise (void)
     // Set PC to some value
     Register_ProgramCounter = 0;
     // IRQs pending check
-    interrupts.pending    = false;
-    interrupts.irqs       = 0;
     interrupts.irqLatch   = false;
     interrupts.irqRequest = false;
+    if (interrupts.irqs)
+        interrupts.irqRequest = true;
 
     // Signals
     aec = true;
 
     m_blocked = false;
-    schedule (eventContext, 0, m_phase);
+    eventContext.schedule (this, 0, m_phase);
 }
 
 //-------------------------------------------------------------------------//
 // Reset CPU Emulation                                                     //
 void MOS6510::reset (void)
-{   // Internal Stuff
+{
+    // Reset Interrupts
+    interrupts.pending = false;
+    interrupts.irqs    = 0;
+
+    // Internal Stuff
     Initialise ();
 
     // Requires External Bits
@@ -2513,5 +2506,3 @@ void MOS6510::debug (bool enable, FILE *out)
     else
         m_fdbg = out;
 }
-
-SIDPLAY2_NAMESPACE_STOP

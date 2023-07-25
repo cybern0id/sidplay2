@@ -16,28 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.30  2007/01/27 11:14:21  s_a_white
- *  Must export interfaces correctly via ifquery now.
- *
- *  Revision 1.29  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.28  2006/06/19 19:14:06  s_a_white
- *  Get most derived interface to be inherited by the lowest base class.  This
- *  removes duplicate inheritance of interfaces and the need for virtual
- *  public inheritance of interfaces.
- *
- *  Revision 1.27  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.26  2004/06/26 11:42:08  s_a_white
- *  Make sure all registers get reset.
- *
- *  Revision 1.25  2004/06/26 11:05:42  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: xsid.cpp,v $
  *  Revision 1.24  2004/05/28 15:45:13  s_a_white
  *  Correct credit email address
  *
@@ -101,10 +80,10 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "config.h"
 #include "sidendian.h"
 #include "xsid.h"
 
-SIDPLAY2_NAMESPACE_START
 
 // Convert from 4 bit resolution to 8 bits
 /* Rev 2.0.5 (saw) - Removed for a more non-linear equivalent
@@ -128,27 +107,28 @@ const char *XSID::credit =
 };
 
 
-channel::channel (const char * name, EventContext *context, XSID *xsid)
+channel::channel (const char * const name, EventContext *context, XSID *xsid)
 :m_name(name),
  m_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  m_xsid(*xsid),
- m_sampleEvent("xSID Sample", *this, &channel::sampleClock),
- m_galwayEvent("xSID Galway", *this, &channel::galwayClock)
+ sampleEvent(this),
+ galwayEvent(this)
 {
+    memset (reg, 0, sizeof (reg));
+    active = true;
     reset  ();
 }
 
 void channel::reset ()
 {
-    memset (reg, 0, sizeof (reg));
     galVolume  = 0; // This is left to free run until reset
     mode       = FM_NONE;
     free ();
     // Remove outstanding events
-    m_xsid.cancel ();
-    m_sampleEvent.cancel ();
-    m_galwayEvent.cancel ();
+    m_context.cancel (&m_xsid);
+    m_context.cancel (&sampleEvent);
+    m_context.cancel (&galwayEvent);
 }
 
 void channel::free ()
@@ -260,9 +240,8 @@ void channel::sampleInit ()
 #endif // XSID_DEBUG
 
     // Schedule a sample update
-    if (!m_xsid.pending ())
-        m_xsid.schedule (m_context, 0, m_phase);
-    m_sampleEvent.schedule (m_context, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
+    m_context.schedule (&sampleEvent, cycleCount, m_phase);
 }
 
 void channel::sampleClock ()
@@ -302,9 +281,8 @@ void channel::sampleClock ()
     sample  = sampleCalculate ();
     cycles += cycleCount;
     // Schedule a sample update
-    if (!m_xsid.pending ())
-        m_xsid.schedule (m_context, 0, m_phase);
-    m_sampleEvent.schedule (m_context, cycleCount, m_phase);
+    m_context.schedule (&sampleEvent, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 int8_t channel::sampleCalculate ()
@@ -379,9 +357,8 @@ void channel::galwayInit()
 #endif
 
     // Schedule a sample update
-    if (!m_xsid.pending ())
-        m_xsid.schedule (m_context, 0, m_phase);
-    m_galwayEvent.schedule (m_context, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
+    m_context.schedule (&galwayEvent, cycleCount, m_phase);
 }
 
 void channel::galwayClock ()
@@ -412,9 +389,8 @@ void channel::galwayClock ()
     galVolume &= 0x0f;
     sample     = (int8_t) galVolume - 8;
     cycles    += cycleCount;
-    if (!m_xsid.pending ())
-        m_xsid.schedule (m_context, 0, m_phase);
-    m_galwayEvent.schedule (m_context, cycleCount, m_phase);
+    m_context.schedule (&galwayEvent, cycleCount, m_phase);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 void channel::galwayTonePeriod ()
@@ -437,14 +413,14 @@ void channel::galwayTonePeriod ()
 void channel::silence ()
 {
     sample = 0;
-    m_sampleEvent.cancel ();
-    m_galwayEvent.cancel ();
-    m_xsid.schedule (m_context, 0, m_phase);
+    m_context.cancel   (&sampleEvent);
+    m_context.cancel   (&galwayEvent);
+    m_context.schedule (&m_xsid, 0, m_phase);
 }
 
 
 XSID::XSID (EventContext *context)
-:CoEmulation<ISidEmulation>("XSID", NULL),
+:sidemu(NULL),
  Event("xSID"),
  ch4("CH4", context, this),
  ch5("CH5", context, this),
@@ -638,17 +614,3 @@ bool XSID::storeSidData0x18 (uint8_t data)
     writeMemByte (sidData0x18);
     return false;
 }
-
-// COM emulation
-bool XSID::_iquery (const Iid &iid, void **implementation)
-{
-    if (iid == ISidEmulation::iid())
-        *implementation = static_cast<ISidEmulation *>(this);
-    else if (iid == ISidUnknown::iid())
-        *implementation = static_cast<ISidEmulation *>(this);
-    else
-        return false;
-    return true;
-}
-
-SIDPLAY2_NAMESPACE_STOP

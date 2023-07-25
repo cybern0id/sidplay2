@@ -69,13 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/pkgconfig/*
 
 %changelog
-* Sun Oct 29 2006 Simon White <s_a_white@email.com> 1.0.5-1
-- Code sync in libini project.  Use correct header for sprintf
-
 * Mon Jun 14 2004 Simon White <s_a_white@email.com> 1.0.4-1
 - Merge Windows code base.
-  Synced INI file reader with libini-1.1.9
-  Added sidusage memory map file support.
 
 * Fri Nov 30 2001 Simon White <s_a_white@email.com> 1.0.2-1
 - Moved filter struct to libsidplay for sidbuilder classes.

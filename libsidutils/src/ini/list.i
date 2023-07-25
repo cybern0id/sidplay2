@@ -129,7 +129,7 @@ int __ini_listEval (ini_t *ini)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-const char *__ini_listRead (ini_t *ini)
+char *__ini_listRead (ini_t *ini)
 {
     char *p;
 
@@ -187,7 +187,7 @@ int INI_LINKAGE ini_listLength (ini_fd_t fd)
 
 
 /********************************************************************************************************************
- * Function          : __ini_listDelims
+ * Function          : ini_listDelims
  * Parameters        : ini - pointer to ini file database.  delims - string of delimitor chars
  * Returns           : -1 for Error or 0 for success
  * Globals Used      :
@@ -197,8 +197,9 @@ int INI_LINKAGE ini_listLength (ini_fd_t fd)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-int __ini_listDelims (struct ini_t *ini, const char *delims)
+int INI_LINKAGE ini_listDelims (ini_fd_t fd, const char *delims)
 {
+    ini_t *ini = (ini_t *) fd;
     if (ini->listDelims)
         free (ini->listDelims);
     ini->listDelims = NULL;
@@ -221,23 +222,6 @@ int __ini_listDelims (struct ini_t *ini, const char *delims)
         ini->list = NULL;
     }
     return 0;
-}
-
-
-/********************************************************************************************************************
- * Function          : ini_listDelims
- * Parameters        : fd - pointer to ini file database.  delims - string of delimitor chars
- * Returns           : -1 for Error or 0 for success
- * Globals Used      :
- * Globals Modified  :
- * Description       : Sets the delimiters used for list accessing, (default delim is NULL)
- ********************************************************************************************************************
- *  Rev   |   Date   |  By   | Comment
- * ----------------------------------------------------------------------------------------------------------------
- ********************************************************************************************************************/
-int INI_LINKAGE ini_listDelims (ini_fd_t fd, const char *delims)
-{
-    return __ini_listDelims ((ini_t *) fd, delims);
 }
 
 

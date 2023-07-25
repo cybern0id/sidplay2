@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libsidplay"
-	ProjectGUID="{EAE4B524-4789-4436-842B-3E4319827EB4}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -487,10 +486,10 @@
 				RelativePath="..\..\src\c64\c64xsid.h">
 			</File>
 			<File
-				RelativePath="config.h">
+				RelativePath="..\..\include\config.h">
 			</File>
 			<File
-				RelativePath="..\..\include\config.h">
+				RelativePath="config.h">
 			</File>
 			<File
 				RelativePath="..\..\src\nullsid.h">
@@ -512,9 +511,6 @@
 				RelativePath="..\..\include\sidplay\component.h">
 			</File>
 			<File
-				RelativePath="..\..\include\sidplay\imp\component.h">
-			</File>
-			<File
 				RelativePath="..\..\include\sidplay\event.h">
 			</File>
 			<File
@@ -527,28 +523,13 @@
 				RelativePath="..\..\include\sidplay\sidbuilder.h">
 			</File>
 			<File
-				RelativePath="..\..\include\sidplay\imp\sidcoaggregate.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\imp\sidcobuilder.h">
-			</File>
-			<File
 				RelativePath="sidconfig.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\imp\sidcounknown.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidendian.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidenv.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\sidiptr.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\sidlazyiptr.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidplay.h">
@@ -558,9 +539,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidtypes.h">
-			</File>
-			<File
-				RelativePath="..\..\include\sidplay\sidunknown.h">
 			</File>
 			<File
 				RelativePath="..\..\include\sidplay\sidusage.h">
@@ -681,6 +659,25 @@
 			</File>
 			<File
 				RelativePath="..\..\src\reloc65.c">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;DLL_EXPORT;HAVE_MSWINDOWS;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;DLL_EXPORT;HAVE_MSWINDOWS;$(NoInherit)"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\src\sidplay2.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool

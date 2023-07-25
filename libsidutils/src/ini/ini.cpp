@@ -17,43 +17,9 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- * $Log: not supported by cvs2svn $
- * Revision 1.38  2008/04/04 23:17:48  s_a_white
- * Why is Microsoft dropping POSIX!  Switch Microsoft names back to POSIX
- *
- * Revision 1.37  2008/04/04 22:50:05  s_a_white
- * Remove some depreciated warnings
- *
- * Revision 1.36  2008/04/04 22:26:35  s_a_white
- * Don't use depreciated names
- *
- * Revision 1.35  2004/11/26 23:18:22  s_a_white
- * Add Karel Vanroye patch (whitespace).
- *
- * Revision 1.34  2004/11/17 23:07:10  s_a_white
- * Prevent modification of read only files
- *
- * Revision 1.33  2004/11/05 17:52:03  s_a_white
- * malloc is in stdlib.h (malloc.h does not exist on ansi c compilers).
- *
- * Revision 1.32  2004/10/08 18:00:14  s_a_white
- * Fixed crc generation when used with new case flag.
- *
- * Revision 1.31  2004/10/07 23:20:49  s_a_white
- * Allow support for additional flags to indicate case sensitivity and if backup
- * files should be kept.
- *
- * Revision 1.30  2004/06/12 09:25:11  s_a_white
- * Protect ini_close/flush calls from 0 file descriptors.
- *
- * Revision 1.29  2004/02/06 08:02:42  s_a_white
- * Strcpy is unsafe when src and dst locations overlap, use memmove instead.
- *
- * Revision 1.28  2003/10/04 13:46:06  s_a_white
- * Fix reported memory leak that list delims were not freed.
- *
- * Revision 1.27  2003/06/17 19:44:21  s_a_white
- * Prevent comment being extracted as part of the keys data.
+ * $Log: ini.cpp,v $
+ * Revision 1.12  2004/02/26 18:02:58  s_a_white
+ * Sync with libini project.
  *
  * Revision 1.26  2003/04/26 08:45:36  s_a_white
  * parser.first can be 0 for anonymous sections (should be checking against
@@ -134,7 +100,7 @@
 //*******************************************************************************************************************
 #include <assert.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -143,16 +109,9 @@
 
 #define INI_BUFFER_SIZE (1024 * 5)
 
-#if defined(HAVE_STRINGS_H)
-#   include <strings.h>
-#endif
-
-#ifndef HAVE_STRCASECMP
-#   define strcasecmp _stricmp
-#endif
-
 enum
 {
+    INI_NONE          = 0,
     INI_NEW_LINE      = 1,
     INI_SKIP_LINE     = 2,
     INI_IN_SECTION    = 3,
@@ -176,7 +135,7 @@ typedef struct
 //*******************************************************************************************************************
 // Function Prototypes
 //*******************************************************************************************************************
-static ini_t              *__ini_open            (const char *name, ini_mode_t mode, const char *comment, int flags);
+static ini_t              *__ini_open            (const char *name, ini_mode_t mode, const char *comment);
 static int                 __ini_close           (ini_t *ini, bool flush);
 static void                __ini_delete          (ini_t *ini);
 static bool                __ini_extractField    (ini_t *ini, FILE *file, ini_parser_t &parser, char ch);
@@ -256,7 +215,7 @@ static const unsigned long __ini_crc32Table[0x100] =
 
 /********************************************************************************************************************
  * Function          : __ini_createCrc32
- * Parameters        : str - string, strcase - case sensitive
+ * Parameters        : init   - initial crc starting value, pBuf - data to base crc on
  *                   : length - length in bytes of data
  * Returns           :
  * Globals Used      :
@@ -266,15 +225,11 @@ static const unsigned long __ini_crc32Table[0x100] =
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-unsigned long __ini_createCrc32 (const char *str, bool strcase)
+unsigned long __ini_createCrc32 (const char *pBuf, size_t length)
 {
    unsigned long crc = 0xffffffff;
-   size_t length = strlen (str);
    for (size_t i = 0; i < length; i++)
-   {
-       unsigned long d = strcase ? *str++ : tolower (*str++);
-       crc = (crc >> 8) ^ __ini_crc32Table[(crc & 0xFF) ^ d];
-   }
+       crc = (crc >> 8) ^ __ini_crc32Table[(crc & 0xFF) ^ (unsigned) *pBuf++];
    return (crc ^ 0xffffffff);
 }
 #endif // INI_USE_HASH_TABLE
@@ -293,7 +248,7 @@ unsigned long __ini_createCrc32 (const char *str, bool strcase)
  ********************************************************************************************************************/
 void __ini_strtrim (char *str)
 {
-    long first, last, len;
+    long first, last;
     first = 0;
     last  = strlen (str);
 
@@ -303,20 +258,18 @@ void __ini_strtrim (char *str)
     // Clip end first
     while (isspace (str[last]) && last > 0)
         last--;
+    str[last + 1] = '\0';
 
     // Clip beginning
     while (isspace (str[first]) && (first < last))
         first++;
-    len = last + 1 - first;
-    memmove (str, str + first, len);
-    str[len] = '\0';
+    strcpy (str, str + first);
 }
 
 
 /********************************************************************************************************************
  * Function          : __ini_open
- * Parameters        : name - ini file to parse, mode - access permission,
- *                   : comment - file comment character(s), flags - various operational flags (backup/case/etc)
+ * Parameters        : name - ini file to parse
  * Returns           : Pointer to ini database.
  * Globals Used      :
  * Globals Modified  :
@@ -325,7 +278,7 @@ void __ini_strtrim (char *str)
  *  Rev   |   Date   |  By   | Comment
  * ----------------------------------------------------------------------------------------------------------------
  ********************************************************************************************************************/
-ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int flags)
+ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment)
 {
     ini_t   *ini;
     FILE    *file = NULL;
@@ -350,11 +303,10 @@ ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int f
         goto ini_openError;
 
     // Open input file
-    ini->mode  = mode;
-    ini->flags = flags;
+    ini->mode = mode;
     file = fopen (ini->filename, "rb");
     if (!file)
-    {   // File doesn't exist so check if allowed
+    {   // File doesn't exist so check if allowed 
         // to create new one 
         if (mode != INI_NEW)
             goto ini_openError;
@@ -364,7 +316,7 @@ ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int f
         file = fopen (ini->filename, "wb");
         if (!file)
             goto ini_openError;
-        ini->flags |= INI_NEWFILE;
+        ini->newfile = true;
         fclose (file);
         file = NULL;
     }
@@ -387,6 +339,9 @@ ini_t *__ini_open (const char *name, ini_mode_t mode, const char *comment, int f
             goto ini_openError;
         fclose (file);
     }
+
+    // Rev 1.1 Added - Changed set on open bug fix
+    ini->changed = false;
 return ini;
 
 ini_openError:
@@ -432,7 +387,7 @@ int __ini_close (ini_t *ini, bool flush)
     int   ret = 0;
 
     // Open output file
-    if (ini->flags & INI_MODIFIED)
+    if (ini->changed)
     {
         if (!ini->first)
             remove(ini->filename);
@@ -466,14 +421,14 @@ int __ini_close (ini_t *ini, bool flush)
 
     // Check if the user dosent want the file closed.
     if (!flush)
-        return ret;
+        return 0;
 
     // Cleanup
     fclose (ini->ftmp);
 
     if (ini->mode != INI_READ)
     {   // If no mods were made, delete tmp file
-        if ((ini->flags & (INI_MODIFIED | INI_NEWFILE | INI_BACKUP)) ^ (INI_MODIFIED | INI_BACKUP))
+        if (!ini->changed || ini->newfile)
         {
             ini->filename[strlen (ini->filename) - 1] = '~';
             remove (ini->filename);
@@ -490,7 +445,8 @@ int __ini_close (ini_t *ini, bool flush)
 
 #ifdef INI_ADD_LIST_SUPPORT
     // Rev 1.1 - Remove buffered list
-    __ini_listDelims (ini, NULL);
+    if (ini->list)
+        free (ini->list);
 #endif // INI_ADD_LIST_SUPPORT
 
     free (ini);
@@ -531,8 +487,7 @@ void __ini_delete (ini_t *ini)
     }
 #endif // INI_ADD_LIST_SUPPORT
 
-    if (ini->mode != INI_READ)
-        ini->flags |= INI_MODIFIED;
+    ini->changed = true;
 }
 
 
@@ -559,7 +514,7 @@ bool __ini_extractField (ini_t *ini, FILE *file, ini_parser_t &parser, char ch)
             if (parser.first >= 0)
             {
                 if (!ini->selected) // Handle keys which are not in a section
-                {
+                {                                   
                     if (!__ini_faddHeading (ini, file, 0, 0))
                         return false;
                 }
@@ -669,8 +624,7 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
 
     // Clear out an existing ini structure
     __ini_delete (ini);
-    pos               = 0;
-    parser.pos        = pos;
+    parser.pos        = pos = 0;
     parser.first      = -1;
     parser.last       = -1;
     parser.state      = INI_NEW_LINE | INI_ALLOW_COMMENT;
@@ -713,21 +667,15 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
             __ini_processLineEnd:
                 if (!__ini_processComment (ini, file, parser))
                     goto __ini_processError;
-                parser.pos = pos;
             __ini_processDataEnd:
                 // Now know keys data length
                 if (parser.key)
                 {
-                    parser.key->length = (size_t) (parser.pos - parser.key->pos);
+                    parser.key->length = (size_t) (pos - parser.key->pos);
                     parser.key         = NULL;
                 }
                 break;
 
-            case '\0':
-                // If we get this we are processing a binary or corrupt file.
-                // Drop out here, else we may do something nasty
-                goto __ini_processError;
- 
             default:
                 switch (parser.state & ~INI_ALLOW_COMMENT)
                 {
@@ -763,12 +711,12 @@ int __ini_process (ini_t *ini, FILE *file, const char *comment)
                         }
 
                         parser.state &= ~INI_ALLOW_COMMENT;
-                        if (!__ini_processComment (ini, file, parser))
-                            goto __ini_processError;
                     }
 
                     if (parser.state != INI_CHECK_COMMENT)
                     {
+                        if (!__ini_processComment (ini, file, parser))
+                            goto __ini_processError;
                         parser.pos = pos;
                         if (!__ini_extractField (ini, file, parser, ch))
                             goto __ini_processError;
@@ -828,7 +776,7 @@ int __ini_store (ini_t *ini, FILE *file)
         return -1;
     if (!file)
         return -1;
-
+    
     // Backup selected heading and key
     selected_h = ini->selected;
     // Be carefull if nothing was previously selected
@@ -844,7 +792,7 @@ int __ini_store (ini_t *ini, FILE *file)
             if (fprintf (file, "[%s]\n", current_h->heading) < 0)
                 goto __ini_storeError;
         }
-
+        
         // Output the sections keys
         equal_pos = __ini_averageLengthKey (current_h);
         current_k = current_h->first;
@@ -920,8 +868,6 @@ ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode,
                                const char *comment)
 {
     ini_mode_t _mode;
-    int flags = INI_NONE;
-
     if (!mode)
         return NULL;
     // Convert mode
@@ -932,27 +878,10 @@ ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode,
     case 'a': _mode = INI_EXIST; break;
     default: return NULL;
     }
-
-    // Check for optional flags (any order but only once)
-    while (*++mode != '\0')
-    {
-        int f = INI_NONE;
-        switch (*mode)
-        {
-        case 'b': f = INI_BACKUP; break;
-        case 'i': f = INI_CASE;   break;
-        default: return NULL;
-        }
-
-        if (flags & f)
-            return NULL;
-        flags |= f;
-    }
-
     // NULL can also be used to disable comments
     if (comment == NULL)
         comment = "";
-    return (ini_fd_t) __ini_open (name, _mode, comment, flags);
+    return (ini_fd_t) __ini_open (name, _mode, comment);
 }
 
 
@@ -969,9 +898,7 @@ ini_fd_t INI_LINKAGE ini_open (const char *name, const char *mode,
  ********************************************************************************************************************/
 int INI_LINKAGE ini_close (ini_fd_t fd)
 {
-    if (fd)
-        return __ini_close ((ini_t *) fd, true);
-    return -1;
+    return __ini_close ((ini_t *) fd, true);
 }
 
 
@@ -988,9 +915,7 @@ int INI_LINKAGE ini_close (ini_fd_t fd)
  ********************************************************************************************************************/
 int INI_LINKAGE ini_flush (ini_fd_t fd)
 {
-    if (fd)
-        return __ini_close ((ini_t *) fd, false);
-    return -1;
+    return __ini_close ((ini_t *) fd, false);
 }
 
 
@@ -1045,10 +970,7 @@ extern "C" int INI_LINKAGE ini_delete (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
     if (!ini)
-        return -1;
-    // Is file read only?
-    if (ini->mode == INI_READ)
-        return -1;
+      return -1;
     __ini_delete (ini);
     return 0;
 }
@@ -1085,11 +1007,7 @@ extern "C" int INI_LINKAGE ini_append (ini_fd_t fddst, ini_fd_t fdsrc)
     ini_t *src = (ini_t *) fdsrc;
     ini_t *dst = (ini_t *) fddst;
     if (!(src && dst))
-        return -1;
-
-    // Is file read only?
-    if (dst->mode == INI_READ)
-        return -1;
+      return -1;
 
     // Backup selected heading and key
     src_h = src->selected;

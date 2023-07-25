@@ -27,8 +27,6 @@
 #include "sidendian.h"
 #include "mos656x.h"
 
-SIDPLAY2_NAMESPACE_START
-
 #define MOS6567R56A_SCREEN_HEIGHT  262
 #define MOS6567R56A_SCREEN_WIDTH   64
 #define MOS6567R56A_FIRST_DMA_LINE 0x30
@@ -52,8 +50,7 @@ const char *MOS656X::credit =
 
 
 MOS656X::MOS656X (EventContext *context)
-:CoComponent<ISidComponent>("MOS656x"),
- Event("VIC Raster"),
+:Event("VIC Raster"),
  event_context(*context),
  m_phase(EVENT_CLOCK_PHI1),
  sprite_enable(regs[0x15]),
@@ -77,7 +74,7 @@ void MOS656X::reset ()
     sprite_expand_y = 0xff;
     memset (regs, 0, sizeof (regs));
     memset (sprite_mc_base, 0, sizeof (sprite_mc_base));
-    schedule (event_context, 0, m_phase);
+    event_context.schedule (this, 0, m_phase);
 }
 
 void MOS656X::chip (mos656x_model_t model)
@@ -437,7 +434,7 @@ void MOS656X::event (void)
             delay = xrasters - cycle;
     }
 
-    schedule (event_context, delay - event_context.phase(), m_phase);
+    event_context.schedule (this, delay - event_context.phase(), m_phase);
 }
 
 // Handle light pen trigger
@@ -452,5 +449,3 @@ void MOS656X::lightpen ()
         trigger(MOS656X_INTERRUPT_LP);
     }
 }
-
-SIDPLAY2_NAMESPACE_STOP

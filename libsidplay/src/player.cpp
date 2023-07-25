@@ -14,47 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.92  2008/03/03 08:24:37  s_a_white
- *  Fixes up various asserts.  Is component.h still needed?
- *
- *  Revision 1.91  2008/03/02 23:16:00  s_a_white
- *  Add Timer API
- *
- *  Revision 1.90  2008/02/27 20:59:27  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.89  2007/01/27 16:18:38  s_a_white
- *  GCC compile fixes.
- *
- *  Revision 1.88  2007/01/27 11:14:21  s_a_white
- *  Must export interfaces correctly via ifquery now.
- *
- *  Revision 1.87  2007/01/27 10:22:44  s_a_white
- *  Updated to use better COM emulation interface.
- *
- *  Revision 1.86  2006/10/30 19:30:36  s_a_white
- *  Switch sidplay2/player to use iinterface
- *
- *  Revision 1.85  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.84  2006/06/29 19:19:53  s_a_white
- *  Seperate mixer interface from emulation interface.
- *
- *  Revision 1.83  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.82  2004/07/07 20:44:13  s_a_white
- *  Internally relocated character ROM to 0x4000 as 0xd000 ROM area is writable
- *  for IO.  This change is hidden from and does not effect C64 programs.
- *
- *  Revision 1.81  2004/06/26 11:01:55  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *  Merged sidplay2/w volume/mute changes and removed unecessary cpu
- *  emulation.
- *
+ *  $Log: player.cpp,v $
  *  Revision 1.80  2004/05/26 19:42:44  s_a_white
  *  Fixed exceed c64 data memory check.
  *
@@ -338,20 +298,6 @@
 #endif
 
 
-// Static Creat function
-ISidUnknown *ISidplay2::create ()
-{
-#ifdef HAVE_EXCEPTIONS
-    ISidplay2 *sidplay2 = new(std::nothrow) SIDPLAY2_NAMESPACE::Player;
-#else
-    ISidplay2 *sidplay2 = new SIDPLAY2_NAMESPACE::Player;
-#endif
-    if (sidplay2)
-        return sidplay2->iunknown ();
-    return 0;
-}
-
-
 SIDPLAY2_NAMESPACE_START
 
 static const uint8_t kernal[] = {
@@ -400,17 +346,17 @@ const char  *Player::credit[];
 // this player
 Player::Player (void)
 // Set default settings for system
-:CoUnknown<ISidplay2>("SIDPlay 2"),
- CoAggregate<ISidTimer>(*iunknown()),
- c64env  (&m_scheduler),
+:c64env  (&m_scheduler),
  m_scheduler ("SIDPlay 2"),
- cpu     (&m_scheduler),
- xsid    (self()),
- cia     (self()),
- cia2    (self()),
- sid6526 (self()),
- vic     (self()),
- m_mixerEvent ("Mixer", *self(), &Player::mixer),
+ sid6510 (&m_scheduler),
+ mos6510 (&m_scheduler),
+ cpu     (&sid6510),
+ xsid    (this, &nullsid),
+ cia     (this),
+ cia2    (this),
+ sid6526 (this),
+ vic     (this),
+ mixerEvent (this),
  rtc        (&m_scheduler),
  m_tune (NULL),
  m_ram  (NULL),
@@ -427,25 +373,25 @@ Player::Player (void)
 {
     srand ((uint) ::time(NULL));
     m_rand = (uint_least32_t) rand ();
-
+    
     // Set the ICs to use this environment
-    cpu.setEnvironment (this);
+    sid6510.setEnvironment (this);
+    mos6510.setEnvironment (this);
 
     // SID Initialise
     {for (int i = 0; i < SID2_MAX_SIDS; i++)
-        sid[i] = nullsid.iunknown ();
-    }
+        sid[i] = &nullsid;
+	}
     xsid.emulation(sid[0]);
-    sid[0] = xsid.iunknown ();
+    sid[0] = &xsid;
     // Setup sid mapping table
     {for (int i = 0; i < SID2_MAPPER_SIZE; i++)
         m_sidmapper[i] = 0;
-    }
+	}
 
     // Setup exported info
     m_info.credits         = credit;
     m_info.channels        = 1;
-    m_info.cpuFrequency    = CLOCK_FREQ_PAL;
     m_info.driverAddr      = 0;
     m_info.driverLength    = 0;
     m_info.name            = PACKAGE_NAME;
@@ -528,21 +474,21 @@ void Player::fakeIRQ (void)
     }
 
     // Setup the entry point and restart the cpu
-    cpu.triggerIRQ ();
-    cpu.reset (playAddr, 0, 0, 0);
+    cpu->triggerIRQ ();
+    sid6510.reset   (playAddr, 0, 0, 0);
 }
 
 int Player::fastForward (uint percent)
 {
     if (percent > 3200)
     {
-        m_errorString = "SIDPLAYER ERROR: Percentage value out of range.";
+        m_errorString = "SIDPLAYER ERROR: Percentage value out of range";
         return -1;
     }
     {
         float64_t fastForwardFactor;
         fastForwardFactor   = (float64_t) percent / 100.0;
-        // Conversion to fixed point 16.16
+        // Conversion to fixed point 8.24
         m_samplePeriod      = (event_clock_t) ((float64_t) m_samplePeriod /
                               m_fastForwardFactor * fastForwardFactor);
         m_fastForwardFactor = fastForwardFactor;
@@ -570,9 +516,20 @@ int Player::initialise ()
     if (psidDrvReloc (m_tuneInfo, m_info) < 0)
         return -1;
 
+    // The Basic ROM sets these values on loading a file.
+    {   // Program end address
+        uint_least16_t start = m_tuneInfo.loadAddr;
+        uint_least16_t end   = start + m_tuneInfo.c64dataLen;
+        endian_little16 (&m_ram[0x2d], end); // Variables start
+        endian_little16 (&m_ram[0x2f], end); // Arrays start
+        endian_little16 (&m_ram[0x31], end); // Strings start
+        endian_little16 (&m_ram[0xac], start);
+        endian_little16 (&m_ram[0xae], end);
+    }
+
     if (!m_tune->placeSidTuneInC64mem (m_ram))
     {   // Rev 1.6 (saw) - Allow loop through errors
-        m_errorString = (m_tune->getInfo()).statusString;
+        m_errorString = m_tuneInfo.statusString;
         return -1;
     }
 
@@ -597,13 +554,9 @@ int Player::load (SidTune *tune)
 
     for (int i = 0; i < SID2_MAX_SIDS; i++)
     {
-        SidIPtr<ISidMixer> mixer(sid[1]);
-        if (mixer)
-        {
-            uint_least8_t v = 3;
-            while (v--)
-                mixer->mute (v, false);
-        }
+        uint_least8_t v = 3;
+        while (v--)
+            sid[i]->voice (v, 0, false);
     }
 
     {   // Must re-configure on fly for stereo support!
@@ -631,7 +584,7 @@ void Player::pause (void)
     if (m_running)
     {
         m_playerState = sid2_paused;
-        m_running     = -1; // stop running
+        m_running     = false;
     }
 }
 
@@ -650,12 +603,11 @@ uint_least32_t Player::play (void *buffer, uint_least32_t length)
     m_playerState = sid2_playing;
     m_running     = true;
 
-    while (m_running > 0)
+    while (m_running)
         m_scheduler.clock ();
 
     if (m_playerState == sid2_stopped)
         initialise ();
-    m_running = false;
     return m_sampleIndex;
 }
 
@@ -663,11 +615,13 @@ void Player::stop (void)
 {   // Re-start song
     if (m_tune && (m_playerState != sid2_stopped))
     {
-        m_playerState = sid2_stopped;
         if (!m_running)
             initialise ();
         else
-            m_running = -1; // stop running
+        {
+            m_playerState = sid2_stopped;
+            m_running     = false;
+        }
     }
 }
 
@@ -801,7 +755,7 @@ uint8_t Player::readMemByte_sidplaytp(uint_least16_t addr)
         }
     }
 }
-
+        
 uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
 {
     if (addr < 0xA000)
@@ -824,8 +778,8 @@ uint8_t Player::readMemByte_sidplaybs (uint_least16_t addr)
         case 0xd:
             if (isIO)
                 return readMemByte_io (addr);
-            else if (isChar) // Internal relocated to free ROM
-                return m_rom[addr & 0x4fff];
+            else if (isChar)
+                return m_rom[addr];
             else
                 return m_ram[addr];
         break;
@@ -956,37 +910,32 @@ void Player::reset (void)
 {
     int i;
 
-    m_running      = -1; // Pending stop
     m_playerState  = sid2_stopped;
+    m_running      = false;
     m_sid2crc      = 0xffffffff;
     m_info.sid2crc = m_sid2crc ^ 0xffffffff;    
     m_sid2crcCount = m_info.sid2crcCount = 0;
 
     // Select Sidplay1 compatible CPU or real thing
-    cpu.environment (m_info.environment);
+    cpu = &sid6510;
+    sid6510.environment (m_info.environment);
 
     m_scheduler.reset ();
     for (i = 0; i < SID2_MAX_SIDS; i++)
     {
-        SidIPtr<ISidEmulation> s(sid[i]);
-        s->reset (0x0f);
+        sidemu &s = *sid[i];
+        s.reset (0x0f);
         // Synchronise the waveform generators
         // (must occur after reset)
-        s->write (0x04, 0x08);
-        s->write (0x0b, 0x08);
-        s->write (0x12, 0x08);
-        s->write (0x04, 0x00);
-        s->write (0x0b, 0x00);
-        s->write (0x12, 0x00);
+        s.write (0x04, 0x08);
+        s.write (0x0b, 0x08);
+        s.write (0x12, 0x08);
+        s.write (0x04, 0x00);
+        s.write (0x0b, 0x00);
+        s.write (0x12, 0x00);
     }
 
-	// Must be after SID writes to ensure asynchronous state
-	// queries do not return we have completed.  This can be
-	// problematic when reseting things real hardware e.g.
-	// HardSID and fixes issues supporting the Acid64 API.
-    m_running = false;
-
-	if (m_info.environment == sid2_envR)
+    if (m_info.environment == sid2_envR)
     {
         cia.reset  ();
         cia2.reset ();
@@ -1022,9 +971,7 @@ void Player::reset (void)
     if (m_info.environment == sid2_envR)
     {
         memcpy (&m_rom[0xe000], kernal, sizeof (kernal));
-        // ROM should be at 0xd000 but have internally relocated
-        // it here to unused ROM space (does not effect C64 progs)
-        memcpy (&m_rom[0x4000], character, sizeof (character));
+        memcpy (&m_rom[0xd000], character, sizeof (character));
         m_rom[0xfd69] = 0x9f; // Bypass memory check
         m_rom[0xe55f] = 0x00; // Bypass screen clear
         m_rom[0xfdc4] = 0xea; // Ingore sid volume reset to avoid DC
@@ -1155,14 +1102,14 @@ void Player::envReset (bool safe)
         evalBankSelect (bank);
         m_playBank = iomap (m_tuneInfo.playAddr);
         if (m_info.environment != sid2_envPS)
-            cpu.reset (m_tuneInfo.initAddr, song, 0, 0);
+            sid6510.reset (m_tuneInfo.initAddr, song, 0, 0);
         else
-            cpu.reset (m_tuneInfo.initAddr, song, song, song);
+            sid6510.reset (m_tuneInfo.initAddr, song, song, song);
     }
     else
     {
         evalBankSelect (0x37);
-        cpu.reset ();
+        cpu->reset ();
     }
 
     mixerReset ();
@@ -1292,18 +1239,6 @@ void Player::sid2crc (uint8_t data)
         m_sid2crc = (m_sid2crc >> 8) ^ crc32Table[(m_sid2crc & 0xFF) ^ data];
         m_info.sid2crc = m_sid2crc ^ 0xffffffff;
     }
-}
-
-bool Player::_iquery (const Iid &iid, void **implementation)
-{
-    if ((iid == ISidplay2::iid()) || (iid == ISidUnknown::iid()))
-        *implementation = static_cast<ISidplay2*>(this);
-    else if (iid == ISidTimer::iid())
-        *implementation = static_cast<ISidTimer*>(this);
-    else
-        return false;
-    return true;
-
 }
 
 SIDPLAY2_NAMESPACE_STOP

@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: sidconfig.h,v $
  *  Revision 1.5  2001/12/07 00:40:22  s_a_white
  *  Windows fixes.
  *
@@ -27,15 +27,7 @@
 #if defined(HAVE_UNIX)
 #   include "../../unix/sidconfig.h"
 #elif defined(HAVE_MSWINDOWS)
-#   ifdef _MSC_VER
-#       if _MSC_VER < 1300
-#           include "../../win/VC5/sidconfig.h"
-#       else
-#           include "../../win/VC/sidconfig.h"
-#       endif
-#   else
-#       error Compiler not supported!
-#   endif
+#   include "../../win/VC/sidconfig.h"
 #else
 #   error Platform not supported!
 #endif

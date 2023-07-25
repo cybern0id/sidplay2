@@ -211,16 +211,16 @@ class SmartPtr_sidtt : public SmartPtrBase_sidtt<T>
 	{
 		if ( bufferLen >= 1 )
 		{
-			this->pBufCurrent = ( this->bufBegin = buffer );
-			this->bufEnd = buffer + bufferLen;
-			this->bufLen = bufferLen;
-			this->status = true;
+			pBufCurrent = ( bufBegin = buffer );
+			bufEnd = bufBegin + bufferLen;
+			bufLen = bufferLen;
+			status = true;
 		}
 		else
 		{
-			this->pBufCurrent = this->bufBegin = this->bufEnd = 0;
-			this->bufLen = 0;
-			this->status = false;
+			pBufCurrent = bufBegin = bufEnd = 0;
+			bufLen = 0;
+			status = false;
 		}
 	}
 };

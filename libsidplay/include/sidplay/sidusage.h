@@ -57,8 +57,7 @@ enum
     SID_INSTR_ILL   = 1 << 11, // Illegal 6510 instructions
     //SID_PSID_RANDOM = 1 << 12, // PSID Random extension (obsolete)
     SID_INFINITE    = 1 << 12, // Code Infinite loops
-    SID_INSTR_BRK   = 1 << 13, // 6510 BRK, indications of a bad tune...
-    SID_IRQ_OVER    = 1 << 14  // Overlapped IRQs
+    SID_INSTR_BRK   = 1 << 13  // 6510 BRK, indications of a bad tune...
 };
 
 // All unused have a reserved meaning and must contain

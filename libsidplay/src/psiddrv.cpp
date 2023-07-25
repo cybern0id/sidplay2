@@ -14,7 +14,10 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: psiddrv.cpp,v $
+ *  Revision 1.38  2004/05/20 22:41:54  s_a_white
+ *  Check the end page is legal and truncate it if not.
+ *
  *  Revision 1.37  2004/05/03 22:40:28  s_a_white
  *  For BASIC tunes use a different address for the init so as subtune does
  *  not get immediatly set.  This forces the tune to call a7ae itself to get the

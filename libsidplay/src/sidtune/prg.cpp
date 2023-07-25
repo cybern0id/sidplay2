@@ -34,20 +34,20 @@ SidTune::LoadStatus SidTune::PRG_fileSupport(const char *fileName,
         return LOAD_NOT_MINE;
     }
 
-    m_info.formatString = _sidtune_format_prg;
+    info.formatString = _sidtune_format_prg;
     if (dataBuf.len() < 2)
     {
-        m_info.formatString = _sidtune_truncated;
+        info.formatString = _sidtune_truncated;
         return LOAD_ERROR;
     }
 
     // Automatic settings
-    m_info.songs         = 1;
-    m_info.startSong     = 1;
-    m_info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
-    m_info.numberOfInfoStrings = 0;
+    info.songs         = 1;
+    info.startSong     = 1;
+    info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
+    info.numberOfInfoStrings = 0;
 
     // Create the speed/clock setting table.
-    convertOldStyleSpeedToTables(~0, m_info.clockSpeed);
+    convertOldStyleSpeedToTables(~0, info.clockSpeed);
     return LOAD_OK;
 }

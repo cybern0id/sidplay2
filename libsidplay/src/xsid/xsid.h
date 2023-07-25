@@ -16,31 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.29  2007/01/27 11:14:21  s_a_white
- *  Must export interfaces correctly via ifquery now.
- *
- *  Revision 1.28  2006/10/28 08:39:55  s_a_white
- *  New, easier to use, COM style interface.
- *
- *  Revision 1.27  2006/06/29 19:20:26  s_a_white
- *  Seperate mixer interface from emulation interface.
- *
- *  Revision 1.26  2006/06/27 19:35:28  s_a_white
- *  Changed ifquery return type.
- *
- *  Revision 1.25  2006/06/19 19:14:06  s_a_white
- *  Get most derived interface to be inherited by the lowest base class.  This
- *  removes duplicate inheritance of interfaces and the need for virtual
- *  public inheritance of interfaces.
- *
- *  Revision 1.24  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.23  2004/06/26 11:05:42  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: xsid.h,v $
  *  Revision 1.22  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -129,7 +105,7 @@ programmed with.
 #define _xsid_h_
 
 #include "config.h"
-#include "imp/sidcobuilder.h"
+#include "sidbuilder.h"
 #include "event.h"
 
 // XSID configuration settings
@@ -146,8 +122,6 @@ programmed with.
 #   include <stdio.h>
 #endif
 
-SIDPLAY2_NAMESPACE_START
-
 class XSID;
 class channel
 {
@@ -159,8 +133,31 @@ private:
     XSID         &m_xsid;
     friend class XSID;
 
-    EventCallback<channel> m_sampleEvent;
-    EventCallback<channel> m_galwayEvent;
+    class SampleEvent: public Event
+    {
+    private:
+        channel &m_ch;
+        void event (void) { m_ch.sampleClock (); }
+
+    public:
+        SampleEvent (channel *ch)
+        :Event("xSID Sample"),
+         m_ch(*ch) {}
+    } sampleEvent;
+    friend class SampleEvent;
+
+    class GalwayEvent: public Event
+    {
+    private:
+        channel &m_ch;
+        void event (void) { m_ch.galwayClock (); }
+
+    public:
+        GalwayEvent (channel *ch)
+        :Event("xSID Galway"),
+         m_ch(*ch) {}
+    } galwayEvent;
+    friend class GalwayEvent;
 
     uint8_t  reg[0x10];
     enum    {FM_NONE = 0, FM_HUELS, FM_GALWAY} mode;
@@ -223,11 +220,11 @@ private:
     inline void   galwayTonePeriod (void);
 
     // Used to indicate if channel is running
-    operator bool() const { return (active); }
+    operator bool()  const { return (active); }
 };
 
 
-class XSID: public CoEmulation<ISidEmulation>, private Event
+class XSID: public sidemu, private Event
 {
     friend class channel;
 
@@ -254,13 +251,11 @@ private:
     virtual uint8_t readMemByte  (uint_least16_t addr) = 0;
     virtual void    writeMemByte (uint8_t data) = 0;
 
-protected:
-    virtual bool _iquery (const Iid &, void **);
-
 public:
     XSID (EventContext *context);
 
-    // Component
+    // Standard calls
+    void    reset () { sidemu::reset (); }
     void    reset (uint8_t);
     uint8_t read  (uint_least8_t) { return 0; }
     void    write (uint_least8_t, uint8_t) { ; }
@@ -274,7 +269,8 @@ public:
     bool    isMuted  (void) { return muted; }
     void    suppress (bool enable);
 
-    void    sidSamples (bool enable) { _sidSamples = enable; }
+    void    sidSamples (bool enable)
+    {   _sidSamples = enable; }
     // Return whether we care it was changed.
     bool storeSidData0x18 (uint8_t data);
 };
@@ -292,7 +288,5 @@ inline int_least32_t XSID::output (uint_least8_t bits)
     sample = sampleConvertTable[sampleOutput () + 8];
     return sample << (bits - 8);
 }
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _xsid_h_

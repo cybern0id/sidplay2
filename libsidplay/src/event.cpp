@@ -16,7 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: event.cpp,v $
  *  Revision 1.11  2003/02/20 19:10:16  s_a_white
  *  Code simplification.
  *
@@ -57,13 +57,11 @@
 
 EventScheduler::EventScheduler (const char * const name)
 :Event(name),
- m_timeWarp("Time Warp", *this, &EventScheduler::event),
  m_events(0),
- m_events_future(0)
+ m_timeWarp(this)
 {
     m_next = this;
     m_prev = this;
-    m_timeWarp.m_clk = 0;
     reset ();
 }
 
@@ -71,18 +69,22 @@ EventScheduler::EventScheduler (const char * const name)
 // the event clocks
 void EventScheduler::event ()
 {
-    m_events = m_events_future;
-    m_events_future = 0;
-    m_timeWarp.m_next = this;
-    m_timeWarp.m_prev = this->m_prev;
-    this->m_prev->m_next = &m_timeWarp;
-    this->m_prev = &m_timeWarp;
-    m_timeWarp.m_pending = true;
+    Event *e     = m_next;
+    uint   count = m_events;
+    m_absClk    += m_clk;
+    while (e->m_pending)
+    {
+        e->m_clk -= m_clk;
+        e = e->m_next;
+    }
+    m_clk = 0;
+    // Re-schedule the next timeWarp
+    schedule (&m_timeWarp, EVENT_TIMEWARP_COUNT, EVENT_CLOCK_PHI1);
 }
 
 void EventScheduler::reset (void)
 {   // Remove all events
-    Event *e = m_next;
+    Event *e     = m_next;
     uint   count = m_events;
     m_pending = false;
     while (e->m_pending)
@@ -92,50 +94,45 @@ void EventScheduler::reset (void)
     }
     m_next = this;
     m_prev = this;
-    m_clk  = 0;
-    m_events = 0;
-    m_events_future = 0;
+    m_clk  = m_absClk = 0;
+    m_events   = 0;
     event ();
 }
 
 // Add event to ordered pending queue
-void EventScheduler::schedule (Event &event, event_clock_t cycles,
+void EventScheduler::schedule (Event *event, event_clock_t cycles,
                                event_phase_t phase)
 {
-    for (;;)
+    if (!event->m_pending)
     {
-        if (!event.m_pending)
-        {
-            event_clock_t clk = m_clk + (cycles << 1);
-            clk += ((clk & 1) ^ phase);
+        event_clock_t clk = m_clk + (cycles << 1);
+        clk += (((m_absClk + clk) & 1) ^ phase);
+        
+        // Now put in the correct place so we don't need to keep
+        // searching the list later.
+        Event *e = m_next;
+        uint   count = m_events;
+        while (count-- && (e->m_clk <= clk))
+            e = e->m_next;
 
-            // Now put in the correct place so we don't need to keep
-            // searching the list later.
-            Event *e;
-            uint count;
-            if (clk >= m_clk)
-            {
-                e = m_next;
-                count = m_events++;
-            }
-            else
-            {
-                e = m_timeWarp.m_next;
-                count = m_events_future++;
-            }
-
-            while (count-- && (e->m_clk <= clk))
-                e = e->m_next;
-
-            event.m_next      = e;
-            event.m_prev      = e->m_prev;
-            e->m_prev->m_next = &event;
-            e->m_prev         = &event;
-            event.m_pending   = true;
-            event.m_clk       = clk;
-            event.m_context   = this;
-            break;
-        }
-        event.cancel ();
+        event->m_next     = e;
+        event->m_prev     = e->m_prev;
+        e->m_prev->m_next = event;
+        e->m_prev         = event;
+        event->m_pending  = true;
+        event->m_clk      = clk;
+        m_events++;
     }
+    else
+    {
+        cancelPending (*event);
+        schedule      (event, cycles, phase);
+    }
+}
+
+// Cancel a pending event
+void EventScheduler::cancel (Event *event)
+{
+    if (event->m_pending)
+        cancelPending (*event);
 }

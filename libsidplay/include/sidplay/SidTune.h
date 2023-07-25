@@ -26,18 +26,17 @@
 
 #include <fstream>
 
-// Also PSID file format limit.
+
 const uint_least16_t SIDTUNE_MAX_SONGS = 256;
+// Also PSID file format limit.
 
 const uint_least16_t SIDTUNE_MAX_CREDIT_STRINGS = 10;
-
-// 80 characters plus terminating zero.
 const uint_least16_t SIDTUNE_MAX_CREDIT_STRLEN = 80+1;
+// 80 characters plus terminating zero.
 
 const uint_least32_t SIDTUNE_MAX_MEMORY = 65536;
-
-// C64KB+LOAD+PSID
 const uint_least32_t SIDTUNE_MAX_FILELEN = 65536+2+0x7C;
+// C64KB+LOAD+PSID
 
 const int SIDTUNE_SPEED_VBI = 0;        // Vertical-Blanking-Interrupt
 const int SIDTUNE_SPEED_CIA_1A = 60;    // CIA 1 Timer A
@@ -64,29 +63,31 @@ extern
 #endif
 template class SID_EXTERN Buffer_sidtt<const uint_least8_t>;
 
-// An instance of this structure is used to transport values to
-// and from SidTune objects.
-
-// You must read (i.e. activate) sub-song specific information
-// via:
-//        const SidTuneInfo& tuneInfo = SidTune[songNumber];
-//        const SidTuneInfo& tuneInfo = SidTune.getInfo();
-//        void SidTune.getInfo(tuneInfo&);
-
-// Consider the following fields as read-only, because the SidTune class
-// does not provide an implementation of: bool setInfo(const SidTuneInfo&).
-// Currently, the only way to get the class to accept values which
-// are written to these fields is by creating a derived class.
 struct SidTuneInfo
 {
+    // An instance of this structure is used to transport values to
+    // and from SidTune objects.
+
+    // You must read (i.e. activate) sub-song specific information
+    // via:
+    //        const SidTuneInfo& tuneInfo = SidTune[songNumber];
+    //        const SidTuneInfo& tuneInfo = SidTune.getInfo();
+    //        void SidTune.getInfo(tuneInfo&);
+    
+    // Consider the following fields as read-only, because the SidTune class
+    // does not provide an implementation of: bool setInfo(const SidTuneInfo&).
+    // Currently, the only way to get the class to accept values which
+    // are written to these fields is by creating a derived class.
+
     const char* formatString;   // the name of the identified file format
     const char* statusString;   // error/status message of last operation
+    
     const char* speedString;    // describing the speed a song is running at
-
+    
     uint_least16_t loadAddr;
     uint_least16_t initAddr;
     uint_least16_t playAddr;
-
+    
     uint_least16_t songs;
     uint_least16_t startSong;
     
@@ -102,8 +103,7 @@ struct SidTuneInfo
     uint_least8_t relocStartPage;  // First available page for relocation
     uint_least8_t relocPages;      // Number of pages available for relocation
     bool musPlayer;                // whether Sidplayer routine has been installed
-    int  sidModel1;                // Sid Model required for first sid
-    int  sidModel2;                // Sid Model required for second sid
+    int  sidModel;                 // Sid Model required for this sid
     int  compatibility;            // compatibility requirements
     bool fixLoad;                  // whether load address might be duplicate
     uint_least16_t songLength;     // --- not yet supported ---
@@ -204,7 +204,7 @@ class SID_EXTERN SidTune
     // Whether sidtune uses two SID chips.
     bool isStereo()
     {
-        return (m_info.sidChipBase1!=0 && m_info.sidChipBase2!=0);
+        return (info.sidChipBase1!=0 && info.sidChipBase2!=0);
     }
     
     // Copy sidtune into C64 memory (64 KB).
@@ -241,11 +241,12 @@ class SID_EXTERN SidTune
     // Does not affect status of object, and therefore can be used
     // to load files. Error string is put into info.statusString, though.
     bool loadFile(const char* fileName, Buffer_sidtt<const uint_least8_t>& bufferRef);
+    
     bool saveToOpenFile( std::ofstream& toFile, const uint_least8_t* buffer, uint_least32_t bufLen );
-
+    
  protected:  // -------------------------------------------------------------
 
-    SidTuneInfo m_info;
+    SidTuneInfo info;
     bool status;
 
     uint_least8_t songSpeed[SIDTUNE_MAX_SONGS];
@@ -275,14 +276,14 @@ class SID_EXTERN SidTune
     void convertOldStyleSpeedToTables(uint_least32_t speed,
          int clock = SIDTUNE_CLOCK_PAL);
 
-    static int convertPetsciiToAscii (SmartPtr_sidtt<const uint_least8_t>&, char*);
+    virtual int convertPetsciiToAscii (SmartPtr_sidtt<const uint_least8_t>&, char*);
 
     // Check compatibility details are sensible
-    bool checkCompatibility(SidTuneInfo &info);
+    bool checkCompatibility(void);
     // Check for valid relocation information
-    bool checkRelocInfo(SidTuneInfo &info);
+    bool checkRelocInfo(void);
     // Common address resolution procedure
-    bool resolveAddrs(SidTuneInfo &info, const uint_least8_t* c64data);
+    bool resolveAddrs(const uint_least8_t* c64data);
 
     // Support for various file formats.
 
@@ -315,36 +316,36 @@ class SID_EXTERN SidTune
                                             Buffer_sidtt<const uint_least8_t>& dataBuf);
 
     // Error and status message strings.
-    static const char txt_songNumberExceed[];
-    static const char txt_empty[];
-    static const char txt_unrecognizedFormat[];
-    static const char txt_noDataFile[];
-    static const char txt_notEnoughMemory[];
-    static const char txt_cantLoadFile[];
-    static const char txt_cantOpenFile[];
-    static const char txt_fileTooLong[];
-    static const char txt_dataTooLong[];
-    static const char txt_cantCreateFile[];
-    static const char txt_fileIoError[];
-    static const char txt_VBI[];
-    static const char txt_CIA[];
-    static const char txt_noErrors[];
-    static const char txt_na[];
-    static const char txt_badAddr[];
-    static const char txt_badReloc[];
-    static const char txt_corrupt[];
+    static const char* txt_songNumberExceed;
+    static const char* txt_empty;
+    static const char* txt_unrecognizedFormat;
+    static const char* txt_noDataFile;
+    static const char* txt_notEnoughMemory;
+    static const char* txt_cantLoadFile;
+    static const char* txt_cantOpenFile;
+    static const char* txt_fileTooLong;
+    static const char* txt_dataTooLong;
+    static const char* txt_cantCreateFile;
+    static const char* txt_fileIoError;
+    static const char* txt_VBI;
+    static const char* txt_CIA;
+    static const char* txt_noErrors;
+    static const char* txt_na;
+    static const char* txt_badAddr;
+    static const char* txt_badReloc;
+    static const char* txt_corrupt;
 
  private:  // ---------------------------------------------------------------
-
+    
     void init();
     void cleanup();
 #if !defined(SIDTUNE_NO_STDIN_LOADER)
     void getFromStdIn();
 #endif
     void getFromFiles(const char* name);
-
+    
     void deleteFileNameCopies();
-
+    
     // Try to retrieve single-file sidtune from specified buffer.
     void getFromBuffer(const uint_least8_t* const buffer, const uint_least32_t bufferLen);
     

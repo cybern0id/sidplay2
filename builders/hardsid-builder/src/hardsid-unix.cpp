@@ -14,51 +14,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.27  2007/01/27 16:31:48  s_a_white
- *  Updated to new COM emulation
- *
- *  Revision 1.26  2006/10/28 09:16:06  s_a_white
- *  Update to new style COM interface
- *
- *  Revision 1.25  2006/06/29 19:37:23  s_a_white
- *  Seperate mixer from emulation.
- *
- *  Revision 1.24  2006/06/27 21:54:47  s_a_white
- *  Add missing clock function.
- *
- *  Revision 1.23  2006/06/19 20:52:46  s_a_white
- *  Switch to new interfaces
- *
- *  Revision 1.22  2005/12/21 18:25:49  s_a_white
- *  Allow sids additional sids to be allocated (rather than just live with
- *  those that are provided on device open).
- *
- *  Revision 1.21  2005/03/22 19:17:00  s_a_white
- *  Small fix based on Windows hardsid build changes.
- *
- *  Revision 1.20  2005/03/22 19:10:28  s_a_white
- *  Converted windows hardsid code to work with new linux streaming changes.
- *  Windows itself does not yet support streaming in the drivers for synchronous
- *  playback to multiple sids (so cannot use MK4 to full potential).
- *
- *  Revision 1.19  2005/03/20 22:52:22  s_a_white
- *  Add MK4 synchronous stream support.
- *
- *  Revision 1.18  2005/01/14 16:01:28  s_a_white
- *  If the allocated returns an error it is because the call isn't supported
- *  (as is the case for older drivers), therefore is valid.
- *
- *  Revision 1.17  2005/01/12 22:11:11  s_a_white
- *  Updated to support new ioctls so we can find number of installed sid devices.
- *
- *  Revision 1.16  2004/11/04 12:34:42  s_a_white
- *  Newer versions of the hardsid driver allow /dev/sid to be opened multiple
- *  times rather than providing seperate /dev/sid<n> entries.
- *
- *  Revision 1.15  2004/06/26 15:35:25  s_a_white
- *  Switched code to use new scheduler interface.
- *
+ *  $Log: hardsid-unix.cpp,v $
  *  Revision 1.14  2004/05/27 21:18:28  jpaana
  *  The filter ioctl was reversed
  *
@@ -107,275 +63,204 @@
  *
  ***************************************************************************/
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
 #include "config.h"
 #include "hardsid-emu.h"
 
-SIDPLAY2_NAMESPACE_START
+// Move these to common header file
+#define HSID_IOCTL_RESET     _IOW('S', 0, int)
+#define HSID_IOCTL_FIFOSIZE  _IOR('S', 1, int)
+#define HSID_IOCTL_FIFOFREE  _IOR('S', 2, int)
+#define HSID_IOCTL_SIDTYPE   _IOR('S', 3, int)
+#define HSID_IOCTL_CARDTYPE  _IOR('S', 4, int)
+#define HSID_IOCTL_MUTE      _IOW('S', 5, int)
+#define HSID_IOCTL_NOFILTER  _IOW('S', 6, int)
+#define HSID_IOCTL_FLUSH     _IO ('S', 7)
+#define HSID_IOCTL_DELAY     _IOW('S', 8, int)
+#define HSID_IOCTL_READ      _IOWR('S', 9, int*)
 
-#define HARDSID_SYNC_ID(id) ((id) << 24)
-#define HARDSID_SYNC_ID_OPT(id) (HARDSID_SYNC_ID(id) | HSID_SID_ID_PRESENT)
-char    HardSID::credit[];
-static  int hsid_device  = 0;
-static  int hsid_devices = 0;
+bool       HardSID::m_sidFree[16] = {0};
+const uint HardSID::voices = HARDSID_VOICES;
+uint       HardSID::sid = 0;
+char       HardSID::credit[];
 
-
-HardSID::HardSID (HardSIDBuilder *builder, uint id, event_clock_t &accessClk,
-                  hwsid_handle_t handle)
-:CoEmulation<ISidEmulation,HardSIDBuilder>("HardSID", builder),
- CoAggregate<ISidMixer>(*iaggregate()),
+HardSID::HardSID (sidbuilder *builder)
+:sidemu(builder),
  Event("HardSID Delay"),
- m_stream(handle),
+ m_handle(0),
  m_eventContext(NULL),
- m_accessClk(accessClk),
  m_phase(EVENT_CLOCK_PHI1),
- m_id(id),
+ m_instance(sid++),
+ m_status(false),
  m_locked(false)
 {
-    m_handle = hwsid_create (m_stream);
+    uint num = 16;
+    for ( uint i = 0; i < 16; i++ )
+    {
+        if(m_sidFree[i] == 0)
+        {
+            m_sidFree[i] = 1;
+            num = i;
+            break;
+        }
+    }
+
+    // All sids in use?!?
+    if ( num == 16 )
+        return;
+
+    m_instance = num;
+
+    {
+        char device[20];
+        *m_errorBuffer = '\0';
+        sprintf (device, "/dev/sid%u", m_instance);
+        m_handle = open (device, O_RDWR);
+        if (m_handle < 0)
+        {
+            if (m_instance == 0)
+            {
+                m_handle = open ("/dev/sid", O_RDWR);
+                if (m_handle < 0)
+                {
+                    sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
+                    return;
+                }
+            }
+            else
+            {
+                sprintf (m_errorBuffer, "HARDSID ERROR: Cannot access \"%s\"", device);
+                return;
+            }
+        }
+    }
+
+    m_status = true;
     reset ();
 }
 
-HardSID::~HardSID ()
+HardSID::~HardSID()
 {
-    hwsid_destroy (m_handle);
+    sid--;
+    m_sidFree[m_instance] = 0;
+    if (m_handle)
+        close (m_handle);
 }
 
 void HardSID::reset (uint8_t volume)
 {
-    for (uint i= 0; i < HARDSID_VOICES; i++)
+    for (uint i= 0; i < voices; i++)
         muted[i] = false;
-    hwsid_reset (m_handle, volume);
+    ioctl(m_handle, HSID_IOCTL_RESET, volume);
     m_accessClk = 0;
     if (m_eventContext != NULL)
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
 }
 
 uint8_t HardSID::read (uint_least8_t addr)
 {
-    event_clock_t cycles  = m_eventContext->getTime (m_accessClk, m_phase);
+    if (!m_handle)
+        return 0;
+
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
-    hwsid_stream_delay (m_stream, cycles);
-    return (uint8_t) hwsid_read (m_handle, addr);
+    while ( cycles > 0xffff )
+    {
+        /* delay */
+        ioctl(m_handle, HSID_IOCTL_DELAY, 0xffff);
+        cycles -= 0xffff;
+    }
+
+    uint packet = (( cycles & 0xffff ) << 16 ) | (( addr & 0x1f ) << 8 );
+    ioctl(m_handle, HSID_IOCTL_READ, &packet);
+
+    cycles = 0;
+    return (uint8_t) (packet & 0xff);
 }
 
 void HardSID::write (uint_least8_t addr, uint8_t data)
 {
-    hwsid_handle_t stream = hwsid_stream (m_handle);
-    event_clock_t cycles  = m_eventContext->getTime (m_accessClk, m_phase);
+    if (!m_handle)
+        return;
+
+    event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     m_accessClk += cycles;
 
-    hwsid_stream_delay (m_stream, cycles);
-    hwsid_write (m_handle, addr, data);
+    while ( cycles > 0xffff )
+    {
+        /* delay */
+        ioctl(m_handle, HSID_IOCTL_DELAY, 0xffff);
+        cycles -= 0xffff;
+    }
+
+    uint packet = (( cycles & 0xffff ) << 16 ) | (( addr & 0x1f ) << 8 )
+        | (data & 0xff);
+    cycles = 0;
+    ::write (m_handle, &packet, sizeof (packet));
 }
 
-void HardSID::volume (uint_least8_t num, uint_least8_t level)
-{
-    // Not yet implemented
-}
-
-void HardSID::mute (uint_least8_t num, bool mute)
+void HardSID::voice (uint_least8_t num, uint_least8_t volume,
+                     bool mute)
 {
     // Only have 3 voices!
-    if (num >= HARDSID_VOICES)
+    if (num >= voices)
         return;
     muted[num] = mute;
-
+    
     int cmute = 0;
-    for ( uint i = 0; i < HARDSID_VOICES; i++ )
+    for ( uint i = 0; i < voices; i++ )
         cmute |= (muted[i] << i);
-    //    ioctl (m_handle, HSID_IOCTL_MUTE, HARDSID_SYNC_ID(m_id) | cmute);
+    ioctl (m_handle, HSID_IOCTL_MUTE, cmute);
 }
 
 void HardSID::event (void)
-{   // When the hardsid is not actively being written to the drivers
-    // buffering risks underflow.  Prevent this inactivity period from
-    // becoming too great by allowing the driver to know how much idle
-    // time has passed.
+{
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, m_phase);
     if (cycles < HARDSID_DELAY_CYCLES)
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES - cycles, m_phase);
+    {
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES - cycles,
+                                EVENT_CLOCK_PHI1);
+    }
     else
     {
         uint delay = (uint) cycles;
         m_accessClk += cycles;
-        hwsid_stream_delay (m_stream, delay);
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
+        ioctl(m_handle, HSID_IOCTL_DELAY, delay);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
     }
 }
 
 void HardSID::filter(bool enable)
 {
-  //    ioctl (m_handle, HSID_IOCTL_NOFILTER, HARDSID_SYNC_ID(m_id) | !enable);
+    ioctl (m_handle, HSID_IOCTL_NOFILTER, !enable);
 }
 
-// (Un)Lock this device to pass the to an external program for
-// configuration and use.  Requests for other device will not
-// return ones already locked (inuse).
+void HardSID::flush(void)
+{
+    ioctl(m_handle, HSID_IOCTL_FLUSH);
+}
+
 bool HardSID::lock(c64env* env)
 {
     if( env == NULL )
     {
-        if (!m_locked)
-            return false;
-        cancel ();
+	if (!m_locked)
+	    return false;
+        m_eventContext->cancel (this);
         m_locked = false;
         m_eventContext = NULL;
     }
     else
     {
-        if (m_locked)
-            return false;
+	if (m_locked)
+	    return false;
         m_locked = true;
         m_eventContext = &env->context();
-        schedule (*m_eventContext, HARDSID_DELAY_CYCLES, m_phase);
+        m_eventContext->schedule (this, HARDSID_DELAY_CYCLES, m_phase);
     }
     return true;
 }
-
-int HardSID::init (char *error)
-{
-    return 0;
-}
-
-bool HardSID::allocate (hwsid_handle_t handle)
-{
-//    if (ioctl (handle, HSID_IOCTL_ALLOCATE) < 0)
-//        return false;
-//    return true;
-    return false;
-}
-
-// Open next available hardsid device.  For the newer drivers
-// we will end up opening the same device multiple times
-int HardSID::open (hwsid_handle_t &handle, char *error)
-{
-  //    char device[20];
-
-    // New device driver support
-  //    handle = ::open ("/dev/sid", O_RDWR);
-  //    if (handle < 0)
-  //    {   // Old device driver support
-  //        int i = hsid_device;
-  //        do
-  //        {
-  //            sprintf (device, "/dev/sid%u", i);
-  //            handle = ::open (device, O_RDWR);
-  //            if (handle >= 0)
-  //                break;
-  //            i = (i + 1) % hsid_devices;
-  //        } while (i != hsid_device);
-  //        if (handle >= 0)
-  //            hsid_device = i + 1;
-  //    }
-
-  //    if (handle < 0)
-  //    {
-  //         sprintf (error, "HARDSID ERROR: Cannot access \"/dev/sid\" or \"%s\"", device);
-  //         return -1;
-  //    }
-
-    // Check to see if a sid is allocated to the stream
-    // Allow errors meaning call is not supported, so
-    // must have a sid
-    //    int avail = ioctl (handle, HSID_IOCTL_ALLOCATED);
-    //    if (avail < 0)
-    //        avail = 1;
-    //    return avail;
-
-    handle = hwsid_stream_create ();
-    if (!handle)
-    {
-        sprintf (error, "HARDSID ERROR: Unable to create hw stream");
-        return -1;
-    }
-    return 1;
-}
-
-void HardSID::close (hwsid_handle_t handle)
-{
-    if (handle)
-        hwsid_stream_destroy (handle);
-//    if (m_handle >= 0)
-//        ::close (m_handle);
-}
-
-// Return available hardsid devices (in case of old hardsid
-// driver it is a best guess) or -1 on error.
-int HardSID::devices (char *error)
-{
-  /*
-    int count = 0;
-
-    // Try opening the /dev/sid as newer versions
-    // have a different interface and provide available
-    // sid count
-    int fd = ::open ("/dev/sid", O_RDWR);
-    for (;;)
-    {
-        if (fd >= 0)
-        {
-            count = ioctl (fd, HSID_IOCTL_DEVICES);
-            ::close (fd);
-            if (count >= 0)
-                break;
-            count = 1;
-        }
-
-        // Have an old style device driver.  Detect the number of
-        // devices directly.  Gaps are ignored due to user
-        // configuration problems, we will cope.
-        DIR    *dir;
-        dirent *entry;
-        dir = opendir("/dev");
-        if (!dir)
-        {
-            sprintf (error, "HARDSID ERROR: Unable to access /dev");
-            return -1;
-        }
-
-        while ( (entry=readdir(dir)) )
-        {
-            // SID device
-            if (strncmp ("sid", entry->d_name, 3))
-                continue;
-
-            // if it is truely one of ours then it will be
-            // followed by numerics only
-            const char *p = entry->d_name+3;
-            int index     = 0;
-            while (*p)
-            {
-                if (!isdigit (*p))
-                    continue;
-                index = index * 10 + (*p++ - '0');
-            }
-            index++;
-            if (count < index)
-                count = index;
-        }
-        closedir (dir);
-    }
-
-    hsid_devices = count;
-    if (hsid_device >= hsid_devices)
-        hsid_device = 0;
-    return count;
-  */
-    return 1;
-}
-
-void HardSID::flush (hwsid_handle_t handle)
-{
-  //    ioctl(handle, HSID_IOCTL_FLUSH);
-}
-
-void HardSID::clock(sid2_clock_t /*clk*/)
-{
-//    if (clk == SID2_CLOCK_NTSC)
-//        hsid2.Clock ((BYTE) m_id, 2);
-//    else
-//       hsid2.Clock ((BYTE) m_id, 1);
-}
-
-SIDPLAY2_NAMESPACE_STOP

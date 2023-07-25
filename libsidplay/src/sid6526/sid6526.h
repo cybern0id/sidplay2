@@ -16,22 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.9  2006/06/27 19:35:28  s_a_white
- *  Changed ifquery return type.
- *
- *  Revision 1.8  2006/06/19 19:14:06  s_a_white
- *  Get most derived interface to be inherited by the lowest base class.  This
- *  removes duplicate inheritance of interfaces and the need for virtual
- *  public inheritance of interfaces.
- *
- *  Revision 1.7  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.6  2004/06/26 11:06:52  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: sid6526.h,v $
  *  Revision 1.5  2003/10/28 00:22:53  s_a_white
  *  getTime now returns a time with respect to the clocks desired phase.
  *
@@ -52,15 +37,11 @@
 #ifndef _sid6526_h_
 #define _sid6526_h_
 
-#include "sidconfig.h"
-#include "imp/component.h"
+#include "component.h"
 #include "event.h"
+#include "c64env.h"
 
-class c64env;
-
-SIDPLAY2_NAMESPACE_START
-
-class SID6526: public CoComponent<ISidComponent>, private Event
+class SID6526: public component
 {
 private:
 
@@ -79,9 +60,17 @@ private:
     uint_least16_t m_count;
     bool locked; // Prevent code changing CIA.
 
-private:
-    // Interface - Later use
-    bool _iquery (const Iid &, void **) { return false; }
+    class TaEvent: public Event
+    {
+    private:
+        SID6526 &m_cia;
+        void event (void) {m_cia.event ();}
+
+    public:
+        TaEvent (SID6526 &cia)
+            :Event("CIA Timer A"),
+             m_cia(cia) {}
+    } m_taEvent;
 
 public:
     SID6526 (c64env *env);
@@ -99,7 +88,5 @@ public:
     void clock (uint_least16_t count) { m_count = count; }
     void lock  () { locked = true; }
 };
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _sid6526_h_

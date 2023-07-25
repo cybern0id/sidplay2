@@ -83,7 +83,7 @@ class SidTuneTools
 
     // Search terminated string for next newline sequence.
     // Skip it and return pointer to start of next line.
-    static const char* returnNextLine(const char* s, uint_least32_t len);
+    static const char* returnNextLine(const char* pBuffer);
 
     // Skip any characters in an input string stream up to '='.
     static void skipToEqu(std::istringstream& parseStream);

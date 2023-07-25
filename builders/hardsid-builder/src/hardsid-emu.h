@@ -15,52 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.22  2008/02/27 20:58:52  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.21  2007/01/27 11:18:24  s_a_white
- *  Prevent infinite loop on aggregate call.
- *
- *  Revision 1.20  2007/01/27 10:21:39  s_a_white
- *  Updated to use better COM emulation interface.
- *
- *  Revision 1.19  2006/10/20 16:16:29  s_a_white
- *  Better compatibility with old code.
- *
- *  Revision 1.18  2006/06/29 19:12:18  s_a_white
- *  Seperate mixer interface from emulation interface.
- *
- *  Revision 1.17  2006/06/28 08:01:12  s_a_white
- *  Provide dummy definition for hwsid_handle_t to get code building.
- *
- *  Revision 1.16  2006/06/27 19:44:55  s_a_white
- *  Add return parameter to ifquery.
- *
- *  Revision 1.15  2006/06/19 20:52:46  s_a_white
- *  Switch to new interfaces
- *
- *  Revision 1.14  2006/05/31 20:31:38  s_a_white
- *  Support passing of PAL/NTSC state to hardsid/catweasel to reduce de-tuning.
- *
- *  Revision 1.13  2005/12/21 18:25:49  s_a_white
- *  Allow sids additional sids to be allocated (rather than just live with
- *  those that are provided on device open).
- *
- *  Revision 1.12  2005/03/22 19:10:27  s_a_white
- *  Converted windows hardsid code to work with new linux streaming changes.
- *  Windows itself does not yet support streaming in the drivers for synchronous
- *  playback to multiple sids (so cannot use MK4 to full potential).
- *
- *  Revision 1.11  2005/03/20 22:52:22  s_a_white
- *  Add MK4 synchronous stream support.
- *
- *  Revision 1.10  2005/01/12 22:11:11  s_a_white
- *  Updated to support new ioctls so we can find number of installed sid devices.
- *
- *  Revision 1.9  2004/06/26 11:18:32  s_a_white
- *  Merged sidplay2/w volume/mute changes.
- *
+ *  $Log: hardsid-emu.h,v $
  *  Revision 1.8  2004/03/18 20:50:21  s_a_white
  *  Indicate the 2.07 extensions.
  *
@@ -88,95 +43,132 @@
  *
  ***************************************************************************/
 
-#ifndef _HARDSID_EMU_H_
-#define _HARDSID_EMU_H_
+#ifndef _hardsid_emu_h_
+#define _hardsid_emu_h_
 
-#include <sidplay/imp/sidcoaggregate.h>
-#include <sidplay/imp/sidcobuilder.h>
+#include <sidplay/sidbuilder.h>
 #include <sidplay/event.h>
 #include "config.h"
-#include "hardsid-builder.h"
 
 #ifdef HAVE_MSWINDOWS
-typedef int hwsid_handle_t;
-#else
-#include <hwsid.h>
-#endif
+
+#include <windows.h>
+
+#define HSID_VERSION_MIN (WORD) 0x0200
+#define HSID_VERSION_204 (WORD) 0x0204
+#define HSID_VERSION_207 (WORD) 0x0207
+
+//**************************************************************************
+// Version 2 Interface
+typedef void (CALLBACK* HsidDLL2_Delay_t)   (BYTE deviceID, WORD cycles);
+typedef BYTE (CALLBACK* HsidDLL2_Devices_t) (void);
+typedef void (CALLBACK* HsidDLL2_Filter_t)  (BYTE deviceID, BOOL filter);
+typedef void (CALLBACK* HsidDLL2_Flush_t)   (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Mute_t)    (BYTE deviceID, BYTE channel, BOOL mute);
+typedef void (CALLBACK* HsidDLL2_MuteAll_t) (BYTE deviceID, BOOL mute);
+typedef void (CALLBACK* HsidDLL2_Reset_t)   (BYTE deviceID);
+typedef BYTE (CALLBACK* HsidDLL2_Read_t)    (BYTE deviceID, WORD cycles, BYTE SID_reg);
+typedef void (CALLBACK* HsidDLL2_Sync_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Write_t)   (BYTE deviceID, WORD cycles, BYTE SID_reg, BYTE data);
+typedef WORD (CALLBACK* HsidDLL2_Version_t) (void);
+
+// Version 2.04 Extensions
+typedef BOOL (CALLBACK* HsidDLL2_Lock_t)    (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Unlock_t)  (BYTE deviceID);
+typedef void (CALLBACK* HsidDLL2_Reset2_t)  (BYTE deviceID, BYTE volume);
+
+// Version 2.07 Extensions
+typedef void (CALLBACK* HsidDLL2_Mute2_t)   (BYTE deviceID, BYTE channel, BOOL mute, BOOL manual);
+
+struct HsidDLL2
+{
+    HINSTANCE          Instance;
+    HsidDLL2_Delay_t   Delay;
+    HsidDLL2_Devices_t Devices;
+    HsidDLL2_Filter_t  Filter;
+    HsidDLL2_Flush_t   Flush;
+    HsidDLL2_Lock_t    Lock;
+    HsidDLL2_Unlock_t  Unlock;
+    HsidDLL2_Mute_t    Mute;
+    HsidDLL2_Mute2_t   Mute2;
+    HsidDLL2_MuteAll_t MuteAll;
+    HsidDLL2_Reset_t   Reset;
+    HsidDLL2_Reset2_t  Reset2;
+    HsidDLL2_Read_t    Read;
+    HsidDLL2_Sync_t    Sync;
+    HsidDLL2_Write_t   Write;
+    WORD               Version;
+};
+
+#endif // HAVE_MSWINDOWS
 
 #define HARDSID_VOICES 3
 // Approx 60ms
 #define HARDSID_DELAY_CYCLES 60000
 
-SIDPLAY2_NAMESPACE_START
-
 /***************************************************************************
  * HardSID SID Specialisation
  ***************************************************************************/
-class HardSID: public CoEmulation<ISidEmulation>,
-               public CoAggregate<ISidMixer>, private Event
+class HardSID: public sidemu, private Event
 {
 private:
-    friend class CoHardSIDBuilder;
+    friend class HardSIDBuilder;
 
     // HardSID specific data
-    hwsid_handle_t m_handle;
-    hwsid_handle_t m_stream;
+#ifdef HAVE_UNIX
+    static         bool m_sidFree[16];
+    int            m_handle;
+#endif
+
+    static const   uint voices;
+    static         uint sid;
     static char    credit[100];
+
 
     // Generic variables
     EventContext  *m_eventContext;
     event_phase_t  m_phase;
-    event_clock_t &m_accessClk;
+    event_clock_t  m_accessClk;
+    char           m_errorBuffer[100];
 
     // Must stay in this order
     bool           muted[HARDSID_VOICES];
-    uint           m_id;
+    uint           m_instance;
+    bool           m_status;
     bool           m_locked;
 
 public:
-    HardSID  (IHardSIDBuilder *builder, uint id, event_clock_t &accessClk,
-              hwsid_handle_t handle);
+    HardSID  (sidbuilder *builder);
     ~HardSID ();
-
-    // ISidUnknown
-    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
 
     // Standard component functions
     const char   *credits (void) {return credit;}
-    void          reset   (uint8_t volume = 0);
+    void          reset   () { sidemu::reset (); }
+    void          reset   (uint8_t volume);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
-    const char   *error   (void) {return "";}
+    const char   *error   (void) {return m_errorBuffer;}
+    operator bool () const { return m_status; }
 
     // Standard SID functions
-    void          clock   (sid2_clock_t clk);
     int_least32_t output  (uint_least8_t bits);
     void          filter  (bool enable);
     void          model   (sid2_model_t model) {;}
-    void          volume  (uint_least8_t num, uint_least8_t level);
-    void          mute    (uint_least8_t num, bool enable);
+    void          voice   (uint_least8_t num, uint_least8_t volume,
+                           bool mute);
     void          gain    (int_least8_t) {;}
+
+    // HardSID specific
+    void          flush   (void);
 
     // Must lock the SID before using the standard functions.
     bool          lock    (c64env *env);
 
 private:
-    // ISidUnknown
-    bool _iquery (const Iid &cid, void **implementation);
-
     // Fixed interval timer delay to prevent sidplay2
     // shoot to 100% CPU usage when song nolonger
     // writes to SID.
     void event (void);
-
-public:
-    // Support to obtain number of devices
-    static int  init     (char *error);
-    static int  open     (hwsid_handle_t &handle, char *error);
-    static void close    (hwsid_handle_t handle);
-    static int  devices  (char *error);
-    static void flush    (hwsid_handle_t handle);
-    static bool allocate (hwsid_handle_t handle);
 };
 
 inline int_least32_t HardSID::output (uint_least8_t bits)
@@ -184,6 +176,4 @@ inline int_least32_t HardSID::output (uint_least8_t bits)
     return 0;
 }
 
-SIDPLAY2_NAMESPACE_STOP
-
-#endif // _HARDSID_EMU_H_
+#endif // _hardsid_emu_h_

@@ -20,11 +20,8 @@
 
 // The VIC emulation is very generic and here we need to effectively
 // wire it into the computer (like adding a chip to a PCB).
-#include "sidconfig.h"
 #include "c64env.h"
 #include "../mos656x/mos656x.h"
-
-SIDPLAY2_NAMESPACE_START
 
 class c64vic: public MOS656X
 {
@@ -48,7 +45,5 @@ public:
      m_env(*env) {}
     const char *error (void) {return "";}
 };
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _c64vic_h_

@@ -10,7 +10,7 @@ lib_LTLIBRARIES = libsidplay2.la
 libsidplay2_la_SOURCES = config.cpp event.cpp \
 player.cpp player.h \
 psiddrv.cpp mixer.cpp \
-reloc65.c \
+reloc65.c sidplay2.cpp \
 nullsid.h psiddrv.a65
 
 libsidplay2_la_LIBADD  = \
@@ -19,7 +19,7 @@ libsidplay2_la_LIBADD  = \
 ./sidtune/libsidtune.la ./sid6526/libsid6526.la
 
 # We substitute the libtool-specific library version in configure.in.
-libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION) -no-undefined
+libsidplay2_la_LDFLAGS = -version-info $(LIBVERSION)
 
 # Remove bad default includes
 DEFAULT_INCLUDES=

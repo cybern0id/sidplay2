@@ -108,7 +108,6 @@ AC_OUTPUT(
 Makefile \
 include/Makefile \
 include/sidplay/Makefile \
-include/sidplay/imp/Makefile \
 src/Makefile \
 src/c64/Makefile \
 src/mos6510/Makefile \

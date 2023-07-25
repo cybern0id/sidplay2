@@ -111,7 +111,7 @@ SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName,
     else if (strcmp (pHeader->id, _sidtune_id))
         return LOAD_NOT_MINE;
 
-    m_info.formatString = format;
+    info.formatString = format;
 
     // File types current supported
     if (type != X00_PRG)
@@ -119,7 +119,7 @@ SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName,
 
     if (bufLen < sizeof(X00Header)+2)
     {
-        m_info.formatString = _sidtune_truncated;
+        info.formatString = _sidtune_truncated;
         return LOAD_ERROR;
     }
 
@@ -129,14 +129,14 @@ SidTune::LoadStatus SidTune::X00_fileSupport(const char *fileName,
     }
 
     // Automatic settings
-    fileOffset           = sizeof(X00Header);
-    m_info.songs         = 1;
-    m_info.startSong     = 1;
-    m_info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
-    m_info.numberOfInfoStrings = 1;
-    m_info.infoString[0] = infoString[0];
+    fileOffset         = sizeof(X00Header);
+    info.songs         = 1;
+    info.startSong     = 1;
+    info.compatibility = SIDTUNE_COMPATIBILITY_BASIC;
+    info.numberOfInfoStrings = 1;
+    info.infoString[0] = infoString[0];
 
     // Create the speed/clock setting table.
-    convertOldStyleSpeedToTables(~0, m_info.clockSpeed);
+    convertOldStyleSpeedToTables(~0, info.clockSpeed);
     return LOAD_OK;
 }

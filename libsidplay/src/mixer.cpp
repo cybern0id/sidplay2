@@ -15,7 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
+ *  $Log: mixer.cpp,v $
  *  Revision 1.11  2003/01/17 08:35:46  s_a_white
  *  Event scheduler phase support.
  *
@@ -61,8 +61,8 @@ void Player::mixerReset (void)
 {   // Fixed point 16.16
     m_sampleClock  = m_samplePeriod & 0x0FFFF;
     // Schedule next sample event
-    m_mixerEvent.schedule (context (),
-        m_samplePeriod >> 16, EVENT_CLOCK_PHI1);
+    (context ()).schedule (&mixerEvent,
+        m_samplePeriod >> 24, EVENT_CLOCK_PHI1);
 }
 
 void Player::mixer (void)
@@ -75,11 +75,11 @@ void Player::mixer (void)
     m_sampleIndex += (this->*output) (buf);
  
     // Schedule next sample event
-    m_mixerEvent.schedule (context (), cycles, EVENT_CLOCK_PHI1);
+    (context ()).schedule (&mixerEvent, cycles, EVENT_CLOCK_PHI1);
 
     // Filled buffer
     if (m_sampleIndex >= m_sampleCount)
-        m_running = -1;
+        m_running = false;
 }
 
 

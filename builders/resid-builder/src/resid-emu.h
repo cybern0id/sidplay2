@@ -34,13 +34,8 @@
 #   define RESID
 #endif
 
-#include <sidplay/imp/sidcoaggregate.h>
-#include "resid-builder.h"
 
-SIDPLAY2_NAMESPACE_START
-
-class ReSID: public CoEmulation<ISidEmulation>,
-             public CoAggregate<ISidMixer>
+class ReSID: public sidemu
 {
 private:
     EventContext *m_context;
@@ -55,16 +50,12 @@ private:
     uint_least8_t m_optimisation;
 
 public:
-    ReSID  (IReSIDBuilder *builder);
+    ReSID  (sidbuilder *builder);
     ~ReSID (void);
 
-    ISidUnknown *iunknown () { return CoEmulation<ISidEmulation>::iunknown (); }
-
-    // IInterface
-    bool _iquery (const Iid &iid, void **implementation);
-
-   // Standard component functions
+    // Standard component functions
     const char   *credits (void) {return m_credit;}
+    void          reset   () { sidemu::reset (); }
     void          reset   (uint8_t volume);
     uint8_t       read    (uint_least8_t addr);
     void          write   (uint_least8_t addr, uint8_t data);
@@ -73,8 +64,8 @@ public:
     // Standard SID functions
     int_least32_t output  (uint_least8_t bits);
     void          filter  (bool enable);
-    void          volume  (uint_least8_t num, uint_least8_t level);
-    void          mute    (uint_least8_t num, bool enable);
+    void          voice   (uint_least8_t num, uint_least8_t volume,
+                           bool mute);
     void          gain    (int_least8_t precent);
     void          optimisation (uint_least8_t level);
 
@@ -82,11 +73,9 @@ public:
     static   int  devices (char *error);
 
     // Specific to resid
-    void sampling (uint_least32_t freq);
+    void sampling (uint freq);
     bool filter   (const sid_filter_t *filter);
     void model    (sid2_model_t model);
     // Must lock the SID before using the standard functions.
     bool lock     (c64env *env);
 };
-
-SIDPLAY2_NAMESPACE_STOP

@@ -15,10 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.39  2004/06/26 11:10:23  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: sid6510c.i,v $
  *  Revision 1.38  2004/05/03 22:36:49  s_a_white
  *  Fix sleep handling to take into about the new instruction pipelining.
  *
@@ -148,7 +145,6 @@
 
 #include "sid6510c.h"
 
-SIDPLAY2_NAMESPACE_START
 
 SID6510::SID6510 (EventContext *context)
 :MOS6510(context),
@@ -401,7 +397,7 @@ void SID6510::sid_delay (void)
     cycleCount--;
     // Woken from sleep just to handle the stealing release
     if (m_sleeping)
-        cancel ();
+        eventContext.cancel (this);
     else
     {
         event_clock_t cycle = delayed % 3;
@@ -410,7 +406,7 @@ void SID6510::sid_delay (void)
             if (interruptPending ())
                 return;
         }
-        schedule (eventContext, 3 - cycle, m_phase);
+        eventContext.schedule (this, 3 - cycle, m_phase);
     }
 }
 
@@ -424,7 +420,7 @@ void SID6510::triggerRST (void)
     if (m_sleeping)
     {
         m_sleeping = false;
-        schedule (eventContext, eventContext.phase() == m_phase, m_phase);
+        eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
     }
 }
 
@@ -436,7 +432,7 @@ void SID6510::triggerNMI (void)
         if (m_sleeping)
         {
             m_sleeping = false;
-            schedule (eventContext, eventContext.phase() == m_phase, m_phase);
+            eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
         }
     }
 }
@@ -461,9 +457,7 @@ void SID6510::triggerIRQ (void)
         {   // Simulate busy loop
             m_sleeping = !(interrupts.irqRequest || interrupts.pending);
             if (!m_sleeping)
-                schedule (eventContext, eventContext.phase() == m_phase, m_phase);
+                eventContext.schedule (this, eventContext.phase() == m_phase, m_phase);
         }
     }
 }
-
-SIDPLAY2_NAMESPACE_STOP

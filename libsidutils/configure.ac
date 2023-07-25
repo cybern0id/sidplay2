@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(unix/config.h)
 
 dnl Setup library CURRENT, REVISION and AGE
 LIBCUR=0
-LIBREV=5
+LIBREV=4
 LIBAGE=0
 AM_INIT_AUTOMAKE(libsidutils,1.$LIBCUR.$LIBREV)
 dnl libtool-style version-info number
@@ -27,12 +27,6 @@ AC_C_BIGENDIAN
 
 dnl Use C++ for tests.
 AC_LANG_CPLUSPLUS
-
-dnl Checks for library functions.
-AC_CHECK_FUNC(strncasecmp,[AC_DEFINE(HAVE_STRNCASECMP,,
-  [Define if you have the strncasecmp function.])],[])
-AC_CHECK_FUNC(strcasecmp,[AC_DEFINE(HAVE_STRCASECMP,,
-  [Define if you have the strcasecmp function.])],[])
 
 dnl Check for nothrow allocator.
 MY_CHECK_EXCEPTIONS

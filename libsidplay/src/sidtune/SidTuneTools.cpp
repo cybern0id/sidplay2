@@ -99,7 +99,7 @@ char* SidTuneTools::fileExtOfPath(char* s)
     return( &s[last_dot_pos] );
 }
 
-// Parse input string stream. Read and convert a hexa-decimal number up
+// Parse input string stream. Read and convert a hexa-decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
 uint_least32_t SidTuneTools::readHex( std::istringstream& hexin )
 {
@@ -128,7 +128,7 @@ uint_least32_t SidTuneTools::readHex( std::istringstream& hexin )
     return hexLong;
 }
 
-// Parse input string stream. Read and convert a decimal number up
+// Parse input string stream. Read and convert a decimal number up 
 // to a ``,'' or ``:'' or ``\0'' or end of stream.
 uint_least32_t SidTuneTools::readDec( std::istringstream& decin )
 {
@@ -146,7 +146,7 @@ uint_least32_t SidTuneTools::readDec( std::istringstream& decin )
             hexLong += (uint_least32_t)c;
         }
         else
-        {
+        { 
             if ( c == 0 )
                 decin.putback(c);
             break;
@@ -157,15 +157,14 @@ uint_least32_t SidTuneTools::readDec( std::istringstream& decin )
 
 // Search terminated string for next newline sequence.
 // Skip it and return pointer to start of next line.
-const char* SidTuneTools::returnNextLine(const char* s, uint_least32_t len)
+const char* SidTuneTools::returnNextLine(const char* s)
 {
     // Unix: LF = 0x0A
     // Windows, DOS: CR,LF = 0x0D,0x0A
     // Mac: CR = 0x0D
     char c;
-    while (len && ((c = *s) != 0))
+    while ((c = *s) != 0)
     {
-        len--;
         s++;                            // skip read character
         if (c == 0x0A)
         {
@@ -173,15 +172,14 @@ const char* SidTuneTools::returnNextLine(const char* s, uint_least32_t len)
         }
         else if (c == 0x0D)
         {
-            if (len && (*s == 0x0A))
+            if (*s == 0x0A)
             {
-                len--;
                 s++;                    // CR,LF found, skip LF
             }
             break;                      // CR or CR,LF found
         }
     }
-    if ((len == 0) || (*s == 0))        // end of string ?
+    if (*s == 0)                        // end of string ?
     {
         return 0;                       // no next line available
     }

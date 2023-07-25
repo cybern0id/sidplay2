@@ -57,8 +57,6 @@ struct section_tag *__ini_addHeading (ini_t *ini, char *heading)
     fseek (ini->ftmp, 0, SEEK_END);
     fputs ("]\n", ini->ftmp);
     ini->heading = section->heading;
-    if (section)
-        ini->flags |= INI_MODIFIED;
     return section;
 }
 
@@ -90,15 +88,11 @@ struct section_tag *__ini_faddHeading (ini_t *ini, FILE *file, long pos, size_t 
         __ini_strtrim (str);
     }
     else
-    {
-        str = (char *) malloc (sizeof(char));
-        assert (str);
-        *str = '\0';
-    }
+        str = "";
 
     section = __ini_createHeading (ini, str);
     // Make sure heading was created
-    if (!section)
+    if (!section && length)
     {
         free (str);
         return NULL;
@@ -123,7 +117,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
 {
     struct section_tag *pNew;
 
-    pNew = __ini_locateHeading (ini, heading);
+    pNew  = __ini_locateHeading (ini, heading);
     // Check to see if heading already exists
     if (pNew)
         free (heading);
@@ -161,7 +155,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
             unsigned long crc32;
             unsigned char accel;
 
-            crc32     = __ini_createCrc32 (heading, (ini->flags & INI_CASE) != 0);
+            crc32     = __ini_createCrc32 (heading, strlen (heading));
             pNew->crc = crc32;
             // Rev 1.3 - Add accelerator list
             accel = (unsigned char) crc32 & 0x0FF;
@@ -175,6 +169,7 @@ struct section_tag *__ini_createHeading (ini_t *ini, char *heading)
     }
 
     ini->selected = pNew;
+    ini->changed  = true;
     return pNew;
 }
 
@@ -204,7 +199,7 @@ void __ini_deleteHeading (ini_t *ini)
             current_h->selected = current_h->first;
             __ini_deleteKey (ini);
         }
-
+    
         // Tidy up all users of this heading
         ini->selected =  NULL;
         if (ini->last == current_h)
@@ -229,8 +224,10 @@ void __ini_deleteHeading (ini_t *ini)
 #endif // INI_USE_HASH_TABLE
 
         // Delete Heading
-        free (current_h->heading);
+        if (*current_h->heading)
+            free (current_h->heading);
         free (current_h);
+        ini->changed = true;
     }
 }
 
@@ -248,24 +245,19 @@ void __ini_deleteHeading (ini_t *ini)
  ********************************************************************************************************************/
 struct section_tag *__ini_locateHeading (ini_t *ini, const char *heading)
 {
-    struct section_tag *current_h;
+    struct   section_tag *current_h;
 
 #ifdef INI_USE_HASH_TABLE
     // Rev 1.3 - Revised to use new accelerator
     unsigned long crc32;
-    crc32 = __ini_createCrc32 (heading, (ini->flags & INI_CASE) != 0);
+    crc32 = __ini_createCrc32 (heading, strlen (heading));
 
     // Search for heading
     for (current_h = ini->sections[(unsigned char) crc32 & 0x0FF]; current_h; current_h = current_h->pNext_Acc)
     {
         if (current_h->crc == crc32)
         {
-            if (ini->flags & INI_CASE)
-            {
-                if (!strcmp (current_h->heading, heading))
-                    break;
-            }
-            else if (!strcasecmp (current_h->heading, heading))
+            if (!strcmp (current_h->heading, heading))
                 break;
         }
     }
@@ -273,12 +265,7 @@ struct section_tag *__ini_locateHeading (ini_t *ini, const char *heading)
     // Search for heading
     for (current_h = ini->first; current_h; current_h = current_h->pNext)
     {
-        if (ini->flags & INI_CASE)
-        {
-            if (!strcmp (current_h->heading, heading))
-                break;
-        }
-        else if (!strcasecmp (current_h->heading, heading))
+        if (!strcmp (current_h->heading, heading))
             break;
     }
 #endif // INI_USE_HASH_TABLE
@@ -299,19 +286,12 @@ struct section_tag *__ini_locateHeading (ini_t *ini, const char *heading)
 int INI_LINKAGE ini_deleteHeading (ini_fd_t fd)
 {
     ini_t *ini = (ini_t *) fd;
-    struct section_tag *section;
-
-    if (!ini)
+    if (!ini->selected)
         return -1;
-    section = ini->selected;
     // Can't delete a temporary section
-    if (!section || (section == &(ini->tmpSection)))
-        return -1;
-    // Is file read only?
-    if (ini->mode == INI_READ)
+    if (ini->selected == &(ini->tmpSection))
         return -1;
     __ini_deleteHeading (ini);
-    ini->flags |= INI_MODIFIED;
     return 0;
 }
 
@@ -329,7 +309,7 @@ int INI_LINKAGE ini_locateHeading (ini_fd_t fd, const char *heading)
     ini_t *ini = (ini_t *) fd;
     struct section_tag *section;
 
-    if (!ini || !heading)
+    if (!heading)
         return -1;
 
     section = __ini_locateHeading (ini, heading);
@@ -364,27 +344,4 @@ int INI_LINKAGE ini_locateHeading (ini_fd_t fd, const char *heading)
         ini->selected     = section;
     }
     return -1;
-}
-
-
-/********************************************************************************************************************
- * Function          : (public) ini_currentHeading
- * Parameters        : fd - pointer to ini file descriptor
- * Returns           : NULL for Error and on success pointer to heading
- * Globals Used      :
- * Globals Modified  :
- * Description       : Returns currently selected heading
- ********************************************************************************************************************/
-const char * INI_LINKAGE ini_currentHeading (ini_fd_t fd)
-{
-    ini_t *ini = (ini_t *) fd;
-    struct section_tag *section;
-
-    if (!ini)
-        return NULL;
-    section = ini->selected;
-    // Don't return temporary key
-    if (!section || (section == &(ini->tmpSection)))
-        return NULL;
-    return section->heading;
 }

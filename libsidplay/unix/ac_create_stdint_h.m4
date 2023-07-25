@@ -30,7 +30,7 @@ dnl Remember, if the system already had a valid <stdint.h>, the generated
 dnl file will include it directly. No need for fuzzy HAVE_STDINT_H things...
 dnl
 dnl (this file is part of the http://ac-archive.sf.net/gstdint project)
-dnl @version $Id: ac_create_stdint_h.m4,v 1.2 2002-02-17 00:08:45 s_a_white Exp $
+dnl @version $Id: ac_create_stdint_h.m4,v 1.2 2002/02/17 00:08:45 s_a_white Exp $
 dnl @author  Guido Draheim <guidod@gmx.de>       STATUS: used on new platforms
 
 AC_DEFUN([AC_CREATE_STDINT_H],

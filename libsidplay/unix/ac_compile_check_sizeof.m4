@@ -47,7 +47,7 @@ dnl      AC_COMPILE_CHECK_SIZEOF(ptrdiff_t, $headers)
 dnl      AC_COMPILE_CHECK_SIZEOF(off_t, $headers)
 dnl
 dnl @author Kaveh Ghazi <ghazi@caip.rutgers.edu>
-dnl @version $Id: ac_compile_check_sizeof.m4,v 1.1 2002-01-03 20:13:11 s_a_white Exp $
+dnl @version $Id: ac_compile_check_sizeof.m4,v 1.1 2002/01/03 20:13:11 s_a_white Exp $
 dnl
 AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
 [changequote(<<, >>)dnl

@@ -1,8 +1,10 @@
 /***************************************************************************
-               hardsid.h  -  HardSID Interface
+               hardsid.h  -  Hardsid support interface.
+	                     Created from Jarno's original
+		             Sidplay2 patch
                              -------------------
-    begin                : Sat Jun 17 2006
-    copyright            : (C) 2006 by Simon White
+    begin                : Fri Dec 15 2000
+    copyright            : (C) 2000-2002 by Simon White
     email                : s_a_white@email.com
  ***************************************************************************/
 /***************************************************************************
@@ -14,54 +16,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.19  2008/02/27 20:58:52  s_a_white
- *  Re-sync COM like interface and update to final names.
- *
- *  Revision 1.18  2007/01/27 10:21:39  s_a_white
- *  Updated to use better COM emulation interface.
- *
- *  Revision 1.17  2006/11/01 21:26:47  s_a_white
- *  Future compatibility name added
- *
- *  Revision 1.16  2006/10/28 09:16:30  s_a_white
- *  Update to new COM style interface
- *
- *  Revision 1.15  2006/10/20 16:27:59  s_a_white
- *  Build fix
- *
- *  Revision 1.14  2006/10/20 16:16:28  s_a_white
- *  Better compatibility with old code.
- *
- *  Revision 1.13  2006/06/29 19:11:36  s_a_white
- *  Make inheritence non virtual, no longer needed
- *
- *  Revision 1.12  2006/06/27 22:09:26  s_a_white
- *  Missed virtuals
- *
- *  Revision 1.11  2006/06/27 22:08:31  s_a_white
- *  Interface class must be abstract.
- *
- *  Revision 1.10  2006/06/27 19:44:55  s_a_white
- *  Add return parameter to ifquery.
- *
- *  Revision 1.9  2006/06/27 19:17:02  s_a_white
- *  Export a create call to make a builder (eventually turn code into module)
- *
- *  Revision 1.8  2006/06/21 20:02:17  s_a_white
- *  List functions in alphabetical order.
- *
- *  Revision 1.7  2006/06/20 22:25:21  s_a_white
- *  Add interface IID export.
- *
- *  Revision 1.6  2006/06/19 20:54:10  s_a_white
- *  Move implementation out, just provide interface (like COM).
- *
- *  Revision 1.5  2005/03/22 19:10:48  s_a_white
- *  Converted windows hardsid code to work with new linux streaming changes.
- *  Windows itself does not yet support streaming in the drivers for synchronous
- *  playback to multiple sids (so cannot use MK4 to full potential).
- *
+ *  $Log: hardsid.h,v $
  *  Revision 1.4  2004/05/05 23:47:50  s_a_white
  *  Detect available sid devices on Unix system.
  *
@@ -80,25 +35,41 @@
 #ifndef  _hardsid_h_
 #define  _hardsid_h_
 
-#include <sidplay/sidbuilder.h>
+#include <vector>
+#include "sidplay/sidbuilder.h"
 
-class IHardSIDBuilder: public ISidBuilder
+
+class HardSIDBuilder: public sidbuilder
 {
+private:
+    static bool m_initialised;
+    char   m_errorBuffer[100];
+    std::vector<sidemu *> sidobjs;
+
+#ifdef HAVE_UNIX
+    static uint m_count;
+#endif
+
+    int init (void);
+
 public:
-    static const Iid &iid () {
-        SIDIID(0x92b1592e, 0x7f8e, 0x47ec, 0xb995, 0x4ad6, 0x9aa727a1);
-    }
+    HardSIDBuilder  (const char * const name);
+    ~HardSIDBuilder (void);
+    // true will give you the number of used devices.
+    //    return values: 0 none, positive is used sids
+    // false will give you all available sids.
+    //    return values: 0 endless, positive is available sids.
+    // use bool operator to determine error
+    uint        devices (bool used);
+    sidemu     *lock    (c64env *env, sid2_model_t model);
+    void        unlock  (sidemu *device);
+    void        remove  (void);
+    const char *error   (void) const { return m_errorBuffer; }
+    const char *credits (void);
+    void        flush   (void);
+    void        filter  (bool enable);
 
-    virtual uint create  (uint sids) = 0;
-    virtual uint devices (bool used) = 0;
-    virtual void flush   (void) = 0;
-    virtual void filter  (bool enable) = 0;
-    virtual void remove  (void) = 0;
+    uint        create  (uint sids);
 };
-
-// Future interface name
-typedef IHardSIDBuilder HardSIDBuilder;
-
-extern "C" ISidUnknown *HardSIDBuilderCreate (const char * name);
 
 #endif // _hardsid_h_

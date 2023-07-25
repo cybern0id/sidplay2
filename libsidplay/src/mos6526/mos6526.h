@@ -15,22 +15,7 @@
  *                                                                         *
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.20  2006/06/27 19:35:28  s_a_white
- *  Changed ifquery return type.
- *
- *  Revision 1.19  2006/06/19 19:14:05  s_a_white
- *  Get most derived interface to be inherited by the lowest base class.  This
- *  removes duplicate inheritance of interfaces and the need for virtual
- *  public inheritance of interfaces.
- *
- *  Revision 1.18  2006/06/17 14:56:26  s_a_white
- *  Switch parts of the code over to a COM style implementation.  I.e. serperate
- *  interface/implementation
- *
- *  Revision 1.17  2004/06/26 11:09:13  s_a_white
- *  Changes to support new calling convention for event scheduler.
- *
+ *  $Log: mos6526.h,v $
  *  Revision 1.16  2004/04/13 07:39:32  s_a_white
  *  Add lightpen support.
  *
@@ -99,13 +84,10 @@
 #ifndef _mos6526_h_
 #define _mos6526_h_
 
-#include "sidconfig.h"
-#include "imp/component.h"
+#include "component.h"
 #include "event.h"
 
-SIDPLAY2_NAMESPACE_START
-
-class MOS6526: public CoComponent<ISidComponent>
+class MOS6526: public component
 {
 private:
     static const char *credit;
@@ -142,9 +124,17 @@ protected:
     uint8_t m_todclock[4], m_todalarm[4], m_todlatch[4];
     event_clock_t m_todCycles, m_todPeriod;
 
-    EventCallback<MOS6526> m_taEvent;
-    EventCallback<MOS6526> m_tbEvent;
-    EventCallback<MOS6526> m_todEvent;
+    class EventTa: public Event
+    {
+    private:
+        MOS6526 &m_cia;
+        void event (void) {m_cia.ta_event ();}
+
+    public:
+        EventTa (MOS6526 *cia)
+            :Event("CIA Timer A"),
+             m_cia(*cia) {}
+    } event_ta;
 
     /*
     class EventStateMachineA: public Event
@@ -159,10 +149,34 @@ protected:
              m_cia(*cia) {}
     } event_stateMachineA;
 */
+    class EventTb: public Event
+    {
+    private:
+        MOS6526 &m_cia;
+        void event (void) {m_cia.tb_event ();}
 
-private:
-    // Interface - Later use
-    bool _iquery (const Iid &, void **) { return false; }
+    public:
+        EventTb (MOS6526 *cia)
+            :Event("CIA Timer B"),
+             m_cia(*cia) {}
+    } event_tb;
+
+    class EventTod: public Event
+    {
+    private:
+        MOS6526 &m_cia;
+        void event (void) {m_cia.tod_event ();}
+
+    public:
+        EventTod (MOS6526 *cia)
+            :Event("CIA Time of Day"),
+             m_cia(*cia) {}
+    } event_tod;
+
+    friend class EventTa;
+//    friend class EventStateMachineA;
+    friend class EventTb;
+    friend class EventTod;
 
 protected:
     MOS6526 (EventContext *context);
@@ -191,7 +205,5 @@ public:
     // connected to pins on the IC.
     void clock (float64_t clock);
 };
-
-SIDPLAY2_NAMESPACE_STOP
 
 #endif // _mos6526_h_

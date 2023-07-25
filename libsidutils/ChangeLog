@@ -1,9 +1,3 @@
-Release V1.0.5
-
-* Synced INI file read with libini-1.1.10
-* Use correct header for sprintf in SidFilter.cpp
-
-
 Release V1.0.3-4
 
 * Synced INI file reader with libini-1.1.9

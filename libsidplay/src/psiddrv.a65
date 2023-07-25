@@ -22,10 +22,7 @@
  * od -v -An -w8 -tx1 psiddrv.o65 | sed -re 's/[[:alnum:]]+/0x&,/g' > psiddrv.bin
  ***************************************************************************/
 /***************************************************************************
- *  $Log: not supported by cvs2svn $
- *  Revision 1.34  2004/06/27 08:18:52  s_a_white
- *  Slightly more optimal IRQ routine.
- *
+ *  $Log: psiddrv.a65,v $
  *  Revision 1.33  2004/05/31 19:25:45  s_a_white
  *  Removed cli as nolonger necessary (plp later does same job).
  *
@@ -202,16 +199,12 @@ doinit      ldy $02a6
 vicinit     stx $d011
             sty $d012
 
-            ; Don't override default irq handler for RSIDs
-            lda initiomap
-            beq random
-
             ; If play address, override default irq vector so
             ; we reach are routine to handle play routine
             lda playiomap
             beq random
-            ldx #<irqjob
-            stx $0314
+            lda #<irqjob
+            sta $0314
 
             ; simulate time before user loads tune
 random      ldx rndwait
@@ -275,19 +268,20 @@ irqjob      lda $01
             jsr play
             pla
             sta $01
-            dec $d019
-            lda $dc0d
+            lda $d019
+            sta $d019
+
+            ; IRQ Exit (code from Kernel ROM)
+irqret      lda initiomap
+            bne irqret2
+            jmp $ea31
+irqret2     lda $dc0d
             pla
             tay
             pla
             tax
             pla
             rti
-
-            ; IRQ Exit (code from Kernel ROM)
-            ; This loop through is not needed but is
-            ; to ensure compatibility with psid64
-irqret      jmp $ea31
 
             ; HLT
 exception   .byte $02

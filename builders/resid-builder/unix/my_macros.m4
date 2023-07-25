@@ -80,14 +80,14 @@ AC_DEFUN([MY_CHECK_IOS_BIN],
     AC_CACHE_VAL(test_cv_have_ios_binary,
     [
         AC_TRY_COMPILE(
-            [#include <fstream>],
-            [std::ifstream myTest(0,std::ios::in|std::ios::binary);],
+            [#include <fstream.h>],
+            [ifstream myTest(ios::in|ios::binary);],
             [test_cv_have_ios_binary=yes],
             [test_cv_have_ios_binary=no]
         )
     ])
     AC_MSG_RESULT($test_cv_have_ios_binary)
-    if test "$test_cv_have_ios_binary" = no; then
+    if test "$test_cv_have_ios_binary" = yes; then
         AC_DEFINE(HAVE_IOS_BIN,,
             [Define if standard member ``ios::binary'' is called ``ios::bin''.]
         )
@@ -105,9 +105,9 @@ AC_DEFUN([MY_CHECK_IOS_OPENMODE],
     AC_CACHE_VAL(test_cv_have_ios_openmode,
     [
         AC_TRY_COMPILE(
-            [#include <fstream>
-             #include <iomanip>],
-            [std::ios::openmode myTest = std::ios::in;],
+            [#include <fstream.h>
+             #include <iomanip.h>],
+            [ios::openmode myTest = ios::in;],
             [test_cv_have_ios_openmode=yes],
             [test_cv_have_ios_openmode=no]
         )
@@ -131,8 +131,8 @@ AC_DEFUN([MY_CHECK_EXCEPTIONS],
     AC_CACHE_VAL(test_cv_have_exceptions,
     [
         AC_TRY_COMPILE(
-            [#include <new>],
-            [char* buf = std::new(nothrow) char[1024];],
+            [#include <new.h>],
+            [char* buf = new(nothrow) char[1024];],
             [test_cv_have_exceptions=yes],
             [test_cv_have_exceptions=no]
         )
@@ -161,7 +161,7 @@ AC_DEFUN([MY_TRY_COMPILE],
 
     CXXFLAGS="$CXXFLAGS $1"
     LDFLAGS="$LDFLAGS $2"
-    CXX="${SHELL-/bin/sh} ${srcdir}/libtool --mode=link $CXX"
+    CXX="${SHELL-/bin/sh} ${srcdir}/libtool $CXX"
 
     AC_TRY_LINK(
         [#include <$3>],

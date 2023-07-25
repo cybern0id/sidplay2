@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="libsidutils"
-	ProjectGUID="{5AC95DE1-93E9-4DEA-8ABC-2D001E943AF5}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -140,9 +139,6 @@
 		</Configuration>
 	</Configurations>
 	<References>
-		<ProjectReference
-			ReferencedProjectIdentifier="{EAE4B524-4789-4436-842B-3E4319827EB4}"
-			Name="libsidplay"/>
 	</References>
 	<Files>
 		<File
